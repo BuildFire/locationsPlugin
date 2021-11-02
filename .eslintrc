@@ -1,0 +1,43 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base"
+  ],
+  "rules": {
+    "comma-dangle": 0,
+    "no-restricted-globals": 0,
+    "quotes": 0,
+    "no-underscore-dangle": 0,
+    "import/no-extraneous-dependencies": 0,
+    "no-param-reassign": 0,
+    "strict": [2, "never"],
+    "semi": [2, "always"],
+    "no-multi-spaces": 0,
+    "key-spacing": 0,
+    "curly": 0,
+    "no-irregular-whitespace": 0,
+    "no-console": 0,
+    "no-octal-escape": 0,
+    "no-unused-vars": [2, {"vars": "all", "args": "none"}],
+    "new-cap": 0,
+    "no-shadow": 0,
+    "camelcase": 0
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true,
+    "es6": true
+  },
+  "globals": {
+    "Promise": "readonly",
+    "buildfire": "readonly",
+    "tinymce": "readonly"
+  },
+  "ignorePatterns": ["node_modules/", "dist/"]
+}
