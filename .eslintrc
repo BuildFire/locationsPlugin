@@ -38,6 +38,5 @@
     "Promise": "readonly",
     "buildfire": "readonly",
     "tinymce": "readonly"
-  },
-  "ignorePatterns": ["node_modules/", "dist/"]
+  }
 }

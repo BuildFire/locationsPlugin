@@ -9,6 +9,35 @@ export default class Location {
    */
   constructor(data = {}) {
     this.title = data.title || null;
+    this.subtitle = data.subtitle || null;
+    this.pinIndex = data.pinIndex || null;
+    this.type = data.type || null;
+    this.address = data.address || null;
+    this.formattedAddress = data.formattedAddress || null;
+    this.addressAlias = data.addressAlias || null;
+    this.coordinates = data.coordinates || { latitude: null, longitude: null };
+    this.marker = data.marker || { type: null, icon: null, color: null };
+    this.categories = data.categories || { main: [], subcategories: [] };
+    this.settings = data.settings || {
+      showCategory: true,
+      showOpeningHours: false,
+      showPriceRange: false,
+      showStarRating: false,
+      allowChat: true
+    };
+    this.openingHours =  data.openingHours || {
+      timezone: null,
+      days: {}
+    };
+    this.images = data.images || [];
+    this.listImage = data.listImage || null;
+    this.description = data.description || null;
+    this.owner = data.owner || {};
+    this.views = data.views || 0;
+    this.priceRange = data.priceRange || 0;
+    this.rating = data.rating || { total: 0, count: 0, average: 0 };
+    this.bookmarksCount = data.bookmarksCount || 0;
+    this.actionItems = data.actionItems || [];
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -18,10 +47,29 @@ export default class Location {
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
   }
 
-
   toJSON() {
     return {
       title: this.title,
+      subtitle: this.subtitle,
+      pinIndex: this.pinIndex,
+      type: this.type,
+      address: this.address,
+      formattedAddress: this.formattedAddress,
+      addressAlias: this.addressAlias,
+      coordinates: this.coordinates,
+      marker: this.marker,
+      categories: this.categories,
+      settings: this.settings,
+      openingHours: this.openingHours,
+      images: this.images,
+      listImage: this.listImage,
+      description: this.description,
+      owner: this.owner,
+      views: this.views,
+      priceRange: this.priceRange,
+      rating: this.rating,
+      bookmarksCount: this.bookmarksCount,
+      actionItems: this.actionItems,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,
@@ -32,7 +80,12 @@ export default class Location {
       _buildfire: {
         index: {
           string1: this.title.toLowerCase(),
-          date1: this.createdOn
+          date1: this.createdOn,
+          array1: this.categories.main,
+          array2: this.categories.subcategories,
+          number1: this.pinIndex,
+          number2: this.priceRange,
+          number3: this.views
         }
       }
     };
