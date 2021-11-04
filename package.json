@@ -34,6 +34,7 @@
     "zip-webpack-plugin": "^2.0.0"
   },
   "dependencies": {
-    "eslint-config-airbnb-base": "^14.2.1"
+    "eslint-config-airbnb-base": "^14.2.1",
+    "faker": "^5.5.3"
   }
 }
