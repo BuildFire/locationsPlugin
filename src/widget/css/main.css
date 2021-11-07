@@ -1,4 +1,9 @@
 @import "../../../../styles/appStyle.css";
+@import "../../../../styles/helper.css";
+
+body > section {
+  padding: 15px;
+}
 
 #home:not(.active),
 #detail:not(.active),
@@ -6,3 +11,29 @@
 #categories:not(.active) {
   display: none;
 }
+
+/*temp for text fields start*/
+.searchbar.mdc-text-field {
+  width: 100%;
+  height: auto;
+  border: 0;
+  overflow: visible;
+  background-color: transparent;
+}
+.searchbar.mdc-text-field .mdc-text-field__input {
+  border: 0 ;
+  border-radius: .25rem;
+  padding: .75rem 1rem;
+  padding-left: 48px;
+  background-color: rgba(255,255,255,.05);
+  box-shadow: 0 .125rem .25rem .125rem rgba(150,150,150,.2);
+  opacity: 1;
+}
+.mdc-text-field::before, .mdc-text-field::after {
+  background-color: transparent;
+}
+.searchbar.mdc-text-field .mdc-text-field__input::placeholder {
+  color: inherit;
+  opacity: .5;
+}
+/*temp for text fields start*/
