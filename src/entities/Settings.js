@@ -49,6 +49,7 @@ export default class Settings {
       detailsMapPosition: null,
       showDetailsCategory: true
     };
+    this.chat = data.chat || {};
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -68,6 +69,7 @@ export default class Settings {
       map: this.map,
       bookmarks: this.bookmarks,
       design: this.design,
+      chat: this.chat,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,

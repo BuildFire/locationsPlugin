@@ -11,6 +11,7 @@ export default class Category {
     this.title = data.title || null;
     this.icon = data.icon || null;
     this.subcategories = data.subcategories || [];
+    this.quickAccess = [0, 1].includes(data.quickAccess) ? data.quickAccess : 0;
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -25,6 +26,7 @@ export default class Category {
       title: this.title,
       icon: this.icon,
       subcategories: this.subcategories,
+      quickAccess: this.quickAccess,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,
@@ -35,7 +37,8 @@ export default class Category {
       _buildfire: {
         index: {
           string1: this.title.toLowerCase(),
-          date1: this.createdOn
+          date1: this.createdOn,
+          number1: this.quickAccess
         }
       }
     };

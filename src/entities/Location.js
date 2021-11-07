@@ -25,7 +25,7 @@ export default class Location {
       showStarRating: false,
       allowChat: true
     };
-    this.openingHours =  data.openingHours || {
+    this.openingHours = data.openingHours || {
       timezone: null,
       days: {}
     };
