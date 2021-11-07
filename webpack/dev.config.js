@@ -77,6 +77,13 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/widget/index.html'),
       chunks: ['devServer', 'widget/widget']
     }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/home.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/home.html'),
+      chunks: ['devServer']
+    }),
     new CopyWebpackPlugin([{
       from: path.join(__dirname, '../src/control'),
       to: path.join(__dirname, '../control'),
