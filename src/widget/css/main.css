@@ -1,0 +1,8 @@
+@import "../../../../styles/appStyle.css";
+
+#home:not(.active),
+#detail:not(.active),
+#edit:not(.active),
+#categories:not(.active) {
+  display: none;
+}
