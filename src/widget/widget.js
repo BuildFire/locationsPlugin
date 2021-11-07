@@ -49,6 +49,8 @@ const init = () => {
     },
   ];
   carousel.loadItems(carouselItems);
+  const introContent = `<p><img style="display: block; margin-left: auto; margin-right: auto;" title="Tiny Logo" src="https://www.tiny.cloud/docs/images/logos/android-chrome-256x256.png" alt="TinyMCE Logo" width="128" height="128" /></p><h2 style="text-align: center;">Welcome to the TinyMCE editor demo!</h2>`;
+  document.querySelector('.intro-details').innerHTML = introContent;
 };
 
 fetchTemplate('home', init);
