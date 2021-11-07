@@ -35,6 +35,20 @@ const injectTemplate = (template) => {
 
 const init = () => {
   injectTemplate('home');
+
+  const carousel = new buildfire.components.carousel.view('.carousel');
+  const carouselItems = [
+    {
+      iconUrl: "https://placeimg.com/800/400",
+    },
+    {
+      iconUrl: "https://placeimg.com/800/400",
+    },
+    {
+      iconUrl: "https://placeimg.com/800/400",
+    },
+  ];
+  carousel.loadItems(carouselItems);
 };
 
 fetchTemplate('home', init);
