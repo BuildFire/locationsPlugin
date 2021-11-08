@@ -57,6 +57,13 @@ const WebpackConfig = {
       chunks: ['devServer', 'control/content/content']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/content/templates/categories.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/content/templates/categories.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/design/index.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
