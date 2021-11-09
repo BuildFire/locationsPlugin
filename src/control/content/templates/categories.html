@@ -1,0 +1,57 @@
+<template>
+    <div class="section-title">
+        Categories
+    </div>
+    <div class="clearfix info">
+        <p class="info">
+            Please create the main the categories that your location and places can be grouped under for easy access by
+            user.
+        </p>
+    </div>
+    <hr class="none">
+    <div class="input-group search-box">
+        <input type="text" class="form-control" placeholder="Search">
+        <span class="input-group-btn">
+            <button class="btn btn-info" type="button">
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            </button>
+        </span>
+    </div>
+    <hr class="none">
+    <div class="actions">
+        <div class="btn-group">
+
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
+                <span class="margin-right-ten text-light-grey">Sort:</span>
+                <span> A - Z</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li>A - Z</li>
+                <li>Z - A</li>
+            </ul>
+        </div>
+
+        <div class="actions">
+            <div class="btn-group margin-right-fifteen">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
+                    Bulk Actions
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>Download Template</li>
+                    <li>Import</li>
+                    <li>Export</li>
+                </ul>
+            </div>
+            <button type="button" class="btn btn-success btn--lg">
+                + Add Category
+            </button>
+        </div>
+    </div>
+    <div class="items">
+        
+    </div>
+</template>
