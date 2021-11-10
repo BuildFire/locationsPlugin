@@ -21,28 +21,27 @@
   <script src="../../../../../scripts/buildfire.min.js"></script>
 </head>
 <body>
-  <div class="sidenav-container">
-    <ul class="sidenav">
-        <li >
-            <a ng-click="onStepChange('Categories')" class="active">
+  <div id="sidenav-container" class="sidenav-container">
+    <ul id="sidenav" class="sidenav">
+        <li id="categories-tab">
+            <a onclick="onSidenavChange('categories')" class="active">
                 <p>Categories</p>
             </a>
         </li>
-        <li >
-            <a ng-click="onStepChange('Locations')">
+        <li id="locations-tab">
+            <a onclick="onSidenavChange('locations')">
                 <p>Locations</p>
             </a>
         </li>
-        <li >
-            <a ng-click="onStepChange('ListView')">
+        <li id="listView-tab">
+            <a onclick="onSidenavChange('listView')">
                 <p>ListView</p>
             </a>
         </li>
        
     </ul>
-    <div class="sidenav-content">
-        <div id="categories" class="active"></div>
-        <div id="locations"></div>
+    <div id="sidenav-content" class="sidenav-content">
+        <div id="main"></div>
     </div>
   </div>
   <!--

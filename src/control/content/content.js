@@ -9,9 +9,10 @@ import DataMocks from '../../DataMocks';
 const templates = {};
 console.log('Content Page');
 /** template management start */
-const fetchTemplate = (template, done) => {
+const fetchTemplate = (template, callback) => {
   if (templates[template]) {
     console.warn(`template ${template} already exist.`);
+    callback(null, template);
     return;
   }
 
@@ -19,10 +20,11 @@ const fetchTemplate = (template, done) => {
   xhr.onload = () => {
     const content = xhr.responseText;
     templates[template] = new DOMParser().parseFromString(content, 'text/html');
-    done();
+    callback(null, template);
   };
-  xhr.onerror = () => {
+  xhr.onerror = (err) => {
     console.error(`fetching template ${template} failed.`);
+    callback(err, template);
   };
   xhr.open('GET', `./templates/${template}.html`);
   xhr.send(null);
@@ -34,12 +36,44 @@ const injectTemplate = (template) => {
     return;
   }
   const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  document.querySelector(`#${template}`).appendChild(createTemplate);
+  document.querySelector(`#main`).innerHTML = '';
+  document.querySelector(`#main`).appendChild(createTemplate);
 };
 /** template management end */
 
-const init = () => {
-  injectTemplate('categories');
+const navigate = (template) => {
+  fetchTemplate(template, () =>  injectTemplate(template));
 };
 
-fetchTemplate('categories', init);
+const setActiveSidenavTab = (section) => {
+  const sidenav = document.querySelector('#sidenav');
+  for (const tab of sidenav.childNodes) {
+    tab.querySelector('a').classList.remove('active');
+  };
+
+  sidenav.querySelector(`#${section}-tab`).firstChild.classList.add('active');
+
+
+};
+
+window.onSidenavChange = (section) => {
+  switch (section) {
+    case 'categories':
+      navigate('categories');
+      setActiveSidenavTab(section);
+      break;
+    case 'locations':
+      navigate('locations');
+      setActiveSidenavTab(section);
+      break;
+    default:
+      navigate('categories');
+      setActiveSidenavTab(section);
+  }
+};
+
+const init = () => {
+  navigate('categories');
+};
+
+init();
