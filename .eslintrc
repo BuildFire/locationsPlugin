@@ -37,6 +37,7 @@
   "globals": {
     "Promise": "readonly",
     "buildfire": "readonly",
+    "mdc": "readonly",
     "tinymce": "readonly"
   }
 }

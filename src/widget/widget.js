@@ -49,8 +49,21 @@ const init = () => {
     },
   ];
   carousel.loadItems(carouselItems);
-  const introContent = `<p><img style="display: block; margin-left: auto; margin-right: auto;" title="Tiny Logo" src="https://www.tiny.cloud/docs/images/logos/android-chrome-256x256.png" alt="TinyMCE Logo" width="128" height="128" /></p><h2 style="text-align: center;">Welcome to the TinyMCE editor demo!</h2>`;
-  document.querySelector('.intro-details').innerHTML = introContent;
+
+  document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+
+  const chipSets = document.querySelectorAll('.mdc-chip-set');
+  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+
+  const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+
+  buildfire.appearance.getAppTheme((err, appTheme) => {
+    if (err) return console.error(err);
+    const root = document.documentElement;
+    const { colors } = appTheme;
+    // todo warningTheme is missing in some themes, follwing is a temp fix
+    root.style.setProperty('--body-theme', colors.bodyText);
+  });
 };
 
 fetchTemplate('home', init);
