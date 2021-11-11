@@ -33,8 +33,54 @@ const injectTemplate = (template) => {
 };
 /** template management end */
 
+const searchLocations = () => {};
+
+/** ui helpers start */
+const showElement = (selector) => {
+  let element = selector;
+  if (typeof element === 'string') {
+    element = document.querySelector(element);
+  }
+
+  if (!element || !(element instanceof Element) || !element.style) {
+    console.warn(`invalid selector ${selector}.`);
+  } else {
+    element.style.display = 'block';
+  }
+};
+const hidElement = (selector) => {
+  let element = selector;
+  if (typeof element === 'string') {
+    element = document.querySelector(element);
+  }
+
+  if (!element || !(element instanceof Element) || !element.style) {
+    console.warn(`invalid selector ${selector}.`);
+  } else {
+    element.style.display = 'none';
+  }
+};
+/** ui helpers end */
+
 const init = () => {
   injectTemplate('home');
+
+  document.addEventListener('focus', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchTextField') {
+      showElement('#areaSearchLabel');
+      hidElement('.header-qf');
+    }
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchLocationsBtn') {
+      searchLocations(e);
+    }
+  });
 
   const carousel = new buildfire.components.carousel.view('.carousel');
   const carouselItems = [
@@ -61,7 +107,6 @@ const init = () => {
     if (err) return console.error(err);
     const root = document.documentElement;
     const { colors } = appTheme;
-    // todo warningTheme is missing in some themes, follwing is a temp fix
     root.style.setProperty('--body-theme', colors.bodyText);
   });
 };

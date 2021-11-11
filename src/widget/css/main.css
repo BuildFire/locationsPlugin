@@ -127,8 +127,10 @@ body > section {
   font-size: 12px;
 }
 
-
 .pointer {
   cursor: pointer;
 }
 
+#areaSearchLabel {
+  display: none;
+}
