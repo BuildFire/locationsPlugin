@@ -1,6 +1,12 @@
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 
+// todo tmp
+import Settings from '../entities/Settings';
+const settings = new Settings().toJSON();
+
+console.log('current settings...', settings);
+
 const templates = {};
 
 /** template management start */
@@ -62,46 +68,58 @@ const hidElement = (selector) => {
 };
 /** ui helpers end */
 
+const fetchSettings = (callback) => {
+  setTimeout(() => {
+    callback();
+  }, 500);
+};
+
 const init = () => {
-  injectTemplate('home');
+  const { showIntroductoryListView } = settings;
 
-  document.addEventListener('focus', (e) => {
-    if (!e.target) return;
+  fetchTemplate('home', () => {
+    injectTemplate('home');
 
-    if (e.target.id === 'searchTextField') {
-      showElement('#areaSearchLabel');
-      hidElement('.header-qf');
-    }
-  }, true);
+    document.addEventListener('focus', (e) => {
+      if (!e.target) return;
 
-  document.addEventListener('click', (e) => {
-    if (!e.target) return;
+      if (e.target.id === 'searchTextField') {
+        showElement('#areaSearchLabel');
+        hidElement('.header-qf');
+      }
+    }, true);
 
-    if (e.target.id === 'searchLocationsBtn') {
-      searchLocations(e);
+    document.addEventListener('click', (e) => {
+      if (!e.target) return;
+
+      if (e.target.id === 'searchLocationsBtn') {
+        searchLocations(e);
+      }
+    });
+
+    if (showIntroductoryListView) {
+      const carousel = new buildfire.components.carousel.view('.carousel');
+      const carouselItems = [
+        {
+          iconUrl: "https://placeimg.com/800/400",
+        },
+        {
+          iconUrl: "https://placeimg.com/800/400",
+        },
+        {
+          iconUrl: "https://placeimg.com/800/400",
+        },
+      ];
+      carousel.loadItems(carouselItems);
+
+      document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+
+      const chipSets = document.querySelectorAll('.mdc-chip-set');
+      Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+
+      const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
     }
   });
-
-  const carousel = new buildfire.components.carousel.view('.carousel');
-  const carouselItems = [
-    {
-      iconUrl: "https://placeimg.com/800/400",
-    },
-    {
-      iconUrl: "https://placeimg.com/800/400",
-    },
-    {
-      iconUrl: "https://placeimg.com/800/400",
-    },
-  ];
-  carousel.loadItems(carouselItems);
-
-  document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
-
-  const chipSets = document.querySelectorAll('.mdc-chip-set');
-  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
-
-  const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
 
   buildfire.appearance.getAppTheme((err, appTheme) => {
     if (err) return console.error(err);
@@ -111,4 +129,4 @@ const init = () => {
   });
 };
 
-fetchTemplate('home', init);
+fetchSettings(init);
