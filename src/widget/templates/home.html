@@ -1,3 +1,218 @@
 <template>
-  <header>Home Page</header>
+  <header>
+    <label class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body">
+      <i class="material-icons mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="searchLocationsBtn">search</i>
+      <input class="mdc-text-field__input mdc-theme--primary" placeholder="Search" type="text" aria-labelledby="searchTextField" id="searchTextField" autocomplete="off">
+      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">filter_alt</i>
+    </label>
+
+    <label id="areaSearchLabel" class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body margin-top-fifteen">
+      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">fmd_good</i>
+      <input class="mdc-text-field__input mdc-theme--primary" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
+      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">gps_fixed</i>
+    </label>
+
+    <div class="mdc-chip-set mdc-chip-set--filter margin-top-fifteen header-qf" role="grid">
+      <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+              <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+        <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">Category Name</span>
+              </span>
+            </span>
+      </div>
+      <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+              <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+        <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">Category Name</span>
+              </span>
+            </span>
+      </div>
+      <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+              <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+        <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">Category Name</span>
+              </span>
+            </span>
+      </div>
+      <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+              <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+        <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">Category Name</span>
+              </span>
+            </span>
+      </div>
+      <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+              <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+        <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">Category Name</span>
+              </span>
+            </span>
+      </div>
+    </div>
+  </header>
+
+  <section id="intro" class="margin-top-twenty">
+    <button class="mdc-fab mdc-theme--background mdc-theme--text-icon-on-background" aria-label="Map">
+      <div class="mdc-fab__ripple"></div>
+      <span class="mdc-fab__icon material-icons">map</span>
+    </button>
+
+    <div class="carousel-wrapper">
+      <div class="carousel"></div>
+    </div>
+
+    <div class="intro-details margin-top-thirty margin-bottom-thirty"></div>
+
+    <div id="introLocationsList">
+      <div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>Location title</p>
+            <p class="mdc-theme--text-body">Location subtitle</p>
+            <p class="mdc-theme--text-body">Address or coordinates</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>
+      <div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>Location title</p>
+            <p class="mdc-theme--text-body">Location subtitle</p>
+            <p class="mdc-theme--text-body">Address or coordinates</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>
+      <div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>Location title</p>
+            <p class="mdc-theme--text-body">Location subtitle</p>
+            <p class="mdc-theme--text-body">Address or coordinates</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+
+  </section>
 </template>

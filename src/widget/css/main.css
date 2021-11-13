@@ -1,8 +1,136 @@
 @import "../../../../styles/appStyle.css";
+@import "../../../../styles/helper.css";
+
+:root {
+  --body-theme: unset;
+}
+
+body > section {
+  padding: 15px;
+}
 
 #home:not(.active),
 #detail:not(.active),
 #edit:not(.active),
 #categories:not(.active) {
+  display: none;
+}
+
+/*temp for text fields start*/
+.search-field.mdc-text-field {
+  width: 100%;
+  height: auto;
+  border: 0;
+  overflow: visible;
+  background-color: transparent;
+}
+.search-field.mdc-text-field .mdc-text-field__input {
+  font-size: 13px;
+  border: 0 ;
+  border-radius: .25rem;
+  padding: .75rem 1rem;
+  padding-left: 48px;
+  background-color: rgba(255,255,255,.05);
+  box-shadow: 0 .125rem .25rem .125rem rgba(150,150,150,.2);
+  opacity: 1;
+}
+.mdc-text-field::before, .mdc-text-field::after {
+  background-color: transparent;
+}
+.search-field.mdc-text-field .mdc-text-field__input::placeholder {
+  color: inherit;
+  opacity: .5;
+}
+.search-field .mdc-text-field__icon {
+  font-size: 22px;
+}
+/*temp for text fields end*/
+
+.carousel-wrapper {
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+.mdc-theme--text-body {
+  color: var(--body-theme);
+}
+.mdc-fab {
+  position: fixed;
+  right: 35px;
+  bottom: 60px;
+  z-index: 1000;
+}
+
+.header-qf {
+  overflow-y: scroll;
+  white-space: nowrap;
+  display: block;
+  padding: 0 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+.header-qf .mdc-chip {
+  border-radius: 8px;
+}
+.header-qf .mdc-chip:first-child {
+  margin-left: 0;
+}
+.header-qf .mdc-chip__text {
+  font-size: 12px;
+}
+
+.location-item {
+  padding: 10px;
+}
+.d-flex {
+  display: flex;
+}
+.location-item img {
+  width: 64px;
+  height: 64px;
+  margin-right: 16px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.location-item__description {
+  flex: 1;
+}
+.location-item__description > p {
+  margin-bottom: 0;
+}
+.location-item__description p:first-child {
+  margin-top: 2px;
+  font-weight: bold;
+  color: #000000;
+}
+.location-item__description p:not(:first-child) {
+  margin-top: 6px;
+  font-size: 12px;
+}
+.location-item__actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.location-item__actions p {
+  font-size: 12px;
+  margin: 0;
+}
+.location-item .mdc-chip-set {
+  margin-top: 12px;
+  padding: 0;
+}
+.location-item .mdc-chip:first-child {
+  margin-left: 0;
+}
+.location-item .mdc-chip .mdc-chip__text {
+  font-size: 12px;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+#areaSearchLabel {
   display: none;
 }
