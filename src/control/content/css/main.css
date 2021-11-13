@@ -87,3 +87,8 @@ p.info::before {
 .actions select.form-control {
   -webkit-appearance: auto;
 }
+
+#items {
+	max-height: calc(100vh - 300px) !important;
+	overflow-y: auto;
+}

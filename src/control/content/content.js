@@ -4,6 +4,7 @@
 import buildfire from 'buildfire';
 import ContentController from './content.controller';
 import DataMocks from '../../DataMocks';
+import sortableListUI from './components/sortableList/sortableListUI';
 
 
 const templates = {};
@@ -42,7 +43,10 @@ const injectTemplate = (template) => {
 /** template management end */
 
 const navigate = (template) => {
-  fetchTemplate(template, () =>  injectTemplate(template));
+  fetchTemplate(template, () =>  {
+    injectTemplate(template);
+    sortableListUI.init('items', DataMocks.generate('CATEGORY', 10));
+  });
 };
 
 const setActiveSidenavTab = (section) => {
