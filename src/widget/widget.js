@@ -39,7 +39,9 @@ const injectTemplate = (template) => {
 };
 /** template management end */
 
-const searchLocations = () => {};
+const searchLocations = () => {
+  console.log('search Locations triggered')
+};
 
 /** ui helpers start */
 const showElement = (selector) => {
@@ -54,7 +56,7 @@ const showElement = (selector) => {
     element.style.display = 'block';
   }
 };
-const hidElement = (selector) => {
+const hideELement = (selector) => {
   let element = selector;
   if (typeof element === 'string') {
     element = document.querySelector(element);
@@ -85,7 +87,7 @@ const init = () => {
 
       if (e.target.id === 'searchTextField') {
         showElement('#areaSearchLabel');
-        hidElement('.header-qf');
+        hideELement('.header-qf');
       }
     }, true);
 
@@ -93,6 +95,16 @@ const init = () => {
       if (!e.target) return;
 
       if (e.target.id === 'searchLocationsBtn') {
+        searchLocations(e);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!e.target) return;
+
+      const keyCode = e.which || e.keyCode;
+
+      if (keyCode === 13 && e.target.id === 'searchTextField') {
         searchLocations(e);
       }
     });
