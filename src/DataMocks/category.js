@@ -1,12 +1,12 @@
 import faker from 'faker';
 import Category from '../entities/Category';
 
-
 function instance() {
   const payload = {
     title: faker.random.words(),
     icon: faker.random.image(),
     quickAccess: faker.random.arrayElement([0, 1]),
+    subcategories: [{ title: faker.random.words, icon: faker.random.image() }],
     createdOn: faker.date.past(),
     createdBy: faker.random.number(),
     lastUpdatedOn: faker.date.past(),
