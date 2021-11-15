@@ -96,6 +96,26 @@ const fetchCategories = (done) => {
     });
 };
 
+const refreshQuickFilter = () => {
+  const quickFilterItems = CATEGORIES.slice(0, 10);
+  const container = document.querySelector('.header-qf');
+
+  container.innerHTML = quickFilterItems.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-chip" role="row">
+        <div class="mdc-chip__ripple"></div>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+          <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+        </span>
+        <span role="gridcell">
+          <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+            <span class="mdc-chip__text">${n.title}</span>
+          </span>
+        </span>
+      </div>`), 0);
+
+  const chipSets = document.querySelectorAll('.mdc-chip-set');
+  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+};
 
 const init = () => {
   const { showIntroductoryListView } = settings;
@@ -148,8 +168,7 @@ const init = () => {
 
         document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
 
-        const chipSets = document.querySelectorAll('.mdc-chip-set');
-        Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+        refreshQuickFilter();
 
         const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
       }
