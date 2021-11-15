@@ -28,6 +28,10 @@ const testingFn = () => {
       },
     ];
   }
+
+  if (!settings.introductoryListView.description) {
+    settings.introductoryListView.description = '<h2 style="text-align: center;">Introduction to TinyMCE!</h2>';
+  }
 };
 
 testingFn();
@@ -194,6 +198,13 @@ const refreshQuickFilter = () => {
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 };
 
+const refreshIntroductoryDescription = () => {
+  if (settings.introductoryListView.description) {
+    const container = document.querySelector('.intro-details');
+    container.innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+  }
+};
+
 const init = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
 
@@ -236,8 +247,8 @@ const init = () => {
             carousel.loadItems(carouselItems);
           }
           renderLocations();
-          document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
           refreshQuickFilter();
+          refreshIntroductoryDescription();
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         }
