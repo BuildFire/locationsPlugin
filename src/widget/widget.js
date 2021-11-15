@@ -115,21 +115,62 @@ const fetchCategories = (done) => {
     });
 };
 
+const renderLocations = (selector) => {
+  const container = document.querySelector('#introLocationsList');
+  container.innerHTML = introductoryLocations.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>${n.title}</p>
+            <p class="mdc-theme--text-body">${n.subtitle}</p>
+            <p class="mdc-theme--text-body">${n.address}</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>`), 0);
+};
+
 const fetchIntroductoryLocations = (done) => {
   WidgetController
     .searchLocations({
       sort: { title: -1 }
     })
     .then((result) => {
+      introductoryLocations = result.map((l) => ({ id: l.id, ...l.data }));
       done();
     })
     .catch((err) => {
       console.error('search error: ', err);
     });
-};
-
-const renderLocations = (selector) => {
-
 };
 
 const refreshQuickFilter = () => {
@@ -194,6 +235,7 @@ const init = () => {
             const carouselItems = introductoryListView.images;
             carousel.loadItems(carouselItems);
           }
+          renderLocations();
           document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
           refreshQuickFilter();
           // eslint-disable-next-line no-new
