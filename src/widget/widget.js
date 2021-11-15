@@ -8,9 +8,10 @@ console.log('current settings...', settings);
 import Categories from '../repository/Categories';
 import DataMocks from '../DataMocks';
 
-const inst = DataMocks.generate('CATEGORY')[0];
+const inst = DataMocks.generate('LOCATION')[0];
 
 let CATEGORIES;
+let introductoryLocations = [];
 
 // todo to be removed
 const testingFn = () => {
@@ -114,6 +115,23 @@ const fetchCategories = (done) => {
     });
 };
 
+const fetchIntroductoryLocations = (done) => {
+  WidgetController
+    .searchLocations({
+      sort: { title: -1 }
+    })
+    .then((result) => {
+      done();
+    })
+    .catch((err) => {
+      console.error('search error: ', err);
+    });
+};
+
+const renderLocations = (selector) => {
+
+};
+
 const refreshQuickFilter = () => {
   const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
@@ -169,19 +187,19 @@ const init = () => {
     });
 
     fetchCategories(() => {
-      if (showIntroductoryListView) {
-        if (introductoryListView.images.length > 0) {
-          const carousel = new buildfire.components.carousel.view('.carousel');
-          const carouselItems = introductoryListView.images;
-          carousel.loadItems(carouselItems);
+      fetchIntroductoryLocations(() => {
+        if (showIntroductoryListView) {
+          if (introductoryListView.images.length > 0) {
+            const carousel = new buildfire.components.carousel.view('.carousel');
+            const carouselItems = introductoryListView.images;
+            carousel.loadItems(carouselItems);
+          }
+          document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+          refreshQuickFilter();
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         }
-
-        document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
-        refreshQuickFilter();
-
-        // eslint-disable-next-line no-new
-        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-      }
+      });
     });
   });
 
