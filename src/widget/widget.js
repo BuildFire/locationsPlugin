@@ -4,8 +4,14 @@ import WidgetController from './widget.controller';
 // todo tmp
 import Settings from '../entities/Settings';
 const settings = new Settings().toJSON();
-
 console.log('current settings...', settings);
+import Categories from '../repository/Categories';
+import DataMocks from '../DataMocks';
+
+const inst = DataMocks.generate('CATEGORY')[0];
+
+let CATEGORIES;
+
 
 const templates = {};
 
@@ -56,7 +62,7 @@ const showElement = (selector) => {
     element.style.display = 'block';
   }
 };
-const hideELement = (selector) => {
+const hideElement = (selector) => {
   let element = selector;
   if (typeof element === 'string') {
     element = document.querySelector(element);
@@ -76,6 +82,21 @@ const fetchSettings = (callback) => {
   }, 500);
 };
 
+const fetchCategories = (done) => {
+  WidgetController
+    .searchCategories({
+      sort: { title: -1 }
+    })
+    .then((result) => {
+      CATEGORIES = result.map((c) => ({ id: c.id, ...c.data }));
+      done();
+    })
+    .catch((err) => {
+      console.error('search error: ', err);
+    });
+};
+
+
 const init = () => {
   const { showIntroductoryListView } = settings;
 
@@ -87,7 +108,7 @@ const init = () => {
 
       if (e.target.id === 'searchTextField') {
         showElement('#areaSearchLabel');
-        hideELement('.header-qf');
+        hideElement('.header-qf');
       }
     }, true);
 
@@ -109,28 +130,30 @@ const init = () => {
       }
     });
 
-    if (showIntroductoryListView) {
-      const carousel = new buildfire.components.carousel.view('.carousel');
-      const carouselItems = [
-        {
-          iconUrl: "https://placeimg.com/800/400",
-        },
-        {
-          iconUrl: "https://placeimg.com/800/400",
-        },
-        {
-          iconUrl: "https://placeimg.com/800/400",
-        },
-      ];
-      carousel.loadItems(carouselItems);
+    fetchCategories(() => {
+      if (showIntroductoryListView) {
+        const carousel = new buildfire.components.carousel.view('.carousel');
+        const carouselItems = [
+          {
+            iconUrl: "https://placeimg.com/800/400",
+          },
+          {
+            iconUrl: "https://placeimg.com/800/400",
+          },
+          {
+            iconUrl: "https://placeimg.com/800/400",
+          },
+        ];
+        carousel.loadItems(carouselItems);
 
-      document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+        document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
 
-      const chipSets = document.querySelectorAll('.mdc-chip-set');
-      Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+        const chipSets = document.querySelectorAll('.mdc-chip-set');
+        Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 
-      const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-    }
+        const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      }
+    });
   });
 
   buildfire.appearance.getAppTheme((err, appTheme) => {

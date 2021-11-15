@@ -4,9 +4,9 @@ import Category from '../entities/Category';
 function instance() {
   const payload = {
     title: faker.random.words(),
-    icon: faker.random.image(),
+    icon: 'fmd_good',
     quickAccess: faker.random.arrayElement([0, 1]),
-    subcategories: [{ title: faker.random.words, icon: faker.random.image() }],
+    subcategories: [{ title: faker.random.words, icon: 'fmd_good' }],
     createdOn: faker.date.past(),
     createdBy: faker.random.number(),
     lastUpdatedOn: faker.date.past(),
