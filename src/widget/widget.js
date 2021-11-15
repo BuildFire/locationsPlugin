@@ -12,6 +12,24 @@ const inst = DataMocks.generate('CATEGORY')[0];
 
 let CATEGORIES;
 
+// todo to be removed
+const testingFn = () => {
+  if (settings.introductoryListView.images.length === 0) {
+    settings.introductoryListView.images = [
+      {
+        iconUrl: "https://placeimg.com/800/400",
+      },
+      {
+        iconUrl: "https://placeimg.com/800/400",
+      },
+      {
+        iconUrl: "https://placeimg.com/800/400",
+      },
+    ];
+  }
+};
+
+testingFn();
 
 const templates = {};
 
@@ -118,7 +136,7 @@ const refreshQuickFilter = () => {
 };
 
 const init = () => {
-  const { showIntroductoryListView } = settings;
+  const { showIntroductoryListView, introductoryListView } = settings;
 
   fetchTemplate('home', () => {
     injectTemplate('home');
@@ -152,25 +170,17 @@ const init = () => {
 
     fetchCategories(() => {
       if (showIntroductoryListView) {
-        const carousel = new buildfire.components.carousel.view('.carousel');
-        const carouselItems = [
-          {
-            iconUrl: "https://placeimg.com/800/400",
-          },
-          {
-            iconUrl: "https://placeimg.com/800/400",
-          },
-          {
-            iconUrl: "https://placeimg.com/800/400",
-          },
-        ];
-        carousel.loadItems(carouselItems);
+        if (introductoryListView.images.length > 0) {
+          const carousel = new buildfire.components.carousel.view('.carousel');
+          const carouselItems = introductoryListView.images;
+          carousel.loadItems(carouselItems);
+        }
 
         document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
-
         refreshQuickFilter();
 
-        const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        // eslint-disable-next-line no-new
+        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
       }
     });
   });
