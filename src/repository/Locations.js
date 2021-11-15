@@ -23,4 +23,34 @@ export default class Locations {
       });
     });
   }
+
+  /**
+   * Insert a new location data object
+   * @param {object} data
+   * @static
+   * @return {promise} query result
+   */
+  static add(data) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.insert(data, Locations.TAG, (error, record) => {
+        if (error) return reject(error);
+        resolve(record);
+      });
+    });
+  }
+
+  /**
+   * Get and pull a matching subset of the locations.
+   * @param {object} options
+   * @static
+   * @return {promise} query result
+   */
+  static search(options) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.search(options, Locations.TAG, (error, records) => {
+        if (error) return reject(error);
+        resolve(records);
+      });
+    });
+  }
 }
