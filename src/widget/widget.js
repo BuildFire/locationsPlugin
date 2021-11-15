@@ -205,8 +205,17 @@ const refreshIntroductoryDescription = () => {
   }
 };
 
+const refreshIntroductoryCarousel = () => {
+  const { introductoryListView } = settings;
+  if (introductoryListView.images.length > 0) {
+    const carousel = new buildfire.components.carousel.view('.carousel');
+    const carouselItems = introductoryListView.images;
+    carousel.loadItems(carouselItems);
+  }
+};
+
 const init = () => {
-  const { showIntroductoryListView, introductoryListView } = settings;
+  const { showIntroductoryListView } = settings;
 
   fetchTemplate('home', () => {
     injectTemplate('home');
@@ -241,11 +250,7 @@ const init = () => {
     fetchCategories(() => {
       fetchIntroductoryLocations(() => {
         if (showIntroductoryListView) {
-          if (introductoryListView.images.length > 0) {
-            const carousel = new buildfire.components.carousel.view('.carousel');
-            const carouselItems = introductoryListView.images;
-            carousel.loadItems(carouselItems);
-          }
+          refreshIntroductoryCarousel();
           renderLocations();
           refreshQuickFilter();
           refreshIntroductoryDescription();
