@@ -99,6 +99,10 @@ body > section {
   margin-bottom: 0;
 }
 .location-item__description p:first-child {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   margin-top: 2px;
   font-weight: bold;
   color: #000000;
