@@ -215,7 +215,7 @@ const refreshIntroductoryCarousel = () => {
 };
 
 const init = () => {
-  const { showIntroductoryListView } = settings;
+  const { showIntroductoryListView, introductoryListView } = settings;
 
   fetchTemplate('home', () => {
     injectTemplate('home');
@@ -254,6 +254,12 @@ const init = () => {
           renderLocations();
           refreshQuickFilter();
           refreshIntroductoryDescription();
+
+          if (introductoryListView.images.length === 0 && introductoryLocations.length === 0 && !introductoryListView.description) {
+            // todo apply empty screen
+
+          }
+
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         }
