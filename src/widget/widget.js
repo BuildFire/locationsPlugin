@@ -255,9 +255,10 @@ const init = () => {
           refreshQuickFilter();
           refreshIntroductoryDescription();
 
-          if (introductoryListView.images.length === 0 && introductoryLocations.length === 0 && !introductoryListView.description) {
-            // todo apply empty screen
-
+          if (introductoryListView.images.length === 0
+            && introductoryLocations.length === 0
+            && !introductoryListView.description) {
+            showElement('div.empty-page');
           }
 
           // eslint-disable-next-line no-new

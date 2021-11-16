@@ -140,3 +140,12 @@ body > section {
   font-size: 13px;
   text-align: center;
 }
+
+div.empty-page {
+  background-image: url("../images/empty_page.svg");
+  height: 60vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto;
+  display: none;
+}
