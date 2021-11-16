@@ -3,6 +3,7 @@
 
 :root {
   --body-theme: unset;
+  --background-color: unset;
 }
 
 body > section {
@@ -11,8 +12,7 @@ body > section {
 
 #home:not(.active),
 #detail:not(.active),
-#edit:not(.active),
-#categories:not(.active) {
+#edit:not(.active) {
   display: none;
 }
 
@@ -152,4 +152,17 @@ div.empty-page {
   background-repeat: no-repeat;
   background-size: auto;
   display: none;
+}
+
+#filter {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: -200%;
+  top: 0;
+  transition: all .4s ease-in-out;
+  overflow: hidden;
+}
+#filter.overlay {
+  left: 0;
 }

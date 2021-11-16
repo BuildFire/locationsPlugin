@@ -49,7 +49,7 @@ const fetchTemplate = (template, done) => {
   xhr.onload = () => {
     const content = xhr.responseText;
     templates[template] = new DOMParser().parseFromString(content, 'text/html');
-    done();
+    done(template);
   };
   xhr.onerror = () => {
     console.error(`fetching template ${template} failed.`);
@@ -214,65 +214,71 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
-const init = () => {
+const initEventListeners = () => {
+  document.addEventListener('focus', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchTextField') {
+      showElement('#areaSearchLabel');
+      hideElement('.header-qf');
+    }
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchLocationsBtn') {
+      searchLocations(e);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!e.target) return;
+
+    const keyCode = e.which || e.keyCode;
+
+    if (keyCode === 13 && e.target.id === 'searchTextField') {
+      searchLocations(e);
+    }
+  });
+};
+
+const initHomePage = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
+  injectTemplate('home');
+  fetchCategories(() => {
+    fetchIntroductoryLocations(() => {
+      if (showIntroductoryListView) {
+        refreshIntroductoryCarousel();
+        renderLocations();
+        refreshQuickFilter();
+        refreshIntroductoryDescription();
 
-  fetchTemplate('home', () => {
-    injectTemplate('home');
-
-    document.addEventListener('focus', (e) => {
-      if (!e.target) return;
-
-      if (e.target.id === 'searchTextField') {
-        showElement('#areaSearchLabel');
-        hideElement('.header-qf');
-      }
-    }, true);
-
-    document.addEventListener('click', (e) => {
-      if (!e.target) return;
-
-      if (e.target.id === 'searchLocationsBtn') {
-        searchLocations(e);
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (!e.target) return;
-
-      const keyCode = e.which || e.keyCode;
-
-      if (keyCode === 13 && e.target.id === 'searchTextField') {
-        searchLocations(e);
-      }
-    });
-
-    fetchCategories(() => {
-      fetchIntroductoryLocations(() => {
-        if (showIntroductoryListView) {
-          refreshIntroductoryCarousel();
-          renderLocations();
-          refreshQuickFilter();
-          refreshIntroductoryDescription();
-
-          if (introductoryListView.images.length === 0
-            && introductoryLocations.length === 0
-            && !introductoryListView.description) {
-            showElement('div.empty-page');
-          }
-
-          // eslint-disable-next-line no-new
-          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        if (introductoryListView.images.length === 0
+          && introductoryLocations.length === 0
+          && !introductoryListView.description) {
+          showElement('div.empty-page');
         }
-      });
+
+        // eslint-disable-next-line no-new
+        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      }
     });
   });
+};
+
+const init = () => {
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomePage);
+
+  initEventListeners();
 
   buildfire.appearance.getAppTheme((err, appTheme) => {
     if (err) return console.error(err);
     const root = document.documentElement;
     const { colors } = appTheme;
     root.style.setProperty('--body-theme', colors.bodyText);
+    root.style.setProperty('--background-color', colors.backgroundColor);
   });
 };
 
