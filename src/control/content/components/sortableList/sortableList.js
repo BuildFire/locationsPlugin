@@ -2,23 +2,32 @@
 import buildfire from "buildfire";
 
 export default class SortableList {
-  constructor(element, items = []) {
+  constructor(element, items = [], injectItemElements, options = {}) {
     // sortableList requires Sortable.js
-    if (typeof Sortable === "undefined")
+    if (typeof Sortable === "undefined") {
+      // eslint-disable-next-line no-throw-literal
       throw "please add Sortable first to use sortableList components";
+    }
+
+    this.injectItemElements = injectItemElements;
     this.items = [];
+    this.options = options || {};
     this.init(element);
     this.loadItems(items);
   }
 
   // will be called to initialize the setting in the constructor
   init(element) {
-    if (typeof element === "string")
+    if (typeof element === "string") {
       this.element = document.getElement(element);
-    else this.element = element;
-    //this._renderTemplate();
+    } else {
+      this.element = element;
+    }
+
     this.element.classList.add("draggable-list-view");
-    // this._initEvents();
+    if (this.options.isDraggable) {
+      this._initEvents();
+    }
   }
 
   // this method allows you to replace the slider image or append to then if appendItems = true
@@ -64,81 +73,7 @@ export default class SortableList {
 
   // append new sortable item to the DOM
   injectItemElements(item, index, divRow) {
-    // eslint-disable-next-line no-throw-literal
-    if (!item) throw "Missing Item";
-    divRow.innerHTML = "";
-    divRow.setAttribute("arrayIndex", index);
-
-    // Create the required DOM elements
-    const moveHandle = document.createElement("span");
-    const title = document.createElement("a");
-    const deleteButton = document.createElement("span");
-    const editButton = document.createElement("span");
-
-    // Add the required classes to the elements
-    divRow.className = "d-item clearfix";
-    moveHandle.className = "icon icon-menu cursor-grab";
-    title.className = "title ellipsis item-title";
-
-    deleteButton.className = "btn btn--icon icon icon-cross2";
-    editButton.className = "btn btn--icon icon icon-pencil3";
-    title.innerHTML = item.title;
-
-    /**
-         * 
-         *   <div class="button-switch">
-                <input id="show1stAnswerInTitle" type="checkbox"
-                    onclick="handleToggleChange('show1stAnswerInTitle', event.target.checked)" />
-                <label for="show1stAnswerInTitle" class="label-success"></label>
-            </div>
-         */
-
-    // Append elements to the DOM
-    // divRow.appendChild(moveHandle);
-
-    const mediaHolder = document.createElement("div");
-    mediaHolder.className = "media-holder";
-
-    if (item.icon) {
-      const img = document.createElement("img");
-      img.src = this._cropImage(item.icon, {
-        width: 16,
-        height: 16,
-      });
-      mediaHolder.appendChild(img);
-    }
-
-    divRow.appendChild(mediaHolder);
-
-    divRow.appendChild(title);
-    divRow.appendChild(editButton);
-    divRow.appendChild(deleteButton);
-
-    title.onclick = () => {
-      let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
-      index = parseInt(index);
-      this.onItemClick(item, index, divRow);
-      return false;
-    };
-
-    deleteButton.onclick = () => {
-      let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
-      index = parseInt(index);
-      let t = this;
-      this.onDeleteItem(item, index, (confirmed) => {
-        if (confirmed) {
-          divRow.parentNode.removeChild(divRow);
-          t.reIndexRows();
-        }
-      });
-      return false;
-    };
-    editButton.onclick = () => {
-      let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
-      index = parseInt(index);
-      this.onUpdateItem(item, index, divRow);
-      return false;
-    };
+    // function passed by constructor;
   }
 
   // initialize the generic events

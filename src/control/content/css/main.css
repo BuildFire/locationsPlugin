@@ -1,3 +1,6 @@
+
+/* Sidenav Style */
+
 .sidenav-container {
 	display: flex;
 }
@@ -39,7 +42,10 @@
 	flex: auto;
 }
 
+/* End Sidenav Style */
 
+
+/* Helpers Style */
 .section-title{
 	color: #000;
 	font-size: 18px;
@@ -77,6 +83,11 @@ p.info::before {
 	padding: 0 !important;
 }
 
+.text-bold {
+	font-weight: bold;
+	color: #000;
+}
+
 .actions {
 	display: flex;
   justify-content: space-between;
@@ -88,7 +99,50 @@ p.info::before {
   -webkit-appearance: auto;
 }
 
+.icon-holder {
+	object-fit: contain;
+	width: 40px;
+	height: 40px;
+	font-size: 24px;
+	display: flex !important;
+	line-height: initial !important;
+	justify-content: center;
+	align-items: center;
+	margin-right: 15px;
+	border-radius: 5px;
+	cursor: pointer;
+	background-color: #efefef;
+	overflow: hidden;
+}
+
+.add-icon {
+    content: '+';
+    display: inline-block;
+    font-size: 28px;
+}
+/* Helpers Style */
+
+
 #items {
 	max-height: calc(100vh - 300px) !important;
 	overflow-y: auto;
 }
+
+/* Sub Page Styles */
+
+.sub-page .sub-page-body {
+    max-height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
+    overflow: auto;
+}
+
+.sub-page .sub-page-footer {
+    text-align: right;
+    border-top: 1px solid #ddd !important;
+}
+
+.sub-page .sub-page-footer button {
+    margin-left: 8px;
+}
+
+/* End Sub Page Styles */

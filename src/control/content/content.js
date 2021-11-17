@@ -4,7 +4,7 @@
 import buildfire from 'buildfire';
 import ContentController from './content.controller';
 import DataMocks from '../../DataMocks';
-import sortableListUI from './components/sortableList/sortableListUI';
+import './components/categories';
 
 
 const templates = {};
@@ -45,7 +45,13 @@ const injectTemplate = (template) => {
 const navigate = (template) => {
   fetchTemplate(template, () =>  {
     injectTemplate(template);
-    sortableListUI.init('items', DataMocks.generate('CATEGORY', 10));
+    switch (template) {
+      case 'categories' :
+        initCategories();
+        break;
+      default:
+        initCategories();
+    }
   });
 };
 

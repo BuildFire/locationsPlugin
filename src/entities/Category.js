@@ -9,7 +9,8 @@ export default class Category {
    */
   constructor(data = {}) {
     this.title = data.title || null;
-    this.icon = data.icon || null;
+    this.iconUrl = data.iconUrl || null;
+    this.iconClassName = data.iconClassName || null;
     this.subcategories = data.subcategories || [];
     this.quickAccess = [0, 1].includes(data.quickAccess) ? data.quickAccess : 0;
     this.createdOn = data.createdOn || new Date();
@@ -24,7 +25,8 @@ export default class Category {
   toJSON() {
     return {
       title: this.title,
-      icon: this.icon,
+      iconUrl: this.iconUrl,
+      iconClassName: this.iconClassName,
       subcategories: this.subcategories,
       quickAccess: this.quickAccess,
       createdOn: this.createdOn,
