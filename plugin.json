@@ -1,6 +1,6 @@
 {
   "author":"BuildFire",
-  "pluginName": "plugin-template-webpack",
+  "pluginName": "Locations-Dev",
   "pluginDescription": "BuildFire plugin template for Webpack",
   "supportEmail":"support@buildfire.com",
   "control": {

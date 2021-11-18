@@ -214,6 +214,11 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
+const showFilterOverlay = () => {
+  document.querySelector('section#filter').classList.add('overlay');
+  document.querySelector('section.active').classList.remove('active');
+};
+
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -229,6 +234,10 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchLocationsBtn') {
       searchLocations(e);
+    }
+
+    if (e.target.id === 'filterIconBtn') {
+      showFilterOverlay();
     }
   });
 
