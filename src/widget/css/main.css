@@ -134,3 +134,18 @@ body > section {
 #areaSearchLabel {
   display: none;
 }
+.header-qf  .empty-state {
+  margin-bottom: 0;
+  margin-top: 5px;
+  font-size: 13px;
+  text-align: center;
+}
+
+div.empty-page {
+  background-image: url("../images/empty_page.svg");
+  height: 60vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto;
+  display: none;
+}

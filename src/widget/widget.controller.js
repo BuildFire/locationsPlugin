@@ -7,7 +7,10 @@ export default {
   getLocation(id) {
     return Locations.getById(id);
   },
-  searchCategories(options) {
+  searchCategories(options = {}) {
     return Categories.search(options);
+  },
+  searchLocations(options = {}) {
+    return Locations.search(options);
   }
 };

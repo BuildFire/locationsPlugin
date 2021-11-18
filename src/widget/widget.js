@@ -8,9 +8,10 @@ console.log('current settings...', settings);
 import Categories from '../repository/Categories';
 import DataMocks from '../DataMocks';
 
-const inst = DataMocks.generate('CATEGORY')[0];
+const inst = DataMocks.generate('LOCATION')[0];
 
 let CATEGORIES;
+let introductoryLocations = [];
 
 // todo to be removed
 const testingFn = () => {
@@ -26,6 +27,10 @@ const testingFn = () => {
         iconUrl: "https://placeimg.com/800/400",
       },
     ];
+  }
+
+  if (!settings.introductoryListView.description) {
+    settings.introductoryListView.description = '<h2 style="text-align: center;">Introduction to TinyMCE!</h2>';
   }
 };
 
@@ -114,6 +119,64 @@ const fetchCategories = (done) => {
     });
 };
 
+const renderLocations = (selector) => {
+  const container = document.querySelector('#introLocationsList');
+  container.innerHTML = introductoryLocations.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>${n.title}</p>
+            <p class="mdc-theme--text-body">${n.subtitle}</p>
+            <p class="mdc-theme--text-body">${n.address}</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>`), 0);
+};
+
+const fetchIntroductoryLocations = (done) => {
+  WidgetController
+    .searchLocations({
+      sort: { title: -1 }
+    })
+    .then((result) => {
+      introductoryLocations = result.map((l) => ({ id: l.id, ...l.data }));
+      done();
+    })
+    .catch((err) => {
+      console.error('search error: ', err);
+    });
+};
+
 const refreshQuickFilter = () => {
   const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
@@ -133,6 +196,22 @@ const refreshQuickFilter = () => {
 
   const chipSets = document.querySelectorAll('.mdc-chip-set');
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+};
+
+const refreshIntroductoryDescription = () => {
+  if (settings.introductoryListView.description) {
+    const container = document.querySelector('.intro-details');
+    container.innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+  }
+};
+
+const refreshIntroductoryCarousel = () => {
+  const { introductoryListView } = settings;
+  if (introductoryListView.images.length > 0) {
+    const carousel = new buildfire.components.carousel.view('.carousel');
+    const carouselItems = introductoryListView.images;
+    carousel.loadItems(carouselItems);
+  }
 };
 
 const init = () => {
@@ -169,19 +248,23 @@ const init = () => {
     });
 
     fetchCategories(() => {
-      if (showIntroductoryListView) {
-        if (introductoryListView.images.length > 0) {
-          const carousel = new buildfire.components.carousel.view('.carousel');
-          const carouselItems = introductoryListView.images;
-          carousel.loadItems(carouselItems);
+      fetchIntroductoryLocations(() => {
+        if (showIntroductoryListView) {
+          refreshIntroductoryCarousel();
+          renderLocations();
+          refreshQuickFilter();
+          refreshIntroductoryDescription();
+
+          if (introductoryListView.images.length === 0
+            && introductoryLocations.length === 0
+            && !introductoryListView.description) {
+            showElement('div.empty-page');
+          }
+
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         }
-
-        document.querySelector('.intro-details').innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
-        refreshQuickFilter();
-
-        // eslint-disable-next-line no-new
-        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-      }
+      });
     });
   });
 
