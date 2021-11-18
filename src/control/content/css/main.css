@@ -115,6 +115,11 @@ p.info::before {
 	overflow: hidden;
 }
 
+.icon-holder img {
+	width: 100%;
+	height: 100%;
+}
+
 .add-icon {
     content: '+';
     display: inline-block;

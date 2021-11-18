@@ -8,6 +8,7 @@ export default class Category {
    * @constructor
    */
   constructor(data = {}) {
+    this.id = data.id || null;
     this.title = data.title || null;
     this.iconUrl = data.iconUrl || null;
     this.iconClassName = data.iconClassName || null;

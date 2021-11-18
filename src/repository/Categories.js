@@ -1,3 +1,4 @@
+import Category from "../entities/Category";
 /**
  * Categories data access
  * @class
@@ -19,6 +20,7 @@ export default class Categories {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Categories.TAG, (error, result) => {
         if (error) return reject(error);
+        result = result.map(elem => new Category({ id: elem.id, ...elem.data }).toJSON());
         resolve(result);
       });
     });
@@ -30,11 +32,12 @@ export default class Categories {
    * @static
    * @returns {promise}
    */
-  static insert(category) {
+  static create(category) {
     return new Promise((resolve, reject) => {
+      category.createdOn = new Date();
       buildfire.publicData.insert(category, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        resolve(result);
+        resolve(new Category({ id: result.id, ...result.data}).toJSON());
       });
     });
   }
@@ -46,6 +49,7 @@ export default class Categories {
    * @returns {promise}
    */
   static update(categoryId, category) {
+    category.lastUpdatedOn = new Date();
     return new Promise((resolve, reject) => {
       buildfire.publicData.update(categoryId, category, Categories.TAG, (error, result) => {
         if (error) return reject(error);

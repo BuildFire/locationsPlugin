@@ -2,18 +2,37 @@
 /* eslint-disable prefer-destructuring */
 import buildfire from "buildfire";
 import DataMocks from "../../../../DataMocks";
+import CategoriesController from "./controller";
 import categoriesListUI from "./categoriesListUI";
 import subcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
 import { generateUUID, createTemplate } from "../../utils/helpers";
+import { downloadCsv, jsonToCsv, csvToJson} from "../../utils/csv.helper";
 
 const state = {
+  categories: [],
   newCategory: null,
 };
 
+const subcategoryTemplateHeader = {
+  id: 'ID (optional)',
+  title: "Title",
+};
+
+const categoriesTemplateHeader = {
+  id: 'Id',
+  title: "title",
+  iconUrl: "iconUrl",
+  quickAccess: "quickAccess",
+};
+
+
+
 const sidenavContainer = document.querySelector("#sidenav-container");
+const categories = document.querySelector("#main");
 const inputCategoryForm = document.querySelector("#input-category-form");
+
 let inputCategoryControls = {};
 let inputSubcategoryDialog = null;
 
@@ -21,6 +40,7 @@ const buildInputCategoryControls = () => {
   inputCategoryControls = {
     categoryIconBtn: inputCategoryForm.querySelector("#category-icon-btn"),
     categoryNameInput: inputCategoryForm.querySelector("#category-name-input"),
+    categoryNameInputError: inputCategoryForm.querySelector("#category-name-error"),
     categorySave: inputCategoryForm.querySelector("#category-save-btn"),
     subcategory: {
       addBtn: inputCategoryForm.querySelector("#subcategory-add-btn"),
@@ -29,6 +49,7 @@ const buildInputCategoryControls = () => {
       bulkActionBtn: inputCategoryForm.querySelector(
         "#subcategory-bulk-actions-btn"
       ),
+      fileInput: inputCategoryForm.querySelector("#file-input"),
       importBtn: inputCategoryForm.querySelector("#subcategory-import-btn"),
       exportBtn: inputCategoryForm.querySelector("#subcategory-export-btn"),
       downloadBtn: inputCategoryForm.querySelector("#subcategory-template-btn"),
@@ -145,9 +166,30 @@ window.addCategory = () => {
       }
     );
   };
-  inputCategoryControls.subcategory.downloadBtn.onclick = () => {};
-  inputCategoryControls.subcategory.importBtn.onclick = () => {};
-  inputCategoryControls.subcategory.exportBtn.onclick = () => {};
+  inputCategoryControls.subcategory.downloadBtn.onclick = () => {
+    const templateData = [{
+      id: "",
+      title: "",
+    }];
+    downloadCsvTemplate(templateData, subcategoryTemplateHeader);
+  };
+
+  inputCategoryControls.subcategory.importBtn.onclick = (e) => {
+    e.preventDefault(); 
+    inputCategoryControls.subcategory.fileInput.click();
+    inputCategoryControls.subcategory.fileInput.onchange = function() {
+      importSubcategories(newCategory, this.files[0], (subcategories) => {
+        newCategory.subcategories.push(...subcategories);
+        for (const subcategory of subcategories) {
+          subcategoriesListUI.addItem(subcategory);
+        }
+      });
+    };
+  };
+
+  inputCategoryControls.subcategory.exportBtn.onclick = () => {
+    downloadCsvTemplate(newCategory.subcategories, subcategoryTemplateHeader, 'subcategories');
+  };
 
   subcategoriesListUI.onUpdateItem = (item, index, divRow) => {
     addEditSubcategory(
@@ -184,6 +226,21 @@ window.addCategory = () => {
     newCategory.subcategories = subcategoriesListUI.sortableList.items;
     console.log(newCategory);
   };
+
+  inputCategoryControls.categorySave.onclick = () => {
+    const categoryName = inputCategoryControls.categoryNameInput.value;
+    if (!categoryName) {
+      inputCategoryControls.categoryNameInputError.classList.remove('hidden')
+    } else {
+      inputCategoryControls.categoryNameInputError.classList.add('hidden')
+    }
+    newCategory.title = categoryName;
+    CategoriesController.createCategory(newCategory.toJSON()).then((res) => {
+      console.log(res);
+      categoriesListUI.addItem(res);
+      cancelAddCategory();
+    })
+  }
 
   subcategoriesListUI.init("subcategory-items", newCategory.subcategories);
 };
@@ -238,7 +295,48 @@ const addEditSubcategory = (
   );
 };
 
-const createNewCategory = () => {};
+
+const  isValidItem = (item, index, array) => {
+  return item.fName || item.lName;
+}
+
+const validateCsv = (items) => {
+  if (!Array.isArray(items) || !items.length) {
+    return false;
+  }
+  return items.every( (item, index, array) =>  item.Title);
+}
+
+const importSubcategories = (category, file, callback) => {
+  if (!file) {
+    return;
+  }
+
+  const fileReader = new FileReader();
+  fileReader.onload=function(){
+    console.log(fileReader.result);
+    let rows = JSON.parse(csvToJson(fileReader.result));
+    if (!validateCsv(rows)) {
+      buildfire.dialog.alert({
+        message: "Your file missing title for one row or more, please check and upload again.",
+      });
+      return;
+    }
+
+    const subcategories = rows.map((elem) =>  ({id: generateUUID(), title: elem.Title}) )
+    callback(subcategories);
+  }
+              
+  fileReader.readAsText(file);
+}
+
+const downloadCsvTemplate = (templateData, header, name) => {
+  const  csv = jsonToCsv(templateData, {
+    header
+  });
+
+  downloadCsv(csv, `${name? name : 'template'}.csv`);
+};
 
 const updateCategory = () => {};
 
@@ -248,11 +346,83 @@ window.cancelAddCategory = () => {
   inputCategoryForm.style.display = "none";
 };
 
-const downloadSubcategoryTemplate = () => {};
 
-const loadCategories = () => {};
+window.searchCategories = () => {
+  const searchElem = categories.querySelector('#category-search-input');
+  if (!searchElem.value) {
+    categoriesListUI.init("items", state.categories);
+    return;
+  }
+
+  const data = state.categories.filter(elem => elem.title.toLowerCase().includes(searchElem.value.toLowerCase()));
+
+  categoriesListUI.init("items", data);
+};
+
+window.openCategorySort = (e) => {
+  e.stopPropagation();
+  const sortDropdown = categories.querySelector('#category-sort-dropdown');
+  const categoryDropdown = categories.querySelector('#category-bulk-dropdown');
+  toggleDropdown(sortDropdown);
+  toggleDropdown(categoryDropdown, true);
+}
+
+window.sortCategories = (sort) => {
+  const sortTextElem = categories.querySelector('#category-sort-txt');
+  state.categories.sort((a, b) => {
+    a = a.title.toLowerCase(), b = b.title.toLowerCase();
+    if (sort == 'Z-A') {
+      return a == b ? 0 : b > a ? 1 : - 1;
+    }
+    return a == b ? 0 : a > b ? 1 : - 1;
+  });
+  sortTextElem.innerHTML = sort == 'Z-A' ? 'Z - A' : 'A - Z';
+  categoriesListUI.init("items", state.categories);
+};
+
+window.openCategoryBulkAction = (e) => {
+  e.stopPropagation();
+  const categoryDropdown = categories.querySelector('#category-bulk-dropdown');
+  const sortDropdown = categories.querySelector('#category-sort-dropdown');
+  toggleDropdown(categoryDropdown);
+  toggleDropdown(sortDropdown, true);
+}
+
+window.importCategories = () => {
+
+};
+
+window.exportCategories = () => {
+  downloadCsvTemplate(state.categories, categoriesTemplateHeader, 'categories');
+};
+
+window.downloadCategoryTemplate = () => {
+  const templateData = [{
+    id: "",
+    title: "",
+    iconUrl: "",
+    quickAccess: ""
+  }];
+  downloadCsvTemplate(templateData, categoriesTemplateHeader);
+};
+
+
+categoriesListUI.onUpdateItem = (item, index, divRow) => { };
+categoriesListUI.onDeleteItem = (item, index, divRow) => { };
+
+const loadCategories = () => {
+  CategoriesController.searchCategories().then((categories) => {
+    state.categories = categories;
+    categoriesListUI.init("items", categories);
+  })
+};
+
+document.body.onclick = () => {
+  toggleDropdown(categories.querySelector('#category-sort-dropdown'), true);
+  toggleDropdown(categories.querySelector('#category-bulk-dropdown'), true);
+}
 
 // this called in content.js;
 window.initCategories = () => {
-  categoriesListUI.init("items", DataMocks.generate("CATEGORY", 10));
+  loadCategories();
 };
