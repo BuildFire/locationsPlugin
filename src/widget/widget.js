@@ -49,7 +49,7 @@ const fetchTemplate = (template, done) => {
   xhr.onload = () => {
     const content = xhr.responseText;
     templates[template] = new DOMParser().parseFromString(content, 'text/html');
-    done();
+    done(template);
   };
   xhr.onerror = () => {
     console.error(`fetching template ${template} failed.`);
@@ -214,66 +214,198 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
-const init = () => {
+const showFilterOverlay = () => {
+  document.querySelector('section#filter').classList.add('overlay');
+  document.querySelector('section.active').classList.remove('active');
+};
+
+const initEventListeners = () => {
+  document.addEventListener('focus', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchTextField') {
+      showElement('#areaSearchLabel');
+      hideElement('.header-qf');
+    }
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchLocationsBtn') {
+      searchLocations(e);
+    }
+
+    if (e.target.id === 'filterIconBtn') {
+      showFilterOverlay();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!e.target) return;
+
+    const keyCode = e.which || e.keyCode;
+
+    if (keyCode === 13 && e.target.id === 'searchTextField') {
+      searchLocations(e);
+    }
+  });
+};
+
+const initHomePage = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
+  injectTemplate('home');
+  fetchCategories(() => {
+    fetchIntroductoryLocations(() => {
+      if (showIntroductoryListView) {
+        refreshIntroductoryCarousel();
+        renderLocations();
+        refreshQuickFilter();
+        refreshIntroductoryDescription();
 
-  fetchTemplate('home', () => {
-    injectTemplate('home');
-
-    document.addEventListener('focus', (e) => {
-      if (!e.target) return;
-
-      if (e.target.id === 'searchTextField') {
-        showElement('#areaSearchLabel');
-        hideElement('.header-qf');
-      }
-    }, true);
-
-    document.addEventListener('click', (e) => {
-      if (!e.target) return;
-
-      if (e.target.id === 'searchLocationsBtn') {
-        searchLocations(e);
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (!e.target) return;
-
-      const keyCode = e.which || e.keyCode;
-
-      if (keyCode === 13 && e.target.id === 'searchTextField') {
-        searchLocations(e);
-      }
-    });
-
-    fetchCategories(() => {
-      fetchIntroductoryLocations(() => {
-        if (showIntroductoryListView) {
-          refreshIntroductoryCarousel();
-          renderLocations();
-          refreshQuickFilter();
-          refreshIntroductoryDescription();
-
-          if (introductoryListView.images.length === 0
-            && introductoryLocations.length === 0
-            && !introductoryListView.description) {
-            showElement('div.empty-page');
-          }
-
-          // eslint-disable-next-line no-new
-          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        if (introductoryListView.images.length === 0
+          && introductoryLocations.length === 0
+          && !introductoryListView.description) {
+          showElement('div.empty-page');
         }
-      });
+
+        // eslint-disable-next-line no-new
+        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      }
     });
   });
+};
+
+const init = () => {
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomePage);
+
+  initEventListeners();
 
   buildfire.appearance.getAppTheme((err, appTheme) => {
     if (err) return console.error(err);
     const root = document.documentElement;
     const { colors } = appTheme;
     root.style.setProperty('--body-theme', colors.bodyText);
+    root.style.setProperty('--background-color', colors.backgroundColor);
+    root.style.setProperty('--primary-color', colors.primaryTheme);
   });
 };
 
 fetchSettings(init);
+
+
+
+
+class Accordion {
+  constructor({ element, active = null, multi = false }) {
+    this.el = element;
+    this.activePanel = active;
+    this.multi = multi;
+
+    this.init();
+  }
+
+  cacheDOM() {
+    this.panels = this.el.querySelectorAll(".expansion-panel");
+    this.headers = this.el.querySelectorAll(".expansion-panel-header");
+    this.bodies = this.el.querySelectorAll(".expansion-panel-body");
+  }
+
+  init() {
+    this.cacheDOM();
+    this.setSize();
+    this.initialExpand();
+    this.attachEvents();
+  }
+
+  // Remove "active" class from all expansion panels.
+  collapseAll() {
+    for (const h of this.headers) {
+      h.closest(".expansion-panel").classList.remove("active");
+    }
+  }
+
+  // Add "active" class to the parent expansion panel.
+  expand(idx) {
+    this.panels[idx].classList.add("active");
+  }
+
+  // Toggle "active" class to the parent expansion panel.
+  toggle(idx) {
+    this.panels[idx].classList.toggle("active");
+  }
+
+  // Get the height of each panel body and store it in attribute
+  // for the CSS transition.
+  setSize() {
+    this.bodies.forEach((b, idx) => {
+      const bound = b
+        .querySelector(".expansion-panel-body-content")
+        .getBoundingClientRect();
+      b.setAttribute("style", `--ht:${bound.height}px`);
+    });
+  }
+
+  initialExpand() {
+    if (this.activePanel > 0 && this.activePanel < this.panels.length) {
+      // Add the "active" class to the correct panel
+      this.panels[this.activePanel - 1].classList.add("active");
+      // Fix the current active panel index "zero based index"
+      this.activePanel = this.activePanel - 1;
+    }
+  }
+
+  attachEvents() {
+    this.headers.forEach((h, idx) => {
+      h.addEventListener("click", (e) => {
+        if (!this.multi) {
+          // Check if there is an active panel and close it before opening another one.
+          // If there is no active panel, close all the panels.
+          if (this.activePanel === idx) {
+            this.collapseAll();
+            this.activePanel = null;
+          } else {
+            this.collapseAll();
+            this.expand(idx);
+            this.activePanel = idx;
+          }
+        } else {
+          this.toggle(idx);
+        }
+      });
+    });
+
+    // Recalculate the panel body height and store it on resizing the window.
+    addEventListener("resize", this.setSize.bind(this));
+  }
+}
+
+
+setTimeout(() => {
+  /**
+   *    1- Checkbox click
+   *        a- if is checked uncheck all
+   *        b- if is not checked check them all
+   *    2- Chip click
+   *       a- if there is difference then intermediate
+   *       b- if all are checked then check the box
+   *       c- if all are unchecked then uncheck the box
+   */
+  const myAccordion = new Accordion({
+    element: document.querySelector(".accordion"),
+    active: 2,
+    multi: true
+  });
+
+
+  const chipSets = document.querySelectorAll('.mdc-chip-set');
+  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+
+  var checkbox = document.querySelectorAll('.mdc-checkbox input');
+
+  Array.from(checkbox).forEach((c) => c.addEventListener('change', (e) => {
+    const el = e.target;
+    console.log('el: ', el)
+  }));
+}, 1500);
