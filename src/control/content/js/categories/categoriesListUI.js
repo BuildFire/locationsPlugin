@@ -2,9 +2,9 @@
 
 import SortableListUI from "../sortableList/sortableListUI";
 
-class SubcategoriesListUI extends SortableListUI {
+class CategoriesListUI extends SortableListUI {
   constructor() {
-    super({ isDraggable: true });
+    super({ isDraggable: false });
   }
 
   // append new sortable item to the DOM
@@ -30,14 +30,14 @@ class SubcategoriesListUI extends SortableListUI {
     title.innerHTML = item.title;
 
     // Append elements to the DOM
-    divRow.appendChild(moveHandle);
+    // divRow.appendChild(moveHandle);
 
     const mediaHolder = document.createElement("div");
     mediaHolder.className = "media-holder";
 
-    if (item.icon) {
+    if (item.iconUrl) {
       const img = document.createElement("img");
-      img.src = this._cropImage(item.icon, {
+      img.src = this._cropImage(item.iconUrl, {
         width: 16,
         height: 16,
       });
@@ -79,4 +79,4 @@ class SubcategoriesListUI extends SortableListUI {
 
 }
 
-export default new SubcategoriesListUI();
+export default new CategoriesListUI();

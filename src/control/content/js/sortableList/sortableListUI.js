@@ -72,28 +72,7 @@ class SortableListUI {
   }
 
   onDeleteItem(item, index, callback) {
-    buildfire.notifications.confirm(
-      {
-        message: `Are you sure you want to delete ${item.title} ?`,
-        confirmButton: {
-          text: "Delete",
-          key: "y",
-          type: "danger",
-        },
-        cancelButton: {
-          text: "Cancel",
-          key: "n",
-          type: "default",
-        },
-      },
-      (e, data) => {
-        if (e) console.error(e);
-        if (data.selectedButton.key === "y") {
-          this.sortableList.items.splice(index, 1);
-          callback(item);
-        }
-      }
-    );
+
   }
 
   onOrderChange(item, oldIndex, newIndex) {
