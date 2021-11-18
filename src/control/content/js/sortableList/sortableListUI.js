@@ -1,14 +1,16 @@
+/* eslint-disable max-len */
 /* eslint-disable class-methods-use-this */
 import buildfire from "buildfire";
 import SortableList from "./SortableList";
 
 class SortableListUI {
-  constructor() {
+  constructor(options = {}) {
     this.sortableList = null;
     this.container = null;
     this.tag = "";
     this.data = null;
     this.id = null;
+    this.options = options;
   }
 
   get items() {
@@ -26,8 +28,7 @@ class SortableListUI {
   }
 
   render(items) {
-    let t = this;
-    this.sortableList = new SortableList(this.container, items || []);
+    this.sortableList = new SortableList(this.container, items || [], this._injectItemElements, this.options);
 
     this.sortableList.onItemClick = this.onItemClick;
     this.sortableList.onDeleteItem = this.onDeleteItem;
@@ -36,6 +37,12 @@ class SortableListUI {
     this.sortableList.onOrderChange = this.onOrderChange;
     this.sortableList.onToggleChange = this.onToggleChange;
   }
+
+  // append new sortable item to the DOM
+  _injectItemElements(item, index, divRow) {
+    // function passed by constructor;
+  }
+
   /**
    * Updates item in datastore and updates sortable list UI
    * @param {Object} item Item to be updated
@@ -65,28 +72,7 @@ class SortableListUI {
   }
 
   onDeleteItem(item, index, callback) {
-    buildfire.notifications.confirm(
-      {
-        message: `Are you sure you want to delete ${item.title} ?`,
-        confirmButton: {
-          text: "Delete",
-          key: "y",
-          type: "danger",
-        },
-        cancelButton: {
-          text: "Cancel",
-          key: "n",
-          type: "default",
-        },
-      },
-      (e, data) => {
-        if (e) console.error(e);
-        if (data.selectedButton.key === "y") {
-          this.sortableList.items.splice(index, 1);
-          callback(item);
-        }
-      }
-    );
+
   }
 
   onOrderChange(item, oldIndex, newIndex) {
@@ -96,4 +82,4 @@ class SortableListUI {
   onToggleChange() {}
 }
 
-export default new SortableListUI();
+export default SortableListUI;

@@ -1,57 +1,196 @@
 <template>
-    <div class="section-title">
-        Categories
+  <div class="section-title">Categories</div>
+  <div class="clearfix info">
+    <p class="info">
+      Please create the main the categories that your location and places can be
+      grouped under for easy access by user.
+    </p>
+  </div>
+  <hr class="none" />
+  <div class="input-group search-box">
+    <input type="text" class="form-control" placeholder="Search" />
+    <span class="input-group-btn">
+      <button class="btn btn-info" type="button">
+        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+      </button>
+    </span>
+  </div>
+  <hr class="none" />
+  <div class="actions">
+    <div class="btn-group">
+      <button
+        type="button"
+        class="btn btn-default dropdown-toggle"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+        <span class="margin-right-ten text-light-grey">Sort:</span>
+        <span> A - Z</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li>A - Z</li>
+        <li>Z - A</li>
+      </ul>
     </div>
-    <div class="clearfix info">
-        <p class="info">
-            Please create the main the categories that your location and places can be grouped under for easy access by
-            user.
-        </p>
-    </div>
-    <hr class="none">
-    <div class="input-group search-box">
-        <input type="text" class="form-control" placeholder="Search">
-        <span class="input-group-btn">
-            <button class="btn btn-info" type="button">
-                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-            </button>
-        </span>
-    </div>
-    <hr class="none">
+
     <div class="actions">
-        <div class="btn-group">
+      <div class="btn-group margin-right-fifteen">
+        <button
+          type="button"
+          class="btn btn-default dropdown-toggle"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          Bulk Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li>Download Template</li>
+          <li>Import</li>
+          <li>Export</li>
+        </ul>
+      </div>
+      <button
+        type="button"
+        class="btn btn-success btn--lg"
+        onclick="addCategory()"
+      >
+        + Add Category
+      </button>
+    </div>
+  </div>
+  <div id="items"></div>
 
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-                aria-expanded="false">
-                <span class="margin-right-ten text-light-grey">Sort:</span>
-                <span> A - Z</span>
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-                <li>A - Z</li>
-                <li>Z - A</li>
-            </ul>
+  <template id="addCategoryTemplate">
+    <div class="sub-page">
+      <div class="sub-page-body">
+        <div class="section-title">Add Category</div>
+        <div class="clearfix info">
+          <p class="info">Description.</p>
         </div>
-
-        <div class="actions">
-            <div class="btn-group margin-right-fifteen">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
-                    Bulk Actions
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-                    <li>Download Template</li>
-                    <li>Import</li>
-                    <li>Export</li>
-                </ul>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-4 pull-left">
+            <label class="required-label" for="category-icon-btn"
+              >Category Icon</label
+            >
+          </div>
+          <div class="col-md-8 pull-right">
+            <div class="icon-holder" id="category-icon-btn">
+              <span class="add-icon text-success"> + </span>
+              <img class="image-icon hidden" />
+              <i class="glyph-icon hidden"></i>
             </div>
-            <button type="button" class="btn btn-success btn--lg">
-                + Add Category
-            </button>
+          </div>
         </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-4 pull-left">
+            <label class="required-label" for="category-name"
+              >Category Name</label
+            >
+          </div>
+          <div class="col-md-8 pull-right">
+            <input
+              type="text"
+              class="form-control"
+              required
+              maxlength="100"
+              id="category-name-input"
+              placeholder=""
+            />
+            <div id="category-name-error" class="text-danger hidden">
+              Required
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="input-group search-box">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search"
+            id="subcategory-search-input"
+          />
+          <span class="input-group-btn">
+            <button
+              class="btn btn-info"
+              type="button"
+              id="subcategory-search-btn"
+            >
+              <span
+                class="glyphicon glyphicon-search"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </span>
+        </div>
+        <hr class="none" />
+        <div class="actions">
+          <div class="">
+            <h5 class="text-bold">Subcategories</h5>
+          </div>
+
+          <div class="actions">
+            <div
+              class="btn-group margin-right-fifteen"
+              id="subcategory-bulk-actions-dropdown"
+            >
+              <button
+                type="button"
+                class="btn btn-default dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                id="subcategory-bulk-actions-btn"
+              >
+                Bulk Actions
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a id="subcategory-template-btn">Download Template</a></li>
+                <li><a id="subcategory-import-btn">Import</a></li>
+                <li><a id="subcategory-export-btn">Export</a></li>
+              </ul>
+            </div>
+            <button
+              type="button"
+              class="btn btn-success btn--lg"
+              id="subcategory-add-btn"
+            >
+              + Add Subcategory
+            </button>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="clearfix info">
+          <p class="info">
+            Include this category in the following category types.
+          </p>
+        </div>
+        <hr class="none" />
+        <div id="subcategory-items"></div>
+        <div id="emptyState" class="well text-center hidden">
+          <h5>No Subcategories Added!</h5>
+        </div>
+      </div>
+      <div class="sub-page-footer padded">
+        <button class="btn btn-default" onclick="cancelAddCategory()">
+          Cancel
+        </button>
+        <button class="btn btn-success" id="category-save-btn">Save</button>
+      </div>
     </div>
-    <div id="items">
-        
+  </template>
+  <template id="addSubcategoryTemplate">
+    <div class="form-group clearfix">
+      <label class="required-label" for="subcategory-name-input">Subcategory Name</label>
+      <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"
+          placeholder="Max 30 characters"/>
+      <div id="subcategory-name-input-error" class="text-danger hidden">Required</div>
     </div>
+  </template>
 </template>
