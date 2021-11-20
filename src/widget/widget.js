@@ -111,7 +111,8 @@ const fetchCategories = (done) => {
       sort: { title: -1 }
     })
     .then((result) => {
-      CATEGORIES = result.map((c) => ({ id: c.id, ...c.data }));
+      // todo make sure data is parsed correctly
+      CATEGORIES = result;
       done();
     })
     .catch((err) => {
@@ -398,14 +399,18 @@ setTimeout(() => {
     multi: true
   });
 
-
   const chipSets = document.querySelectorAll('.mdc-chip-set');
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 
-  var checkbox = document.querySelectorAll('.mdc-checkbox input');
+  const checkbox = document.querySelectorAll('.mdc-checkbox input');
 
   Array.from(checkbox).forEach((c) => c.addEventListener('change', (e) => {
     const el = e.target;
-    console.log('el: ', el)
+    const parent = el.closest('div.expansion-panel');
+    const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
+    Array.from(chips).forEach((c) => {
+      const fn = el.checked ? 'add' : 'remove';
+      c.classList[fn]('mdc-chip--selected');
+    });
   }));
 }, 1500);
