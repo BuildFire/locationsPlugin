@@ -15,6 +15,7 @@ const WebpackConfig = {
     'control/content/content': path.join(__dirname, '../src/control/content/content.js'),
     'control/design/design': path.join(__dirname, '../src/control/design/design.js'),
     'control/settings/settings': path.join(__dirname, '../src/control/settings/settings.js'),
+    'control/tests/tests': path.join(__dirname, '../src/control/tests/tests.js'),
     'widget/widget': path.join(__dirname, '../src/widget/widget.js'),
   },
 
@@ -78,6 +79,37 @@ const WebpackConfig = {
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/index.html'),
       chunks: ['widget/widget']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/filter.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/filter.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/home.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/home.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/content/templates/categories.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/content/templates/categories.html'),
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/content/templates/locations.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/content/templates/locations.html'),
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/tests/index.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/tests/index.html'),
+      chunks: ['control/tests/tests']
     }),
     new CopyWebpackPlugin([{
       from: path.join(__dirname, '../src/control'),
