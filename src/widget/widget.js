@@ -12,6 +12,7 @@ const inst = DataMocks.generate('LOCATION')[0];
 
 let CATEGORIES;
 let introductoryLocations = [];
+let filterElements = [];
 
 // todo to be removed
 const testingFn = () => {
@@ -216,6 +217,59 @@ const refreshIntroductoryCarousel = () => {
 };
 
 const showFilterOverlay = () => {
+  if (filterElements.length === 0) {
+    const container = document.querySelector('.expansion-panel__container .accordion');
+    let html = '';
+    CATEGORIES.forEach((category) => {
+      html += `<div class="expansion-panel">
+        <button class="expansion-panel-header mdc-ripple-surface">
+          <div class="expansion-panel-header-content">
+            <span class="expansion-panel-title">
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">fmd_good</i>
+              ${category.title}
+            </span>
+            <div class="expansion-panel-actions margin-right-ten">
+              <div class="mdc-touch-target-wrapper">
+                <div class="mdc-checkbox mdc-checkbox--touch">
+                  <input type="checkbox"
+                         class="mdc-checkbox__native-control"
+                         id="checkbox-1"/>
+                  <div class="mdc-checkbox__background">
+                    <svg class="mdc-checkbox__checkmark mdc-theme--on-primary"
+                         viewBox="0 0 24 24">
+                      <path class="mdc-checkbox__checkmark-path"
+                            fill="none"
+                            d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                    </svg>
+                    <div class="mdc-checkbox__mixedmark"></div>
+                  </div>
+                  <div class="mdc-checkbox__ripple"></div>
+                </div>
+              </div>
+              <div class="expansion-panel-indicator"></div>
+            </div>
+          </div>
+        </button>
+        <div class="expansion-panel-body">
+          <div class="mdc-chip-set mdc-chip-set--filter margin-top-fifteen expansion-panel-body-content" role="grid">
+          ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row">
+              <div class="mdc-chip__ripple"></div>
+              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+              <span class="mdc-chip__checkmark">
+                <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+                  <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+              </span>
+              <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">${subcategory.title}</span>
+                </span>
+              </span>
+            </div>`).join('\n')}
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }
   document.querySelector('section#filter').classList.add('overlay');
   document.querySelector('section.active').classList.remove('active');
 };
@@ -296,8 +350,6 @@ const init = () => {
 };
 
 fetchSettings(init);
-
-
 
 
 class Accordion {
@@ -395,6 +447,9 @@ setTimeout(() => {
    *       b- if all are checked then check the box
    *       c- if all are unchecked then uncheck the box
    */
+  showFilterOverlay();
+
+
   const myAccordion = new Accordion({
     element: document.querySelector(".accordion"),
     active: 2,
@@ -427,4 +482,5 @@ setTimeout(() => {
     input.indeterminate = true;
     console.log('clicked: ', siblingChips);
   }));
-}, 1500);
+
+}, 2500);
