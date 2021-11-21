@@ -25,6 +25,7 @@ export default class Category {
 
   toJSON() {
     return {
+      id: this.id,
       title: this.title,
       iconUrl: this.iconUrl,
       iconClassName: this.iconClassName,

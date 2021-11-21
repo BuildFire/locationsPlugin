@@ -20,15 +20,15 @@ export default class Categories {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        result = result.map(elem => new Category({ id: elem.id, ...elem.data }).toJSON());
+        result = result.map((c) => new Category({ id: c.id, ...c.data }).toJSON());
         resolve(result);
       });
     });
   }
 
   /**
-   * 
-   * @param {Category} category 
+   *
+   * @param {Category} category
    * @static
    * @returns {promise}
    */
@@ -43,9 +43,9 @@ export default class Categories {
   }
 
   /**
-   * 
-   * @param {string} categoryId 
-   * @param {Category} category 
+   *
+   * @param {string} categoryId
+   * @param {Category} category
    * @returns {promise}
    */
   static update(categoryId, category) {
@@ -59,8 +59,8 @@ export default class Categories {
   }
 
   /**
-   * 
-   * @param {string} categoryId 
+   *
+   * @param {string} categoryId
    * @static
    * @returns {promise}
    */
@@ -72,6 +72,4 @@ export default class Categories {
       });
     });
   }
-
-
 }
