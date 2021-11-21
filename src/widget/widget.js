@@ -257,6 +257,8 @@ const initHomePage = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
   fetchCategories(() => {
+
+    console.log('CATEGORIES: ', CATEGORIES)
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
         refreshIntroductoryCarousel();
@@ -412,5 +414,17 @@ setTimeout(() => {
       const fn = el.checked ? 'add' : 'remove';
       c.classList[fn]('mdc-chip--selected');
     });
+  }));
+
+  const subcategoriesChips = document.querySelectorAll('.mdc-chip');
+  Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
+    const subcategory = e.target;
+    const chipCheckbox = subcategory.closest('.mdc-chip__primary-action');
+    const isChecked = chipCheckbox.getAttribute('aria-checked') === 'true';
+    const parent = subcategory.closest('div.expansion-panel');
+    const siblingChips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
+    const input = parent.querySelector('.mdc-checkbox__native-control');
+    input.indeterminate = true;
+    console.log('clicked: ', siblingChips);
   }));
 }, 1500);
