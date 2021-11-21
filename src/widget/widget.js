@@ -12,7 +12,7 @@ const inst = DataMocks.generate('LOCATION')[0];
 
 let CATEGORIES;
 let introductoryLocations = [];
-let filterElements = [];
+let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
@@ -217,11 +217,12 @@ const refreshIntroductoryCarousel = () => {
 };
 
 const showFilterOverlay = () => {
-  if (filterElements.length === 0) {
+  if (Object.keys(filterElements).length === 0) {
     const container = document.querySelector('.expansion-panel__container .accordion');
     let html = '';
     CATEGORIES.forEach((category) => {
-      html += `<div class="expansion-panel">
+      filterElements[category.id] = [];
+      html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title">
@@ -252,7 +253,7 @@ const showFilterOverlay = () => {
         </button>
         <div class="expansion-panel-body">
           <div class="mdc-chip-set mdc-chip-set--filter margin-top-fifteen expansion-panel-body-content" role="grid">
-          ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row">
+          ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
               <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
               <span class="mdc-chip__checkmark">
@@ -266,6 +267,7 @@ const showFilterOverlay = () => {
               </span>
             </div>`).join('\n')}
         </div>
+      </div>
       </div>`;
     });
     container.innerHTML = html;
@@ -464,10 +466,18 @@ setTimeout(() => {
   Array.from(checkbox).forEach((c) => c.addEventListener('change', (e) => {
     const el = e.target;
     const parent = el.closest('div.expansion-panel');
+    const categoryId = parent.dataset.cid;
     const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
+    if (!el.checked) {
+      filterElements[categoryId] = [];
+    }
     Array.from(chips).forEach((c) => {
-      const fn = el.checked ? 'add' : 'remove';
-      c.classList[fn]('mdc-chip--selected');
+      if (el.checked) {
+        filterElements[categoryId].push(c.dataset.sid);
+        c.classList.add('mdc-chip--selected');
+      } else {
+        c.classList.remove('mdc-chip--selected');
+      }
     });
   }));
 
@@ -482,5 +492,4 @@ setTimeout(() => {
     input.indeterminate = true;
     console.log('clicked: ', siblingChips);
   }));
-
 }, 2500);
