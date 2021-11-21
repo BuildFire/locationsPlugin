@@ -15,6 +15,10 @@ body > section {
   padding: 15px;
 }
 
+section#filter {
+  padding: 15px 0;
+}
+
 #home:not(.active),
 #detail:not(.active),
 #edit:not(.active) {
@@ -206,8 +210,11 @@ div.empty-page {
   background: none;
   border: 0;
   color: inherit;
-  padding: 4px 0;
+  padding: 4px 16px;
   text-align: initial;
+}
+.expansion-panel .mdc-chip-set {
+  padding: 4px 16px;
 }
 .expansion-panel-header-content {
   width: 100%;
@@ -263,10 +270,6 @@ div.empty-page {
   -ms-user-select: none;
   user-select: none;
 }
-.expansion-panel-body .mdc-chip-set {
-  padding-right: 0;
-  padding-left: 0;
-}
 /*.expansion-panel-header:hover,*/
 /*.expansion-panel-header:focus {*/
 /*  background: var(--primary-color);*/
@@ -294,4 +297,7 @@ div.empty-page {
 
 .mdc-checkbox .mdc-checkbox__native-control:checked~.mdc-checkbox__background::before, .mdc-checkbox .mdc-checkbox__native-control:indeterminate~.mdc-checkbox__background::before {
   background-color: var(--primary-color);
+}
+.mdc-chip.disabled {
+  pointer-events: none;
 }

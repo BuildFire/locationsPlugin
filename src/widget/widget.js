@@ -466,6 +466,7 @@ setTimeout(() => {
 
   Array.from(checkbox).forEach((c) => c.addEventListener('change', (e) => {
     const el = e.target;
+    const mdcCheckBox = el.closest('.mdc-checkbox');
     const parent = el.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
@@ -482,15 +483,29 @@ setTimeout(() => {
         c.classList.remove('mdc-chip--selected');
       }
     });
+
+    el.disabled = true;
+    mdcCheckBox.classList.add('mdc-checkbox--disabled');
+    setTimeout(() => {
+      el.disabled = false;
+      mdcCheckBox.classList.remove('mdc-checkbox--disabled');
+    }, 500);
   }));
 
   const subcategoriesChips = document.querySelectorAll('.mdc-chip');
   Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
     const { target } = e;
     const subcategory = target.closest('.mdc-chip');
-    const chipCheckbox = target.closest('.mdc-chip__primary-action');
-    const isChecked = chipCheckbox.getAttribute('aria-checked') === 'true';
+
+    if (subcategory.classList.contains('disabled')) {
+      return;
+    }
+
     const parent = target.closest('div.expansion-panel');
+
+    subcategory.classList.add('disabled');
+    const chipCheckbox = subcategory.querySelector('.mdc-chip__primary-action');
+    const isChecked = chipCheckbox.getAttribute('aria-checked') === 'true';
     const categoryId = parent.dataset.cid;
     const subcategoryId = subcategory.dataset.sid;
     const category = CATEGORIES.find((c) => c.id === categoryId);
@@ -515,5 +530,7 @@ setTimeout(() => {
     } else {
       input.indeterminate = true;
     }
+
+    setTimeout(() => subcategory.classList.remove('disabled'), 500);
   }));
 }, 2500);
