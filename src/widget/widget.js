@@ -124,7 +124,9 @@ const fetchCategories = (done) => {
 
 const renderLocations = (selector) => {
   const container = document.querySelector('#introLocationsList');
-  container.innerHTML = introductoryLocations.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-ripple-surface pointer location-item">
+  let html = '';
+  console.log('container.innerHTML: ', introductoryLocations)
+  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
           <img src="https://placekitten.com/200/300" alt="Location image">
           <div class="location-item__description">
@@ -163,7 +165,7 @@ const renderLocations = (selector) => {
               </span>
           </div>
         </div>
-      </div>`), 0);
+      </div>`)).join('\n');
 };
 
 const fetchIntroductoryLocations = (done) => {
@@ -197,7 +199,7 @@ const refreshQuickFilter = () => {
         </span>
       </div>`), 0);
 
-  const chipSets = document.querySelectorAll('.mdc-chip-set');
+  const chipSets = document.querySelectorAll('#home .mdc-chip-set');
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 };
 
@@ -218,12 +220,53 @@ const refreshIntroductoryCarousel = () => {
 };
 
 const showFilterOverlay = () => {
-  if (Object.keys(filterElements).length === 0) {
-    const container = document.querySelector('.expansion-panel__container .accordion');
-    let html = '';
-    CATEGORIES.forEach((category) => {
-      filterElements[category.id] = [];
-      html += `<div class="expansion-panel" data-cid="${category.id}">
+  document.querySelector('section#filter').classList.add('overlay');
+  document.querySelector('section.active').classList.remove('active');
+};
+
+const initEventListeners = () => {
+  document.addEventListener('focus', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchTextField') {
+      showElement('#areaSearchLabel');
+      hideElement('.header-qf');
+    }
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target) return;
+
+    if (e.target.id === 'searchLocationsBtn') {
+      searchLocations(e);
+    }
+
+    if (e.target.id === 'filterIconBtn') {
+      showFilterOverlay();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!e.target) return;
+
+    const keyCode = e.which || e.keyCode;
+
+    if (keyCode === 13 && e.target.id === 'searchTextField') {
+      searchLocations(e);
+    }
+  });
+};
+
+const initFilterOverlay = () => {
+  if (Object.keys(filterElements).length > 0) {
+    return;
+  }
+
+  let html = '';
+  const container = document.querySelector('.expansion-panel__container .accordion');
+  CATEGORIES.forEach((category) => {
+    filterElements[category.id] = [];
+    html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title">
@@ -270,52 +313,89 @@ const showFilterOverlay = () => {
         </div>
       </div>
       </div>`;
+  });
+  container.innerHTML = html;
+
+  new Accordion({
+    element: document.querySelector('.accordion'),
+    multi: true
+  });
+
+  const chipSets = document.querySelectorAll('#filter .mdc-chip-set');
+  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+
+  const expansionPanelCheckBox = document.querySelectorAll('.mdc-checkbox input');
+  Array.from(expansionPanelCheckBox).forEach((c) => c.addEventListener('change', (e) => {
+    const { target } = e;
+    const mdcCheckBox = target.closest('.mdc-checkbox');
+    const parent = target.closest('div.expansion-panel');
+    const categoryId = parent.dataset.cid;
+    const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
+    if (!target.checked) {
+      filterElements[categoryId] = [];
+    }
+    Array.from(chips).forEach((c) => {
+      if (target.checked) {
+        if (!filterElements[categoryId].includes(c.dataset.sid)) {
+          filterElements[categoryId].push(c.dataset.sid);
+        }
+        c.classList.add('mdc-chip--selected');
+      } else {
+        c.classList.remove('mdc-chip--selected');
+      }
     });
-    container.innerHTML = html;
-  }
-  document.querySelector('section#filter').classList.add('overlay');
-  document.querySelector('section.active').classList.remove('active');
-};
 
-const initEventListeners = () => {
-  document.addEventListener('focus', (e) => {
-    if (!e.target) return;
+    target.disabled = true;
+    mdcCheckBox.classList.add('mdc-checkbox--disabled');
+    setTimeout(() => {
+      target.disabled = false;
+      mdcCheckBox.classList.remove('mdc-checkbox--disabled');
+    }, 500);
+  }));
 
-    if (e.target.id === 'searchTextField') {
-      showElement('#areaSearchLabel');
-      hideElement('.header-qf');
-    }
-  }, true);
+  const subcategoriesChips = document.querySelectorAll('.mdc-chip');
+  Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
+    const { target } = e;
+    const mdcChip = target.closest('.mdc-chip');
 
-  document.addEventListener('click', (e) => {
-    if (!e.target) return;
-
-    if (e.target.id === 'searchLocationsBtn') {
-      searchLocations(e);
+    if (mdcChip.classList.contains('disabled')) {
+      return;
     }
 
-    if (e.target.id === 'filterIconBtn') {
-      showFilterOverlay();
+    const parent = target.closest('div.expansion-panel');
+    const input = parent.querySelector('.mdc-checkbox__native-control');
+    const chipCheckbox = mdcChip.querySelector('.mdc-chip__primary-action');
+    const selected = chipCheckbox.getAttribute('aria-checked') === 'true';
+    const categoryId = parent.dataset.cid;
+    const subcategoryId = mdcChip.dataset.sid;
+    const category = CATEGORIES.find((c) => c.id === categoryId);
+
+    if (selected && !filterElements[categoryId].includes(subcategoryId)) {
+      filterElements[categoryId].push(subcategoryId);
+    } else {
+      filterElements[categoryId] = filterElements[categoryId].filter((item) => item !== subcategoryId);
     }
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (!e.target) return;
-
-    const keyCode = e.which || e.keyCode;
-
-    if (keyCode === 13 && e.target.id === 'searchTextField') {
-      searchLocations(e);
+    input.indeterminate = false;
+    if (filterElements[categoryId].length === 0) {
+      input.checked = false;
+    } else if (filterElements[categoryId].length === category.subcategories.length) {
+      input.checked = true;
+    } else {
+      input.indeterminate = true;
     }
-  });
+
+    mdcChip.classList.add('disabled');
+    setTimeout(() => mdcChip.classList.remove('disabled'), 500);
+  }));
 };
 
 const initHomePage = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
   fetchCategories(() => {
-
     console.log('CATEGORIES: ', CATEGORIES)
+    initFilterOverlay();
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
         refreshIntroductoryCarousel();
@@ -353,96 +433,3 @@ const init = () => {
 };
 
 fetchSettings(init);
-
-setTimeout(() => {
-  /**
-   *    1- Checkbox click
-   *        a- if is checked uncheck all
-   *        b- if is not checked check them all
-   *    2- Chip click
-   *       a- if there is difference then intermediate
-   *       b- if all are checked then check the box
-   *       c- if all are unchecked then uncheck the box
-   */
-  showFilterOverlay();
-
-  const myAccordion = new Accordion({
-    element: document.querySelector('.accordion'),
-    multi: true
-  });
-
-  const chipSets = document.querySelectorAll('.mdc-chip-set');
-  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
-
-  const checkbox = document.querySelectorAll('.mdc-checkbox input');
-
-  Array.from(checkbox).forEach((c) => c.addEventListener('change', (e) => {
-    const el = e.target;
-    const mdcCheckBox = el.closest('.mdc-checkbox');
-    const parent = el.closest('div.expansion-panel');
-    const categoryId = parent.dataset.cid;
-    const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
-    if (!el.checked) {
-      filterElements[categoryId] = [];
-    }
-    Array.from(chips).forEach((c) => {
-      if (el.checked) {
-        if (!filterElements[categoryId].includes(c.dataset.sid)) {
-          filterElements[categoryId].push(c.dataset.sid);
-        }
-        c.classList.add('mdc-chip--selected');
-      } else {
-        c.classList.remove('mdc-chip--selected');
-      }
-    });
-
-    el.disabled = true;
-    mdcCheckBox.classList.add('mdc-checkbox--disabled');
-    setTimeout(() => {
-      el.disabled = false;
-      mdcCheckBox.classList.remove('mdc-checkbox--disabled');
-    }, 500);
-  }));
-
-  const subcategoriesChips = document.querySelectorAll('.mdc-chip');
-  Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
-    const { target } = e;
-    const subcategory = target.closest('.mdc-chip');
-
-    if (subcategory.classList.contains('disabled')) {
-      return;
-    }
-
-    const parent = target.closest('div.expansion-panel');
-
-    subcategory.classList.add('disabled');
-    const chipCheckbox = subcategory.querySelector('.mdc-chip__primary-action');
-    const isChecked = chipCheckbox.getAttribute('aria-checked') === 'true';
-    const categoryId = parent.dataset.cid;
-    const subcategoryId = subcategory.dataset.sid;
-    const category = CATEGORIES.find((c) => c.id === categoryId);
-
-    if (isChecked && !filterElements[categoryId].includes(subcategoryId)) {
-      filterElements[categoryId].push(subcategoryId);
-    } else {
-      filterElements[categoryId] = filterElements[categoryId].filter((item) => item !== subcategoryId);
-    }
-
-    console.log('filterElements: ', filterElements);
-    console.log('category: ', category);
-
-    const input = parent.querySelector('.mdc-checkbox__native-control');
-
-    if (filterElements[categoryId].length === 0) {
-      input.indeterminate = false;
-      input.checked = false;
-    } else if (filterElements[categoryId].length === category.subcategories.length) {
-      input.indeterminate = false;
-      input.checked = true;
-    } else {
-      input.indeterminate = true;
-    }
-
-    setTimeout(() => subcategory.classList.remove('disabled'), 500);
-  }));
-}, 2500);

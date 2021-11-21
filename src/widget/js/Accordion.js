@@ -53,7 +53,7 @@ export default class Accordion {
       // Add the "active" class to the correct panel
       this.panels[this.activePanel - 1].classList.add("active");
       // Fix the current active panel index "zero based index"
-      this.activePanel = this.activePanel - 1;
+      this.activePanel -= 1;
     }
   }
 
@@ -79,6 +79,6 @@ export default class Accordion {
     });
 
     // Recalculate the panel body height and store it on resizing the window.
-    addEventListener("resize", this.setSize.bind(this));
+    addEventListener('resize', this.setSize.bind(this));
   }
 }
