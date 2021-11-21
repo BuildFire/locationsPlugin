@@ -415,7 +415,8 @@ class Accordion {
 
   attachEvents() {
     this.headers.forEach((h, idx) => {
-      h.addEventListener("click", (e) => {
+      h.addEventListener('click', (e) => {
+        if (e.target.classList.contains('mdc-checkbox__native-control')) return;
         if (!this.multi) {
           // Check if there is an active panel and close it before opening another one.
           // If there is no active panel, close all the panels.
