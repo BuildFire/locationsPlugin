@@ -473,7 +473,9 @@ setTimeout(() => {
     }
     Array.from(chips).forEach((c) => {
       if (el.checked) {
-        filterElements[categoryId].push(c.dataset.sid);
+        if (!filterElements[categoryId].includes(c.dataset.sid)) {
+          filterElements[categoryId].push(c.dataset.sid);
+        }
         c.classList.add('mdc-chip--selected');
       } else {
         c.classList.remove('mdc-chip--selected');
@@ -483,13 +485,34 @@ setTimeout(() => {
 
   const subcategoriesChips = document.querySelectorAll('.mdc-chip');
   Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
-    const subcategory = e.target;
-    const chipCheckbox = subcategory.closest('.mdc-chip__primary-action');
+    const { target } = e;
+    const subcategory = target.closest('.mdc-chip');
+    const chipCheckbox = target.closest('.mdc-chip__primary-action');
     const isChecked = chipCheckbox.getAttribute('aria-checked') === 'true';
-    const parent = subcategory.closest('div.expansion-panel');
-    const siblingChips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
+    const parent = target.closest('div.expansion-panel');
+    const categoryId = parent.dataset.cid;
+    const subcategoryId = subcategory.dataset.sid;
+    const category = CATEGORIES.find((c) => c.id === categoryId);
+
+    if (isChecked && !filterElements[categoryId].includes(subcategoryId)) {
+      filterElements[categoryId].push(subcategoryId);
+    } else {
+      filterElements[categoryId] = filterElements[categoryId].filter((item) => item !== subcategoryId);
+    }
+
+    console.log('filterElements: ', filterElements);
+    console.log('category: ', category);
+
     const input = parent.querySelector('.mdc-checkbox__native-control');
-    input.indeterminate = true;
-    console.log('clicked: ', siblingChips);
+
+    if (filterElements[categoryId].length === 0) {
+      input.indeterminate = false;
+      input.checked = false;
+    } else if (filterElements[categoryId].length === category.subcategories.length) {
+      input.indeterminate = false;
+      input.checked = true;
+    } else {
+      input.indeterminate = true;
+    }
   }));
 }, 2500);
