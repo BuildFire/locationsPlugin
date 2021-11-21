@@ -206,7 +206,7 @@ div.empty-page {
   background: none;
   border: 0;
   color: inherit;
-  padding: 4px 8px;
+  padding: 4px 0;
   text-align: initial;
 }
 .expansion-panel-header-content {
@@ -263,6 +263,10 @@ div.empty-page {
   -ms-user-select: none;
   user-select: none;
 }
+.expansion-panel-body .mdc-chip-set {
+  padding-right: 0;
+  padding-left: 0;
+}
 /*.expansion-panel-header:hover,*/
 /*.expansion-panel-header:focus {*/
 /*  background: var(--primary-color);*/
@@ -275,7 +279,7 @@ div.empty-page {
   transform: rotate(225deg);
 }
 .expansion-panel.active .expansion-panel-body {
-  height: 220px;
+  height: var(--ht, 220px);
   visibility: visible;
   -webkit-user-select: initial;
   -moz-user-select: initial;

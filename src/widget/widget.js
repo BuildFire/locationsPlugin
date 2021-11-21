@@ -252,7 +252,7 @@ const showFilterOverlay = () => {
           </div>
         </button>
         <div class="expansion-panel-body">
-          <div class="mdc-chip-set mdc-chip-set--filter margin-top-fifteen expansion-panel-body-content" role="grid">
+          <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
           ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
               <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
