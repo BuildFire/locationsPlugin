@@ -15,6 +15,11 @@ body > section {
   padding: 15px;
 }
 
+section#intro,
+section#listing {
+  display: none;
+}
+
 section#filter {
   padding: 15px 0;
 }

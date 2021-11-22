@@ -17,6 +17,7 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
+  settings.showIntroductoryListView = false;
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -405,12 +406,13 @@ const initHomeView = () => {
   injectTemplate('home');
   fetchCategories(() => {
     initFilterOverlay();
+    refreshQuickFilter(); // todo if quick filter enabled
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
-        refreshIntroductoryCarousel();
         renderLocations();
-        refreshQuickFilter();
         refreshIntroductoryDescription();
+        showElement('section#intro');
+        refreshIntroductoryCarousel();
 
         if (introductoryListView.images.length === 0
           && introductoryLocations.length === 0
@@ -420,6 +422,8 @@ const initHomeView = () => {
 
         // eslint-disable-next-line no-new
         new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      } else {
+        showElement('section#listing');
       }
     });
   });
