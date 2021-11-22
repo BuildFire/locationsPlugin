@@ -262,14 +262,8 @@ div.empty-page {
   -ms-user-select: none;
   user-select: none;
 }
-/*.expansion-panel-header:hover,*/
-/*.expansion-panel-header:focus {*/
-/*  background: var(--primary-color);*/
-/*}*/
 .expansion-panel.active {
-  /*margin: 16px 0;*/
   margin-bottom: 16px;
-  /*border-radius: 4px;*/
 }
 .expansion-panel.active .expansion-panel-indicator {
   transform: rotate(225deg);

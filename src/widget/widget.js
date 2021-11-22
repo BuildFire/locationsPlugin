@@ -124,8 +124,6 @@ const fetchCategories = (done) => {
 
 const renderLocations = (selector) => {
   const container = document.querySelector('#introLocationsList');
-  let html = '';
-  console.log('container.innerHTML: ', introductoryLocations)
   container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
           <img src="https://placekitten.com/200/300" alt="Location image">
@@ -394,7 +392,6 @@ const initHomePage = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
   fetchCategories(() => {
-    console.log('CATEGORIES: ', CATEGORIES)
     initFilterOverlay();
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
