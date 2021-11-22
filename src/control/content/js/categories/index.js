@@ -8,6 +8,7 @@ import subcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
 import { generateUUID, createTemplate } from "../../utils/helpers";
+import { downloadCsv, jsonToCsv, csvToJson} from "../../utils/csv.helper";
 
 const state = {
   categories: [],
@@ -314,7 +315,7 @@ const importSubcategories = (category, file, callback) => {
   const fileReader = new FileReader();
   fileReader.onload=function(){
     console.log(fileReader.result);
-    // let rows = JSON.parse(csvToJson(fileReader.result));
+    let rows = JSON.parse(csvToJson(fileReader.result));
     if (!validateCsv(rows)) {
       buildfire.dialog.alert({
         message: "Your file missing title for one row or more, please check and upload again.",
@@ -330,11 +331,11 @@ const importSubcategories = (category, file, callback) => {
 }
 
 const downloadCsvTemplate = (templateData, header, name) => {
-  // const  csv = jsonToCsv(templateData, {
-  //   header
-  // });
+  const  csv = jsonToCsv(templateData, {
+    header
+  });
 
-  // downloadCsv(csv, `${name? name : 'template'}.csv`);
+  downloadCsv(csv, `${name? name : 'template'}.csv`);
 };
 
 const updateCategory = () => {};
@@ -344,7 +345,6 @@ window.cancelAddCategory = () => {
   inputCategoryForm.innerHTML = "";
   inputCategoryForm.style.display = "none";
 };
-
 
 window.searchCategories = () => {
   const searchElem = categories.querySelector('#category-search-input');
