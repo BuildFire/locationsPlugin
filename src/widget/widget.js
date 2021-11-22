@@ -217,9 +217,21 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
-const showFilterOverlay = () => {
-  document.querySelector('section#filter').classList.add('overlay');
-  document.querySelector('section.active').classList.remove('active');
+const toggleFilterOverlay = () => {
+  const filterOverlay = document.querySelector('section#filter');
+  const homeView = document.querySelector('section#home');
+
+  if (filterOverlay.classList.contains('overlay')) {
+    homeView.classList.add('active');
+    filterOverlay.classList.remove('overlay');
+  } else {
+    filterOverlay.classList.add('overlay');
+    homeView.classList.remove('active');
+    buildfire.history.push('Advanced Filter', {
+      showLabelInTitlebar: true,
+      token: 'advanced-filter'
+    });
+  }
 };
 
 const initEventListeners = () => {
@@ -240,7 +252,7 @@ const initEventListeners = () => {
     }
 
     if (e.target.id === 'filterIconBtn') {
-      showFilterOverlay();
+      toggleFilterOverlay();
     }
   });
 
@@ -388,7 +400,7 @@ const initFilterOverlay = () => {
   }));
 };
 
-const initHomePage = () => {
+const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
   fetchCategories(() => {
@@ -415,9 +427,16 @@ const initHomePage = () => {
 
 const init = () => {
   fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomePage);
+  fetchTemplate('home', initHomeView);
 
   initEventListeners();
+
+  buildfire.history.onPop((breadcrumb) => {
+    console.log('Breadcrumb popped', breadcrumb);
+    if (breadcrumb.label === 'Advanced Filter') {
+      toggleFilterOverlay();
+    }
+  });
 
   buildfire.appearance.getAppTheme((err, appTheme) => {
     if (err) return console.error(err);
