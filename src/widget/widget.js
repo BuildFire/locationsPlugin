@@ -229,8 +229,7 @@ const toggleFilterOverlay = () => {
     filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
     buildfire.history.push('Advanced Filter', {
-      showLabelInTitlebar: true,
-      token: 'advanced-filter'
+      showLabelInTitlebar: true
     });
   }
 };
@@ -437,7 +436,7 @@ const init = () => {
 
   buildfire.history.onPop((breadcrumb) => {
     console.log('Breadcrumb popped', breadcrumb);
-    if (breadcrumb.label === 'Advanced Filter') {
+    if (document.querySelector('section#filter').classList.contains('overlay')) {
       toggleFilterOverlay();
     }
   });
