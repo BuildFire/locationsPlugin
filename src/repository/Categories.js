@@ -20,7 +20,7 @@ export default class Categories {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        result = result.map((c) => new Category({ id: c.id, ...c.data }).toJSON());
+        result = result.map((c) => new Category({ ...c.data, id: c.id }).toJSON());
         resolve(result);
       });
     });
