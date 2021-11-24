@@ -17,6 +17,7 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
+  settings.showIntroductoryListView = false;
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -228,12 +229,38 @@ const toggleFilterOverlay = () => {
     filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
     buildfire.history.push('Advanced Filter', {
-      showLabelInTitlebar: true,
-      token: 'advanced-filter'
+      showLabelInTitlebar: true
     });
   }
 };
+const initDrawer = () => {
+  const element = document.querySelector('.drawer');
+  const resizer = document.querySelector('.drawer .resizer');
+  const minimumSize = 20;
+  let originalHeight = 0;
+  let originalY = 0;
+  let originalMouseY = 0;
 
+  const resize = (e) => {
+    const height = originalHeight - (e.pageY - originalMouseY);
+    if (height > minimumSize) {
+      element.style.height = `${height}px`;
+      element.style.top = `${originalY + (e.pageY - originalMouseY)}px`;
+    }
+  };
+  const stopResize = () => {
+    window.removeEventListener('mousemove', resize);
+  };
+
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
+    originalY = element.getBoundingClientRect().top;
+    originalMouseY = e.pageY;
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResize);
+  });
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -405,12 +432,13 @@ const initHomeView = () => {
   injectTemplate('home');
   fetchCategories(() => {
     initFilterOverlay();
+    refreshQuickFilter(); // todo if quick filter enabled
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
-        refreshIntroductoryCarousel();
         renderLocations();
-        refreshQuickFilter();
         refreshIntroductoryDescription();
+        showElement('section#intro');
+        refreshIntroductoryCarousel();
 
         if (introductoryListView.images.length === 0
           && introductoryLocations.length === 0
@@ -420,6 +448,9 @@ const initHomeView = () => {
 
         // eslint-disable-next-line no-new
         new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      } else {
+        showElement('section#listing');
+        initDrawer();
       }
     });
   });
@@ -433,7 +464,7 @@ const init = () => {
 
   buildfire.history.onPop((breadcrumb) => {
     console.log('Breadcrumb popped', breadcrumb);
-    if (breadcrumb.label === 'Advanced Filter') {
+    if (document.querySelector('section#filter').classList.contains('overlay')) {
       toggleFilterOverlay();
     }
   });

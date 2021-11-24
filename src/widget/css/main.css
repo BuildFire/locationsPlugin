@@ -15,6 +15,11 @@ body > section {
   padding: 15px;
 }
 
+section#intro,
+section#listing {
+  display: none;
+}
+
 section#filter {
   padding: 15px 0;
 }
@@ -287,4 +292,49 @@ div.empty-page {
 }
 .mdc-chip.disabled {
   pointer-events: none;
+}
+
+
+.drawer {
+  position: absolute;
+  width: 100%;
+  top: 100%;
+  height: 0;
+  overflow: hidden;
+  background-color: #ffffff;
+  transition: all 1s;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  /* todo rethink below approach */
+  margin-left: -15px;
+}
+
+.drawer.pulled {
+  height: 285px;
+  top: calc(100% - 285px);
+}
+
+.resizable {
+  background: white;
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  top: 100px;
+  left: 100px;
+}
+
+.resizers{
+  width: 100%;
+  height: 100%;
+}
+
+.resizers .resizer {
+  left: calc(50% - 25px);
+  top: 8px;
+  cursor: ns-resize;
+  width: 50px;
+  height: 4px;
+  border-radius: 4px;
+  background: #e0e0e0;
+  position: absolute;
 }
