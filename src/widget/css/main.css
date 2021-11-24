@@ -75,6 +75,13 @@ section#filter {
   z-index: 1000;
 }
 
+#home header {
+  background-color: #ffffff;
+  margin-left: -15px;
+  margin-right: -15px;
+  padding: 0 15px 4px;
+  box-shadow: 0 0.25rem 0.125rem rgb(150 150 150 / 20%);
+}
 .header-qf {
   overflow-y: scroll;
   white-space: nowrap;
@@ -297,6 +304,7 @@ div.empty-page {
 
 .drawer {
   position: absolute;
+  box-shadow: rgb(150 150 150 / 20%) 0px -0.25rem 0.125rem;
   width: 100%;
   top: 100%;
   height: 0;
@@ -305,7 +313,7 @@ div.empty-page {
   transition: all 1s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  /* todo rethink below approach */
+/* todo rethink below approach */
   margin-left: -15px;
 }
 
