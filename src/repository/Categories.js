@@ -20,7 +20,7 @@ export default class Categories {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        result = result.map((c) => new Category({ id: c.id, ...c.data }).toJSON());
+        result = result.map((c) => new Category({ ...c.data, id: c.id }).toJSON());
         resolve(result);
       });
     });
@@ -37,7 +37,7 @@ export default class Categories {
       category.createdOn = new Date();
       buildfire.publicData.insert(category, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        resolve(new Category({ id: result.id, ...result.data}).toJSON());
+        resolve(new Category({ ...result.data, id: result.id }).toJSON());
       });
     });
   }

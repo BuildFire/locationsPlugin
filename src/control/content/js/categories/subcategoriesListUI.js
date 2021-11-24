@@ -3,8 +3,8 @@
 import SortableListUI from "../sortableList/sortableListUI";
 
 class SubcategoriesListUI extends SortableListUI {
-  constructor() {
-    super({ isDraggable: true });
+  constructor(elementId) {
+    super(elementId, { isDraggable: true });
   }
 
   // append new sortable item to the DOM
@@ -64,4 +64,4 @@ class SubcategoriesListUI extends SortableListUI {
   }
 }
 
-export default new SubcategoriesListUI();
+export default SubcategoriesListUI;

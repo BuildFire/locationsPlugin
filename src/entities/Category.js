@@ -9,7 +9,7 @@ export default class Category {
    */
   constructor(data = {}) {
     this.id = data.id || null;
-    this.title = data.title || null;
+    this.title = data.title || "";
     this.iconUrl = data.iconUrl || null;
     this.iconClassName = data.iconClassName || null;
     this.subcategories = data.subcategories || [];
