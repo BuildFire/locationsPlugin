@@ -5,6 +5,7 @@ import buildfire from 'buildfire';
 import ContentController from './content.controller';
 import DataMocks from '../../DataMocks';
 import './js/categories';
+import './js/locations';
 
 
 const templates = {};
@@ -46,11 +47,13 @@ const navigate = (template) => {
   fetchTemplate(template, () =>  {
     injectTemplate(template);
     switch (template) {
-      case 'categories' :
+      case 'categories':
         initCategories();
         break;
+      case 'locations':
+        initLocations();
+        break;
       default:
-        initCategories();
     }
   });
 };
@@ -62,8 +65,6 @@ const setActiveSidenavTab = (section) => {
   };
 
   sidenav.querySelector(`#${section}-tab`).firstChild.classList.add('active');
-
-
 };
 
 window.onSidenavChange = (section) => {

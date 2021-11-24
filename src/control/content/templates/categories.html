@@ -8,7 +8,8 @@
   </div>
   <hr class="none" />
   <div class="input-group search-box">
-    <input type="text" class="form-control" placeholder="Search" id="category-search-input" onkeyup="searchCategories()"/>
+    <input type="text" class="form-control" placeholder="Search" id="category-search-input"
+      onkeyup="searchCategories()" />
     <span class="input-group-btn">
       <button class="btn btn-info" type="button" onclick="searchCategories()">
         <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -18,14 +19,8 @@
   <hr class="none" />
   <div class="actions">
     <div class="btn-group" id="category-sort-dropdown">
-      <button
-        type="button"
-        class="btn btn-default dropdown-toggle"
-        data-toggle="dropdown"
-        aria-haspopup="true"
-        aria-expanded="false"
-        onclick="openCategorySort(event)"
-      >
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false" onclick="openCategorySort(event)">
         <span class="margin-right-ten text-light-grey">Sort:</span>
         <span id="category-sort-txt"> A - Z</span>
         <span class="caret"></span>
@@ -38,14 +33,8 @@
 
     <div class="actions">
       <div class="btn-group margin-right-fifteen" id="category-bulk-dropdown">
-        <button
-          type="button"
-          class="btn btn-default dropdown-toggle"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
-          onclick="openCategoryBulkAction(event)"
-        >
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+          aria-expanded="false" onclick="openCategoryBulkAction(event)">
           Bulk Actions
           <span class="caret"></span>
         </button>
@@ -55,11 +44,7 @@
           <li><a onclick="exportCategories()">Export</a></li>
         </ul>
       </div>
-      <button
-        type="button"
-        class="btn btn-success btn--lg"
-        onclick="addCategory()"
-      >
+      <button type="button" class="btn btn-success btn--lg" onclick="addEditCategory()">
         + Add Category
       </button>
     </div>
@@ -68,19 +53,17 @@
 
   <template id="addCategoryTemplate">
     <div class="sub-page">
-      <div class="sub-page-body">
+      <div class="sub-page-body padded">
         <div class="section-title">Add Category</div>
         <div class="clearfix info">
           <p class="info">Description.</p>
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left">
-            <label class="required-label" for="category-icon-btn"
-              >Category Icon</label
-            >
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="required-label" for="category-icon-btn">Category Icon</label>
           </div>
-          <div class="col-md-8 pull-right">
+          <div class="col-md-8 pull-right padding-right-zero">
             <div class="icon-holder" id="category-icon-btn">
               <span class="add-icon text-success"> + </span>
               <img class="image-icon hidden" />
@@ -90,20 +73,11 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left">
-            <label class="required-label" for="category-name"
-              >Category Name</label
-            >
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="required-label" for="category-name">Category Name</label>
           </div>
-          <div class="col-md-8 pull-right">
-            <input
-              type="text"
-              class="form-control"
-              required
-              maxlength="100"
-              id="category-name-input"
-              placeholder=""
-            />
+          <div class="col-md-8 pull-right padding-right-zero">
+            <input type="text" class="form-control" required maxlength="100" id="category-name-input" placeholder="" />
             <div id="category-name-error" class="text-danger hidden">
               Required
             </div>
@@ -111,22 +85,10 @@
         </div>
         <hr class="none" />
         <div class="input-group search-box">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Search"
-            id="subcategory-search-input"
-          />
+          <input type="text" class="form-control" placeholder="Search" name="searchTxt" id="subcategory-search-input" />
           <span class="input-group-btn">
-            <button
-              class="btn btn-info"
-              type="button"
-              id="subcategory-search-btn"
-            >
-              <span
-                class="glyphicon glyphicon-search"
-                aria-hidden="true"
-              ></span>
+            <button class="btn btn-info" type="button" id="subcategory-search-btn">
+              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
             </button>
           </span>
         </div>
@@ -137,19 +99,10 @@
           </div>
 
           <div class="actions">
-            <input type="file" id="file-input"  accept=".csv" style="display:none">
-            <div
-              class="btn-group margin-right-fifteen"
-              id="subcategory-bulk-actions-dropdown"
-            >
-              <button
-                type="button"
-                class="btn btn-default dropdown-toggle"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
-                id="subcategory-bulk-actions-btn"
-              >
+            <input type="file" id="file-input" accept=".csv" style="display:none">
+            <div class="btn-group margin-right-fifteen" id="subcategory-bulk-actions-dropdown">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false" id="subcategory-bulk-actions-btn">
                 Bulk Actions
                 <span class="caret"></span>
               </button>
@@ -159,11 +112,7 @@
                 <li><a id="subcategory-export-btn">Export</a></li>
               </ul>
             </div>
-            <button
-              type="button"
-              class="btn btn-success btn--lg"
-              id="subcategory-add-btn"
-            >
+            <button type="button" class="btn btn-success btn--lg" id="subcategory-add-btn">
               + Add Subcategory
             </button>
           </div>
@@ -192,7 +141,7 @@
     <div class="form-group clearfix">
       <label class="required-label" for="subcategory-name-input">Subcategory Name</label>
       <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"
-          placeholder="Max 30 characters"/>
+        placeholder="Max 30 characters" />
       <div id="subcategory-name-input-error" class="text-danger hidden">Required</div>
     </div>
   </template>

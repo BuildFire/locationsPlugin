@@ -37,7 +37,7 @@ export default class Categories {
       category.createdOn = new Date();
       buildfire.publicData.insert(category, Categories.TAG, (error, result) => {
         if (error) return reject(error);
-        resolve(new Category({ id: result.id, ...result.data}).toJSON());
+        resolve(new Category({ ...result.data, id: result.id }).toJSON());
       });
     });
   }

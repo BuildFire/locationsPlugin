@@ -4,12 +4,9 @@ import buildfire from "buildfire";
 import SortableList from "./SortableList";
 
 class SortableListUI {
-  constructor(options = {}) {
+  constructor(elementId, options = {}) {
+    this.container = document.getElementById(elementId);
     this.sortableList = null;
-    this.container = null;
-    this.tag = "";
-    this.data = null;
-    this.id = null;
     this.options = options;
   }
 
@@ -22,20 +19,21 @@ class SortableListUI {
 	it needs to have an array property called `items` each item need {title, imgUrl}
   */
   init(elementId, items) {
-    this.container = document.getElementById(elementId);
     this.container.innerHTML = "";
     this.render(items);
   }
 
   render(items) {
-    this.sortableList = new SortableList(this.container, items || [], this._injectItemElements, this.options);
-
-    this.sortableList.onItemClick = this.onItemClick;
-    this.sortableList.onDeleteItem = this.onDeleteItem;
-    this.sortableList.onUpdateItem = this.onUpdateItem;
-
-    this.sortableList.onOrderChange = this.onOrderChange;
-    this.sortableList.onToggleChange = this.onToggleChange;
+    if (!this.sortableList) {
+      this.sortableList = new SortableList(this.container, items || [], this._injectItemElements, this.options);
+      this.sortableList.onItemClick = this.onItemClick;
+      this.sortableList.onDeleteItem = this.onDeleteItem;
+      this.sortableList.onUpdateItem = this.onUpdateItem;
+      this.sortableList.onOrderChange = this.onOrderChange;
+      this.sortableList.onToggleChange = this.onToggleChange;
+    } else {
+      this.sortableList.loadItems(items);
+    }
   }
 
   // append new sortable item to the DOM
