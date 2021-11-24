@@ -233,7 +233,34 @@ const toggleFilterOverlay = () => {
     });
   }
 };
+const initDrawer = () => {
+  const element = document.querySelector('.drawer');
+  const resizer = document.querySelector('.drawer .resizer');
+  const minimumSize = 20;
+  let originalHeight = 0;
+  let originalY = 0;
+  let originalMouseY = 0;
 
+  const resize = (e) => {
+    const height = originalHeight - (e.pageY - originalMouseY);
+    if (height > minimumSize) {
+      element.style.height = `${height}px`;
+      element.style.top = `${originalY + (e.pageY - originalMouseY)}px`;
+    }
+  };
+  const stopResize = () => {
+    window.removeEventListener('mousemove', resize);
+  };
+
+  resizer.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
+    originalY = element.getBoundingClientRect().top;
+    originalMouseY = e.pageY;
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResize);
+  });
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -423,6 +450,7 @@ const initHomeView = () => {
         new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
       } else {
         showElement('section#listing');
+        initDrawer();
       }
     });
   });
