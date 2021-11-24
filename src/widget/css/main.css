@@ -301,8 +301,12 @@ div.empty-page {
   top: 100%;
   height: 0;
   overflow: hidden;
-  background-color: #000; color: #FFF;
+  background-color: #ffffff;
   transition: all 1s;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  /* todo rethink below approach */
+  margin-left: -15px;
 }
 
 .drawer.pulled {
@@ -322,21 +326,15 @@ div.empty-page {
 .resizers{
   width: 100%;
   height: 100%;
-  border: 3px solid #4286f4;
-  box-sizing: border-box;
 }
 
 .resizers .resizer {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%; /*magic to turn square into circle*/
-  background: white;
-  border: 3px solid #4286f4;
+  left: calc(50% - 25px);
+  top: 8px;
+  cursor: ns-resize;
+  width: 50px;
+  height: 4px;
+  border-radius: 4px;
+  background: #e0e0e0;
   position: absolute;
-}
-
-.resizers .resizer {
-  left: 55px;
-  top: -5px;
-  cursor: nwse-resize; /*resizer cursor*/
 }
