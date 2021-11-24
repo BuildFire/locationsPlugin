@@ -100,8 +100,11 @@ section#filter {
   font-size: 12px;
 }
 
-.location-item {
+#introLocationsList .location-item {
   padding: 10px;
+}
+#listingLocationsList .location-item {
+  padding: 10px 20px;
 }
 .d-flex {
   display: flex;
@@ -313,6 +316,7 @@ div.empty-page {
   transition: all 1s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
+  overflow-y: scroll;
 /* todo rethink below approach */
   margin-left: -15px;
 }
@@ -322,27 +326,21 @@ div.empty-page {
   top: calc(100% - 285px);
 }
 
-.resizable {
-  background: white;
-  width: 100px;
-  height: 100px;
-  position: absolute;
-  top: 100px;
-  left: 100px;
-}
-
-.resizers{
-  width: 100%;
-  height: 100%;
-}
-
-.resizers .resizer {
-  left: calc(50% - 25px);
-  top: 8px;
+.resizer {
   cursor: ns-resize;
   width: 50px;
   height: 4px;
   border-radius: 4px;
   background: #e0e0e0;
-  position: absolute;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.drawer-header {
+  width: 100%;
+  padding: 15px;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 2;
 }
