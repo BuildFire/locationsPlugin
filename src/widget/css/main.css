@@ -310,8 +310,8 @@ div.empty-page {
 }
 
 .drawer.pulled {
-  height: 330px;
-  top: calc(100% - 330px);
+  height: 285px;
+  top: calc(100% - 285px);
 }
 
 .resizable {

@@ -36,13 +36,26 @@
   </section>
 
   <section id="listing">
-    <div style="height: 500px;background-color: #d2e3eb;margin-left: -15px;margin-right: -15px;">MAP PLACEHOLDER</div>
+    <div id="map" style="height: 500px; margin-left: -15px; margin-right: -15px;"></div>
     <div class="drawer pulled">
       <div class='resizers'>
         <div class='resizer'></div>
       </div>
-      Leave it
     </div>
   </section>
 
+
+  <script>
+    let map;
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+        zoom: 14,
+      });
+    }
+  </script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD06CCe7YjH8V-A1q_-2dkV0yMRgk9-s_8&callback=initMap&v=weekly"
+    async
+  ></script>
 </template>
