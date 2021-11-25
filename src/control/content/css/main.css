@@ -151,3 +151,10 @@ p.info::before {
 }
 
 /* End Sub Page Styles */
+
+/* Map */
+  #location-map {
+	  height: 50vh;
+	  width: 100%;
+  }
+/* End Map */
