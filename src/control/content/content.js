@@ -84,7 +84,8 @@ window.onSidenavChange = (section) => {
 };
 
 const init = () => {
-  navigate('categories');
+  navigate('locations');
+  setActiveSidenavTab('locations');
 };
 
 init();
