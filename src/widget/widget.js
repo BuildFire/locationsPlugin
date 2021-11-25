@@ -166,6 +166,49 @@ const renderLocations = (selector) => {
         </div>
       </div>`)).join('\n');
 };
+const renderListingLocations = () => {
+  const container = document.querySelector('#listingLocationsList');
+  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+        <div class="d-flex">
+          <img src="https://placekitten.com/200/300" alt="Location image">
+          <div class="location-item__description">
+            <p>${n.title}</p>
+            <p class="mdc-theme--text-body">${n.subtitle}</p>
+            <p class="mdc-theme--text-body">${n.address}</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <p class="mdc-theme--text-body">1 mi</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+          </div>
+          <div class="mdc-chip" role="row">
+            <div class="mdc-chip__ripple"></div>
+            <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+          </div>
+        </div>
+      </div>`)).join('\n');
+};
 
 const fetchIntroductoryLocations = (done) => {
   WidgetController
@@ -451,6 +494,7 @@ const initHomeView = () => {
       } else {
         showElement('section#listing');
         initDrawer();
+        renderListingLocations();
       }
     });
   });

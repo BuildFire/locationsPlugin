@@ -11,7 +11,6 @@ export default class Location {
     this.title = data.title || null;
     this.subtitle = data.subtitle || null;
     this.pinIndex = data.pinIndex || null;
-    this.type = data.type || null;
     this.address = data.address || null;
     this.formattedAddress = data.formattedAddress || null;
     this.addressAlias = data.addressAlias || null;
@@ -35,6 +34,7 @@ export default class Location {
     this.owner = data.owner || {};
     this.views = data.views || 0;
     this.priceRange = data.priceRange || 0;
+    this.price = data.price || { range: 0, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };
     this.bookmarksCount = data.bookmarksCount || 0;
     this.actionItems = data.actionItems || [];
@@ -52,7 +52,6 @@ export default class Location {
       title: this.title,
       subtitle: this.subtitle,
       pinIndex: this.pinIndex,
-      type: this.type,
       address: this.address,
       formattedAddress: this.formattedAddress,
       addressAlias: this.addressAlias,
@@ -66,7 +65,7 @@ export default class Location {
       description: this.description,
       owner: this.owner,
       views: this.views,
-      priceRange: this.priceRange,
+      price: this.price,
       rating: this.rating,
       bookmarksCount: this.bookmarksCount,
       actionItems: this.actionItems,

@@ -75,6 +75,13 @@ section#filter {
   z-index: 1000;
 }
 
+#home header {
+  background-color: #ffffff;
+  margin-left: -15px;
+  margin-right: -15px;
+  padding: 0 15px 4px;
+  box-shadow: 0 0.25rem 0.125rem rgb(150 150 150 / 20%);
+}
 .header-qf {
   overflow-y: scroll;
   white-space: nowrap;
@@ -93,11 +100,20 @@ section#filter {
   font-size: 12px;
 }
 
-.location-item {
+#introLocationsList .location-item {
   padding: 10px;
+}
+#listingLocationsList .location-item {
+  padding: 10px 20px;
 }
 .d-flex {
   display: flex;
+}
+.justify-space-between {
+  justify-content: space-between;
+}
+.align-items-center {
+  align-items: center;
 }
 .location-item img {
   width: 64px;
@@ -297,6 +313,7 @@ div.empty-page {
 
 .drawer {
   position: absolute;
+  box-shadow: rgb(150 150 150 / 20%) 0px -0.25rem 0.125rem;
   width: 100%;
   top: 100%;
   height: 0;
@@ -305,7 +322,8 @@ div.empty-page {
   transition: all 1s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  /* todo rethink below approach */
+  overflow-y: scroll;
+/* todo rethink below approach */
   margin-left: -15px;
 }
 
@@ -314,27 +332,53 @@ div.empty-page {
   top: calc(100% - 285px);
 }
 
-.resizable {
-  background: white;
-  width: 100px;
-  height: 100px;
-  position: absolute;
-  top: 100px;
-  left: 100px;
-}
-
-.resizers{
-  width: 100%;
-  height: 100%;
-}
-
-.resizers .resizer {
-  left: calc(50% - 25px);
-  top: 8px;
+.resizer {
   cursor: ns-resize;
   width: 50px;
   height: 4px;
   border-radius: 4px;
   background: #e0e0e0;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.drawer-header {
+  width: 100%;
+  padding: 10px 20px 15px;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 2;
+}
+.drawer-header .bookmark-result p {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+}
+.drawer-header .filter-options {
+  display: flex;
+}
+.drawer-header .filter-options .mdc-button {
+  font-size: 13px;
+  text-transform: unset;
+  letter-spacing: normal;
+}
+.mdc-button.mdc-button--triangle .mdc-button__label {
+  margin-right: 16px;
+}
+.mdc-button.mdc-button--triangle {
+  padding: 0 8px;
+  justify-content: flex-start;
+}
+.mdc-button.mdc-button--triangle:after {
+  content: " ";
+  height: 0;
+  width: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #ffffff;
   position: absolute;
+  right: 8px;
+  top: calc(50% - 2px);
+  margin-left: 4px;
 }
