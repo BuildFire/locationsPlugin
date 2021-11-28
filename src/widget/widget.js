@@ -17,7 +17,7 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = false;
+  settings.showIntroductoryListView = true;
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -279,20 +279,26 @@ const toggleFilterOverlay = () => {
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
-  const minimumSize = 20;
+  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  const lowerMargin = 100;
+  const upperMargin = 125;
   let originalHeight = 0;
   let originalY = 0;
   let originalMouseY = 0;
 
   const resize = (e) => {
     const height = originalHeight - (e.pageY - originalMouseY);
-    if (height > minimumSize) {
+    if (height > lowerMargin && height < (screenHeight - upperMargin)) {
+      console.log('resize called in if');
       element.style.height = `${height}px`;
       element.style.top = `${originalY + (e.pageY - originalMouseY)}px`;
     }
   };
   const stopResize = () => {
-    window.removeEventListener('mousemove', resize);
+    document.removeEventListener('mousemove', resize);
+  };
+  const stopTouchResize = () => {
+    document.removeEventListener('touchmove', resize);
   };
 
   resizer.addEventListener('mousedown', (e) => {
@@ -300,8 +306,17 @@ const initDrawer = () => {
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY;
-    window.addEventListener('mousemove', resize);
-    window.addEventListener('mouseup', stopResize);
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+  });
+
+  resizer.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
+    originalY = element.getBoundingClientRect().top;
+    originalMouseY = e.pageY;
+    document.addEventListener('touchmove', resize);
+    document.addEventListener('touchend', stopTouchResize);
   });
 };
 const initEventListeners = () => {
@@ -319,10 +334,10 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchLocationsBtn') {
       searchLocations(e);
-    }
-
-    if (e.target.id === 'filterIconBtn') {
+    } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
+    } else if (e.target.id === 'showMapView') {
+      showMapView();
     }
   });
 
@@ -470,6 +485,13 @@ const initFilterOverlay = () => {
   }));
 };
 
+const showMapView = () => {
+  hideElement('section#intro');
+  showElement('section#listing');
+  initDrawer();
+  renderListingLocations();
+};
+
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
@@ -492,9 +514,7 @@ const initHomeView = () => {
         // eslint-disable-next-line no-new
         new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
       } else {
-        showElement('section#listing');
-        initDrawer();
-        renderListingLocations();
+        showMapView();
       }
     });
   });

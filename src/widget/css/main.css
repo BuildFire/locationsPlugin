@@ -319,7 +319,7 @@ div.empty-page {
   height: 0;
   overflow: hidden;
   background-color: #ffffff;
-  transition: all 1s;
+  transition: all 0.125s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   overflow-y: scroll;
@@ -328,8 +328,8 @@ div.empty-page {
 }
 
 .drawer.pulled {
-  height: 285px;
-  top: calc(100% - 285px);
+  height: 50%;
+  top: 50%;
 }
 
 .resizer {
@@ -381,4 +381,21 @@ div.empty-page {
   right: 8px;
   top: calc(50% - 2px);
   margin-left: 4px;
+}
+
+button span {
+  pointer-events: none;
+}
+
+.resizer {
+  position: relative;
+}
+
+.resizer:before {
+  position: absolute;
+  content: '';
+  top: -10px;
+  right: -80px;
+  left: -80px;
+  bottom: -40px;
 }
