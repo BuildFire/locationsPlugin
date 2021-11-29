@@ -434,8 +434,12 @@ const initFilterOverlay = () => {
         if (!filterElements[categoryId].includes(c.dataset.sid)) {
           filterElements[categoryId].push(c.dataset.sid);
         }
+        if (!c.classList.contains('mdc-chip--selected')) {
+          c.click();
+        }
+      } else if (c.classList.contains('mdc-chip--selected')) {
+        c.click();
       }
-      c.click();
     });
 
     target.disabled = true;
