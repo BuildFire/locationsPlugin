@@ -22,6 +22,7 @@ section#listing {
 
 section#filter {
   padding: 15px 0;
+  overflow-y: auto;
 }
 
 #home:not(.active),
