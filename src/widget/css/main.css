@@ -254,6 +254,8 @@ div.empty-page {
   transition: all 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .expansion-panel-title {
+  white-space: nowrap;
+  overflow: hidden;
   font-size: 18px;
   font-weight: bolder;
   color: #000000;
