@@ -45,10 +45,10 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="location-title-input">Location Title</label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+          <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-title-input" placeholder="" />
             <div id="location-title-error" class="text-danger hidden">
               Required
@@ -57,10 +57,10 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="location-subtitle-input">Location Subtitle</label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+          <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-subtitle-input" placeholder="" />
             <div id="ocation-subtitle-error" class="text-danger hidden">
               Required
@@ -69,10 +69,10 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="pin-top-btn">Pin Location on top of the list view</label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+          <div class="col-md-9 pull-right padding-right-zero">
             <button class="btn btn-primary" id="pin-top-btn">Pin To Top</button>
           </div>
         </div>
@@ -82,10 +82,10 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="location-address-input">Location Address</label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+          <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-address-input" placeholder="" />
             <div id="location-address-error" class="text-danger hidden">
               Required
@@ -94,10 +94,10 @@
         </div>
         <hr class="none" />
         <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="location-custom-name-input">Location Custom Name</label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+          <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-custom-name-input" placeholder="" />
             <div id="ocation-custom-name-error" class="text-danger hidden">
               Required
@@ -106,8 +106,125 @@
         </div>
         <hr class="none" />
         <div id="location-map">
-
         </div>
+        <hr class="none" />
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Marker Type</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero flex-row">
+            <div class="col-md-4 padding-zero">
+              <input type="radio"  name="markerType" id="marker-pin-radio" placeholder="pin" />
+              <label for="marker-pin-radio">Pin</label>
+            </div>
+            <div class="col-md-4 padding-zero">
+              <input type="radio"  name="markerType" id="marker-circle-radio" placeholder="circle" />
+              <label for="marker-circle-radio">Circle</label>
+            </div>
+            <div class="col-md-4 padding-zero">
+              <input type="radio"  name="markerType" id="marker-image-radio" value="image" />
+              <label for="marker-image-radio">Image</label>
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label" for="marker-image-btn">Marker Image</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="icon-holder" id="marker-image-btn">
+              <span class="add-icon text-success"> + </span>
+              <img class="image-icon hidden" />
+              <i class="glyph-icon hidden"></i>
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label" for="marker-image-btn">Marker Color</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="colorgrid pull-left">
+              <div class="gradient-results">
+                  <div  class="coloritem margin-bottom-zero">
+                      <a class="img-thumbnail">
+                      <span class="color border-radius-four border-grey relative-position">
+                          <div class="color-not-selected"></div>
+                      </span>
+                      </a>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div>
+          <h5 class="text-bold">Categories</h5>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Location Categories</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="flex-row space-between">
+              <div>
+                <button class="btn btn-primary">Edit Location Categories</button>
+              </div>
+              <div class="form-group">
+                  <label>Show category on Location Screen</label>
+                  <div class="button-switch">
+                      <input id="location-show-category" type="checkbox" onclick="" checked/>
+                      <label for="location-show-category" class="label-success"></label>
+                  </div>
+              </div>
+            </div>
+            <hr class="none" />
+            <div class="location-categories-container well margin-bottom-ten">
+              <p class="text-muted">2 categories 6 subcategories</p> 
+              <div id="location-categories-list">
+                <div class="item-list">
+                  <h6 class="text-bold">Category 1</h6>
+                  <span class="ext-muted">subcategory1, subcategory2, subcategory3</span>
+                </div>
+                <div class="item-list">
+                  <h6 class="text-bold">Category 2</h6>
+                  <span class="ext-muted">subcategory1, subcategory2, subcategory3</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <a href="">Edit all categories</a>
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Enable Opening Hours</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="flex-row space-between">
+              <div>
+                <span class="text-muted">Timezone</span>
+              </div>
+              <div class="form-group">
+                  <label>Show category on Location Screen</label>
+                  <div class="button-switch">
+                      <input id="location-show-category" type="checkbox" onclick="" />
+                      <label for="location-show-category" class="label-success"></label>
+                  </div>
+              </div>
+            </div>
+            <hr class="none" />
+            <div class="">
+            </div>
+          </div>
+        </div>
+       
       </div>
       <div class="sub-page-footer padded">
         <button class="btn btn-default" onclick="cancelAddLocation()">

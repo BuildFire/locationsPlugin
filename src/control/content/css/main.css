@@ -46,6 +46,15 @@
 
 
 /* Helpers Style */
+.flex-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.space-between {
+	justify-content: space-between;
+}
+
 .section-title{
 	color: #000;
 	font-size: 18px;
@@ -123,7 +132,17 @@ p.info::before {
 .add-icon {
     content: '+';
     display: inline-block;
-    font-size: 28px;
+    font-size: 32px;
+	margin-bottom: 5px;
+}
+
+.colorgrid .coloritem a {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+.item-list {
+	margin-top: 1rem;
 }
 /* Helpers Style */
 
@@ -154,7 +173,7 @@ p.info::before {
 
 /* Map */
   #location-map {
-	  height: 50vh;
+	  height: 40vh;
 	  width: 100%;
   }
 /* End Map */
