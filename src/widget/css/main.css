@@ -260,14 +260,12 @@ div.empty-page {
   display: flex;
   align-items: center;
 }
-.expansion-panel-title .mdc-text-field__icon {
+.expansion-panel-title .glyphicon {
+  margin-right: 12px;
   background-color: rgba(150,150,150,.1);
   border-radius: 50%;
-  font-size: 26px;
-  padding: 8px;
-  color: #000000;
-  margin-right: 12px;
-  font-weight: bold;
+  padding: 10px;
+  font-size: 18px;
 }
 .expansion-panel-actions {
   display: flex;

@@ -359,15 +359,14 @@ const initFilterOverlay = () => {
 
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
-  console.log('categories: ', CATEGORIES)
   CATEGORIES.forEach((category) => {
     filterElements[category.id] = [];
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title">
-            
-            <i class="glyphicon glyph-icon glyphicon-book"></i>
+          
+            <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
               ${category.title}
             </span>
             <div class="expansion-panel-actions margin-right-ten">
