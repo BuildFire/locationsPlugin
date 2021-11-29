@@ -1,5 +1,6 @@
 @import "../../../../styles/appStyle.css";
 @import "../../../../styles/helper.css";
+@import "./glyphicons.css";
 
 :root {
   --body-theme: unset;
