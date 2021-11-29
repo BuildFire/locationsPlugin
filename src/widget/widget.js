@@ -451,7 +451,7 @@ const initFilterOverlay = () => {
     const { target } = e;
     const mdcChip = target.closest('.mdc-chip');
 
-    if (mdcChip.classList.contains('disabled')) {
+    if (!e.isTrusted || mdcChip.classList.contains('disabled')) {
       return;
     }
 
