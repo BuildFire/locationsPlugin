@@ -365,7 +365,6 @@ const initFilterOverlay = () => {
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title">
-          
             <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
               ${category.title}
             </span>
@@ -435,10 +434,8 @@ const initFilterOverlay = () => {
         if (!filterElements[categoryId].includes(c.dataset.sid)) {
           filterElements[categoryId].push(c.dataset.sid);
         }
-        c.classList.add('mdc-chip--selected');
-      } else {
-        c.classList.remove('mdc-chip--selected');
       }
+      c.click();
     });
 
     target.disabled = true;
