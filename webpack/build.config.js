@@ -87,6 +87,12 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/widget/templates/filter.html')
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/detail.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/detail.html')
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/home.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

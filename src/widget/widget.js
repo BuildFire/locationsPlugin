@@ -43,10 +43,19 @@ testingFn();
 const templates = {};
 
 /** template management start */
+const injectTemplate = (template) => {
+  if (!templates[template]) {
+    console.warn(`template ${template} not found.`);
+    return;
+  }
+  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
+  document.querySelector(`#${template}`).appendChild(createTemplate);
+};
+
 const fetchTemplate = (template, done) => {
   if (templates[template]) {
     console.warn(`template ${template} already exist.`);
-    return;
+    return done();
   }
 
   const xhr = new XMLHttpRequest();
@@ -60,15 +69,6 @@ const fetchTemplate = (template, done) => {
   };
   xhr.open('GET', `./templates/${template}.html`);
   xhr.send(null);
-};
-
-const injectTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  document.querySelector(`#${template}`).appendChild(createTemplate);
 };
 /** template management end */
 
@@ -330,7 +330,6 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
-
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
@@ -551,6 +550,18 @@ const showMapView = () => {
   renderListingLocations();
 };
 
+const navigateTo = (template) => {
+  const templateSection = document.querySelector(`section#${template}`);
+  fetchTemplate(template, () => {
+    if (templateSection.childNodes.length === 0) {
+      injectTemplate(template);
+    }
+    const currentActive = document.querySelector('section.active');
+    currentActive.classList.remove('active');
+    document.querySelector(`section#${template}`).classList.add('active');
+  });
+};
+
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
@@ -580,8 +591,10 @@ const initHomeView = () => {
 };
 
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
+  // fetchTemplate('filter', injectTemplate);
+  // fetchTemplate('home', initHomeView);
+
+  navigateTo('detail');
 
   initEventListeners();
 
