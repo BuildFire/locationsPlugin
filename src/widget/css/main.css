@@ -401,3 +401,51 @@ button span {
   left: -80px;
   bottom: -40px;
 }
+
+.location-image-item {
+  background-repeat: no-repeat;
+  padding: 10px 20px;
+  color: #FFFFFF;
+  background-size: cover;
+  margin-bottom: 1px;
+}
+.location-image-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.location-image-item__header p {
+  font-size: 12px;
+}
+.location-image-item__body p:first-child {
+  margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: bold;
+}
+.location-image-item__body p:nth-child(2) {
+  font-size: 13px;
+}
+.location-image-item__body p:last-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.location-image-item .mdc-chip-set {
+  padding: 0;
+}
+.location-image-item .mdc-chip-set .mdc-chip:first-child {
+  margin-left: 0;
+}
+.location-image-item .mdc-chip-set .mdc-chip {
+  background-color: #000000;
+  height: 28px;
+}
+.location-image-item .mdc-chip-set .mdc-chip__text {
+  font-size: 12px;
+  color: #FFFFFF;
+}

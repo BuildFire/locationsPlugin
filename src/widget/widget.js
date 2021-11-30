@@ -17,7 +17,8 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = true;
+  settings.showIntroductoryListView = false;
+  settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -168,7 +169,54 @@ const renderLocations = (selector) => {
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
-  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+
+  if (settings.design.listViewStyle === 'image') {
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(34 34 34 / 70%), rgb(34 34 34 / 70%) ),url(https://placeimg.com/800/400);">
+            <div class="location-image-item__header">
+              <p>1 mi</p>
+              <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            </div>
+            <div class="location-image-item__body">
+              <p class="margin-bottom-five">${n.subtitle}</p>
+              <p class="margin-top-zero">Category | Subcategory</p>
+              <p>
+                <span>${n.subtitle}</span>
+                <span>$$$</span>
+              </p>
+            </div>
+            <div class="mdc-chip-set" role="grid">
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+              </div>
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+              </div>
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+              </div>
+            </div>
+          </div>
+`)).join('\n');
+
+
+
+  } else {
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
           <img src="https://placekitten.com/200/300" alt="Location image">
           <div class="location-item__description">
@@ -208,6 +256,7 @@ const renderListingLocations = () => {
           </div>
         </div>
       </div>`)).join('\n');
+  }
 };
 
 const fetchIntroductoryLocations = (done) => {
