@@ -322,6 +322,15 @@ const toggleFilterOverlay = () => {
     });
   }
 };
+const toggleDropdownMenu = (element) => {
+  if (typeof element === 'string') {
+    element = document.querySelector(element);
+  }
+  const menu = new mdc.menu.MDCMenu(element);
+  menu.open = true;
+};
+
+
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
@@ -384,6 +393,8 @@ const initEventListeners = () => {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
       showMapView();
+    } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
+      toggleDropdownMenu(e.target.nextElementSibling);
     }
   });
 

@@ -46,7 +46,7 @@
         </div>
         <div class="filter-options margin-top-twenty">
           <div class="mdc-menu-surface--anchor margin-right-ten">
-            <button class="mdc-button mdc-button--unelevated mdc-button--triangle">
+            <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="priceSortingBtn">
               <span class="mdc-button__ripple"></span>
               <span class="mdc-button__focus-ring"></span>
               <span class="mdc-button__label">$$$</span>
@@ -55,76 +55,30 @@
               <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
                 <li class="mdc-list-item" role="menuitem" data-value="0.25">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">15 Minutes</span>
+                  <span class="mdc-list-item__text">$</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="0.5">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">30 Minutes</span>
+                  <span class="mdc-list-item__text">$$</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="1">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">1 hour</span>
+                  <span class="mdc-list-item__text">$$$</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="3">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">3 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="6">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">6 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="12">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">12 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="24">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">24 hours</span>
+                  <span class="mdc-list-item__text">$$$$</span>
                 </li>
               </ul>
             </div>
           </div>
+          <button class="mdc-button mdc-button--unelevated margin-right-ten" id="openNowSortingBtn">
+            <span class="mdc-button__ripple"></span>
+            <span class="mdc-button__focus-ring"></span>
+            <span class="mdc-button__label">Open Now</span>
+          </button>
           <div class="mdc-menu-surface--anchor margin-right-ten">
-            <button class="mdc-button mdc-button--unelevated">
-              <span class="mdc-button__ripple"></span>
-              <span class="mdc-button__focus-ring"></span>
-              <span class="mdc-button__label">Open Now</span>
-            </button>
-            <div class="mdc-menu mdc-menu-surface">
-              <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                <li class="mdc-list-item" role="menuitem" data-value="0.25">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">15 Minutes</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="0.5">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">30 Minutes</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="1">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">1 hour</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="3">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">3 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="6">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">6 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="12">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">12 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="24">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">24 hours</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="mdc-menu-surface--anchor margin-right-ten">
-            <button class="mdc-button mdc-button--unelevated mdc-button--triangle">
+            <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="otherSortingBtn">
               <span class="mdc-button__ripple"></span>
               <span class="mdc-button__focus-ring"></span>
               <span class="mdc-button__label">Distance</span>
@@ -133,31 +87,15 @@
               <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
                 <li class="mdc-list-item" role="menuitem" data-value="0.25">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">15 Minutes</span>
+                  <span class="mdc-list-item__text">Distance</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="0.5">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">30 Minutes</span>
+                  <span class="mdc-list-item__text">A-Z</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="1">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">1 hour</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="3">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">3 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="6">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">6 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="12">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">12 hours</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem" data-value="24">
-                  <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">24 hours</span>
+                  <span class="mdc-list-item__text">Z-A</span>
                 </li>
               </ul>
             </div>
