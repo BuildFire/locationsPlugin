@@ -171,10 +171,10 @@ const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
 
   if (settings.design.listViewStyle === 'image') {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(34 34 34 / 70%), rgb(34 34 34 / 70%) ),url(https://placeimg.com/800/400);">
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/800/400);">
             <div class="location-image-item__header">
               <p>1 mi</p>
-              <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">star_outline</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.subtitle}</p>
@@ -212,9 +212,6 @@ const renderListingLocations = () => {
             </div>
           </div>
 `)).join('\n');
-
-
-
   } else {
     container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
