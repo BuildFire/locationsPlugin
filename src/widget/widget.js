@@ -472,8 +472,12 @@ const initFilterOverlay = () => {
     multi: true
   });
 
-  const chipSets = document.querySelectorAll('#filter .mdc-chip-set');
-  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+  const chipSetsElements = document.querySelectorAll('#filter .mdc-chip-set');
+  const chipSets = {};
+  Array.from(chipSetsElements).forEach((c) => {
+    const parent = c.closest('div.expansion-panel');
+    chipSets[parent.dataset.cid] = new mdc.chips.MDCChipSet(c);
+  });
 
   const expansionPanelCheckBox = document.querySelectorAll('.mdc-checkbox input');
   Array.from(expansionPanelCheckBox).forEach((c) => c.addEventListener('change', (e) => {
@@ -481,23 +485,17 @@ const initFilterOverlay = () => {
     const mdcCheckBox = target.closest('.mdc-checkbox');
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
-    const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
     if (!target.checked) {
       filterElements[categoryId] = [];
     }
-    Array.from(chips).forEach((c) => {
-      if (target.checked) {
-        if (!filterElements[categoryId].includes(c.dataset.sid)) {
-          filterElements[categoryId].push(c.dataset.sid);
-        }
-        if (!c.classList.contains('mdc-chip--selected')) {
-          c.click();
-        }
-      } else if (c.classList.contains('mdc-chip--selected')) {
-        c.click();
-      }
-    });
 
+    chipSets[categoryId].chips.forEach((c) => {
+      const { sid } = c.root_.dataset;
+      if (target.checked && !filterElements[categoryId].includes(sid)) {
+        filterElements[categoryId].push(sid);
+      }
+      c.selected = target.checked;
+    });
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     setTimeout(() => {
@@ -506,12 +504,12 @@ const initFilterOverlay = () => {
     }, 500);
   }));
 
-  const subcategoriesChips = document.querySelectorAll('.mdc-chip');
+  const subcategoriesChips = document.querySelectorAll('#filter .mdc-chip');
   Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
     const { target } = e;
     const mdcChip = target.closest('.mdc-chip');
 
-    if (!e.isTrusted || mdcChip.classList.contains('disabled')) {
+    if (mdcChip.classList.contains('disabled')) {
       return;
     }
 
@@ -591,10 +589,10 @@ const initHomeView = () => {
 };
 
 const init = () => {
-  // fetchTemplate('filter', injectTemplate);
-  // fetchTemplate('home', initHomeView);
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomeView);
 
-  navigateTo('detail');
+  // navigateTo('detail');
 
   initEventListeners();
 
