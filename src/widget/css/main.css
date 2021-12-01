@@ -72,8 +72,8 @@ section#filter {
 }
 .mdc-fab {
   position: fixed;
-  right: 35px;
-  bottom: 60px;
+  right: 24px;
+  bottom: 24px;
   z-index: 1000;
 }
 
