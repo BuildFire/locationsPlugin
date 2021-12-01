@@ -553,3 +553,10 @@ button span {
   font-weight: bold;
   color: #000000;
 }
+
+.mdc-chip span[role="gridcell"] {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
