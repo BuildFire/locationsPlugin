@@ -458,7 +458,7 @@ button span {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 25px 20px 20px;
+  padding: 25px 15px 20px;
   margin-right: -15px;
   margin-left: -15px;
   color: #FFFFFF;
@@ -487,7 +487,7 @@ button span {
   right: 20px;
 }
 .location-detail__cover h2 {
-  margin-top: 40px;
+  margin-top: 50px;
   margin-bottom: 0;
 }
 .location-detail__cover h4 {
@@ -495,4 +495,22 @@ button span {
   margin-top: 5px;
   font-size: 15px;
   font-weight: normal;
+}
+.location-detail__cover .mdc-text-field__icon {
+  cursor: pointer;
+}
+.location-detail__address {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.location-detail__address .material-icons {
+  font-size: 16px;
+  margin-left: 8px;
+}
+.location-detail__address p:last-child {
+  display: flex;
+  align-items: center;
 }
