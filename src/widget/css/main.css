@@ -459,8 +459,7 @@ button span {
   flex-direction: column;
   align-items: flex-start;
   padding: 25px 15px 20px;
-  margin-right: -15px;
-  margin-left: -15px;
+  margin: -15px -15px 0;
   color: #FFFFFF;
 }
 .location-detail__cover p:first-child {
@@ -531,4 +530,26 @@ button span {
   width: 100%;
   margin-top: 15px;
   font-weight: bold;
+}
+.location-detail .action-item {
+  width: 33.3%;
+  padding: 5px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+.location-detail .action-item .mdc-chip {
+  height: 28px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+}
+.location-detail .action-item .mdc-chip__text {
+  font-size: 12px;
+}
+.location-detail .action-item .mdc-text-field__icon {
+  font-size: 26px;
+  font-weight: bold;
+  color: #000000;
 }
