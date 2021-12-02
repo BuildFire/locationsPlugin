@@ -571,12 +571,18 @@ button span {
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
 }
 .location-detail__rating {
-  box-shadow: rgb(0 0 0 / 12%) 0px -3px 6px -1px;
   margin-right: -15px;
   margin-left: -15px;
   padding: 10px;
   text-align: center;
   margin-top: 10px;
+}
+.location-detail__rating.location-detail__rating--dual-shadow {
+  box-shadow: rgb(0 0 0 / 20%) 0px 3px 6px -7px, rgb(0 0 0 / 14%) 0px 3px 6px -1px, rgb(0 0 0 / 12%) 0px 3px 6px -1px;
+  margin-bottom: 20px;
+}
+.location-detail__rating.location-detail__rating--single-shadow {
+  box-shadow: rgb(0 0 0 / 12%) 0px -3px 6px -1px;
 }
 .location-detail__rating p:first-child {
   font-weight: bold;
