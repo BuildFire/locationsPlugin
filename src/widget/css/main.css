@@ -591,3 +591,6 @@ button span {
 .location-detail__rating p {
   margin: 0;
 }
+.location-detail__description {
+  font-size: 14px;
+}
