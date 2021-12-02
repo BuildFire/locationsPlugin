@@ -18,6 +18,7 @@ let filterElements = {};
 // todo to be removed
 const testingFn = () => {
   settings.showIntroductoryListView = false;
+  settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -42,10 +43,19 @@ testingFn();
 const templates = {};
 
 /** template management start */
+const injectTemplate = (template) => {
+  if (!templates[template]) {
+    console.warn(`template ${template} not found.`);
+    return;
+  }
+  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
+  document.querySelector(`#${template}`).appendChild(createTemplate);
+};
+
 const fetchTemplate = (template, done) => {
   if (templates[template]) {
     console.warn(`template ${template} already exist.`);
-    return;
+    return done();
   }
 
   const xhr = new XMLHttpRequest();
@@ -59,15 +69,6 @@ const fetchTemplate = (template, done) => {
   };
   xhr.open('GET', `./templates/${template}.html`);
   xhr.send(null);
-};
-
-const injectTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  document.querySelector(`#${template}`).appendChild(createTemplate);
 };
 /** template management end */
 
@@ -168,7 +169,51 @@ const renderLocations = (selector) => {
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
-  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+
+  if (settings.design.listViewStyle === 'image') {
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/800/400);">
+            <div class="location-image-item__header">
+              <p>1 mi</p>
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">star_outline</i>
+            </div>
+            <div class="location-image-item__body">
+              <p class="margin-bottom-five">${n.subtitle}</p>
+              <p class="margin-top-zero">Category | Subcategory</p>
+              <p>
+                <span>${n.subtitle}</span>
+                <span>$$$</span>
+              </p>
+            </div>
+            <div class="mdc-chip-set" role="grid">
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Send Email</span>
+                </span>
+              </span>
+              </div>
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Call</span>
+                </span>
+              </span>
+              </div>
+              <div class="mdc-chip" role="row">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                  <span class="mdc-chip__text">Reservation</span>
+                </span>
+              </span>
+              </div>
+            </div>
+          </div>
+`)).join('\n');
+  } else {
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
           <img src="https://placekitten.com/200/300" alt="Location image">
           <div class="location-item__description">
@@ -208,6 +253,7 @@ const renderListingLocations = () => {
           </div>
         </div>
       </div>`)).join('\n');
+  }
 };
 
 const fetchIntroductoryLocations = (done) => {
@@ -276,23 +322,37 @@ const toggleFilterOverlay = () => {
     });
   }
 };
+const toggleDropdownMenu = (element) => {
+  if (typeof element === 'string') {
+    element = document.querySelector(element);
+  }
+  const menu = new mdc.menu.MDCMenu(element);
+  menu.open = true;
+};
+
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
-  const minimumSize = 20;
+  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  const lowerMargin = 100;
+  const upperMargin = 125;
   let originalHeight = 0;
   let originalY = 0;
   let originalMouseY = 0;
 
   const resize = (e) => {
     const height = originalHeight - (e.pageY - originalMouseY);
-    if (height > minimumSize) {
+    if (height > lowerMargin && height < (screenHeight - upperMargin)) {
+      console.log('resize called in if');
       element.style.height = `${height}px`;
       element.style.top = `${originalY + (e.pageY - originalMouseY)}px`;
     }
   };
   const stopResize = () => {
-    window.removeEventListener('mousemove', resize);
+    document.removeEventListener('mousemove', resize);
+  };
+  const stopTouchResize = () => {
+    document.removeEventListener('touchmove', resize);
   };
 
   resizer.addEventListener('mousedown', (e) => {
@@ -300,8 +360,17 @@ const initDrawer = () => {
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY;
-    window.addEventListener('mousemove', resize);
-    window.addEventListener('mouseup', stopResize);
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+  });
+
+  resizer.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
+    originalY = element.getBoundingClientRect().top;
+    originalMouseY = e.pageY;
+    document.addEventListener('touchmove', resize);
+    document.addEventListener('touchend', stopTouchResize);
   });
 };
 const initEventListeners = () => {
@@ -319,10 +388,12 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchLocationsBtn') {
       searchLocations(e);
-    }
-
-    if (e.target.id === 'filterIconBtn') {
+    } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
+    } else if (e.target.id === 'showMapView') {
+      showMapView();
+    } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
+      toggleDropdownMenu(e.target.nextElementSibling);
     }
   });
 
@@ -350,7 +421,7 @@ const initFilterOverlay = () => {
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title">
-              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">fmd_good</i>
+            <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
               ${category.title}
             </span>
             <div class="expansion-panel-actions margin-right-ten">
@@ -401,8 +472,12 @@ const initFilterOverlay = () => {
     multi: true
   });
 
-  const chipSets = document.querySelectorAll('#filter .mdc-chip-set');
-  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+  const chipSetsElements = document.querySelectorAll('#filter .mdc-chip-set');
+  const chipSets = {};
+  Array.from(chipSetsElements).forEach((c) => {
+    const parent = c.closest('div.expansion-panel');
+    chipSets[parent.dataset.cid] = new mdc.chips.MDCChipSet(c);
+  });
 
   const expansionPanelCheckBox = document.querySelectorAll('.mdc-checkbox input');
   Array.from(expansionPanelCheckBox).forEach((c) => c.addEventListener('change', (e) => {
@@ -410,21 +485,17 @@ const initFilterOverlay = () => {
     const mdcCheckBox = target.closest('.mdc-checkbox');
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
-    const chips = parent.querySelectorAll('.expansion-panel-body .mdc-chip');
     if (!target.checked) {
       filterElements[categoryId] = [];
     }
-    Array.from(chips).forEach((c) => {
-      if (target.checked) {
-        if (!filterElements[categoryId].includes(c.dataset.sid)) {
-          filterElements[categoryId].push(c.dataset.sid);
-        }
-        c.classList.add('mdc-chip--selected');
-      } else {
-        c.classList.remove('mdc-chip--selected');
-      }
-    });
 
+    chipSets[categoryId].chips.forEach((c) => {
+      const { sid } = c.root_.dataset;
+      if (target.checked && !filterElements[categoryId].includes(sid)) {
+        filterElements[categoryId].push(sid);
+      }
+      c.selected = target.checked;
+    });
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     setTimeout(() => {
@@ -433,7 +504,7 @@ const initFilterOverlay = () => {
     }, 500);
   }));
 
-  const subcategoriesChips = document.querySelectorAll('.mdc-chip');
+  const subcategoriesChips = document.querySelectorAll('#filter .mdc-chip');
   Array.from(subcategoriesChips).forEach((c) => c.addEventListener('click', (e) => {
     const { target } = e;
     const mdcChip = target.closest('.mdc-chip');
@@ -470,6 +541,25 @@ const initFilterOverlay = () => {
   }));
 };
 
+const showMapView = () => {
+  hideElement('section#intro');
+  showElement('section#listing');
+  initDrawer();
+  renderListingLocations();
+};
+
+const navigateTo = (template) => {
+  const templateSection = document.querySelector(`section#${template}`);
+  fetchTemplate(template, () => {
+    if (templateSection.childNodes.length === 0) {
+      injectTemplate(template);
+    }
+    const currentActive = document.querySelector('section.active');
+    currentActive.classList.remove('active');
+    document.querySelector(`section#${template}`).classList.add('active');
+  });
+};
+
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
@@ -492,9 +582,7 @@ const initHomeView = () => {
         // eslint-disable-next-line no-new
         new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
       } else {
-        showElement('section#listing');
-        initDrawer();
-        renderListingLocations();
+        showMapView();
       }
     });
   });
@@ -503,6 +591,8 @@ const initHomeView = () => {
 const init = () => {
   fetchTemplate('filter', injectTemplate);
   fetchTemplate('home', initHomeView);
+
+  // navigateTo('detail');
 
   initEventListeners();
 
