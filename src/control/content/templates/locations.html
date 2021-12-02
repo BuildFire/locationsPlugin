@@ -215,7 +215,139 @@
             </div>
           </div>
         </div>
-       
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Enable Price Range</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="flex-row space-between align-items-center">
+              <div class="flex-row col-md-9 padding-zero">
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-1" value="0" name="priceRangeValue" />
+                  <label for="price-range-radio-1">$</label>
+                </div>
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-2" value="1" name="priceRangeValue"/>
+                  <label for="price-range-radio-2">$$</label>
+                </div>
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-3" value="2" name="priceRangeValue"/>
+                  <label for="price-range-radio-3">$$$</label>
+                </div>
+                <div class="form-group col-md-3 padding-zero">
+                  <input type="radio" id="price-range-radio-4" value="3" name="priceRangeValue"/>
+                  <label for="price-range-radio-4">$$$$</label>
+                </div>
+                <div class="form-group col-md-3 padding-zero">
+                  <select class="form-control" id="location-select-curency">
+                    <option value="$">$</option>
+                    <option value="€">€</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                  <div class="button-switch">
+                      <input id="location-show-price-range-btn" type="checkbox" onclick="" />
+                      <label for="location-show-price-range-btn" class="label-success"></label>
+                  </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Enable 5 Star Rating</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero flex-row space-between">
+            <div></div>
+              <div class="form-group">
+                <div class="button-switch">
+                    <input id="location-show-star-rating-btn" type="checkbox"  />
+                    <label for="location-show-star-rating-btn" class="label-success"></label>
+                </div>
+              </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div>
+          <h5 class="text-bold">Location Information & Images</h5>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">List Image</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero ">
+            <div class="icon-holder list-image-holder " id="location-list-image">
+              <span class="add-icon text-success"> + </span>
+              <img class="image-icon hidden" />
+              <img class="glyph-icon hidden" />
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Location Images</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-images-btn">
+                + Add Images
+              </button>
+            </div>
+            <div id="location-image-items" class="margin-top-ten">
+
+            </div>
+          </div>
+        </div>
+        <hr class="none" /> 
+        <div class="main clearfix">
+          <label class="required-label">Description</label>
+          <div>
+            <textarea id="location-description-wysiwyg" name="content"></textarea>
+          </div>
+        </div>
+        <hr class="none" />
+        <hr class="none" />
+        <div>
+          <h5 class="text-bold">Location Action</h5>
+          <hr class="none" />
+          <div class="clearfix info">
+            <p class="info">Description.</p>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Select Action</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-actions-btn">
+                + Add Action Item
+              </button>
+            </div>
+            <div id="location-action-items" class="margin-top-ten">
+
+            </div>
+          </div>
+        </div>
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Location Owner</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-owner-btn">
+                + Add Location Owner
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="sub-page-footer padded">
         <button class="btn btn-default" onclick="cancelAddLocation()">
@@ -283,7 +415,9 @@
         </div>
       </div>
       <div class="action">
-        <button class="btn btn-success add-hours-btn">Add Hours</button>
+        <button class="btn btn-default add-hours-btn">
+          <span class="text-success">Add Hours</span>
+        </button>
       </div>
     </div>
   </template>
@@ -295,8 +429,8 @@
       <div class="margin-left-ten">
         <input type="time" class="form-control to" value="20:00">
       </div>
-      <div class="margin-top-five margin-left-ten hidden">
-        <span class="icon icon-cross2 delete-interval-btn"></span>
+      <div class="margin-left-ten">
+        <span class="btn--icon icon icon-cross2 delete-interval-btn"></span>
       </div>
     </div>
   </template>

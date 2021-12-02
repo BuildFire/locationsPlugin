@@ -136,15 +136,20 @@ p.info::before {
 	overflow: hidden;
 }
 
-.icon-holder img {
+.list-image-holder {
+	width: 120px;
+	height: 80px;
+}
+
+.icon-holder img, .list-image-holder img {
 	width: 100%;
 	height: 100%;
 }
 
 .add-icon {
-    content: '+';
-    display: inline-block;
-    font-size: 32px;
+	content: '+';
+	display: inline-block;
+	font-size: 32px;
 	margin-bottom: 5px;
 }
 

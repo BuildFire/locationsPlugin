@@ -7,9 +7,11 @@ import Category from "../../../../entities/Category";
 import DataMocks from "../../../../DataMocks";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
+import LocationImagesUI from "./locationImagesUI";
+
 
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -17,12 +19,23 @@ const inputLocationForm = document.querySelector("#form-holder");
 
 let addLocationControls = {};
 let selectCategoryDialog = null;
+let locationImagesUI = null;
 
 const state = {
+  categories: [],
+  categoriesLookup: {},
   locationObj: new Location(),
   selectedLocationCategories: { main: [], subcategories: [] },
-  categories: [],
-  categoriesLookup: {}
+  selectedOpeningHours: getDefaultOpeningHours(),
+  weekDays: {
+    sunday: "Sun",
+    monday: "Mon",
+    tuesday: "Tue",
+    wednesday: "Wen",
+    thursday: "Thu",
+    friday: "Fri",
+    saturday: "Sat",
+  }
 };
 
 const renderAddLocationsPage = () => {
@@ -54,6 +67,11 @@ const renderAddLocationsPage = () => {
     categoriesList: inputLocationForm.querySelector("#location-categories-list"),
     showOpeningHoursBtn: inputLocationForm.querySelector("#location-show-opening-hours-btn"),
     openingHoursContainer: inputLocationForm.querySelector("#location-opening-hours-container"),
+    showPriceRangeBtn: inputLocationForm.querySelector("#location-show-price-range-btn"),
+    selectPriceCurrency: inputLocationForm.querySelector("#location-select-price-currency"),
+    showStarRatingBtn: inputLocationForm.querySelector("#location-show-star-rating-btn"),
+    listImageBtn: inputLocationForm.querySelector("#location-list-image"),
+    addLocationImageBtn: inputLocationForm.querySelector("#location-add-images-btn"),
   };
 };
 
@@ -74,15 +92,74 @@ window.addEditLocation = (location, callback = () => {}) => {
   }
 
   renderCategoriesList(state.locationObj.categories);
-  renderOpeningHours();
-  addLocationControls.editCategoriesBtn.onclick = () => {
-    openSelectCategoriesDialog("Add");
-  };
+  renderOpeningHours(state.locationObj.openingHours);
 
+  locationImagesUI = new LocationImagesUI('location-image-items');
+
+  tinymce.init({
+    selector: "#location-description-wysiwyg",
+  });
+
+  addLocationControls.editCategoriesBtn.onclick = openSelectCategoriesDialog
   addLocationControls.showCategoriesBtn.onchange = (e) => {
-    console.log(e.target.checked);
     state.locationObj.settings.showCategory = e.target.checked;
   };
+
+  addLocationControls.showOpeningHoursBtn.onchange = (e) => {
+    state.locationObj.settings.showOpeningHours = e.target.checked;
+  };
+
+  addLocationControls.showPriceRangeBtn.onchange = (e) => {
+    state.locationObj.settings.showPriceRange = e.target.checked;
+  };
+
+  addLocationControls.showStarRatingBtn.onchange = (e) => {
+    state.locationObj.settings.showStarRating = e.target.checked;
+  };
+
+  addLocationControls.listImageBtn.onclick = () => {
+    buildfire.imageLib.showDialog(
+      { showIcons: false, multiSelection: false }, (err, result) => {
+        if (err) return console.error(err);
+        if (!result) {
+          return null;
+        }
+        const { selectedFiles, selectedStockImages } = result;
+        let iconUrl = null;
+        if (selectedFiles && selectedFiles.length > 0) {
+          iconUrl = selectedFiles[0];
+        } else if (selectedStockImages && selectedStockImages.length > 0) {
+          iconUrl = selectedStockImages[0];
+        }
+
+        if (iconUrl) {
+          setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+          state.locationObj.listImage = iconUrl;
+        }
+    });
+  }
+
+  addLocationControls.addLocationImageBtn.onclick = () => {
+    buildfire.imageLib.showDialog(
+      { showIcons: false, multiSelection: true }, (err, result) => {
+        if (err) return console.error(err);
+        if (!result) {
+          return null;
+        }
+        const { selectedFiles, selectedStockImages } = result;
+        let locationImages = [];
+        if (selectedFiles) {
+          loadLocations.push( ...selectedFiles);
+        } else if (selectedStockImages) {
+          loadLocations.push( ...selectedStockImages);
+        }
+        
+        state.locationObj.images.push( locationImages.map(imageUrl => ({id: generateUUID(), imageUrl})));
+
+        locationImagesUI.init("location-image-items", state.locationObj.images);
+    });
+  }
+
 };
 
 const cropImage = (url, options) => {
@@ -92,7 +169,7 @@ const cropImage = (url, options) => {
   return buildfire.imageLib.cropImage(url, options);
 };
 
-const setCategoryIcon = (icon, type, selector) => {
+const setIcon = (icon, type, selector, options = {}) => {
   if (!icon) {
     return;
   }
@@ -113,8 +190,8 @@ const setCategoryIcon = (icon, type, selector) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: 16,
-      height: 16,
+      width: options.width? options.width : 16,
+      height: options.height? options.height : 16,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -188,7 +265,7 @@ const createSelectCategoryList = (categories, categoriesContainer, selected) => 
       : _category.iconClassName;
     const iconType = _category.iconUrl ? "url" : "font";
 
-    setCategoryIcon(icon, iconType, categoryIcon);
+    setIcon(icon, iconType, categoryIcon);
     categoryName.innerHTML = _category.title;
     subcategoryCount.innerHTML = `${_category.subcategories.length} Subcategories`;
     enableCategoryBtn.id = `toggle_${_category.id}`;
@@ -280,31 +357,86 @@ const renderCategoriesList = (locationCategories) => {
   }
 };
 
-const renderOpeningHours = () => {
-  const days = [
-    { key: 'day_monday', name: 'Mon', intervals: [] },
-    { key: 'day_tuesday', name: 'Tue', intervals: [] },
-    { key: 'day_wednesday', name: 'Wen', intervals: [] },
-    { key: 'day_thursday', name: 'Thu', intervals: [] },
-    { key: 'day_friday', name: 'Fri', intervals: [] },
-    { key: 'day_saturday', name: 'Sat', intervals: [] }
-  ];
-
-  for (const day of days) {
+const renderOpeningHours = (openingHours) => {
+  const days = openingHours && Object.keys(openingHours?.days).length? openingHours?.days : state.selectedOpeningHours?.days;
+  for (const day in days) {
     const openingHoursDayItem = createTemplate("openingHoursDayItemTemplate");
     const enableDayInput = openingHoursDayItem.querySelector(".enable-day-input");
     const enableDayLabel = openingHoursDayItem.querySelector(".enable-day-label");
     const dayIntervals = openingHoursDayItem.querySelector(".day-intervals");
     const addHoursBtn = openingHoursDayItem.querySelector(".add-hours-btn");
+   
 
-    openingHoursDayItem.id = day.key;
-    enableDayLabel.innerHTML = day.name;
-    enableDayInput.onchange = (e) => {};
-    addHoursBtn.onclick = (e) => {};
+    openingHoursDayItem.id = day;
+    enableDayInput.id = `enable-${day}-checkbox`;
+    enableDayLabel.htmlFor = `enable-${day}-checkbox`;
+    enableDayLabel.innerHTML = state.weekDays[day];
+
+    enableDayInput.checked = !!days[day]?.active
+    enableDayInput.onchange = (e) => {
+      days[day].active = e.target.checked;
+    };
+    addHoursBtn.onclick = (e) => {
+      days[day].intervals?.push({ from: "08:00", to: "20:00" });
+      renderDayIntervals(days[day], dayIntervals);
+    };
+    
+    renderDayIntervals(days[day], dayIntervals);
 
     addLocationControls.openingHoursContainer.appendChild(openingHoursDayItem);
   }
+
+ 
 };
+
+const renderDayIntervals = (day, dayIntervalsContainer) => {
+  dayIntervalsContainer.innerHTML = "";
+  day.intervals?.forEach((interval, intervalIndex) => {
+    const template = document.getElementById('dayIntervalTemplate').content.firstChild;
+    const dayInterval = template.cloneNode(true);
+
+    const fromInput = dayInterval.querySelector(".from");
+    const toInput = dayInterval.querySelector(".to");
+    const deleteBtn = dayInterval.querySelector(".delete-interval-btn");
+
+    const dayIntervalId = generateUUID();
+    dayInterval.id = dayIntervalId;
+
+    fromInput.value = interval.from;
+    toInput.value = interval.to;
+
+    if (intervalIndex === 0) {
+      deleteBtn.classList.add('hidden');
+    } else {
+      deleteBtn.classList.remove('hidden');
+    }
+
+    fromInput.onchange = (e) => {
+      interval.from = e.target.value
+    };
+    toInput.onchange = (e) => {
+      interval.to = e.target.value
+    };
+    deleteBtn.onclick = (e) => {
+      day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
+      dayInterval.remove();
+    };
+
+    dayIntervalsContainer.appendChild(dayInterval);
+  });
+};
+
+const addLocationImages = () => {
+  buildfire.imageLib.showDialog(
+    { showIcons: false, multiSelection: true }, (err, result) => {
+      if (err) return console.error(err);
+      if (!result) {
+        return null;
+      }
+      const { selectedFiles, selectedStockImages } = result;
+    }
+  );
+}
 
 const creatCheckboxElem = () => {
   const div = document.createElement("div");
