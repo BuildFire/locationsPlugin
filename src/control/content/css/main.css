@@ -55,6 +55,18 @@
 	justify-content: space-between;
 }
 
+.justify-content-center {
+	justify-content: center;
+}
+
+.align-items-center {
+	align-items: center;
+}
+
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
 .section-title{
 	color: #000;
 	font-size: 18px;
@@ -144,6 +156,11 @@ p.info::before {
 .item-list {
 	margin-top: 1rem;
 }
+
+.ellipsis {
+	display: block;
+	max-width: 20ch;
+}
 /* Helpers Style */
 
 
@@ -177,3 +194,24 @@ p.info::before {
 	  width: 100%;
   }
 /* End Map */
+
+.button-switch {
+	margin: 0 0 0 1rem !important;
+}
+
+.select-categories-list {
+
+}
+
+.select-categories-list .categories-list-item {
+	border-radius: 4px;
+	border: 1px solid #d3d2d2;
+	padding: .7rem;
+	margin-top: .5rem;
+}
+
+.day-intervals-item{
+	margin-bottom: 5px;
+	display: flex;
+	flex-direction: row;
+}
