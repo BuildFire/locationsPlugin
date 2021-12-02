@@ -17,7 +17,7 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = false;
+  settings.showIntroductoryListView = true;
   settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -394,6 +394,8 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
+    } else if (e.target.classList.contains('location-image-item__body'))  {
+      navigateTo('detail');
     }
   });
 
@@ -591,8 +593,6 @@ const initHomeView = () => {
 const init = () => {
   fetchTemplate('filter', injectTemplate);
   fetchTemplate('home', initHomeView);
-
-  // navigateTo('detail');
 
   initEventListeners();
 

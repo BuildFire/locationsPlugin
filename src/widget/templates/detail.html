@@ -98,9 +98,9 @@
   </div>
   <div class="location-detail__map" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 25px;"></div>
   <script>
-    let map;
+    let detailMap;
     function initMap() {
-      map = new google.maps.Map(document.querySelector('.location-detail__map'), {
+      detailMap = new google.maps.Map(document.querySelector('.location-detail__map'), {
         center: { lat: 38.70290288229097, lng: 35.52352225602528 },
         zoom: 14,
       });
