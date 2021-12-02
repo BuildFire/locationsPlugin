@@ -95,9 +95,19 @@
     <div class="location-detail__description" style="color: #828282;">
       Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
     </div>
-    <div>MAP</div>
   </div>
-  <div></div>
+  <div class="location-detail__map" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 25px;"></div>
+  <script>
+    let map;
+    function initMap() {
+      map = new google.maps.Map(document.querySelector('.location-detail__map'), {
+        center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+        zoom: 14,
+      });
+    }
+  </script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD06CCe7YjH8V-A1q_-2dkV0yMRgk9-s_8&callback=initMap&v=weekly"
+    async
+  ></script>
 </template>
-
-<!--0px 3px 5px -1px rgb(0 0 0 / 20%)-->
