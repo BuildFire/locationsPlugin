@@ -3,11 +3,12 @@ import Category from '../entities/Category';
 
 function instance() {
   const payload = {
+    id: faker.random.number(),
     title: faker.random.words(),
     iconUrl: faker.random.image(),
     iconClassName: 'fmd_good',
     quickAccess: faker.random.arrayElement([0, 1]),
-    subcategories: [{ title: faker.random.words, icon: 'fmd_good' }],
+    subcategories: [{ id: faker.random.number(), title: faker.random.words(), icon: 'fmd_good' }, { id: faker.random.number(), title: faker.random.words(), icon: 'fmd_good' }, { id: faker.random.number(), title: faker.random.words(), icon: 'fmd_good' }],
     createdOn: faker.date.past(),
     createdBy: faker.datatype.number(),
     lastUpdatedOn: faker.date.past(),

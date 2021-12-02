@@ -62,7 +62,7 @@
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-subtitle-input" placeholder="" />
-            <div id="ocation-subtitle-error" class="text-danger hidden">
+            <div id="location-subtitle-error" class="text-danger hidden">
               Required
             </div>
           </div>
@@ -99,7 +99,7 @@
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-custom-name-input" placeholder="" />
-            <div id="ocation-custom-name-error" class="text-danger hidden">
+            <div id="location-custom-name-error" class="text-danger hidden">
               Required
             </div>
           </div>
@@ -129,12 +129,12 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix">
+        <div class="form-group main clearfix" id="select-marker-image-container">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="marker-image-btn">Marker Image</label>
+            <label class="required-label" for="select-marker-image-btn">Marker Image</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
-            <div class="icon-holder" id="marker-image-btn">
+            <div class="icon-holder" id="select-marker-image-btn">
               <span class="add-icon text-success"> + </span>
               <img class="image-icon hidden" />
               <i class="glyph-icon hidden"></i>
@@ -142,7 +142,7 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix">
+        <div class="form-group main clearfix" id="select-marker-color-container">
           <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="marker-image-btn">Marker Color</label>
           </div>
@@ -172,28 +172,20 @@
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="flex-row space-between">
               <div>
-                <button class="btn btn-primary">Edit Location Categories</button>
+                <button class="btn btn-primary" id="location-edit-categories-btn">Edit Location Categories</button>
               </div>
               <div class="form-group">
                   <label>Show category on Location Screen</label>
                   <div class="button-switch">
-                      <input id="location-show-category" type="checkbox" onclick="" checked/>
-                      <label for="location-show-category" class="label-success"></label>
+                      <input id="location-show-category-toggle" type="checkbox" onclick="" checked/>
+                      <label for="location-show-category-toggle" class="label-success"></label>
                   </div>
               </div>
             </div>
             <hr class="none" />
             <div class="location-categories-container well margin-bottom-ten">
-              <p class="text-muted">2 categories 6 subcategories</p> 
+              <p class="text-muted" id="location-categories-count-txt"></p> 
               <div id="location-categories-list">
-                <div class="item-list">
-                  <h6 class="text-bold">Category 1</h6>
-                  <span class="ext-muted">subcategory1, subcategory2, subcategory3</span>
-                </div>
-                <div class="item-list">
-                  <h6 class="text-bold">Category 2</h6>
-                  <span class="ext-muted">subcategory1, subcategory2, subcategory3</span>
-                </div>
               </div>
             </div>
             <div class="text-right">
@@ -209,28 +201,236 @@
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="flex-row space-between">
               <div>
-                <span class="text-muted">Timezone</span>
+                <span class="text-muted">Days</span>
               </div>
               <div class="form-group">
-                  <label>Show category on Location Screen</label>
                   <div class="button-switch">
-                      <input id="location-show-category" type="checkbox" onclick="" />
-                      <label for="location-show-category" class="label-success"></label>
+                      <input id="location-show-opening-hours-btn" type="checkbox" onclick="" />
+                      <label for="location-show-opening-hours-btn" class="label-success"></label>
                   </div>
               </div>
             </div>
             <hr class="none" />
-            <div class="">
+            <div class="location-opening-hours-container" id="location-opening-hours-container">
             </div>
           </div>
         </div>
-       
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Enable Price Range</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="flex-row space-between align-items-center">
+              <div class="flex-row col-md-9 padding-zero">
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-1" value="0" name="priceRangeValue" />
+                  <label for="price-range-radio-1">$</label>
+                </div>
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-2" value="1" name="priceRangeValue"/>
+                  <label for="price-range-radio-2">$$</label>
+                </div>
+                <div class="form-group col-md-2 padding-zero">
+                  <input type="radio" id="price-range-radio-3" value="2" name="priceRangeValue"/>
+                  <label for="price-range-radio-3">$$$</label>
+                </div>
+                <div class="form-group col-md-3 padding-zero">
+                  <input type="radio" id="price-range-radio-4" value="3" name="priceRangeValue"/>
+                  <label for="price-range-radio-4">$$$$</label>
+                </div>
+                <div class="form-group col-md-3 padding-zero">
+                  <select class="form-control" id="location-select-curency">
+                    <option value="$">$</option>
+                    <option value="€">€</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                  <div class="button-switch">
+                      <input id="location-show-price-range-btn" type="checkbox" onclick="" />
+                      <label for="location-show-price-range-btn" class="label-success"></label>
+                  </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Enable 5 Star Rating</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero flex-row space-between">
+            <div></div>
+              <div class="form-group">
+                <div class="button-switch">
+                    <input id="location-show-star-rating-btn" type="checkbox"  />
+                    <label for="location-show-star-rating-btn" class="label-success"></label>
+                </div>
+              </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div>
+          <h5 class="text-bold">Location Information & Images</h5>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">List Image</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero ">
+            <div class="icon-holder list-image-holder " id="location-list-image">
+              <span class="add-icon text-success"> + </span>
+              <img class="image-icon hidden" />
+              <img class="glyph-icon hidden" />
+            </div>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Location Images</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-images-btn">
+                + Add Images
+              </button>
+            </div>
+            <div id="location-image-items" class="margin-top-ten">
+
+            </div>
+          </div>
+        </div>
+        <hr class="none" /> 
+        <div class="main clearfix">
+          <label class="required-label">Description</label>
+          <div>
+            <textarea id="location-description-wysiwyg" name="content"></textarea>
+          </div>
+        </div>
+        <hr class="none" />
+        <hr class="none" />
+        <div>
+          <h5 class="text-bold">Location Action</h5>
+          <hr class="none" />
+          <div class="clearfix info">
+            <p class="info">Description.</p>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Select Action</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-actions-btn">
+                + Add Action Item
+              </button>
+            </div>
+            <div id="location-action-items" class="margin-top-ten">
+
+            </div>
+          </div>
+        </div>
+        <div class="form-group main clearfix">
+          <div class="col-md-3 pull-left padding-left-zero">
+            <label class="required-label">Location Owner</label>
+          </div>
+          <div class="col-md-9 pull-right padding-right-zero">
+            <div class="">
+              <button type="button" class="btn btn-success btn--lg" id="location-add-owner-btn">
+                + Add Location Owner
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="sub-page-footer padded">
         <button class="btn btn-default" onclick="cancelAddLocation()">
           Cancel
         </button>
         <button class="btn btn-success" id="location-save-btn">Save</button>
+      </div>
+    </div>
+  </template>
+  <template id="selectCategoryItemTemplate">
+    <div class="main clearfix flex-row categories-list-item ">
+      <div class="col-md-2 padding-left-zero">
+        <div class="icon-holder category-icon">
+          <span class="add-icon text-success"> + </span>
+          <img class="image-icon hidden" />
+          <i class="glyph-icon hidden"></i>
+        </div>
+      </div>
+      <div class="col-md-10 padding-zero">
+        <div class="flex-row space-between">
+          <div>
+            <h5 class="category-name text-bold margin-top-zero">Category 1</h5>
+            <span class="subcategory-count">14 Subcategories</span>
+          </div>
+          <div class="form-group">
+              <div class="button-switch">
+                  <input id="enable-category-toggle" type="checkbox" onclick="" checked/>
+                  <label id="enable-category-label" for="enable-category-toggle" class="label-success"></label>
+              </div>
+          </div>
+        </div>
+        <div class="location-subcategories-container margin-top-fifteen flex-row flex-wrap space-between">
+  
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="searchBoxTemplate">
+    <div class="input-group margin-left-zero">
+      <input type="text" class="form-control search-input" placeholder="Search" name="searchTxt" id=""/>
+      <span class="input-group-btn">
+        <button class="btn btn-info search-btn" type="button">
+          <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+        </button>
+      </span>
+    </div>
+  </template>
+  <template id="openingHoursDayItemTemplate">
+    <div class="opening-hours-day-item flex-row space-between margin-bottom-five" >
+      <div class="enable-day-checkbox col-md-3 padding-zero">
+        <input type="checkbox" id="sunday" class="enable-day-input" checked/>
+        <label for="sunday" class="enable-day-label">Sunday</label>
+      </div>
+      <div class="day-intervals col-md-7 padding-zero">
+        <div class="day-intervals-item">
+          <div>
+            <input type="time" class="form-control from" value="08:00">
+          </div>
+          <div class="margin-left-ten">
+            <input type="time" class="form-control to" value="20:00">
+          </div>
+          <div class="margin-top-five margin-left-ten hidden">
+            <span class="icon icon-cross2 day-intervals-item-delete-btn"></span>
+          </div>
+        </div>
+      </div>
+      <div class="action">
+        <button class="btn btn-default add-hours-btn">
+          <span class="text-success">Add Hours</span>
+        </button>
+      </div>
+    </div>
+  </template>
+  <template id="dayIntervalTemplate">
+    <div class="day-intervals-item">
+      <div>
+        <input type="time" class="form-control from" value="08:00">
+      </div>
+      <div class="margin-left-ten">
+        <input type="time" class="form-control to" value="20:00">
+      </div>
+      <div class="margin-left-ten">
+        <span class="btn--icon icon icon-cross2 delete-interval-btn"></span>
       </div>
     </div>
   </template>

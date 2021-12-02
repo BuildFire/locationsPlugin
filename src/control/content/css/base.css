@@ -147,10 +147,10 @@ select {
     transition: background-color ease-in-out .2s;
 }
 .btn--icon {
-    width: 2.5rem;
-    height: 2.5rem; 
+    width: 2rem;
+    height: 2rem; 
     border-radius: .25rem;
-    font-size: 1.125rem;
+    /* font-size: 1.125rem; */
     display: flex;
     justify-content: center;
     align-items: center;

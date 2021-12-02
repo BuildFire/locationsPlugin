@@ -1,13 +1,20 @@
 export default class DialogComponent {
-  constructor(id, templateId) {
+  constructor(id, template) {
     this.container = document.getElementById(id);
     if (!this.container) throw "Sub Page ID not found";
     if (!this.container.classList.contains("dialog-component")) throw "Sub Page doesnt have class [subPage]";
 
     const dialogBody = this.container.querySelector(".dialog-body");
     dialogBody.innerHTML = "";
-    let template = document.getElementById(`${templateId}`);
-    template = document.importNode(template.content, true);
+
+    if (typeof template === 'string') {
+      template = document.getElementById(`${template}`);
+      template = document.importNode(template.content, true);
+    } else if (!template || !(template instanceof Element) || !template.style) {
+      console.error(`invalid selector ${template}.`);
+      return;
+    }
+
     dialogBody.appendChild(template);
 
     const closeButton = this.container.querySelector(".close-modal");

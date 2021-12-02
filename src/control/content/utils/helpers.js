@@ -13,3 +13,19 @@ export const createTemplate = (templateId) => {
   const template = document.getElementById(`${templateId}`);
   return document.importNode(template.content, true);
 };
+
+
+export const getDefaultOpeningHours = () => {
+  const intervals = [{from: "08:00", to: "20:00"}]
+  return {
+    days: {
+      monday: {index: 0, active: true, intervals: [...intervals]},
+      tuesday: {index: 1, active: true, intervals: [...intervals]},
+      wednesday: {index: 2, active: true, intervals: [...intervals]},
+      thursday: {index: 3, active: true, intervals: [...intervals]},
+      friday: {index: 4, active: true, intervals: [...intervals]},
+      saturday: {index: 5, active: true, intervals: [...intervals]},
+      sunday: {index: 6, active: true, intervals: [...intervals]},
+    }
+  }
+}
