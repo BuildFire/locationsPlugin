@@ -517,18 +517,21 @@ button span {
   display: flex;
   align-items: center;
 }
-.carousel-demo {
+.location-detail__carousel {
   white-space: nowrap;
   overflow-x: auto;
   margin-top: 20px;
 }
-.carousel-demo > div {
+.location-detail__carousel > div {
   display: inline-block;
   width: 75px;
   height: 75px;
   background-color: #dfdfdf;
   margin-right: 5px;
   border-radius: 4px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  cursor: pointer;
 }
 .location-detail #chatWithOwnerBtn {
   width: 100%;

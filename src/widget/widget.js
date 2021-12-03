@@ -11,13 +11,17 @@ import DataMocks from '../DataMocks';
 
 const inst = DataMocks.generate('LOCATION')[0];
 
+// if (templateSection.childNodes.length === 0) {
+//   injectTemplate(template);
+// }
+
 let CATEGORIES;
 let introductoryLocations = [];
 let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = true;
+  settings.showIntroductoryListView = false;
   settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -373,6 +377,28 @@ const initDrawer = () => {
     document.addEventListener('touchend', stopTouchResize);
   });
 };
+const showLocationDetail = () => {
+  fetchTemplate('detail', () => {
+    injectTemplate('detail');
+    const currentActive = document.querySelector('section.active');
+    currentActive.classList.remove('active');
+    document.querySelector('section#detail').classList.add('active');
+    const container = document.querySelector('.location-detail__carousel');
+    const carouselImages = [
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75'
+    ];
+    container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
+    navigateTo('detail');
+  });
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -395,7 +421,7 @@ const initEventListeners = () => {
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
     } else if (e.target.classList.contains('location-image-item__body'))  {
-      navigateTo('detail');
+      showLocationDetail();
     }
   });
 
@@ -551,15 +577,9 @@ const showMapView = () => {
 };
 
 const navigateTo = (template) => {
-  const templateSection = document.querySelector(`section#${template}`);
-  fetchTemplate(template, () => {
-    if (templateSection.childNodes.length === 0) {
-      injectTemplate(template);
-    }
     const currentActive = document.querySelector('section.active');
     currentActive.classList.remove('active');
     document.querySelector(`section#${template}`).classList.add('active');
-  });
 };
 
 const initHomeView = () => {
@@ -591,9 +611,9 @@ const initHomeView = () => {
 };
 
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
-
+  // fetchTemplate('filter', injectTemplate);
+  // fetchTemplate('home', initHomeView);
+  showLocationDetail();
   initEventListeners();
 
   buildfire.history.onPop((breadcrumb) => {
