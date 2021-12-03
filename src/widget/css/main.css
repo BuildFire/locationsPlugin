@@ -587,13 +587,19 @@ button span {
 .location-detail__rating.location-detail__rating--single-shadow {
   box-shadow: rgb(0 0 0 / 12%) 0px -3px 6px -1px;
 }
-.location-detail__rating p:first-child {
+.location-detail__rating p {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
 }
 .location-detail__rating p {
   margin: 0;
 }
 .location-detail__description {
   font-size: 14px;
+}
+.location-detail__rating [data-rating-id] {
+  margin-top: 10px;
+}
+.location-detail__rating [data-rating-id] .full-star {
+  font-size: 22px;
 }

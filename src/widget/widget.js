@@ -396,6 +396,7 @@ const showLocationDetail = () => {
       'https://placeimg.com/75/75'
     ];
     container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
+    buildfire.components.ratingSystem.injectRatings();
     navigateTo('detail');
   });
 };
