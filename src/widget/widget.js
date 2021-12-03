@@ -400,6 +400,61 @@ const showLocationDetail = () => {
     navigateTo('detail');
   });
 };
+const showWorkingHoursDrawer = () => {
+  buildfire.components.drawer.open(
+    {
+      header: 'Open Hours',
+      content: `    <table class="working-hours-table">
+      <tr>
+        <td>Monday</td>
+        <td>
+          <p>09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Tuesday</td>
+        <td>
+          <p>09:00 - 14:00</p>
+          <p>16:00 - 24:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Wednesday</td>
+        <td>
+          <p>09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Thursday</td>
+        <td>
+          <p>09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Friday</td>
+        <td>
+          <p>09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Saturday</td>
+        <td>
+          <p>Closed</p>
+        </td>
+      </tr>
+      <tr>
+        <td>Sunday</td>
+        <td>
+          <p>Closed</p>
+        </td>
+      </tr>
+    </table>
+`,
+      isHTML: true,
+      enableFilter: false
+    }
+  );
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -423,6 +478,8 @@ const initEventListeners = () => {
       toggleDropdownMenu(e.target.nextElementSibling);
     } else if (e.target.classList.contains('location-image-item__body'))  {
       showLocationDetail();
+    } else if (e.target.id === 'workingHoursBtn') {
+      showWorkingHoursDrawer();
     }
   });
 
