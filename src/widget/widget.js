@@ -404,48 +404,48 @@ const showWorkingHoursDrawer = () => {
   buildfire.components.drawer.open(
     {
       header: 'Open Hours',
-      content: `    <table class="working-hours-table">
+      content: `    <table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
       <tr>
-        <td>Monday</td>
-        <td>
-          <p>09:00 - 19:00</p>
+        <td style="vertical-align: top; font-weight: bold;">Monday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
         </td>
       </tr>
       <tr>
-        <td>Tuesday</td>
-        <td>
-          <p>09:00 - 14:00</p>
-          <p>16:00 - 24:00</p>
+        <td style="vertical-align: top; font-weight: bold;">Tuesday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 14:00</p>
+          <p style="margin-top: 10px; margin: 0;">16:00 - 24:00</p>
         </td>
       </tr>
       <tr>
-        <td>Wednesday</td>
-        <td>
-          <p>09:00 - 19:00</p>
+        <td style="vertical-align: top; font-weight: bold;">Wednesday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
         </td>
       </tr>
       <tr>
-        <td>Thursday</td>
-        <td>
-          <p>09:00 - 19:00</p>
+        <td style="vertical-align: top; font-weight: bold;">Thursday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
         </td>
       </tr>
       <tr>
-        <td>Friday</td>
-        <td>
-          <p>09:00 - 19:00</p>
+        <td style="vertical-align: top; font-weight: bold;">Friday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
         </td>
       </tr>
       <tr>
-        <td>Saturday</td>
-        <td>
-          <p>Closed</p>
+        <td style="vertical-align: top; font-weight: bold;">Saturday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">Closed</p>
         </td>
       </tr>
       <tr>
-        <td>Sunday</td>
-        <td>
-          <p>Closed</p>
+        <td style="vertical-align: top; font-weight: bold;">Sunday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">Closed</p>
         </td>
       </tr>
     </table>

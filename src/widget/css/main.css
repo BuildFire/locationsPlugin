@@ -604,21 +604,3 @@ button span {
 .location-detail__rating [data-rating-id] .full-star {
   font-size: 22px;
 }
-
-.working-hours-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 10px;
-}
-.working-hours-table td p {
-  margin: 0;
-}
-.working-hours-table td:first-child {
-  font-weight: bold;
-}
-.working-hours-table td p:nth-child(2) {
-  margin-top: 10px;
-}
-.working-hours-table td {
-  vertical-align: top;
-}
