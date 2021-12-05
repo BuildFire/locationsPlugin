@@ -455,6 +455,18 @@ const showWorkingHoursDrawer = () => {
     }
   );
 };
+
+const chatWithOwner = () => {
+  buildfire.navigation.navigateToSocialWall(
+    {
+      title: '<Location>',
+      wallUserIds: ['60e3499de7fd9f139924c1a3']
+    },
+    (err, result) => {
+      if (err) console.error(err);
+    }
+  );
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -480,6 +492,8 @@ const initEventListeners = () => {
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
       showWorkingHoursDrawer();
+    } else if (e.target.id === 'chatWithOwnerBtn') {
+      chatWithOwner();
     }
   });
 
