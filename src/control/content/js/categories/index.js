@@ -8,6 +8,7 @@ import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
 import { generateUUID, createTemplate } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson} from "../../utils/csv.helper";
+import globalState from '../../state';
 
 const state = {
   categories: [],
@@ -439,6 +440,7 @@ window.downloadCategoryTemplate = () => {
 const loadCategories = () => {
   CategoriesController.searchCategories().then((categories) => {
     state.categories = categories;
+    globalState.categories = categories;
     categoriesListUI.init("items", categories);
   });
 };

@@ -1,13 +1,14 @@
 import DataMocks from "../../../../DataMocks";
 
 export default class SearchTableHelper {
-  constructor(tableId, tag, config) {
+  constructor(tableId,  config) {
     if (!config) throw "No config provided";
     if (!tableId) throw "No tableId provided";
     this.table = document.getElementById(tableId);
     if (!this.table) throw "Cant find table with ID that was provided";
     this.config = config;
-    this.tag = tag;
+    this.tag = null;
+    this.items = [] ;
     this.sort = {};
     this.commands = {};
     this.init();
@@ -55,7 +56,7 @@ export default class SearchTableHelper {
             icon.classList.remove("icon-chevron-down");
             icon.classList.add("icon-chevron-up");
           }
-          _t._fetchPageOfData();
+          _t.onSort(_t.sort);
         });
       }
       if (colConfig.width) th.style.width = colConfig.width;
@@ -83,6 +84,15 @@ export default class SearchTableHelper {
     ]);
     this.filter = filter;
     this._fetchPageOfData(this.filter, 0);
+  }
+
+  renderData(items, categories = []) {
+    this.tbody.innerHTML = '';
+    items.forEach((location) => {
+      const selectedCategories = categories.filter(elem => location.categories.main.includes(elem.id));
+      location.categoriesName = selectedCategories.map(elem => elem.title).join(', ');
+      this.renderRow(location)
+    });
   }
 
   _fetchNextPage() {
@@ -177,30 +187,9 @@ export default class SearchTableHelper {
         ["editColumn"]
       );
       td.onclick = () => {
-        buildfire.notifications.confirm(
-          {
-            title: "Are you sure?",
-            message: "Are you sure to delete this record?",
-            confirmButton: { text: "Yes", key: "yes", type: "danger" },
-            cancelButton: { text: "No", key: "no", type: "default" },
-          },
-          function (e, data) {
-            if (e) console.error(e);
-
-            if (data.selectedButton.key == "yes") {
-              tr.classList.add("hidden");
-              buildfire.publicData.update(
-                obj.id,
-                { $set: { deletedOn: new Date() } },
-                this.tag,
-                (e) => {
-                  if (e) tr.classList.remove("hidden");
-                  else t.onRowDeleted(obj, tr);
-                }
-              );
-            }
-          }
-        );
+        t.onRowDeleted(obj, tr, () => {
+          tr.classList.add("hidden");
+        });
       };
     }
     this.onRowAdded(obj, tr);
@@ -217,6 +206,10 @@ export default class SearchTableHelper {
 
   onRowDeleted(obj, tr) {
     console.log("Record Delete", obj);
+  }
+
+  onSort(sort) {
+
   }
 
   onCommand(command, cb) {

@@ -109,6 +109,10 @@ p.info::before {
 	color: #000;
 }
 
+.text-small {
+	font-size: 12px;
+}
+
 .actions {
 	display: flex;
   justify-content: space-between;

@@ -12,6 +12,8 @@ import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
 import ActionItemsUI from "./actionItemsUI";
+import LocationsController from "./controller";
+import globalState from '../../state';
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -24,8 +26,10 @@ let locationImagesUI = null;
 let actionItemsUI = null;
 
 const state = {
+  locations: [],
   categories: [],
   categoriesLookup: {},
+  map: null,
   locationObj: new Location(),
   selectedLocationCategories: { main: [], subcategories: [] },
   selectedOpeningHours: getDefaultOpeningHours(),
@@ -55,9 +59,7 @@ const renderAddLocationsPage = () => {
     locationAddressError: inputLocationForm.querySelector("#location-address-error"),
     locationCustomName: inputLocationForm.querySelector("#location-custom-name-input"),
     locationCustomNameError: inputLocationForm.querySelector("#location-custom-name-error"),
-    markerPinRadio: inputLocationForm.querySelector("#marker-pin-radio"),
-    markerCircleRadio: inputLocationForm.querySelector("#marker-circle-radio"),
-    markerImageRadio: inputLocationForm.querySelector("#marker-image-radio"),
+    markerTypeRadioBtns: inputLocationForm.querySelectorAll('input[name="markerType"]'),
     selectMarkerImageContainer: inputLocationForm.querySelector("#select-marker-image-container"),
     selectMarkerImageBtn: inputLocationForm.querySelector("#select-marker-image-btn"),
     selectMarkerColorContainer: inputLocationForm.querySelector("#select-marker-color-container"),
@@ -70,12 +72,18 @@ const renderAddLocationsPage = () => {
     showOpeningHoursBtn: inputLocationForm.querySelector("#location-show-opening-hours-btn"),
     openingHoursContainer: inputLocationForm.querySelector("#location-opening-hours-container"),
     showPriceRangeBtn: inputLocationForm.querySelector("#location-show-price-range-btn"),
+    priceRangeRadioBtns: inputLocationForm.querySelectorAll('input[name="priceRangeValue"]'),
     selectPriceCurrency: inputLocationForm.querySelector("#location-select-price-currency"),
     showStarRatingBtn: inputLocationForm.querySelector("#location-show-star-rating-btn"),
     listImageBtn: inputLocationForm.querySelector("#location-list-image"),
     addLocationImageBtn: inputLocationForm.querySelector("#location-add-images-btn"),
+    locationDescription: inputLocationForm.querySelector("#location-description-wysiwyg"),
+    locationDescriptionError: inputLocationForm.querySelector("#location-description-error"),
     addActionItemsBtn: inputLocationForm.querySelector("#location-add-actions-btn"),
     addOwnerBtn: inputLocationForm.querySelector("#location-add-owner-btn"),
+    deleteOwnerBtn: inputLocationForm.querySelector("#location-delete-owner-btn"),
+    ownerTxt: inputLocationForm.querySelector("#location-owner-txt"),
+    saveBtn: inputLocationForm.querySelector("#location-save-btn"),
   };
 };
 
@@ -83,29 +91,46 @@ window.cancelAddLocation = () => {
   sidenavContainer.style.display = "flex";
   inputLocationForm.innerHTML = "";
   inputLocationForm.style.display = "none";
-  state.locationObj = new location();
+  state.locationObj = new Location();
   state.selectedLocationCategories = {main: [], subcategories: []};
 };
 
 window.addEditLocation = (location, callback = () => {}) => {
   renderAddLocationsPage();
-  loadMap();
 
   if (!location) {
     state.locationObj = new Location();
+  } else {
+    state.locationObj = new Location(location);
+    addLocationControls.locationTitle.value = state.locationObj.title;
+    addLocationControls.locationSubtitle.value = state.locationObj.subtitle;
+    addLocationControls.locationAddress.value = state.locationObj.address;
+    addLocationControls.locationCustomName.value = state.locationObj.addressAlias;
+    addLocationControls.locationDescription.innerHTML = state.locationObj.description;
+    addLocationControls.showCategoriesBtn.checked = state.locationObj.settings.showCategory;
+    addLocationControls.showOpeningHoursBtn.checked = state.locationObj.settings.showOpeningHours;
+    addLocationControls.showPriceRangeBtn.checked = state.locationObj.settings.showPriceRange;
+    addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
+    setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+    addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
+    addLocationControls.deleteOwnerBtn.classList.remove('hidden');
   }
 
+  loadMap();
   renderCategoriesList(state.locationObj.categories);
   renderOpeningHours(state.locationObj.openingHours);
+  onMarkerTypeChanged(state.locationObj.marker);
+  onPriceRangeChanged(state.locationObj.price);
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
 
-  actionItemsUI.init('location-action-items', state.locationObj.actionItems);
 
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
+
+
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -124,7 +149,8 @@ window.addEditLocation = (location, callback = () => {}) => {
 
         if (iconUrl) {
           setIcon(iconUrl, "url", addLocationControls.selectMarkerImageBtn);
-          state.locationObj.marker.icon = iconUrl;
+          state.locationObj.marker.image = iconUrl;
+          state.locationObj.marker.color = null;
         }
       }
     );
@@ -138,6 +164,7 @@ window.addEditLocation = (location, callback = () => {}) => {
       (err, result) => {
         if (result.colorType === "solid") {
           state.locationObj.marker.color = result.solid.color;
+          state.locationObj.marker.icon = null;
           addLocationControls.selectMarkerColorBtn.querySelector(
             ".color"
           ).style.background = result.solid.color;
@@ -215,11 +242,32 @@ window.addEditLocation = (location, callback = () => {}) => {
     buildfire.actionItems.showDialog(null, null, (err, actionItem) => {
       if (err) return console.error(err);
 
+      if (!actionItem) return;
       console.log("Action item created", actionItem);
       actionItem.id = generateUUID();
       state.locationObj.actionItems.push(actionItem);
       actionItemsUI.addItem(actionItem);
     });
+  };
+
+  addLocationControls.addOwnerBtn.onclick = () => {
+    buildfire.auth.showUsersSearchDialog(null, (err, result) => {
+      if (err) return console.log(err);
+
+      if (!result) return;
+      const { users } = result;
+      if (users && users.length > 0) {
+        state.locationObj.owner = result.users[0];
+        addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
+        addLocationControls.deleteOwnerBtn.classList.remove('hidden');
+      }
+    });
+  };
+
+  addLocationControls.deleteOwnerBtn.onclick = () => {
+    state.locationObj.owner = null;
+    addLocationControls.ownerTxt.innerHTML = '';
+    addLocationControls.deleteOwnerBtn.classList.add('hidden');
   };
 
   locationImagesUI.onDeleteItem = (item, index, callback) => {
@@ -281,14 +329,117 @@ window.addEditLocation = (location, callback = () => {}) => {
     buildfire.actionItems.showDialog(item, null, (err, actionItem) => {
       if (err) return console.error(err);
 
-      actionItem.id = item.id;
-      actionItemsUI.updateItem(actionItem, index, divRow);
+      if (actionItem) {
+        actionItem.id = item.id;
+        actionItemsUI.updateItem(actionItem, index, divRow);
+      }
     });
   };
+
+  addLocationControls.saveBtn.onclick = (e) => {
+    saveLocation(location ? "Edit" : "Add", callback);
+  };
+
+  locationImagesUI.init('location-image-items', state.locationObj.images);
+  actionItemsUI.init('location-action-items', state.locationObj.actionItems);
+
 };
 
-const addActionItems = (action) => {
+const saveLocation = (action, callback) => {
+  state.locationObj.title = addLocationControls.locationTitle.value;
+  state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
+  state.locationObj.address = addLocationControls.locationAddress.value;
+  state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
+  state.locationObj.description = tinymce.activeEditor.getContent();
 
+  if (!state.locationObj.title) {
+    handleInputError(addLocationControls.locationTitleError, true);
+  } else {
+    handleInputError(addLocationControls.locationTitleError, false);
+  }
+
+  if (!state.locationObj.address) {
+    handleInputError(addLocationControls.locationAddressError, true);
+  } else {
+    handleInputError(addLocationControls.locationAddressError, false);
+  }
+  if (!state.locationObj.description) {
+    handleInputError(addLocationControls.locationDescriptionError, true);
+    return;
+  } else {
+    handleInputError(addLocationControls.locationDescriptionError, false);
+  }
+
+  state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
+
+  console.log(state.locationObj);
+
+  if (action === 'Add') {
+    LocationsController.createLocation(state.locationObj.toJSON()).then((res) => {
+      console.log(res);
+      window.cancelAddLocation();
+    });
+  } else {
+    LocationsController.updateLocation(state.locationObj.id, state.locationObj.toJSON()).then((res) => {
+      if (callback) {
+        callback(state.locationObj.toJSON());
+      } 
+    });
+  }
+}
+
+const onMarkerTypeChanged = (marker) => {
+  handleMarkerType(marker?.type);
+  if (marker.image) {
+    setIcon(marker.image, "url", addLocationControls.selectMarkerImageBtn);
+  } else if (marker.color) {
+    addLocationControls.selectMarkerColorBtn.querySelector(
+      ".color"
+    ).style.background = marker.color;
+  }
+  const radios = addLocationControls.markerTypeRadioBtns;
+  for (const radio of radios) {
+    if (radio.value === marker?.type) {
+      radio.checked = true;
+    }
+    radio.onchange = (e) => {
+      const value = e.target.value;
+      state.locationObj.marker.type = value;
+      handleMarkerType(value)
+    }
+  }
+
+  function handleMarkerType(type) {
+    if (type === 'image') {
+      addLocationControls.selectMarkerImageContainer.classList.remove('hidden');
+      addLocationControls.selectMarkerColorContainer.classList.add('hidden');
+    } else {
+      addLocationControls.selectMarkerImageContainer.classList.add('hidden');
+      addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
+    }
+  }
+}
+
+const onPriceRangeChanged = (price) => {
+  if (price.currency) {
+    addLocationControls.selectPriceCurrency.value = price.currency;
+  }
+  const radios = addLocationControls.priceRangeRadioBtns;
+  for (const radio of radios) {
+    if (radio.value === price?.range) {
+      radio.checked = true;
+    }
+    radio.onchange = (e) => {
+      const value = e.target.value;
+      state.locationObj.price.range = value;
+    }
+  }
+
+  addLocationControls.selectPriceCurrency.onchange = (e) => {
+    const value = e.target.value;
+    console.log(value);
+    state.locationObj.price.currency = value;
+  };
 }
 
 const cropImage = (url, options) => {
@@ -570,6 +721,16 @@ const createEmptyHolder = (message) => {
   return div;
 };
 
+const handleInputError = (elem, hasError) => {
+  if (hasError) {
+    elem.parentNode.classList.add('has-error');
+    elem.classList.remove('hidden');
+  } else {
+    elem.classList.add('hidden');
+    elem.parentNode.classList.remove('has-error');
+  }
+}
+
 window.intiMap = () => {
   console.log("Map Ready");
   const map = new google.maps.Map(document.getElementById("location-map"), {
@@ -581,6 +742,7 @@ window.intiMap = () => {
     fullscreenControl: false,
     gestureHandling: "greedy",
   });
+  state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
     addLocationControls.locationAddress,
@@ -598,6 +760,15 @@ window.intiMap = () => {
     anchorPoint: new google.maps.Point(0, -29),
     draggable: true,
   });
+
+  const currentPosition = {lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng}
+  if (currentPosition.lat && currentPosition.lng) {
+    const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+    marker.setVisible(true);
+    marker.setPosition(latlng);
+    map.setCenter(latlng);
+    map.setZoom(15);
+  }
 
   autocomplete.addListener("places_changed", () => {
     marker.setVisible(false);
@@ -647,6 +818,7 @@ window.intiMap = () => {
   });
 };
 
+
 const loadMap = () => {
   buildfire.getContext((error, context) => {
     function setGoogleMapsScript(key) {
@@ -661,19 +833,65 @@ const loadMap = () => {
   });
 };
 
+
+const deleteLocation = (item, row, callback = () => {}) => {
+  buildfire.notifications.confirm(
+    {
+      message: `Are you sure you want to delete ${item.title} location?`,
+      confirmButton: {
+        text: "Delete",
+        key: "y",
+        type: "danger",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        LocationsController.deleteLocation(item.id).then(() => {
+          state.locations = state.locations.filter((elem) => elem.id !== item.id);
+          callback(item);
+        });
+      }
+    }
+  );
+};
+
+
 const loadLocations = () => {
   const searchTableHelper = new SearchTableHelper(
     "locations-items",
-    "records",
     searchTableConfig
   );
-  searchTableHelper.search();
+
+  LocationsController.searchLocations().then((locations) => {
+    state.locations = locations;
+    searchTableHelper.renderData(locations, state.categories);
+  });
+
+  searchTableHelper.onEditRow = (obj, tr) => {
+    window.addEditLocation(obj, (location) => {
+      console.log(location);
+      searchTableHelper.renderRow(location, tr);
+      window.cancelAddLocation();
+    });
+  }
+
+  searchTableHelper.onRowDeleted = deleteLocation;
+
+  searchTableHelper.onSort = (sort) => {
+    
+  }
+  
 };
 
 // this called in content.js;
 window.initLocations = () => {
   loadLocations();
-  state.categories = DataMocks.generate("CATEGORY", 10);
+  state.categories = [...globalState.categories];
 
   for (const category of state.categories) {
     state.categoriesLookup[category.id] = category;

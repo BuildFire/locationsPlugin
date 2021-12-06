@@ -115,11 +115,11 @@
           </div>
           <div class="col-md-9 pull-right padding-right-zero flex-row">
             <div class="col-md-4 padding-zero">
-              <input type="radio"  name="markerType" id="marker-pin-radio" placeholder="pin" />
+              <input type="radio"  name="markerType" id="marker-pin-radio" value="pin" checked />
               <label for="marker-pin-radio">Pin</label>
             </div>
             <div class="col-md-4 padding-zero">
-              <input type="radio"  name="markerType" id="marker-circle-radio" placeholder="circle" />
+              <input type="radio"  name="markerType" id="marker-circle-radio" value="circle" />
               <label for="marker-circle-radio">Circle</label>
             </div>
             <div class="col-md-4 padding-zero">
@@ -129,7 +129,7 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix" id="select-marker-image-container">
+        <div class="form-group main clearfix hidden" id="select-marker-image-container">
           <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="select-marker-image-btn">Marker Image</label>
           </div>
@@ -240,9 +240,9 @@
                   <label for="price-range-radio-4">$$$$</label>
                 </div>
                 <div class="form-group col-md-3 padding-zero">
-                  <select class="form-control" id="location-select-curency">
-                    <option value="$">$</option>
+                  <select class="form-control" id="location-select-price-currency">
                     <option value="€">€</option>
+                    <option value="$">$</option>
                   </select>
                 </div>
               </div>
@@ -310,6 +310,9 @@
           <div>
             <textarea id="location-description-wysiwyg" name="content"></textarea>
           </div>
+          <div id="location-description-error" class="text-danger hidden">
+            Required
+          </div>
         </div>
         <hr class="none" />
         <hr class="none" />
@@ -341,10 +344,16 @@
             <label class="required-label">Location Owner</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
-            <div class="">
+            <div class="flex-row">
               <button type="button" class="btn btn-success btn--lg" id="location-add-owner-btn">
                 + Add Location Owner
               </button>
+              <div class="margin-right-fifteen margin-top-five margin-left-fifteen">
+                <span id="location-owner-txt"></span>
+              </div>
+              <div class="margin-right-fifteen margin-left-fifteen">
+                <span class="btn--icon icon icon-cross2 hidden"  id="location-delete-owner-btn"></span>
+              </div>
             </div>
           </div>
         </div>

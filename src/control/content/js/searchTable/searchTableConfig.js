@@ -13,7 +13,7 @@
     },
     {
       header: "Category",
-      data: "${data.address}",
+      data: "<h6 class='text-primary margin-bottom-five'>${data.categoriesName}</h6><span class='text-muted text-small'>${data.categories.subcategories.length} Subcategories</span>",
       type: "string",
       width: "150px",
       sortBy: "",
