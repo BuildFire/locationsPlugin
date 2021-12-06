@@ -11,6 +11,10 @@ import DataMocks from '../DataMocks';
 
 const inst = DataMocks.generate('LOCATION')[0];
 
+// if (templateSection.childNodes.length === 0) {
+//   injectTemplate(template);
+// }
+
 let CATEGORIES;
 let introductoryLocations = [];
 let filterElements = {};
@@ -373,6 +377,84 @@ const initDrawer = () => {
     document.addEventListener('touchend', stopTouchResize);
   });
 };
+const showLocationDetail = () => {
+  fetchTemplate('detail', () => {
+    injectTemplate('detail');
+    const currentActive = document.querySelector('section.active');
+    currentActive.classList.remove('active');
+    document.querySelector('section#detail').classList.add('active');
+    const container = document.querySelector('.location-detail__carousel');
+    const carouselImages = [
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75',
+      'https://placeimg.com/75/75'
+    ];
+    container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
+    buildfire.components.ratingSystem.injectRatings();
+    navigateTo('detail');
+  });
+};
+const showWorkingHoursDrawer = () => {
+  buildfire.components.drawer.open(
+    {
+      header: 'Open Hours',
+      content: `    <table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Monday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Tuesday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 14:00</p>
+          <p style="margin-top: 10px; margin: 0;">16:00 - 24:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Wednesday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Thursday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Friday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">09:00 - 19:00</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Saturday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">Closed</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top; font-weight: bold;">Sunday</td>
+        <td style="vertical-align: top;">
+          <p style="margin: 0;">Closed</p>
+        </td>
+      </tr>
+    </table>
+`,
+      isHTML: true,
+      enableFilter: false
+    }
+  );
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -394,6 +476,10 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
+    } else if (e.target.classList.contains('location-image-item__body'))  {
+      showLocationDetail();
+    } else if (e.target.id === 'workingHoursBtn') {
+      showWorkingHoursDrawer();
     }
   });
 
@@ -549,15 +635,9 @@ const showMapView = () => {
 };
 
 const navigateTo = (template) => {
-  const templateSection = document.querySelector(`section#${template}`);
-  fetchTemplate(template, () => {
-    if (templateSection.childNodes.length === 0) {
-      injectTemplate(template);
-    }
     const currentActive = document.querySelector('section.active');
     currentActive.classList.remove('active');
     document.querySelector(`section#${template}`).classList.add('active');
-  });
 };
 
 const initHomeView = () => {
@@ -589,11 +669,9 @@ const initHomeView = () => {
 };
 
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
-
-  // navigateTo('detail');
-
+  // fetchTemplate('filter', injectTemplate);
+  // fetchTemplate('home', initHomeView);
+  showLocationDetail();
   initEventListeners();
 
   buildfire.history.onPop((breadcrumb) => {
