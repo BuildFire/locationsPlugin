@@ -438,7 +438,11 @@ window.downloadCategoryTemplate = () => {
 };
 
 const loadCategories = () => {
-  CategoriesController.searchCategories().then((categories) => {
+  const options = {
+    filter: {}
+  };
+  options.filter["_buildfire.index.date1"] = { $type: 10 };
+  CategoriesController.searchCategories(options).then((categories) => {
     state.categories = categories;
     globalState.categories = categories;
     categoriesListUI.init("items", categories);
@@ -462,7 +466,7 @@ const deleteCategory = (item, index, callback) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        CategoriesController.deleteCategory(item.id).then(() => {
+        CategoriesController.deleteCategory(item.id, new Category(item)).then(() => {
           state.categories = state.categories.filter((elem) => elem.id !== item.id);
           callback(item);
         });

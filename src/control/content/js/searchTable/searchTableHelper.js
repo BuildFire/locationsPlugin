@@ -63,10 +63,10 @@ export default class SearchTableHelper {
     });
 
     if (this.config.options.showEditButton)
-      this._create("th", this.thead, "Edit", ["editColumn"]);
+      this._create("th", this.thead, "", ["editColumn"]);
 
     if (this.config.options.showDeleteButton)
-      this._create("th", this.thead, "Delete", ["deleteColumn"]);
+      this._create("th", this.thead, "", ["deleteColumn"]);
   }
 
   renderBody() {
@@ -184,7 +184,7 @@ export default class SearchTableHelper {
         "td",
         tr,
         '<span class="btn--icon icon icon-cross2"></span>',
-        ["editColumn"]
+        ["deleteColumn"]
       );
       td.onclick = () => {
         t.onRowDeleted(obj, tr, () => {

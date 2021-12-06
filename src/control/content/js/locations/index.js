@@ -13,13 +13,14 @@ import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
 import ActionItemsUI from "./actionItemsUI";
 import LocationsController from "./controller";
+import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
 const inputLocationForm = document.querySelector("#form-holder");
-
+let locationsTable = null;
 let addLocationControls = {};
 let selectCategoryDialog = null;
 let locationImagesUI = null;
@@ -95,7 +96,7 @@ window.cancelAddLocation = () => {
   state.selectedLocationCategories = {main: [], subcategories: []};
 };
 
-window.addEditLocation = (location, callback = () => {}) => {
+window.addEditLocation = (location) => {
   renderAddLocationsPage();
 
   if (!location) {
@@ -337,7 +338,7 @@ window.addEditLocation = (location, callback = () => {}) => {
   };
 
   addLocationControls.saveBtn.onclick = (e) => {
-    saveLocation(location ? "Edit" : "Add", callback);
+    saveLocation(location ? "Edit" : "Add");
   };
 
   locationImagesUI.init('location-image-items', state.locationObj.images);
@@ -366,27 +367,23 @@ const saveLocation = (action, callback) => {
   if (!state.locationObj.description) {
     handleInputError(addLocationControls.locationDescriptionError, true);
     return;
-  } else {
-    handleInputError(addLocationControls.locationDescriptionError, false);
   }
+  handleInputError(addLocationControls.locationDescriptionError, false);
 
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
-  console.log(state.locationObj);
-
   if (action === 'Add') {
     LocationsController.createLocation(state.locationObj.toJSON()).then((res) => {
-      console.log(res);
+      loadLocations();
       window.cancelAddLocation();
     });
   } else {
     LocationsController.updateLocation(state.locationObj.id, state.locationObj.toJSON()).then((res) => {
-      if (callback) {
-        callback(state.locationObj.toJSON());
-      } 
+      loadLocations();
+      window.cancelAddLocation();
     });
   }
-}
+};
 
 const onMarkerTypeChanged = (marker) => {
   handleMarkerType(marker?.type);
@@ -528,7 +525,12 @@ const createSelectCategoryList = (categories, categoriesContainer, selected) => 
     return;
   }
   // eslint-disable-next-line no-restricted-syntax
-  for (const _category of categories) {
+  for (let i = 0; i < categories.length; i++) {
+    const _category = categories[i];
+    const isCategorySelected = selected?.main.find((categoryId) => _category.id === categoryId);
+    if (!isCategorySelected && _category.deletedOn) {
+      continue;
+    }
     const selectCategoryItem = createTemplate("selectCategoryItemTemplate");
     const categoryIcon = selectCategoryItem.querySelector(".category-icon");
     const categoryName = selectCategoryItem.querySelector(".category-name");
@@ -551,7 +553,6 @@ const createSelectCategoryList = (categories, categoriesContainer, selected) => 
     enableCategoryBtn.id = `toggle_${_category.id}`;
     enableCategoryLabel.htmlFor = `toggle_${_category.id}`;
 
-    const isCategorySelected = selected?.main.find((categoryId) => _category.id === categoryId);
     if (isCategorySelected) {
       enableCategoryBtn.checked = true;
       subcategoriesContainer.style.display = "flex";
@@ -640,33 +641,30 @@ const renderCategoriesList = (locationCategories) => {
 const renderOpeningHours = (openingHours) => {
   const days = openingHours && Object.keys(openingHours?.days).length? openingHours?.days : state.selectedOpeningHours?.days;
   for (const day in days) {
-    const openingHoursDayItem = createTemplate("openingHoursDayItemTemplate");
-    const enableDayInput = openingHoursDayItem.querySelector(".enable-day-input");
-    const enableDayLabel = openingHoursDayItem.querySelector(".enable-day-label");
-    const dayIntervals = openingHoursDayItem.querySelector(".day-intervals");
-    const addHoursBtn = openingHoursDayItem.querySelector(".add-hours-btn");
-   
+    if (days[day]) {
+      const openingHoursDayItem = createTemplate("openingHoursDayItemTemplate");
+      const enableDayInput = openingHoursDayItem.querySelector(".enable-day-input");
+      const enableDayLabel = openingHoursDayItem.querySelector(".enable-day-label");
+      const dayIntervals = openingHoursDayItem.querySelector(".day-intervals");
+      const addHoursBtn = openingHoursDayItem.querySelector(".add-hours-btn");
+      openingHoursDayItem.id = day;
+      enableDayInput.id = `enable-${day}-checkbox`;
+      enableDayLabel.htmlFor = `enable-${day}-checkbox`;
+      enableDayLabel.innerHTML = state.weekDays[day];
 
-    openingHoursDayItem.id = day;
-    enableDayInput.id = `enable-${day}-checkbox`;
-    enableDayLabel.htmlFor = `enable-${day}-checkbox`;
-    enableDayLabel.innerHTML = state.weekDays[day];
-
-    enableDayInput.checked = !!days[day]?.active
-    enableDayInput.onchange = (e) => {
-      days[day].active = e.target.checked;
-    };
-    addHoursBtn.onclick = (e) => {
-      days[day].intervals?.push({ from: "08:00", to: "20:00" });
+      enableDayInput.checked = !!days[day]?.active
+      enableDayInput.onchange = (e) => {
+        days[day].active = e.target.checked;
+      };
+      addHoursBtn.onclick = (e) => {
+        days[day].intervals?.push({ from: "08:00", to: "20:00" });
+        renderDayIntervals(days[day], dayIntervals);
+      };
       renderDayIntervals(days[day], dayIntervals);
-    };
-    
-    renderDayIntervals(days[day], dayIntervals);
 
-    addLocationControls.openingHoursContainer.appendChild(openingHoursDayItem);
+      addLocationControls.openingHoursContainer.appendChild(openingHoursDayItem);
+    }
   }
-
- 
 };
 
 const renderDayIntervals = (day, dayIntervalsContainer) => {
@@ -729,7 +727,7 @@ const handleInputError = (elem, hasError) => {
     elem.classList.add('hidden');
     elem.parentNode.classList.remove('has-error');
   }
-}
+};
 
 window.intiMap = () => {
   console.log("Map Ready");
@@ -818,7 +816,6 @@ window.intiMap = () => {
   });
 };
 
-
 const loadMap = () => {
   buildfire.getContext((error, context) => {
     function setGoogleMapsScript(key) {
@@ -832,7 +829,6 @@ const loadMap = () => {
     setGoogleMapsScript(context.apiKeys.googleMapKey);
   });
 };
-
 
 const deleteLocation = (item, row, callback = () => {}) => {
   buildfire.notifications.confirm(
@@ -860,40 +856,57 @@ const deleteLocation = (item, row, callback = () => {}) => {
   );
 };
 
+const handleLocationEmptyState = (isLoading) => {
+  const emptyState = locationsSection.querySelector('#location-empty-list');
+  if (isLoading) {
+    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.classList.remove('hidden');
+  } else if (state.locations.length === 0) {
+    emptyState.innerHTML = `<h5>No Locations Added</h5>`;
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+};
 
 const loadLocations = () => {
-  const searchTableHelper = new SearchTableHelper(
+  LocationsController.searchLocations().then((locations) => {
+    state.locations = locations;
+    handleLocationEmptyState(false);
+    locationsTable.renderData(locations, state.categories);
+  });
+};
+
+const loadCategories = (callback) => {
+  CategoriesController.searchCategories().then((categories) => {
+    state.categories = categories;
+    globalState.categories = categories;
+    for (const category of state.categories) {
+      state.categoriesLookup[category.id] = category;
+    }
+    callback();
+  });
+};
+
+
+// this called in content.js;
+window.initLocations = () => {
+  locationsTable = new SearchTableHelper(
     "locations-items",
     searchTableConfig
   );
 
-  LocationsController.searchLocations().then((locations) => {
-    state.locations = locations;
-    searchTableHelper.renderData(locations, state.categories);
+  handleLocationEmptyState(true);
+  loadCategories(() => {
+    loadLocations();
   });
 
-  searchTableHelper.onEditRow = (obj, tr) => {
-    window.addEditLocation(obj, (location) => {
-      console.log(location);
-      searchTableHelper.renderRow(location, tr);
-      window.cancelAddLocation();
-    });
-  }
+  locationsTable.onEditRow = (obj, tr) => {
+    window.addEditLocation(obj);
+  };
 
-  searchTableHelper.onRowDeleted = deleteLocation;
+  locationsTable.onRowDeleted = deleteLocation;
 
-  searchTableHelper.onSort = (sort) => {
-    
-  }
-  
-};
-
-// this called in content.js;
-window.initLocations = () => {
-  loadLocations();
-  state.categories = [...globalState.categories];
-
-  for (const category of state.categories) {
-    state.categoriesLookup[category.id] = category;
-  }
+  locationsTable.onSort = (sort) => {
+  };
 };
