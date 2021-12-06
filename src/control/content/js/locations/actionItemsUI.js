@@ -2,7 +2,7 @@
 
 import SortableListUI from "../sortableList/sortableListUI";
 
-class LocationImagesUI extends SortableListUI {
+class ActionItemsUI extends SortableListUI {
   constructor(elementId) {
     super(elementId, { isDraggable: true });
   }
@@ -27,7 +27,7 @@ class LocationImagesUI extends SortableListUI {
 
     deleteButton.className = "btn btn--icon icon icon-cross2";
     editButton.className = "btn btn--icon icon icon-pencil3";
-    title.innerHTML = "";
+    title.innerHTML = item.title;
 
     // Append elements to the DOM
     divRow.appendChild(moveHandle);
@@ -47,7 +47,7 @@ class LocationImagesUI extends SortableListUI {
     divRow.appendChild(mediaHolder);
 
     divRow.appendChild(title);
-    // divRow.appendChild(editButton);
+    divRow.appendChild(editButton);
     divRow.appendChild(deleteButton);
 
     title.onclick = () => {
@@ -78,4 +78,4 @@ class LocationImagesUI extends SortableListUI {
   };
 }
 
-export default LocationImagesUI;
+export default ActionItemsUI;

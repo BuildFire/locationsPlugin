@@ -11,6 +11,7 @@ import { generateUUID, createTemplate, getDefaultOpeningHours } from "../../util
 import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
+import ActionItemsUI from "./actionItemsUI";
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -20,6 +21,7 @@ const inputLocationForm = document.querySelector("#form-holder");
 let addLocationControls = {};
 let selectCategoryDialog = null;
 let locationImagesUI = null;
+let actionItemsUI = null;
 
 const state = {
   categories: [],
@@ -72,6 +74,8 @@ const renderAddLocationsPage = () => {
     showStarRatingBtn: inputLocationForm.querySelector("#location-show-star-rating-btn"),
     listImageBtn: inputLocationForm.querySelector("#location-list-image"),
     addLocationImageBtn: inputLocationForm.querySelector("#location-add-images-btn"),
+    addActionItemsBtn: inputLocationForm.querySelector("#location-add-actions-btn"),
+    addOwnerBtn: inputLocationForm.querySelector("#location-add-owner-btn"),
   };
 };
 
@@ -95,12 +99,58 @@ window.addEditLocation = (location, callback = () => {}) => {
   renderOpeningHours(state.locationObj.openingHours);
 
   locationImagesUI = new LocationImagesUI('location-image-items');
+  actionItemsUI = new ActionItemsUI('location-action-items');
+
+  actionItemsUI.init('location-action-items', state.locationObj.actionItems);
 
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
 
-  addLocationControls.editCategoriesBtn.onclick = openSelectCategoriesDialog
+  addLocationControls.selectMarkerImageBtn.onclick = () => {
+    buildfire.imageLib.showDialog(
+      { showIcons: false, multiSelection: false }, (err, result) => {
+        if (err) return console.error(err);
+        if (!result) {
+          return null;
+        }
+        const { selectedFiles, selectedStockImages } = result;
+        let iconUrl = null;
+        if (selectedFiles && selectedFiles.length > 0) {
+          iconUrl = selectedFiles[0];
+        } else if (selectedStockImages && selectedStockImages.length > 0) {
+          iconUrl = selectedStockImages[0];
+        }
+
+        if (iconUrl) {
+          setIcon(iconUrl, "url", addLocationControls.selectMarkerImageBtn);
+          state.locationObj.marker.icon = iconUrl;
+        }
+      }
+    );
+  };
+
+  addLocationControls.selectMarkerColorBtn.onclick = () => {
+    buildfire.colorLib.showDialog(
+      { colorType: "solid", solid: { color: state.locationObj.marker.color } },
+      { hideGradient: true },
+      null,
+      (err, result) => {
+        if (result.colorType === "solid") {
+          state.locationObj.marker.color = result.solid.color;
+          addLocationControls.selectMarkerColorBtn.querySelector(
+            ".color"
+          ).style.background = result.solid.color;
+        } else {
+          addLocationControls.selectMarkerColorBtn.querySelector(
+            ".color"
+          ).style.background = "none";
+        }
+      }
+    );
+  };
+
+  addLocationControls.editCategoriesBtn.onclick = openSelectCategoriesDialog;
   addLocationControls.showCategoriesBtn.onchange = (e) => {
     state.locationObj.settings.showCategory = e.target.checked;
   };
@@ -136,8 +186,9 @@ window.addEditLocation = (location, callback = () => {}) => {
           setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
           state.locationObj.listImage = iconUrl;
         }
-    });
-  }
+      }
+    );
+  };
 
   addLocationControls.addLocationImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -147,20 +198,98 @@ window.addEditLocation = (location, callback = () => {}) => {
           return null;
         }
         const { selectedFiles, selectedStockImages } = result;
-        let locationImages = [];
+        const locationImages = [];
         if (selectedFiles) {
-          loadLocations.push( ...selectedFiles);
+          locationImages.push(...selectedFiles);
         } else if (selectedStockImages) {
-          loadLocations.push( ...selectedStockImages);
+          locationImages.push(...selectedStockImages);
         }
-        
-        state.locationObj.images.push( locationImages.map(imageUrl => ({id: generateUUID(), imageUrl})));
+        state.locationObj.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl })));
 
         locationImagesUI.init("location-image-items", state.locationObj.images);
-    });
-  }
+      }
+    );
+  };
 
+  addLocationControls.addActionItemsBtn.onclick = () => {
+    buildfire.actionItems.showDialog(null, null, (err, actionItem) => {
+      if (err) return console.error(err);
+
+      console.log("Action item created", actionItem);
+      actionItem.id = generateUUID();
+      state.locationObj.actionItems.push(actionItem);
+      actionItemsUI.addItem(actionItem);
+    });
+  };
+
+  locationImagesUI.onDeleteItem = (item, index, callback) => {
+    buildfire.notifications.confirm(
+      {
+        message: `Are you sure you want to delete this image?`,
+        confirmButton: {
+          text: "Delete",
+          key: "y",
+          type: "danger",
+        },
+        cancelButton: {
+          text: "Cancel",
+          key: "n",
+          type: "default",
+        },
+      }, (e, data) => {
+        if (e) console.error(e);
+        if (data && data.selectedButton.key === "y") {
+          state.locationObj.images = state.locationObj.images.filter((elem) => elem.id !== item.id);
+          callback(item);
+        }
+      }
+    );
+  };
+
+  locationImagesUI.onOrderChange = () => {
+    state.locationObj.images = locationImagesUI.sortableList.items;
+  };
+  actionItemsUI.onDeleteItem = (item, index, callback) => {
+    buildfire.notifications.confirm(
+      {
+        message: `Are you sure you want to delete ${item.title} action?`,
+        confirmButton: {
+          text: "Delete",
+          key: "y",
+          type: "danger",
+        },
+        cancelButton: {
+          text: "Cancel",
+          key: "n",
+          type: "default",
+        },
+      }, (e, data) => {
+        if (e) console.error(e);
+        if (data && data.selectedButton.key === "y") {
+          state.locationObj.actionItems = state.locationObj.actionItems.filter((elem) => elem.id !== item.id);
+          callback(item);
+        }
+      }
+    );
+  };
+
+  actionItemsUI.onOrderChange = () => {
+    state.locationObj.actionItems = actionItemsUI.sortableList.items;
+  };
+
+  actionItemsUI.onUpdateItem = (item, index, divRow) => {
+    buildfire.actionItems.showDialog(item, null, (err, actionItem) => {
+      if (err) return console.error(err);
+
+      actionItem.id = item.id;
+      actionItemsUI.updateItem(actionItem, index, divRow);
+    });
+  };
 };
+
+const addActionItems = (action) => {
+
+}
 
 const cropImage = (url, options) => {
   if (!url) {
@@ -426,22 +555,10 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
   });
 };
 
-const addLocationImages = () => {
-  buildfire.imageLib.showDialog(
-    { showIcons: false, multiSelection: true }, (err, result) => {
-      if (err) return console.error(err);
-      if (!result) {
-        return null;
-      }
-      const { selectedFiles, selectedStockImages } = result;
-    }
-  );
-}
-
 const creatCheckboxElem = () => {
   const div = document.createElement("div");
   div.innerHTML = `<input type="checkbox" class="checkbox-input"/>
-  <label for="checkbox1" class="checkbox-label ellipsis margin-bottom-zero margin-left-ten"></label>`;
+  <label for="checkbox1" class="checkbox-label ellipsis ellipsis-20 margin-bottom-zero margin-left-ten"></label>`;
 
   return div;
 };
@@ -501,7 +618,10 @@ window.intiMap = () => {
     marker.setPosition(place.geometry.location);
     marker.setVisible(true);
 
-    console.log(place.geometry.location.lat(), place.geometry.location.lng());
+    state.locationObj.coordinates.lat = place.geometry.location.lat();
+    state.locationObj.coordinates.lng = place.geometry.location.lng();
+    state.locationObj.formattedAddress = place.formatted_address;
+    console.log(place);
   });
 
   marker.addListener("dragend", (e) => {
@@ -510,11 +630,12 @@ window.intiMap = () => {
       { location: { lat: e.latLng.lat(), lng: e.latLng.lng() } },
       (results, status) => {
         console.log(results);
-        console.log(status);
         if (status === "OK") {
           if (results[0]) {
-            this.zoom = 12;
-            this.address = results[0].formatted_address;
+            state.locationObj.formattedAddress = results[0].formatted_address;
+            state.locationObj.coordinates.lat = e.latLng.lat();
+            state.locationObj.coordinates.lng = e.latLng.lng();
+            addLocationControls.locationAddress.value = results[0].formatted_address;
           } else {
             console.log("No results found");
           }

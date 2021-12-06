@@ -162,7 +162,7 @@ p.info::before {
 	margin-top: 1rem;
 }
 
-.ellipsis {
+.ellipsis-20 {
 	display: block;
 	max-width: 20ch;
 }

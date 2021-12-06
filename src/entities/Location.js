@@ -14,7 +14,7 @@ export default class Location {
     this.address = data.address || null;
     this.formattedAddress = data.formattedAddress || null;
     this.addressAlias = data.addressAlias || null;
-    this.coordinates = data.coordinates || { latitude: null, longitude: null };
+    this.coordinates = data.coordinates || { lat: null, lng: null };
     this.marker = data.marker || { type: null, icon: null, color: null };
     this.categories = data.categories || { main: [], subcategories: [] };
     this.settings = data.settings || {
