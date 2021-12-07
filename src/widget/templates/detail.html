@@ -1,6 +1,32 @@
 <template>
   <div class="location-detail">
-    <div class="location-detail__cover">
+    <div class="location-detail__top-view">
+      <div class="location-detail__top-header">
+        <span>
+          <h1>
+            Location Title
+          </h1>
+          <h5>Subtitle</h5>
+        </span>
+        <span>
+          <i id="shareLocationBtn" class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">ios_share</i>
+          <i id="bookmarkLocationBtn" class="material-icons-outlined mdc-text-field__icon margin-left-fifteen" tabindex="0" role="button">star_outline</i>
+        </span>
+      </div>
+
+      <div class="location-detail__top-subtitle">
+        <p>Category | Subcategory</p>
+        <button class="mdc-button mdc-button--unelevated working-hours-button" id="workingHoursBtn">
+          <span class="mdc-button__ripple"></span>
+          <span class="mdc-button__focus-ring"></span>
+          <span class="mdc-button__label">Open Now</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="location-detail__map--top-view" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 6px;"></div>
+
+    <div class="location-detail__cover" style="display: none;">
       <p>Category | Subcategory</p>
       <button class="mdc-button mdc-button--unelevated working-hours-button" id="workingHoursBtn">
         <span class="mdc-button__ripple"></span>
@@ -84,23 +110,14 @@
         </div>
       </div>
     </div>
-    <div class="location-detail__rating location-detail__rating--dual-shadow">
+    <div class="location-detail__rating location-detail__rating--single-shadow">
       <p>Rate This Location</p>
       <div data-rating-id="ratingComponentTest"></div>
     </div>
+    <div class="location-detail__bottom-cover"></div>
     <div class="location-detail__description" style="color: #828282;">
       Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
     </div>
   </div>
-  <div class="location-detail__map" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 25px;"></div>
-  <script>
-    let detailMap;
-    function initMap() {
-      detailMap = new google.maps.Map(document.querySelector('.location-detail__map'), {
-        center: { lat: 38.70290288229097, lng: 35.52352225602528 },
-        zoom: 14,
-      });
-    }
-    initMap();
-  </script>
+  <div class="location-detail__map" style="display: none; height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 25px;"></div>
 </template>

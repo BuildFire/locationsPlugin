@@ -397,6 +397,13 @@ const showLocationDetail = () => {
     ];
     container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
+    buildfire.history.push('Location Detail', {
+      showLabelInTitlebar: true
+    });
+    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
+      center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+      zoom: 14,
+    });
     navigateTo('detail');
   });
 };
@@ -455,6 +462,39 @@ const showWorkingHoursDrawer = () => {
     }
   );
 };
+
+const chatWithOwner = () => {
+  buildfire.navigation.navigateToSocialWall(
+    {
+      title: '<Location>',
+      wallUserIds: ['60e3499de7fd9f139924c1a3']
+    },
+    (err, result) => {
+      if (err) console.error(err);
+    }
+  );
+};
+const shareLocation = () => {
+  console.log('share Location clicked');
+  buildfire.deeplink.generateUrl(
+    {
+      data: { locationId: 'THIS-IS-TEST-ID' },
+    },
+    (err, result) => {
+      if (err) return console.error(err);
+      buildfire.device.share({
+        subject: 'Location URL',
+        text: 'Location shared: ',
+        link: result.url
+      }, (err, result) => {
+        if (err) console.error(err);
+        if (result) console.log(result);
+      });
+    }
+  );
+  // todo getData()
+  // todo testing
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -480,6 +520,10 @@ const initEventListeners = () => {
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
       showWorkingHoursDrawer();
+    } else if (e.target.id === 'chatWithOwnerBtn') {
+      chatWithOwner();
+    } else if (e.target.id === 'shareLocationBtn') {
+      shareLocation();
     }
   });
 
@@ -668,16 +712,33 @@ const initHomeView = () => {
   });
 };
 
+const clearTemplate = (template) => {
+  if (!templates[template]) {
+    console.warn(`template ${template} not found.`);
+    return;
+  }
+  document.querySelector(`section#${template}`).innerHTML = '';
+};
 const init = () => {
   // fetchTemplate('filter', injectTemplate);
   // fetchTemplate('home', initHomeView);
   showLocationDetail();
   initEventListeners();
 
+  buildfire.deeplink.getData((deeplinkData) => {
+    if (deeplinkData?.locationId) {
+      // todo fetch location where id;
+      // todo navigate to location
+    }
+  });
+
   buildfire.history.onPop((breadcrumb) => {
     console.log('Breadcrumb popped', breadcrumb);
     if (document.querySelector('section#filter').classList.contains('overlay')) {
       toggleFilterOverlay();
+    } else if (document.querySelector('section#detail').classList.contains('active')) {
+      clearTemplate('detail');
+      navigateTo('home');
     }
   });
 
