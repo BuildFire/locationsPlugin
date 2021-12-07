@@ -7,7 +7,7 @@ import Category from "../../../../entities/Category";
 import DataMocks from "../../../../DataMocks";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -15,6 +15,7 @@ import ActionItemsUI from "./actionItemsUI";
 import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
+import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -43,6 +44,23 @@ const state = {
     friday: "Fri",
     saturday: "Sat",
   }
+};
+
+const locationTemplateHeader = {
+  id: 'Id',
+  title: "Title",
+  subtitle: "Subtitle",
+  address: "Address",
+  formattedAddress: "FormattedAddress",
+  addressAlias: "AddressAlias",
+  marker: "Marker",
+  settings: "Settings",
+  listImage: "ListImage",
+  description: "Description",
+  owner: "Owner",
+  views: "Views",
+  price: "Price",
+  rating: "Rating",
 };
 
 const renderAddLocationsPage = () => {
@@ -870,9 +888,58 @@ const handleLocationEmptyState = (isLoading) => {
   }
 };
 
+let timeoutId;
+window.searchLocations = (e) => {
+  const searchValue = e.target.value;
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    const filter = {};
+    if (searchValue) {
+      filter["_buildfire.index.string1"] = { $regex: searchValue, $options: "-i" };
+    }
+    locationsTable.clearData();
+    handleLocationEmptyState(true);
+    loadLocations(filter, null);
+  }, 300);
+};
+
+window.openLocationsBulkAction = (e) => {
+  e.stopPropagation();
+  const locationDropdown = locationsSection.querySelector('#location-bulk-dropdown');
+  toggleDropdown(locationDropdown);
+  document.body.onclick = () => {
+    toggleDropdown(locationDropdown, true);
+  };
+};
+
+const downloadCsvTemplate = (templateData, header, name) => {
+  const  csv = jsonToCsv(templateData, {
+    header
+  });
+
+  downloadCsv(csv, `${name? name : 'template'}.csv`);
+};
+
+window.downloadLocationTemplate = () =>  {
+  const templateData = [{}];
+  downloadCsvTemplate(templateData, locationTemplateHeader);
+};
+
+window.importLocations = () =>  {
+
+};
+
+window.exportLocations = () =>  {
+
+};
+
 const loadLocations = (filter, sort) => {
   const options = {};
   options.sort = { "_buildfire.index.string1": sort ? sort.title : -1 };
+
+  if (filter) {
+    options.filter = filter;
+  }
 
   LocationsController.searchLocations(options).then((locations) => {
     state.locations = locations;
@@ -891,7 +958,6 @@ const loadCategories = (callback) => {
     callback();
   });
 };
-
 
 // this called in content.js;
 window.initLocations = () => {
