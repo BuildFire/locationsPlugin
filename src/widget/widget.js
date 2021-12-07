@@ -397,6 +397,13 @@ const showLocationDetail = () => {
     ];
     container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
+    buildfire.history.push('Location Detail', {
+      showLabelInTitlebar: true
+    });
+    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map'), {
+      center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+      zoom: 14,
+    });
     navigateTo('detail');
   });
 };
@@ -705,6 +712,13 @@ const initHomeView = () => {
   });
 };
 
+const clearTemplate = (template) => {
+  if (!templates[template]) {
+    console.warn(`template ${template} not found.`);
+    return;
+  }
+  document.querySelector(`section#${template}`).innerHTML = '';
+};
 const init = () => {
   fetchTemplate('filter', injectTemplate);
   fetchTemplate('home', initHomeView);
@@ -722,6 +736,9 @@ const init = () => {
     console.log('Breadcrumb popped', breadcrumb);
     if (document.querySelector('section#filter').classList.contains('overlay')) {
       toggleFilterOverlay();
+    } else if (document.querySelector('section#detail').classList.contains('active')) {
+      clearTemplate('detail');
+      navigateTo('home');
     }
   });
 
