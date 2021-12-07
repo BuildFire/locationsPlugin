@@ -126,9 +126,9 @@ p.info::before {
 
 .icon-holder {
 	object-fit: contain;
-	width: 40px;
-	height: 40px;
-	font-size: 24px;
+	width: 2.5rem;
+    height: 2.5rem;
+	font-size: 20px;
 	display: flex !important;
 	line-height: initial !important;
 	justify-content: center;
@@ -146,8 +146,9 @@ p.info::before {
 }
 
 .icon-holder img, .list-image-holder img {
-	width: 100%;
-	height: 100%;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: contain;
 }
 
 .add-icon {
@@ -156,6 +157,7 @@ p.info::before {
 	font-size: 32px;
 	margin-bottom: 5px;
 }
+
 
 .colorgrid .coloritem a {
     width: 40px !important;
@@ -169,6 +171,12 @@ p.info::before {
 .ellipsis-20 {
 	display: block;
 	max-width: 20ch;
+}
+
+.required-label::after {
+	content: '*';
+	color: #ee4a4a;
+	padding-left: 4px;
 }
 /* Helpers Style */
 

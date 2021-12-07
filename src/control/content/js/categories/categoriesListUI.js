@@ -33,7 +33,7 @@ class CategoriesListUI extends SortableListUI {
     // divRow.appendChild(moveHandle);
 
     const mediaHolder = document.createElement("div");
-    mediaHolder.className = "media-holder";
+    mediaHolder.className = "icon-holder";
 
     if (item.iconUrl) {
       const img = document.createElement("img");
@@ -42,6 +42,15 @@ class CategoriesListUI extends SortableListUI {
         height: 16,
       });
       mediaHolder.appendChild(img);
+    } else if (item.iconClassName) {
+      const span = document.createElement('span');
+      span.className = `glyph-icon ${item.iconClassName}`;
+      mediaHolder.appendChild(span);
+    } else {
+      const span = document.createElement('span');
+      span.className = "add-icon text-success";
+      span.innerHTML = "+";
+      mediaHolder.appendChild(span);
     }
 
     divRow.appendChild(mediaHolder);

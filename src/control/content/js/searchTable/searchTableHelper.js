@@ -1,4 +1,5 @@
 import DataMocks from "../../../../DataMocks";
+import buildfire from "buildfire";
 
 export default class SearchTableHelper {
   constructor(tableId,  config) {
@@ -25,9 +26,9 @@ export default class SearchTableHelper {
     this.thead = this._create("thead", this.table);
     this.config.columns.forEach((colConfig) => {
       let classes = [];
-      if (colConfig.type == "date") classes = ["text-center"];
-      else if (colConfig.type == "number") classes = ["text-right"];
-      else classes = ["text-left"];
+      if (colConfig.type === "date") classes = ["text-center"];
+      else if (colConfig.type === "number") classes = ["text-right"];
+      else classes = ["text-left", "text-bold"];
       let th = this._create("th", this.thead, colConfig.header, classes);
       if (colConfig.sortBy) {
         const icon = this._create("span", th, "", [
@@ -41,7 +42,7 @@ export default class SearchTableHelper {
             icon.classList.remove("icon-chevron-up");
             icon.classList.add("icon-chevron-down");
           } else {
-            //revert icon if previously sorted
+            // revert icon if previously sorted
             for (let i = 0; i < _t.thead.children.length; i++) {
               if (_t.thead.children[i].children[0]) {
                 _t.thead.children[i].children[0].classList.remove(
@@ -75,6 +76,14 @@ export default class SearchTableHelper {
     this.tbody.onscroll = (e) => {
       if (t.tbody.scrollTop / t.tbody.scrollHeight > 0.8) t._fetchNextPage();
     };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  _cropImage(url, options) {
+    if (!url) {
+      return "";
+    }
+    return buildfire.imageLib.cropImage(url, options);
   }
 
   search(filter) {
@@ -129,34 +138,63 @@ export default class SearchTableHelper {
     }
   }
 
+  getImage(obj) {
+    const div = document.createElement('div');
+    if (obj.listImage) {
+      const img = document.createElement("img");
+      img.src = this._cropImage(obj.listImage, {
+        width: 16,
+        height: 16,
+      });
+
+      div.appendChild(img);
+    } else {
+      const span = document.createElement('span');
+      span.className = "add-icon text-success";
+      span.innerHTML = "+";
+      div.appendChild(span);
+    }
+
+    return div.innerHTML;
+  }
+
   renderRow(obj, tr) {
-    if (tr)
-      //used to update a row
+    if (tr) {
+      // used to update a row
       tr.innerHTML = "";
-    else tr = this._create("tr", this.tbody);
+    } else {
+      tr = this._create("tr", this.tbody);
+    }
     tr.setAttribute("objId", obj.id);
     this.config.columns.forEach((colConfig) => {
       let classes = [];
-      if (colConfig.type == "date") classes = ["text-center"];
-      else if (colConfig.type == "number") classes = ["text-right"];
+      if (colConfig.type === "date") classes = ["text-center"];
+      else if (colConfig.type === "number") classes = ["text-right"];
       else classes = ["text-left"];
-      var td;
-      if (colConfig.type == "command") {
+      let td;
+      if (colConfig.type === "command") {
         td = this._create(
           "td",
           tr,
-          '<button class="btn btn-link">' + colConfig.text + "</button>",
+          `<button class="btn btn-link">${colConfig.text}</button>`,
           ["editColumn"]
         );
         td.onclick = (event) => {
           event.preventDefault();
           this._onCommand(obj, tr, colConfig.command);
         };
+      } else if (colConfig.type === "image") {
+        td = this._create(
+          "td",
+          tr,
+          `<div class="icon-holder">${this.getImage(obj)}</div>`,
+          ["imageColumn"]
+        );
       } else {
-        var output = "";
+        let output = "";
         try {
-          ///needed for the eval statement next
-          var data = obj;
+          // needed for the eval statement next
+          let data = obj;
           output = eval("`" + colConfig.data + "`");
         } catch (error) {
           console.log(error);

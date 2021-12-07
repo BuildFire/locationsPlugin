@@ -5,6 +5,12 @@
   },
   columns: [
     {
+      header: "",
+      data: "",
+      type: "image",
+      width: "50px",
+    },
+    {
       header: "Name",
       data: "${data.title}",
       type: "string",

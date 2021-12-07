@@ -373,12 +373,12 @@ const saveLocation = (action, callback) => {
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
   if (action === 'Add') {
-    LocationsController.createLocation(state.locationObj.toJSON()).then((res) => {
+    LocationsController.createLocation(state.locationObj).then((res) => {
       loadLocations();
       window.cancelAddLocation();
     });
   } else {
-    LocationsController.updateLocation(state.locationObj.id, state.locationObj.toJSON()).then((res) => {
+    LocationsController.updateLocation(state.locationObj.id, state.locationObj).then((res) => {
       loadLocations();
       window.cancelAddLocation();
     });
@@ -415,7 +415,7 @@ const onMarkerTypeChanged = (marker) => {
       addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
     }
   }
-}
+};
 
 const onPriceRangeChanged = (price) => {
   if (price.currency) {
@@ -437,7 +437,7 @@ const onPriceRangeChanged = (price) => {
     console.log(value);
     state.locationObj.price.currency = value;
   };
-}
+};
 
 const cropImage = (url, options) => {
   if (!url) {
@@ -849,6 +849,7 @@ const deleteLocation = (item, row, callback = () => {}) => {
       if (data && data.selectedButton.key === "y") {
         LocationsController.deleteLocation(item.id).then(() => {
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
+          handleLocationEmptyState(false);
           callback(item);
         });
       }
@@ -869,8 +870,11 @@ const handleLocationEmptyState = (isLoading) => {
   }
 };
 
-const loadLocations = () => {
-  LocationsController.searchLocations().then((locations) => {
+const loadLocations = (filter, sort) => {
+  const options = {};
+  options.sort = { "_buildfire.index.string1": sort ? sort.title : -1 };
+
+  LocationsController.searchLocations(options).then((locations) => {
     state.locations = locations;
     handleLocationEmptyState(false);
     locationsTable.renderData(locations, state.categories);
@@ -908,5 +912,6 @@ window.initLocations = () => {
   locationsTable.onRowDeleted = deleteLocation;
 
   locationsTable.onSort = (sort) => {
+    loadLocations({}, sort);
   };
 };
