@@ -8,6 +8,8 @@ export default {
     return Locations.getById(id);
   },
   searchCategories(options = {}) {
+    if (!options.filter) options.filter = {};
+    options.filter['_buildfire.index.date1'] = { $type: 10 };
     return Categories.search(options);
   },
   searchLocations(options = {}) {
