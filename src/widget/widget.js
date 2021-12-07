@@ -467,6 +467,27 @@ const chatWithOwner = () => {
     }
   );
 };
+const shareLocation = () => {
+  console.log('share Location clicked');
+  buildfire.deeplink.generateUrl(
+    {
+      data: { locationId: 'THIS-IS-TEST-ID' },
+    },
+    (err, result) => {
+      if (err) return console.error(err);
+      buildfire.device.share({
+        subject: 'Location URL',
+        text: 'Location shared: ',
+        link: result.url
+      }, (err, result) => {
+        if (err) console.error(err);
+        if (result) console.log(result);
+      });
+    }
+  );
+  // todo getData()
+  // todo testing
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -494,6 +515,8 @@ const initEventListeners = () => {
       showWorkingHoursDrawer();
     } else if (e.target.id === 'chatWithOwnerBtn') {
       chatWithOwner();
+    } else if (e.target.id === 'shareLocationBtn') {
+      shareLocation();
     }
   });
 
@@ -683,10 +706,17 @@ const initHomeView = () => {
 };
 
 const init = () => {
-  // fetchTemplate('filter', injectTemplate);
-  // fetchTemplate('home', initHomeView);
-  showLocationDetail();
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomeView);
+  // showLocationDetail();
   initEventListeners();
+
+  buildfire.deeplink.getData((deeplinkData) => {
+    if (deeplinkData?.locationId) {
+      // todo fetch location where id;
+      // todo navigate to location
+    }
+  });
 
   buildfire.history.onPop((breadcrumb) => {
     console.log('Breadcrumb popped', breadcrumb);
