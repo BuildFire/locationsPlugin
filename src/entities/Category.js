@@ -41,7 +41,7 @@ export default class Category {
       _buildfire: {
         index: {
           string1: this.title.toLowerCase(),
-          date1: this.createdOn,
+          date1: this.deletedOn,
           number1: this.quickAccess
         }
       }

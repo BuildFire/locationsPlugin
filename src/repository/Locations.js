@@ -1,3 +1,5 @@
+import Location from "../entities/Location";
+
 /**
  * Locations data access
  * @class
@@ -34,7 +36,7 @@ export default class Locations {
     return new Promise((resolve, reject) => {
       buildfire.publicData.insert(data, Locations.TAG, (error, record) => {
         if (error) return reject(error);
-        resolve(record);
+        resolve(new Location({ ...record.data, id: record.id }).toJSON());
       });
     });
   }
@@ -47,10 +49,41 @@ export default class Locations {
    */
   static search(options) {
     return new Promise((resolve, reject) => {
-      buildfire.publicData.search(options, Locations.TAG, (error, records) => {
+      buildfire.publicData.search(options, Locations.TAG, (error, result) => {
         if (error) return reject(error);
-        resolve(records);
+        result = result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
+        resolve(result);
       });
     });
   }
+
+    /**
+   *
+   * @param {string} locationId
+   * @param {Location} location
+   * @returns {promise}
+   */
+     static update(locationId, location) {
+      return new Promise((resolve, reject) => {
+        buildfire.publicData.update(locationId, location, Locations.TAG, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+      });
+    }
+  
+    /**
+     *
+     * @param {string} locationId
+     * @static
+     * @returns {promise}
+     */
+    static delete(locationId) {
+      return new Promise((resolve, reject) => {
+        buildfire.publicData.delete(locationId, Locations.TAG, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+      });
+    }
 }

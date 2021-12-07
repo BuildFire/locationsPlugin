@@ -8,14 +8,15 @@ export default class Location {
    * @constructor
    */
   constructor(data = {}) {
+    this.id = data.id || null;
     this.title = data.title || null;
     this.subtitle = data.subtitle || null;
     this.pinIndex = data.pinIndex || null;
     this.address = data.address || null;
     this.formattedAddress = data.formattedAddress || null;
     this.addressAlias = data.addressAlias || null;
-    this.coordinates = data.coordinates || { latitude: null, longitude: null };
-    this.marker = data.marker || { type: null, icon: null, color: null };
+    this.coordinates = data.coordinates || { lat: null, lng: null };
+    this.marker = data.marker || { type: "pin", image: null, color: null, base64Image: null };
     this.categories = data.categories || { main: [], subcategories: [] };
     this.settings = data.settings || {
       showCategory: true,
@@ -49,6 +50,7 @@ export default class Location {
 
   toJSON() {
     return {
+      id: this.id,
       title: this.title,
       subtitle: this.subtitle,
       pinIndex: this.pinIndex,
@@ -80,11 +82,16 @@ export default class Location {
         index: {
           string1: this.title.toLowerCase(),
           date1: this.createdOn,
-          array1: this.categories.main,
-          array2: this.categories.subcategories,
-          number1: this.pinIndex,
-          number2: this.priceRange,
-          number3: this.views
+          array1: [...this.categories.main.map(elemId => ({ string1: 'c_' + elemId })),
+            ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),
+            { string1: 'v_' + this.views },
+            { string1: 'pr_' + this.price.range },
+          ],
+          number1: this.pinIndex
+        },
+        geo: {
+          type: "Point",
+          coordinates: [this.coordinates.lng, this.coordinates.lat],
         }
       }
     };

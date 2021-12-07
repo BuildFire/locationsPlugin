@@ -7,7 +7,7 @@
     </p>
   </div>
   <hr class="none" />
-  <div class="input-group search-box">
+  <div class="input-group search-box margin-left-zero">
     <input type="text" class="form-control" placeholder="Search" id="location-search-input"
       onkeyup="searchLocations()" />
     <span class="input-group-btn">
@@ -34,8 +34,11 @@
       + Add Location
     </button>
   </div>
-  <table id="locations-items" class="table table-striped margin-top-fifteen">
+  <table id="locations-items" class="table table-striped margin-top-fifteen margin-bottom-zero">
   </table>
+  <div class="text-center well hidden" id="location-empty-list">
+    <h5>No Locations Added!</h5>
+  </div>
   <template id="addLocationTemplate">
     <div class="sub-page">
       <div class="sub-page-body padded">
@@ -58,7 +61,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="location-subtitle-input">Location Subtitle</label>
+            <label class="" for="location-subtitle-input">Location Subtitle</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-subtitle-input" placeholder="" />
@@ -70,7 +73,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="pin-top-btn">Pin Location on top of the list view</label>
+            <label class="" for="pin-top-btn">Pin Location on top of the list view</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <button class="btn btn-primary" id="pin-top-btn">Pin To Top</button>
@@ -95,7 +98,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="location-custom-name-input">Location Custom Name</label>
+            <label class="" for="location-custom-name-input">Location Custom Name</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <input type="text" class="form-control" required maxlength="100" id="location-custom-name-input" placeholder="" />
@@ -111,15 +114,15 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Marker Type</label>
+            <label class="">Marker Type</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero flex-row">
             <div class="col-md-4 padding-zero">
-              <input type="radio"  name="markerType" id="marker-pin-radio" placeholder="pin" />
+              <input type="radio"  name="markerType" id="marker-pin-radio" value="pin" checked />
               <label for="marker-pin-radio">Pin</label>
             </div>
             <div class="col-md-4 padding-zero">
-              <input type="radio"  name="markerType" id="marker-circle-radio" placeholder="circle" />
+              <input type="radio"  name="markerType" id="marker-circle-radio" value="circle" />
               <label for="marker-circle-radio">Circle</label>
             </div>
             <div class="col-md-4 padding-zero">
@@ -129,9 +132,9 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix" id="select-marker-image-container">
+        <div class="form-group main clearfix hidden" id="select-marker-image-container">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="select-marker-image-btn">Marker Image</label>
+            <label class="" for="select-marker-image-btn">Marker Image</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="icon-holder" id="select-marker-image-btn">
@@ -144,10 +147,10 @@
         <hr class="none" />
         <div class="form-group main clearfix" id="select-marker-color-container">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label" for="marker-image-btn">Marker Color</label>
+            <label class="" for="marker-image-btn">Marker Color</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
-            <div class="colorgrid pull-left">
+            <div class="colorgrid pull-left" id="select-marker-color-btn">
               <div class="gradient-results">
                   <div  class="coloritem margin-bottom-zero">
                       <a class="img-thumbnail">
@@ -196,7 +199,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Enable Opening Hours</label>
+            <label class="">Enable Opening Hours</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="flex-row space-between">
@@ -218,7 +221,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Enable Price Range</label>
+            <label class="">Enable Price Range</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="flex-row space-between align-items-center">
@@ -240,9 +243,9 @@
                   <label for="price-range-radio-4">$$$$</label>
                 </div>
                 <div class="form-group col-md-3 padding-zero">
-                  <select class="form-control" id="location-select-curency">
-                    <option value="$">$</option>
+                  <select class="form-control" id="location-select-price-currency">
                     <option value="€">€</option>
+                    <option value="$">$</option>
                   </select>
                 </div>
               </div>
@@ -259,7 +262,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Enable 5 Star Rating</label>
+            <label class="">Enable 5 Star Rating</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero flex-row space-between">
             <div></div>
@@ -291,7 +294,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Location Images</label>
+            <label class="">Location Images</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="">
@@ -310,6 +313,9 @@
           <div>
             <textarea id="location-description-wysiwyg" name="content"></textarea>
           </div>
+          <div id="location-description-error" class="text-danger hidden">
+            Required
+          </div>
         </div>
         <hr class="none" />
         <hr class="none" />
@@ -323,7 +329,7 @@
         <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Select Action</label>
+            <label class="">Select Action</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="">
@@ -338,13 +344,19 @@
         </div>
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="required-label">Location Owner</label>
+            <label class="">Location Owner</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
-            <div class="">
+            <div class="flex-row">
               <button type="button" class="btn btn-success btn--lg" id="location-add-owner-btn">
                 + Add Location Owner
               </button>
+              <div class="margin-right-fifteen margin-top-five margin-left-fifteen">
+                <span id="location-owner-txt"></span>
+              </div>
+              <div class="margin-right-fifteen margin-left-fifteen">
+                <span class="btn--icon icon icon-cross2 hidden"  id="location-delete-owner-btn"></span>
+              </div>
             </div>
           </div>
         </div>

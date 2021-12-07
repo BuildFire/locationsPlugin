@@ -4,6 +4,8 @@
 import buildfire from 'buildfire';
 import ContentController from './content.controller';
 import DataMocks from '../../DataMocks';
+import authManager from '../../UserAccessControl/authManager';
+
 import './js/categories';
 import './js/locations';
 
@@ -84,8 +86,8 @@ window.onSidenavChange = (section) => {
 };
 
 const init = () => {
-  navigate('locations');
-  setActiveSidenavTab('locations');
+  navigate('categories');
+  setActiveSidenavTab('categories');
 };
 
-init();
+authManager.enforceLogin(init);

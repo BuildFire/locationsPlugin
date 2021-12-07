@@ -1,13 +1,15 @@
 import DataMocks from "../../../../DataMocks";
+import buildfire from "buildfire";
 
 export default class SearchTableHelper {
-  constructor(tableId, tag, config) {
+  constructor(tableId,  config) {
     if (!config) throw "No config provided";
     if (!tableId) throw "No tableId provided";
     this.table = document.getElementById(tableId);
     if (!this.table) throw "Cant find table with ID that was provided";
     this.config = config;
-    this.tag = tag;
+    this.tag = null;
+    this.items = [] ;
     this.sort = {};
     this.commands = {};
     this.init();
@@ -24,9 +26,9 @@ export default class SearchTableHelper {
     this.thead = this._create("thead", this.table);
     this.config.columns.forEach((colConfig) => {
       let classes = [];
-      if (colConfig.type == "date") classes = ["text-center"];
-      else if (colConfig.type == "number") classes = ["text-right"];
-      else classes = ["text-left"];
+      if (colConfig.type === "date") classes = ["text-center"];
+      else if (colConfig.type === "number") classes = ["text-right"];
+      else classes = ["text-left", "text-bold"];
       let th = this._create("th", this.thead, colConfig.header, classes);
       if (colConfig.sortBy) {
         const icon = this._create("span", th, "", [
@@ -40,7 +42,7 @@ export default class SearchTableHelper {
             icon.classList.remove("icon-chevron-up");
             icon.classList.add("icon-chevron-down");
           } else {
-            //revert icon if previously sorted
+            // revert icon if previously sorted
             for (let i = 0; i < _t.thead.children.length; i++) {
               if (_t.thead.children[i].children[0]) {
                 _t.thead.children[i].children[0].classList.remove(
@@ -55,17 +57,17 @@ export default class SearchTableHelper {
             icon.classList.remove("icon-chevron-down");
             icon.classList.add("icon-chevron-up");
           }
-          _t._fetchPageOfData();
+          _t.onSort(_t.sort);
         });
       }
       if (colConfig.width) th.style.width = colConfig.width;
     });
 
     if (this.config.options.showEditButton)
-      this._create("th", this.thead, "Edit", ["editColumn"]);
+      this._create("th", this.thead, "", ["editColumn"]);
 
     if (this.config.options.showDeleteButton)
-      this._create("th", this.thead, "Delete", ["deleteColumn"]);
+      this._create("th", this.thead, "", ["deleteColumn"]);
   }
 
   renderBody() {
@@ -76,6 +78,14 @@ export default class SearchTableHelper {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  _cropImage(url, options) {
+    if (!url) {
+      return "";
+    }
+    return buildfire.imageLib.cropImage(url, options);
+  }
+
   search(filter) {
     this.tbody.innerHTML = "";
     this._create("tr", this.tbody, '<td colspan="99"> searching...</td>', [
@@ -83,6 +93,15 @@ export default class SearchTableHelper {
     ]);
     this.filter = filter;
     this._fetchPageOfData(this.filter, 0);
+  }
+
+  renderData(items, categories = []) {
+    this.tbody.innerHTML = '';
+    items.forEach((location) => {
+      const selectedCategories = categories.filter(elem => location.categories.main.includes(elem.id));
+      location.categoriesName = selectedCategories.map(elem => elem.title).join(', ');
+      this.renderRow(location)
+    });
   }
 
   _fetchNextPage() {
@@ -119,34 +138,63 @@ export default class SearchTableHelper {
     }
   }
 
+  getImage(obj) {
+    const div = document.createElement('div');
+    if (obj.listImage) {
+      const img = document.createElement("img");
+      img.src = this._cropImage(obj.listImage, {
+        width: 16,
+        height: 16,
+      });
+
+      div.appendChild(img);
+    } else {
+      const span = document.createElement('span');
+      span.className = "add-icon text-success";
+      span.innerHTML = "+";
+      div.appendChild(span);
+    }
+
+    return div.innerHTML;
+  }
+
   renderRow(obj, tr) {
-    if (tr)
-      //used to update a row
+    if (tr) {
+      // used to update a row
       tr.innerHTML = "";
-    else tr = this._create("tr", this.tbody);
+    } else {
+      tr = this._create("tr", this.tbody);
+    }
     tr.setAttribute("objId", obj.id);
     this.config.columns.forEach((colConfig) => {
       let classes = [];
-      if (colConfig.type == "date") classes = ["text-center"];
-      else if (colConfig.type == "number") classes = ["text-right"];
+      if (colConfig.type === "date") classes = ["text-center"];
+      else if (colConfig.type === "number") classes = ["text-right"];
       else classes = ["text-left"];
-      var td;
-      if (colConfig.type == "command") {
+      let td;
+      if (colConfig.type === "command") {
         td = this._create(
           "td",
           tr,
-          '<button class="btn btn-link">' + colConfig.text + "</button>",
+          `<button class="btn btn-link">${colConfig.text}</button>`,
           ["editColumn"]
         );
         td.onclick = (event) => {
           event.preventDefault();
           this._onCommand(obj, tr, colConfig.command);
         };
+      } else if (colConfig.type === "image") {
+        td = this._create(
+          "td",
+          tr,
+          `<div class="icon-holder">${this.getImage(obj)}</div>`,
+          ["imageColumn"]
+        );
       } else {
-        var output = "";
+        let output = "";
         try {
-          ///needed for the eval statement next
-          var data = obj;
+          // needed for the eval statement next
+          let data = obj;
           output = eval("`" + colConfig.data + "`");
         } catch (error) {
           console.log(error);
@@ -174,33 +222,12 @@ export default class SearchTableHelper {
         "td",
         tr,
         '<span class="btn--icon icon icon-cross2"></span>',
-        ["editColumn"]
+        ["deleteColumn"]
       );
       td.onclick = () => {
-        buildfire.notifications.confirm(
-          {
-            title: "Are you sure?",
-            message: "Are you sure to delete this record?",
-            confirmButton: { text: "Yes", key: "yes", type: "danger" },
-            cancelButton: { text: "No", key: "no", type: "default" },
-          },
-          function (e, data) {
-            if (e) console.error(e);
-
-            if (data.selectedButton.key == "yes") {
-              tr.classList.add("hidden");
-              buildfire.publicData.update(
-                obj.id,
-                { $set: { deletedOn: new Date() } },
-                this.tag,
-                (e) => {
-                  if (e) tr.classList.remove("hidden");
-                  else t.onRowDeleted(obj, tr);
-                }
-              );
-            }
-          }
-        );
+        t.onRowDeleted(obj, tr, () => {
+          tr.classList.add("hidden");
+        });
       };
     }
     this.onRowAdded(obj, tr);
@@ -217,6 +244,10 @@ export default class SearchTableHelper {
 
   onRowDeleted(obj, tr) {
     console.log("Record Delete", obj);
+  }
+
+  onSort(sort) {
+
   }
 
   onCommand(command, cb) {

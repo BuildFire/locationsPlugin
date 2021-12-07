@@ -64,9 +64,9 @@ export default class Categories {
    * @static
    * @returns {promise}
    */
-  static delete(categoryId) {
+  static delete(categoryId, category) {
     return new Promise((resolve, reject) => {
-      buildfire.publicData.delete(categoryId, Categories.TAG, (error, result) => {
+      buildfire.publicData.update(categoryId, category, Categories.TAG, (error, result) => {
         if (error) return reject(error);
         resolve(result);
       });

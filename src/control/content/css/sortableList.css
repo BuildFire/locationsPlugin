@@ -1,7 +1,7 @@
 /* Draggable List  */
 .draggable-list-view:not(.border-radius-four){
     border: 0;
-    margin: 1.5rem  0;
+    margin: 1rem  0;
   }
 .draggable-list-view .d-item:not(.clearfix){
     display: flex;

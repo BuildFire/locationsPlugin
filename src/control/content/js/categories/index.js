@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-use-before-define */
 /* eslint-disable max-len */
 /* eslint-disable prefer-destructuring */
 import buildfire from "buildfire";
@@ -8,6 +10,7 @@ import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
 import { generateUUID, createTemplate } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson} from "../../utils/csv.helper";
+import globalState from '../../state';
 
 const state = {
   categories: [],
@@ -262,16 +265,14 @@ window.addEditCategory = (category, callback = () => {}) => {
     inputCategoryControls.categoryNameInputError.classList.add('hidden');
     newCategory.title = categoryName;
     if (!category) {
-      CategoriesController.createCategory(newCategory.toJSON()).then((res) => {
-        console.log(res);
-        categoriesListUI.addItem(res);
+      CategoriesController.createCategory(newCategory).then((res) => {
+        loadCategories();
         cancelAddCategory();
       });
     } else {
-      CategoriesController.updateCategory(category.id, newCategory.toJSON()).then((res) => {
-        console.log(res);
+      CategoriesController.updateCategory(category.id, newCategory).then((res) => {
         if (callback) {
-          callback(newCategory);
+          callback(newCategory.toJSON());
         }
       });
     }
@@ -436,10 +437,29 @@ window.downloadCategoryTemplate = () => {
   downloadCsvTemplate(templateData, categoriesTemplateHeader);
 };
 
+const handleCategoriesEmptyState = (isLoading) => {
+  const emptyState = categories.querySelector('#category-empty-list');
+  if (isLoading) {
+    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.classList.remove('hidden');
+  } else if (state.categories.length === 0) {
+    emptyState.innerHTML = `<h5>No Categories Added</h5>`;
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+};
+
 const loadCategories = () => {
-  CategoriesController.searchCategories().then((categories) => {
+  const options = {
+    filter: {}
+  };
+  options.filter["_buildfire.index.date1"] = { $type: 10 };
+  CategoriesController.searchCategories(options).then((categories) => {
     state.categories = categories;
+    globalState.categories = categories;
     categoriesListUI.init("items", categories);
+    handleCategoriesEmptyState(false);
   });
 };
 
@@ -460,8 +480,9 @@ const deleteCategory = (item, index, callback) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        CategoriesController.deleteCategory(item.id).then(() => {
+        CategoriesController.deleteCategory(item.id, new Category(item)).then(() => {
           state.categories = state.categories.filter((elem) => elem.id !== item.id);
+          handleCategoriesEmptyState(false);
           callback(item);
         });
       }
@@ -484,5 +505,6 @@ window.initCategories = () => {
     });
   };
   categoriesListUI.onDeleteItem = deleteCategory;
+  handleCategoriesEmptyState(true);
   loadCategories();
 };
