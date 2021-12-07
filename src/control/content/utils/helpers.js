@@ -14,7 +14,6 @@ export const createTemplate = (templateId) => {
   return document.importNode(template.content, true);
 };
 
-
 export const getDefaultOpeningHours = () => {
   const intervals = [{from: "08:00", to: "20:00"}]
   return {
@@ -28,4 +27,15 @@ export const getDefaultOpeningHours = () => {
       sunday: {index: 6, active: true, intervals: [...intervals]},
     }
   }
-}
+};
+
+export const toggleDropdown = (dropdownElement, forceClose) => {
+  if (!dropdownElement) {
+    return;
+  }
+  if (dropdownElement.classList.contains("open") || forceClose) {
+    dropdownElement.classList.remove("open");
+  } else {
+    dropdownElement.classList.add("open");
+  }
+};

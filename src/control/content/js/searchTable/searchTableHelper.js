@@ -100,8 +100,13 @@ export default class SearchTableHelper {
     items.forEach((location) => {
       const selectedCategories = categories.filter(elem => location.categories.main.includes(elem.id));
       location.categoriesName = selectedCategories.map(elem => elem.title).join(', ');
-      this.renderRow(location)
+      this.renderRow(location);
     });
+  }
+
+  clearData() {
+    this.tbody.innerHTML = '';
+    this.items = [];
   }
 
   _fetchNextPage() {
