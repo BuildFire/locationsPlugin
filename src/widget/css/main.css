@@ -466,6 +466,13 @@ button span {
   margin: -15px -15px 0;
   color: #FFFFFF;
 }
+.location-detail__bottom-cover {
+  background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/350/200);
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 200px;
+  margin: 10px -15px 20px;
+}
 .location-detail__cover p:first-child {
   font-size: 13px;
   margin: 0 0 8px;
@@ -473,8 +480,7 @@ button span {
 .location-detail__cover #workingHoursBtn {
   margin-bottom: 8px;
 }
-.location-detail__cover .working-hours-button {
-  background-color: #14cb5d;
+.working-hours-button {
   padding: 4px 8px;
   height: 24px;
   text-transform: capitalize;
@@ -603,4 +609,33 @@ button span {
 }
 .location-detail__rating [data-rating-id] .full-star {
   font-size: 22px;
+}
+.location-detail__top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.location-detail__top-header h1 {
+  margin: 0;
+}
+.location-detail__top-header h5 {
+  font-weight: normal;
+  margin: 2px 0 0;
+  font-size: 15px;
+}
+.location-detail__top-header span:nth-child(2) {
+  display: flex;
+  justify-content: space-between;
+}
+.location-detail__top-subtitle {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.location-detail__top-subtitle p {
+  font-size: 13px;
+}
+.location-detail__top-subtitle button {
+  white-space: nowrap;
 }

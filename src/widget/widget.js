@@ -400,7 +400,7 @@ const showLocationDetail = () => {
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
     });
-    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map'), {
+    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
       center: { lat: 38.70290288229097, lng: 35.52352225602528 },
       zoom: 14,
     });
@@ -720,9 +720,9 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
-  // showLocationDetail();
+  // fetchTemplate('filter', injectTemplate);
+  // fetchTemplate('home', initHomeView);
+  showLocationDetail();
   initEventListeners();
 
   buildfire.deeplink.getData((deeplinkData) => {
