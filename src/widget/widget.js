@@ -138,7 +138,7 @@ const renderIntroductoryLocations = (list) => {
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
-            <p>${n.title}</p>
+            <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
@@ -766,7 +766,7 @@ const calculateLocationDistance = (address) => {
 const updateLocationsDistance = () => {
   introductoryLocations = introductoryLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
-    const distanceSelector = document.querySelector(`.location-item[data-id=${location.id}] .location-item__actions p`);
+    const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     if (distanceSelector) distanceSelector.textContent = distance;
     return { ...location, ...{ distance } };
   });
@@ -797,7 +797,6 @@ const init = () => {
     }
     userPosition = position.coords;
     updateLocationsDistance();
-
   });
 
   buildfire.history.onPop((breadcrumb) => {
@@ -815,6 +814,7 @@ const init = () => {
     const root = document.documentElement;
     const { colors } = appTheme;
     root.style.setProperty('--body-theme', colors.bodyText);
+    root.style.setProperty('--header-theme', colors.headerText);
     root.style.setProperty('--background-color', colors.backgroundColor);
     root.style.setProperty('--primary-color', colors.primaryTheme);
   });
