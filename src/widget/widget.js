@@ -142,7 +142,7 @@ const renderIntroductoryLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             <p class="mdc-theme--text-body">1 mi</p>
           </div>
         </div>
@@ -156,7 +156,7 @@ const renderIntroductoryLocations = (list) => {
                   </span>
                 </span>
             </div>`).join('\n')}
-         
+         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
         </div>
       </div>`)).join('\n');
   container.insertAdjacentHTML('beforeend', content);
