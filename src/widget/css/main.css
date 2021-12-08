@@ -646,3 +646,7 @@ button span {
 .location-detail__top-subtitle button {
   white-space: nowrap;
 }
+.mdc-text-field__icon.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}

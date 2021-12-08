@@ -277,9 +277,11 @@ const fetchIntroductoryLocations = (done) => {
 const refreshQuickFilter = () => {
   const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
+  const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
   if (quickFilterItems.length === 0) {
     container.innerHTML = '<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">No Categories Added</small>';
+    advancedFilterBtn.classList.add('disabled');
     return;
   }
 
