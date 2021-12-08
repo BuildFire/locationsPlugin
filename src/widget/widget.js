@@ -138,8 +138,8 @@ const renderIntroductoryLocations = (list) => {
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
-            <p class="mdc-theme--text-body">${n.subtitle}</p>
-            <p class="mdc-theme--text-body">${n.address}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>

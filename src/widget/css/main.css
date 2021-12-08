@@ -133,6 +133,7 @@ section#filter {
   object-fit: cover;
 }
 .location-item__description {
+  max-width: calc(100% - 105px);
   flex: 1;
 }
 .location-item__description > p {
@@ -652,4 +653,9 @@ button span {
 #introLocationsList {
   margin-right: -15px;
   margin-left: -15px;
+}
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
