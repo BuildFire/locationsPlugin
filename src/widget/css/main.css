@@ -117,6 +117,12 @@ section#filter {
 .d-flex {
   display: flex;
 }
+.d-block {
+  display: block;
+}
+.text-center {
+  text-align: center;
+}
 .justify-space-between {
   justify-content: space-between;
 }

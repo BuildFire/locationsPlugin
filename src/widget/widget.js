@@ -21,7 +21,7 @@ let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = false;
+  settings.showIntroductoryListView = true;
   settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -278,7 +278,12 @@ const refreshQuickFilter = () => {
   const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
 
-  container.innerHTML = quickFilterItems.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-chip" role="row">
+  if (quickFilterItems.length === 0) {
+    container.innerHTML = '<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">No Categories Added</small>';
+    return;
+  }
+
+  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row">
         <div class="mdc-chip__ripple"></div>
         <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
@@ -289,8 +294,7 @@ const refreshQuickFilter = () => {
             <span class="mdc-chip__text">${n.title}</span>
           </span>
         </span>
-      </div>`), 0);
-
+      </div>`).join('\n');
   const chipSets = document.querySelectorAll('#home .mdc-chip-set');
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 };
@@ -720,9 +724,9 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  // fetchTemplate('filter', injectTemplate);
-  // fetchTemplate('home', initHomeView);
-  showLocationDetail();
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomeView);
+  // showLocationDetail();
   initEventListeners();
 
   buildfire.deeplink.getData((deeplinkData) => {
