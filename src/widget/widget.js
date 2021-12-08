@@ -17,6 +17,9 @@ const inst = DataMocks.generate('LOCATION')[0];
 
 let CATEGORIES;
 let introductoryLocations = [];
+let introductoryLocationsCount = 0;
+let introductoryLocationsPending = false;
+let currentIntroductoryPage = 0;
 let filterElements = {};
 
 // todo to be removed
@@ -128,9 +131,9 @@ const fetchCategories = (done) => {
     });
 };
 
-const renderLocations = (selector) => {
+const renderIntroductoryLocations = (list) => {
   const container = document.querySelector('#introLocationsList');
-  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+  const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
@@ -156,6 +159,7 @@ const renderLocations = (selector) => {
          
         </div>
       </div>`)).join('\n');
+  container.insertAdjacentHTML('beforeend', content);
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
@@ -247,13 +251,14 @@ const renderListingLocations = () => {
 };
 
 const fetchIntroductoryLocations = (done) => {
+  introductoryLocationsPending = true;
   WidgetController
-    .searchLocations({
-      sort: { title: -1 }
-    })
-    .then((result) => {
-      introductoryLocations = result;
-      done();
+    .searchLocations({ page: currentIntroductoryPage })
+    .then((response) => {
+      introductoryLocations = response.result;
+      introductoryLocationsCount = response.totalRecord;
+      introductoryLocationsPending = false;
+      done(null, response.result);
     })
     .catch((err) => {
       console.error('search error: ', err);
@@ -502,7 +507,21 @@ const handleListActionItem = (e) => {
     }
   );
 };
+const fetchMoreIntroductoryLocations = (e) => {
+  const listContainer = document.querySelector('section#intro');
+  const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+
+  if (activeTemplate === 'intro' && !introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
+    if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
+      currentIntroductoryPage += 1;
+      fetchIntroductoryLocations((err, result) => {
+        renderIntroductoryLocations(result);
+      });
+    }
+  }
+};
 const initEventListeners = () => {
+  document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -701,7 +720,7 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
-        renderLocations();
+        renderIntroductoryLocations(introductoryLocations);
         refreshIntroductoryDescription();
         showElement('section#intro');
         refreshIntroductoryCarousel();

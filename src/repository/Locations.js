@@ -49,15 +49,15 @@ export default class Locations {
    */
   static search(options) {
     return new Promise((resolve, reject) => {
-      buildfire.publicData.search(options, Locations.TAG, (error, result) => {
+      buildfire.publicData.search(options, Locations.TAG, (error, response) => {
         if (error) return reject(error);
-        result = result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
-        resolve(result);
+        response.result = response.result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
+        resolve(response);
       });
     });
   }
 
-    /**
+   /**
    *
    * @param {string} locationId
    * @param {Location} location
@@ -71,7 +71,7 @@ export default class Locations {
         });
       });
     }
-  
+
     /**
      *
      * @param {string} locationId
