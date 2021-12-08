@@ -16,6 +16,7 @@ const inst = DataMocks.generate('LOCATION')[0];
 // }
 
 let CATEGORIES;
+let userPosition;
 let introductoryLocations = [];
 let introductoryLocationsCount = 0;
 let introductoryLocationsPending = false;
@@ -133,7 +134,7 @@ const fetchCategories = (done) => {
 
 const renderIntroductoryLocations = (list) => {
   const container = document.querySelector('#introLocationsList');
-  const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+  const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
@@ -143,11 +144,11 @@ const renderIntroductoryLocations = (list) => {
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
-            <p class="mdc-theme--text-body">1 mi</p>
+            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-       
+
          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
@@ -255,7 +256,7 @@ const fetchIntroductoryLocations = (done) => {
   WidgetController
     .searchLocations({ page: currentIntroductoryPage })
     .then((response) => {
-      introductoryLocations = response.result;
+      introductoryLocations = introductoryLocations.concat(response.result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })));
       introductoryLocationsCount = response.totalRecord;
       introductoryLocationsPending = false;
       done(null, response.result);
@@ -740,6 +741,36 @@ const initHomeView = () => {
   });
 };
 
+const calculateLocationDistance = (address) => {
+  if (!userPosition) return null;
+  const origin = {
+    latitude: userPosition.latitude,
+    longitude: userPosition.longitude,
+  };
+  const destination = {
+    latitude: address.lat,
+    longitude: address.lng
+  };
+  const distance = buildfire.geo.calculateDistance(origin, destination, { decimalPlaces: 5 });
+  let result;
+  if (distance < 0.5) {
+    result = `${Math.round(distance * 5280).toLocaleString()} ft`;
+  } else if (settings.measurementUnit === 'metric') {
+    result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
+  } else {
+    result = `${Math.round(distance).toLocaleString()} mi`;
+  }
+  return result;
+};
+
+const updateLocationsDistance = () => {
+  introductoryLocations = introductoryLocations.map((location) => {
+    const distance = calculateLocationDistance(location.coordinates);
+    const distanceSelector = document.querySelector(`.location-item[data-id=${location.id}] .location-item__actions p`);
+    if (distanceSelector) distanceSelector.textContent = distance;
+    return { ...location, ...{ distance } };
+  });
+};
 const clearTemplate = (template) => {
   if (!templates[template]) {
     console.warn(`template ${template} not found.`);
@@ -758,6 +789,15 @@ const init = () => {
       // todo fetch location where id;
       // todo navigate to location
     }
+  });
+
+  buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+    if (err) {
+      return console.error(err);
+    }
+    userPosition = position.coords;
+    updateLocationsDistance();
+
   });
 
   buildfire.history.onPop((breadcrumb) => {
