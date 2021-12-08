@@ -132,7 +132,7 @@ const renderLocations = (selector) => {
   const container = document.querySelector('#introLocationsList');
   container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
-          <img src="https://placekitten.com/200/300" alt="Location image">
+          <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
             <p class="mdc-theme--text-body">${n.subtitle}</p>
@@ -144,30 +144,16 @@ const renderLocations = (selector) => {
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Call</span>
+       
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+              <div class="mdc-chip__ripple"></div>
+              <span role="gridcell">
+                  <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                    <span class="mdc-chip__text">${a.title}</span>
+                  </span>
                 </span>
-              </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Send Email</span>
-                </span>
-              </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Reservation</span>
-                </span>
-              </span>
-          </div>
+            </div>`).join('\n')}
+         
         </div>
       </div>`)).join('\n');
 };
@@ -266,7 +252,7 @@ const fetchIntroductoryLocations = (done) => {
       sort: { title: -1 }
     })
     .then((result) => {
-      introductoryLocations = result.map((l) => ({ id: l.id, ...l.data }));
+      introductoryLocations = result;
       done();
     })
     .catch((err) => {
@@ -501,6 +487,21 @@ const shareLocation = () => {
   // todo getData()
   // todo testing
 };
+
+const handleListActionItem = (e) => {
+  const actionItemId = e.target.dataset.actionId;
+  const actionItem = introductoryLocations
+    .reduce((prev, next) => prev.concat(next.actionItems), [])
+    .find((entity) => entity.id === actionItemId);
+  buildfire.actionItems.execute(
+    actionItem,
+    (err) => {
+      if (err) {
+        console.error(err);
+      }
+    }
+  );
+};
 const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -530,6 +531,8 @@ const initEventListeners = () => {
       chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
+    } else if (e.target.classList.contains('list-action-item')) {
+      handleListActionItem(e);
     }
   });
 

@@ -107,11 +107,7 @@ section#filter {
 .header-qf .mdc-chip__text {
   font-size: 12px;
 }
-
-#introLocationsList .location-item {
-  padding: 10px;
-}
-#listingLocationsList .location-item {
+.location-item {
   padding: 10px 20px;
 }
 .d-flex {
@@ -649,4 +645,11 @@ button span {
 .mdc-text-field__icon.disabled {
   opacity: 0.3;
   pointer-events: none;
+}
+.list-action-item * {
+  pointer-events: none;
+}
+#introLocationsList {
+  margin-right: -15px;
+  margin-left: -15px;
 }
