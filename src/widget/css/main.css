@@ -668,3 +668,6 @@ button span {
 .mdc-chip {
   background-color: rgb(150 150 150 / 20%);
 }
+.location-item .d-flex, .location-item .d-flex * {
+  pointer-events: none;
+}
