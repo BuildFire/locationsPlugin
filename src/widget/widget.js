@@ -833,7 +833,8 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
-    } else if (e.target.classList.contains('location-image-item__body'))  {
+    } else if (e.target.classList.contains('location-item'))  {
+      selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
       showWorkingHoursDrawer();
