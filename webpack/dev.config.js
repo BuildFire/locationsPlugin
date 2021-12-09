@@ -27,7 +27,9 @@ const WebpackConfig = {
   },
 
   externals: {
-    buildfire: 'buildfire'
+    buildfire: 'buildfire',
+    sortable: 'sortable',
+    tinymce: 'tinymce',
   },
 
   module: {
@@ -69,6 +71,13 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/control/content/templates/locations.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/content/templates/listView.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/content/templates/listView.html'),
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
