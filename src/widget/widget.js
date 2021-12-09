@@ -16,12 +16,16 @@ const inst = DataMocks.generate('LOCATION')[0];
 // }
 
 let CATEGORIES;
+let userPosition;
 let introductoryLocations = [];
+let introductoryLocationsCount = 0;
+let introductoryLocationsPending = false;
+let currentIntroductoryPage = 0;
 let filterElements = {};
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = false;
+  settings.showIntroductoryListView = true;
   settings.design.listViewStyle = 'image';
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -128,48 +132,35 @@ const fetchCategories = (done) => {
     });
 };
 
-const renderLocations = (selector) => {
+const renderIntroductoryLocations = (list) => {
   const container = document.querySelector('#introLocationsList');
-  container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+  const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src="https://placekitten.com/200/300" alt="Location image">
+          <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
-            <p>${n.title}</p>
-            <p class="mdc-theme--text-body">${n.subtitle}</p>
-            <p class="mdc-theme--text-body">${n.address}</p>
+            <p class="mdc-theme--text-header">${n.title}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
-            <p class="mdc-theme--text-body">1 mi</p>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Call</span>
+
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+              <div class="mdc-chip__ripple"></div>
+              <span role="gridcell">
+                  <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                    <span class="mdc-chip__text">${a.title}</span>
+                  </span>
                 </span>
-              </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Send Email</span>
-                </span>
-              </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Reservation</span>
-                </span>
-              </span>
-          </div>
+            </div>`).join('\n')}
+         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
         </div>
       </div>`)).join('\n');
+  container.insertAdjacentHTML('beforeend', content);
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
@@ -261,13 +252,14 @@ const renderListingLocations = () => {
 };
 
 const fetchIntroductoryLocations = (done) => {
+  introductoryLocationsPending = true;
   WidgetController
-    .searchLocations({
-      sort: { title: -1 }
-    })
-    .then((result) => {
-      introductoryLocations = result.map((l) => ({ id: l.id, ...l.data }));
-      done();
+    .searchLocations({ page: currentIntroductoryPage })
+    .then((response) => {
+      introductoryLocations = introductoryLocations.concat(response.result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })));
+      introductoryLocationsCount = response.totalRecord;
+      introductoryLocationsPending = false;
+      done(null, response.result);
     })
     .catch((err) => {
       console.error('search error: ', err);
@@ -277,8 +269,15 @@ const fetchIntroductoryLocations = (done) => {
 const refreshQuickFilter = () => {
   const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
+  const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
-  container.innerHTML = quickFilterItems.reduce((c, n) => (`${c !== 0 ? c : ''} <div class="mdc-chip" role="row">
+  if (quickFilterItems.length === 0) {
+    container.innerHTML = '<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">No Categories Added</small>';
+    advancedFilterBtn.classList.add('disabled');
+    return;
+  }
+
+  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row">
         <div class="mdc-chip__ripple"></div>
         <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
@@ -289,8 +288,7 @@ const refreshQuickFilter = () => {
             <span class="mdc-chip__text">${n.title}</span>
           </span>
         </span>
-      </div>`), 0);
-
+      </div>`).join('\n');
   const chipSets = document.querySelectorAll('#home .mdc-chip-set');
   Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
 };
@@ -495,7 +493,36 @@ const shareLocation = () => {
   // todo getData()
   // todo testing
 };
+
+const handleListActionItem = (e) => {
+  const actionItemId = e.target.dataset.actionId;
+  const actionItem = introductoryLocations
+    .reduce((prev, next) => prev.concat(next.actionItems), [])
+    .find((entity) => entity.id === actionItemId);
+  buildfire.actionItems.execute(
+    actionItem,
+    (err) => {
+      if (err) {
+        console.error(err);
+      }
+    }
+  );
+};
+const fetchMoreIntroductoryLocations = (e) => {
+  const listContainer = document.querySelector('section#intro');
+  const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+
+  if (activeTemplate === 'intro' && !introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
+    if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
+      currentIntroductoryPage += 1;
+      fetchIntroductoryLocations((err, result) => {
+        renderIntroductoryLocations(result);
+      });
+    }
+  }
+};
 const initEventListeners = () => {
+  document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -524,6 +551,8 @@ const initEventListeners = () => {
       chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
+    } else if (e.target.classList.contains('list-action-item')) {
+      handleListActionItem(e);
     }
   });
 
@@ -692,7 +721,7 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
-        renderLocations();
+        renderIntroductoryLocations(introductoryLocations);
         refreshIntroductoryDescription();
         showElement('section#intro');
         refreshIntroductoryCarousel();
@@ -712,6 +741,36 @@ const initHomeView = () => {
   });
 };
 
+const calculateLocationDistance = (address) => {
+  if (!userPosition) return null;
+  const origin = {
+    latitude: userPosition.latitude,
+    longitude: userPosition.longitude,
+  };
+  const destination = {
+    latitude: address.lat,
+    longitude: address.lng
+  };
+  const distance = buildfire.geo.calculateDistance(origin, destination, { decimalPlaces: 5 });
+  let result;
+  if (distance < 0.5) {
+    result = `${Math.round(distance * 5280).toLocaleString()} ft`;
+  } else if (settings.measurementUnit === 'metric') {
+    result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
+  } else {
+    result = `${Math.round(distance).toLocaleString()} mi`;
+  }
+  return result;
+};
+
+const updateLocationsDistance = () => {
+  introductoryLocations = introductoryLocations.map((location) => {
+    const distance = calculateLocationDistance(location.coordinates);
+    const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
+    if (distanceSelector) distanceSelector.textContent = distance;
+    return { ...location, ...{ distance } };
+  });
+};
 const clearTemplate = (template) => {
   if (!templates[template]) {
     console.warn(`template ${template} not found.`);
@@ -720,9 +779,9 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  // fetchTemplate('filter', injectTemplate);
-  // fetchTemplate('home', initHomeView);
-  showLocationDetail();
+  fetchTemplate('filter', injectTemplate);
+  fetchTemplate('home', initHomeView);
+  // showLocationDetail();
   initEventListeners();
 
   buildfire.deeplink.getData((deeplinkData) => {
@@ -730,6 +789,14 @@ const init = () => {
       // todo fetch location where id;
       // todo navigate to location
     }
+  });
+
+  buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+    if (err) {
+      return console.error(err);
+    }
+    userPosition = position.coords;
+    updateLocationsDistance();
   });
 
   buildfire.history.onPop((breadcrumb) => {
@@ -747,6 +814,7 @@ const init = () => {
     const root = document.documentElement;
     const { colors } = appTheme;
     root.style.setProperty('--body-theme', colors.bodyText);
+    root.style.setProperty('--header-theme', colors.headerText);
     root.style.setProperty('--background-color', colors.backgroundColor);
     root.style.setProperty('--primary-color', colors.primaryTheme);
   });

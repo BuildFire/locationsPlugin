@@ -2,15 +2,29 @@ import Locations from '../repository/Locations';
 import Categories from '../repository/Categories';
 // import Location from '../../entities/Location';
 // import authManager from '../../UserAccessControl/authManager';
+const DEFAULT_PAGE = 0;
+const DEFAULT_PAGE_SIZE = 7;
+
 
 export default {
   getLocation(id) {
     return Locations.getById(id);
   },
   searchCategories(options = {}) {
+    if (!options.filter) options.filter = {};
+    options.filter['_buildfire.index.date1'] = { $type: 10 };
     return Categories.search(options);
   },
   searchLocations(options = {}) {
-    return Locations.search(options);
+    const defaultOptions = {
+      pageSize: DEFAULT_PAGE_SIZE,
+      page: DEFAULT_PAGE,
+      recordCount: true,
+      sort: {
+        title: -1
+      },
+      ...options
+    };
+    return Locations.search({ ...defaultOptions, ...options });
   }
 };

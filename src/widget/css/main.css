@@ -6,6 +6,7 @@
   --body-theme: unset;
   --background-color: unset;
   --primary-color: unset;
+  --header-theme: unset;
 }
 
 body {
@@ -24,6 +25,7 @@ section#listing {
 section#filter {
   padding: 15px 0;
   overflow-y: auto;
+  background-color: var(--background-color);
 }
 
 #home:not(.active),
@@ -70,6 +72,9 @@ section#filter {
 .mdc-theme--text-body {
   color: var(--body-theme);
 }
+.mdc-theme--text-header {
+  color: var(--header-theme);
+}
 .mdc-fab {
   position: fixed;
   right: 24px;
@@ -106,15 +111,17 @@ section#filter {
 .header-qf .mdc-chip__text {
   font-size: 12px;
 }
-
-#introLocationsList .location-item {
-  padding: 10px;
-}
-#listingLocationsList .location-item {
+.location-item {
   padding: 10px 20px;
 }
 .d-flex {
   display: flex;
+}
+.d-block {
+  display: block;
+}
+.text-center {
+  text-align: center;
 }
 .justify-space-between {
   justify-content: space-between;
@@ -130,6 +137,7 @@ section#filter {
   object-fit: cover;
 }
 .location-item__description {
+  max-width: calc(100% - 105px);
   flex: 1;
 }
 .location-item__description > p {
@@ -142,7 +150,6 @@ section#filter {
   overflow: hidden;
   margin-top: 2px;
   font-weight: bold;
-  color: #000000;
 }
 .location-item__description p:not(:first-child) {
   margin-top: 6px;
@@ -559,6 +566,9 @@ button span {
   justify-content: center;
   margin-top: 10px;
 }
+#introLocationsList .list-action-item {
+  height: 30px;
+}
 .location-detail .action-item .mdc-chip__text {
   font-size: 12px;
 }
@@ -638,4 +648,23 @@ button span {
 }
 .location-detail__top-subtitle button {
   white-space: nowrap;
+}
+.mdc-text-field__icon.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.list-action-item * {
+  pointer-events: none;
+}
+#introLocationsList {
+  margin-right: -15px;
+  margin-left: -15px;
+}
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mdc-chip {
+  background-color: rgb(150 150 150 / 20%);
 }
