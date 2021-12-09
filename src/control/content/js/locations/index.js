@@ -43,7 +43,8 @@ const state = {
     thursday: "Thu",
     friday: "Fri",
     saturday: "Sat",
-  }
+  },
+  isMapLoaded: false,
 };
 
 const locationTemplateHeader = {
@@ -144,12 +145,9 @@ window.addEditLocation = (location) => {
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
 
-
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
-
-
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -837,13 +835,17 @@ window.intiMap = () => {
 const loadMap = () => {
   buildfire.getContext((error, context) => {
     function setGoogleMapsScript(key) {
-      console.log(key);
       const docHead = document.getElementsByTagName("head");
+      const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
       scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=weekly`;
+      if (mapScript) {
+        document.head.removeChild(mapScript);
+      }
       docHead[0].appendChild(scriptEl);
     }
+
     setGoogleMapsScript(context.apiKeys.googleMapKey);
   });
 };

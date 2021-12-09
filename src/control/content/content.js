@@ -8,6 +8,7 @@ import authManager from '../../UserAccessControl/authManager';
 
 import './js/categories';
 import './js/locations';
+import './js/listView';
 
 
 const templates = {};
@@ -55,6 +56,9 @@ const navigate = (template) => {
       case 'locations':
         initLocations();
         break;
+      case 'listView':
+        initListView();
+        break;
       default:
     }
   });
@@ -77,6 +81,10 @@ window.onSidenavChange = (section) => {
       break;
     case 'locations':
       navigate('locations');
+      setActiveSidenavTab(section);
+      break;
+    case 'listView':
+      navigate('listView');
       setActiveSidenavTab(section);
       break;
     default:

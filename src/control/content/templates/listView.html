@@ -1,0 +1,64 @@
+<template>
+    <div class="section-title">Introduction Screen</div>
+    <div class="clearfix info">
+        <p class="info">This section is optional. if the carousel and text editors are empty, the default list of locations will show.</p>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+        <div class="col-md-3 pull-left padding-left-zero">
+          <label class="">Image Carousel</label>
+        </div>
+        <div class="col-md-9 pull-right padding-right-zero">
+          <div class="">
+            <button type="button" class="btn btn-success btn--lg" id="listview-add-images-btn">
+              + Add Images
+            </button>
+          </div>
+          <div id="listview-image-carousel-items" class="margin-top-ten">
+
+          </div>
+        </div>
+    </div>
+    <hr class="none" /> 
+    <div class="main clearfix">
+        <div>
+            <textarea id="listview-description-wysiwyg" onchange="onDescriptionChanged(event)" name="content"></textarea>
+        </div>
+    </div>
+    <hr class="none" />
+    <div>
+        <h5 class="text-bold">Pinned to top locations</h5>
+        <hr class="none" />
+        <div class="clearfix info">
+            <p class="info">Description.</p>
+        </div>
+        <hr class="none" />
+        <div class="text-center well">
+            <h5>You haven't pinned any locations yet</h5>
+        </div>
+    </div>
+    <hr class="none" />
+    <div>
+        <h5 class="text-bold">All Locations</h5>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+            <div class="col-md-3 pull-left padding-left-zero">
+              <label class="">Sort Locations by</label>
+            </div>
+            <div class="col-md-9 pull-right padding-right-zero">
+              <div class="col-md-4 margin-top-zero radio radio-primary">
+                <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-dist" value="distance" checked />
+                <label for="listview-sort-location-by-dist">Distance</label>
+              </div>
+              <div class="col-md-4 margin-top-zero radio radio-primary">
+                <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-alpha" value="alphabet" />
+                <label for="listview-sort-location-by-alpha">Alphabetical Order</label>
+              </div>
+              <div class="col-md-4 margin-top-zero radio radio-primary">
+                <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-newest" value="newest" />
+                <label for="listview-sort-location-by-newest">Newest</label>
+              </div>
+            </div>
+          </div>
+    </div>
+</template>
