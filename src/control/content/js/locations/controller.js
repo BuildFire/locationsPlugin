@@ -8,7 +8,10 @@ export default {
     return Location.add(location.toJSON());
   },
   searchLocations(options = {}) {
-    return Location.search(options);
+    const defaultOptions = {
+      recordCount: true
+    };
+    return Location.search({ ...defaultOptions, ...options });
   },
   updateLocation(locationId, location) {
     location.lastUpdatedOn = new Date();

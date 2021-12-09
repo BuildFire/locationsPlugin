@@ -944,9 +944,9 @@ const loadLocations = (filter, sort) => {
   }
 
   LocationsController.searchLocations(options).then((locations) => {
-    state.locations = locations;
+    state.locations = locations.result ?? [];
     handleLocationEmptyState(false);
-    locationsTable.renderData(locations, state.categories);
+    locationsTable.renderData(locations.result, state.categories);
   });
 };
 
