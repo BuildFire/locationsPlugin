@@ -94,8 +94,8 @@ window.onSidenavChange = (section) => {
 };
 
 const init = () => {
-  navigate('categories');
-  setActiveSidenavTab('categories');
+  navigate('listView');
+  setActiveSidenavTab('listView');
 };
 
 authManager.enforceLogin(init);
