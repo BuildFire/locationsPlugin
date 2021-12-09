@@ -4,10 +4,10 @@ import Accordion from './js/Accordion';
 
 // todo tmp
 import Settings from '../entities/Settings';
+import DataMocks from '../DataMocks';
+
 const settings = new Settings().toJSON();
 console.log('current settings...', settings);
-import Categories from '../repository/Categories';
-import DataMocks from '../DataMocks';
 
 const inst = DataMocks.generate('LOCATION')[0];
 
@@ -22,6 +22,285 @@ let introductoryLocationsCount = 0;
 let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
+let selectedLocation = {
+  "id": null,
+  "title": "Hacı Steakhouse",
+  "subtitle": "The best burger in town",
+  "pinIndex": null,
+  "address": "Melikgazi/Kayseri, Turkey",
+  "formattedAddress": "Melikgazi/Kayseri, Turkey",
+  "addressAlias": "Haci Alias",
+  "coordinates": {
+    "lat": 38.7511567,
+    "lng": 35.6969984
+  },
+  "marker": {
+    "type": "pin",
+    "image": null,
+    "color": null,
+    "base64Image": null
+  },
+  "categories": {
+    "main": [
+      "61b078405f30d606222ffb54"
+    ],
+    "subcategories": [
+      "f40285cc-c46c-4d3c-b971-34479c88d2bd",
+      "7e0f2288-2298-4892-8706-b685c5bb3fce"
+    ]
+  },
+  "settings": {
+    "showCategory": true,
+    "showOpeningHours": false,
+    "showPriceRange": true,
+    "showStarRating": true,
+    "allowChat": true
+  },
+  "openingHours": {
+    "timezone": null,
+    "days": {
+      "monday": {
+        "index": 0,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      },
+      "tuesday": {
+        "index": 1,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          },
+          {
+            "from": "13:00",
+            "to": "19:00"
+          },
+          {
+            "from": "20:00",
+            "to": "22:00"
+          }
+        ]
+      },
+      "wednesday": {
+        "index": 2,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      },
+      "thursday": {
+        "index": 3,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      },
+      "friday": {
+        "index": 4,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      },
+      "saturday": {
+        "index": 5,
+        "active": true,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      },
+      "sunday": {
+        "index": 6,
+        "active": false,
+        "intervals": [
+          {
+            "from": "09:00",
+            "to": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "images": [
+    {
+      "id": "1e4ec407-da35-49b9-8008-bd8f5be6f9a7",
+      "imageUrl": "https://images.unsplash.com/photo-1554919428-20d72fa44a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mnx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "63382c21-41d5-48c7-bacd-9fc61baf5ab8",
+      "imageUrl": "https://images.unsplash.com/photo-1541557435984-1c79685a082b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NHx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "2c80db58-abf2-4cd4-9a24-9a5db610ee73",
+      "imageUrl": "https://images.unsplash.com/photo-1632577237955-f73cb2a054ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MjR8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDQ5&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "6d4cf478-2de7-41ce-a3d5-8b29acaf8f79",
+      "imageUrl": "https://images.unsplash.com/photo-1618538701087-fb7e0312de34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mjh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDQ5&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "3cf536e9-618e-470c-b004-e484a7423748",
+      "imageUrl": "https://images.unsplash.com/photo-1530524428108-f983ca74ad0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MzN8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "a9cfa2fc-0d08-4c03-b3f6-a04357cc1dc6",
+      "imageUrl": "https://images.unsplash.com/photo-1552604617-eea98aa27234?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDB8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "b79b183b-b723-4b2c-9d3a-c0a2a377c47e",
+      "imageUrl": "https://images.unsplash.com/photo-1600891964923-c75689eb86d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "ce7f2d42-72eb-4fc7-98d8-3ea5bcc54275",
+      "imageUrl": "https://images.unsplash.com/photo-1468071174046-657d9d351a40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NTF8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "ead6b993-223c-4c15-a181-c03aec554349",
+      "imageUrl": "https://images.unsplash.com/photo-1503022065603-daff0ed8a64a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NjZ8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDYz&ixlib=rb-1.2.1&q=80&w=1080"
+    }
+  ],
+  "listImage": "https://images.unsplash.com/photo-1582196016295-f8c8bd4b3a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MTl8fGJ1cmdlcnxlbnwwfHx8fDE2Mzg5NTYwMzM&ixlib=rb-1.2.1&q=80&w=1080",
+  "description": "<div>\n<p><strong>Lorem Ipsum</strong>&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>\n</div>\n<div>&nbsp;</div>",
+  "owner": {
+    "userId": "61241b2ddec0be058398daed",
+    "firstName": "Nour",
+    "lastName": "Rizik",
+    "displayName": "Nour",
+    "username": "nrizik@madaincorp.com",
+    "isActive": true,
+    "userProfile": {
+      "address": {
+        "customFields": {}
+      },
+      "bio": "test",
+      "birthDate": "1993-02-01T22:00:00.000Z",
+      "tel": "0799998898"
+    },
+    "imageUrl": "https://s3.amazonaws.com/Kaleo.DevBucket/80wjgOipA9j6FK0HK8R3FmEo.jpg"
+  },
+  "views": 0,
+  "price": {
+    "range": "3",
+    "currency": "€"
+  },
+  "rating": {
+    "total": 0,
+    "count": 0,
+    "average": 0
+  },
+  "bookmarksCount": 0,
+  "actionItems": [
+    {
+      "title": "SEND SMS",
+      "action": "sendSms",
+      "phoneNumber": "00962799556565",
+      "id": "6c4ac807-4781-460b-b8b2-7dd49e31dc2f"
+    },
+    {
+      "title": "CALL",
+      "action": "callNumber",
+      "phoneNumber": "00962799556565",
+      "id": "3c3b0984-3429-4684-be33-b0e88dce9bed"
+    },
+    {
+      "title": "INSTAGRAM",
+      "action": "linkToSocialInstagram",
+      "url": "https://www.instagram.com",
+      "id": "e5993bdb-dda3-403d-9a62-ee1e5aec18d6"
+    }
+  ],
+  "createdOn": "2021-12-08T09:37:22.077Z",
+  "createdBy": {
+    "_id": "60a160faeb40095b7c9cf66d",
+    "createdOn": "2021-05-16T18:14:18.067Z",
+    "isActive": true,
+    "failedAttemptCount": 0,
+    "imageUrl": "https://s3.amazonaws.com/Kaleo.DevBucket/FiNyY29zRryOi92zpeYesJLo.jpeg",
+    "lastAccess": "2021-12-07T22:39:33.282Z",
+    "displayName": null,
+    "username": "iseenoob@outlook.com",
+    "email": "iseenoob@outlook.com",
+    "lastUpdated": "2021-10-10T20:52:39.428Z",
+    "lastUsedIPAddress": "172.30.2.72, 35.153.57.200",
+    "loginProviderType": "KAuth",
+    "userProfile": {},
+    "accessToken": "3kq8UbiqIPCRtm97P+aQwtrDqJdJoWorhLVVXXErxNA=",
+    "accessTokenExpiresIn": "2023-05-16T00:00:00.000Z",
+    "userToken": "90WIHhNp2pTkdcX5fqnx2O9RNZWClnly8g4drBKxbVo=",
+    "_cpUser": {
+      "userId": 484322,
+      "username": "iseenoob@outlook.com",
+      "loginMethod": "std",
+      "isActive": 1,
+      "isValidEmail": 1,
+      "firstName": "Mahmoud",
+      "lastName": "AlSharif",
+      "userToken": "60a160faeb40095b7c9cf66d",
+      "lastUpdatedOn": null,
+      "lastUpdatedBy": null,
+      "createdOn": "2021-05-16T18:14:18.000Z",
+      "createdBy": null,
+      "deletedOn": null,
+      "deletedBy": null,
+      "auth": "b4bda29655802ee20bf3bfec716bb2ea8b756feefe09b12982fd334491978774e69b1613f3f624f5deb33b6273e614227e01478bbbc810cf3dacc5a8461751e631bc2cf3b055dd5417cbe6274a258a4fb30e53a4bdcac2d7e736b3c0459b64901173005131199dfbbe5a3eded87afdc90d8a6ba0b12ba4fe03a4a3030724391cc6be4120",
+      "whitelabelId": ""
+    }
+  },
+  "lastUpdatedOn": "2021-12-08T09:29:48.537Z",
+  "lastUpdatedBy": null,
+  "deletedOn": null,
+  "deletedBy": null,
+  "isActive": 1,
+  "_buildfire": {
+    "index": {
+      "string1": "hacı steakhouse",
+      "date1": "2021-12-08T09:37:22.077Z",
+      "array1": [
+        {
+          "string1": "c_61b078405f30d606222ffb54"
+        },
+        {
+          "string1": "s_f40285cc-c46c-4d3c-b971-34479c88d2bd"
+        },
+        {
+          "string1": "s_7e0f2288-2298-4892-8706-b685c5bb3fce"
+        },
+        {
+          "string1": "v_0"
+        },
+        {
+          "string1": "pr_3"
+        }
+      ],
+      "number1": null
+    },
+    "geo": {
+      "type": "Point",
+      "coordinates": [
+        35.6969984,
+        38.7511567
+      ]
+    }
+  }
+};
 
 // todo to be removed
 const testingFn = () => {
@@ -375,6 +654,14 @@ const initDrawer = () => {
     document.addEventListener('touchend', stopTouchResize);
   });
 };
+const transformCategories = (categories) => {
+  const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
+  const mainCategoriesTitles = categories.main.map((c) => CATEGORIES.find((p) => p.id === c).title);
+  const subCategoriesTitles = categories.subcategories.map((c) => subCategories.find((p) => p.id === c).title);
+  return mainCategoriesTitles.length > 1
+    ? categories.main.join(', ')
+    : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
+};
 const showLocationDetail = () => {
   fetchTemplate('detail', () => {
     injectTemplate('detail');
@@ -382,24 +669,27 @@ const showLocationDetail = () => {
     currentActive.classList.remove('active');
     document.querySelector('section#detail').classList.add('active');
     const container = document.querySelector('.location-detail__carousel');
-    const carouselImages = [
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75',
-      'https://placeimg.com/75/75'
-    ];
-    container.innerHTML = carouselImages.map((n) => `<div style="background-image: url(${n});"></div>`).join('\n');
+
+    const locationTitleElement = document.querySelector('.location-detail__top-header h1');
+    const locationSubtitleElement = document.querySelector('.location-detail__top-header h5');
+    const locationCategoriesElement = document.querySelector('.location-detail__top-subtitle p');
+    const locationAddressElement = document.querySelector('.location-detail__address p:first-child');
+    const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
+
+
+    locationTitleElement.textContent = selectedLocation.title;
+    locationSubtitleElement.textContent = selectedLocation.subtitle;
+    locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
+    locationAddressElement.textContent = selectedLocation.formattedAddress;
+    locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates)
+
+    container.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
     });
     const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
-      center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
       zoom: 14,
     });
     navigateTo('detail');
@@ -781,7 +1071,9 @@ const clearTemplate = (template) => {
 const init = () => {
   fetchTemplate('filter', injectTemplate);
   fetchTemplate('home', initHomeView);
-  // showLocationDetail();
+  // fetchCategories(() => {
+  //   showLocationDetail();
+  // })
   initEventListeners();
 
   buildfire.deeplink.getData((deeplinkData) => {
