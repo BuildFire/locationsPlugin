@@ -696,55 +696,18 @@ const showLocationDetail = () => {
   });
 };
 const showWorkingHoursDrawer = () => {
+  const { days } = selectedLocation.openingHours;
   buildfire.components.drawer.open(
     {
       header: 'Open Hours',
-      content: `    <table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Monday</td>
+      content: `<table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
+      ${Object.entries(days).map(([day, prop]) => `<tr>
+        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${day}</td>
         <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
+          ${!prop.active ? 'Closed' : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${t.from} - ${t.to}</p>`).join('\n')}
         </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Tuesday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 14:00</p>
-          <p style="margin-top: 10px; margin: 0;">16:00 - 24:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Wednesday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Thursday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Friday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Saturday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">Closed</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Sunday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">Closed</p>
-        </td>
-      </tr>
-    </table>
-`,
+      </tr>`).join('\n')}
+    </table>`,
       isHTML: true,
       enableFilter: false
     }
@@ -1070,11 +1033,11 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
-  // fetchCategories(() => {
-  //   showLocationDetail();
-  // })
+  // fetchTemplate('filter', injectTemplate);
+  // fetchTemplate('home', initHomeView);
+  fetchCategories(() => {
+    showLocationDetail();
+  })
   initEventListeners();
 
   buildfire.deeplink.getData((deeplinkData) => {
