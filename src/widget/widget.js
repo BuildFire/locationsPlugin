@@ -669,21 +669,33 @@ const showLocationDetail = () => {
     const currentActive = document.querySelector('section.active');
     currentActive.classList.remove('active');
     document.querySelector('section#detail').classList.add('active');
-    const container = document.querySelector('.location-detail__carousel');
 
     const locationTitleElement = document.querySelector('.location-detail__top-header h1');
     const locationSubtitleElement = document.querySelector('.location-detail__top-header h5');
     const locationCategoriesElement = document.querySelector('.location-detail__top-subtitle p');
     const locationAddressElement = document.querySelector('.location-detail__address p:first-child');
     const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
+    const carouselContainer = document.querySelector('.location-detail__carousel');
+    const locationActionItemsContainer = document.querySelector('.location-detail__actions');
 
     locationTitleElement.textContent = selectedLocation.title;
     locationSubtitleElement.textContent = selectedLocation.subtitle;
     locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
     locationAddressElement.textContent = selectedLocation.formattedAddress;
-    locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates)
+    locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates);
 
-    container.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+    locationActionItemsContainer.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
+        <div class="mdc-chip" role="row">
+          <div class="mdc-chip__ripple"></div>
+          <span role="gridcell">
+            <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+              <span class="mdc-chip__text">${a.title}</span>
+            </span>
+          </span>
+        </div>
+      </div>`).join('\n');
+    carouselContainer.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
@@ -757,6 +769,18 @@ const shareLocation = () => {
   // todo testing
 };
 
+const handleDetailActionItem = (e) => {
+  const actionId = e.target.parentNode.dataset.id;
+  const actionItem = selectedLocation.actionItems.find((a) => a.id === actionId);
+  buildfire.actionItems.execute(
+    actionItem,
+    (err) => {
+      if (err) {
+        console.error(err);
+      }
+    }
+  );
+};
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
   const actionItem = introductoryLocations
@@ -824,6 +848,8 @@ const initEventListeners = () => {
       handleListActionItem(e);
     } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
       viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
+    } else if (e.target.parentNode.classList.contains('action-item')) {
+      handleDetailActionItem(e);
     }
   });
 

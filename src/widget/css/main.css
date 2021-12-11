@@ -671,3 +671,6 @@ button span {
 .location-item .d-flex, .location-item .d-flex * {
   pointer-events: none;
 }
+.action-item .mdc-chip * {
+  pointer-events: none;
+}
