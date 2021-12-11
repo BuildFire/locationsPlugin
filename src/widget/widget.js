@@ -1,6 +1,7 @@
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
+import authManager from '../UserAccessControl/authManager';
 
 // todo tmp
 import Settings from '../entities/Settings';
@@ -676,7 +677,6 @@ const showLocationDetail = () => {
     const locationAddressElement = document.querySelector('.location-detail__address p:first-child');
     const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
 
-
     locationTitleElement.textContent = selectedLocation.title;
     locationSubtitleElement.textContent = selectedLocation.subtitle;
     locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
@@ -717,10 +717,18 @@ const showWorkingHoursDrawer = () => {
 };
 
 const chatWithOwner = () => {
+  const { currentUser } = authManager;
+  const users = [];
+
+  if (!currentUser) {
+    return console.warn('undefined currentUser');
+  }
+  users.push(selectedLocation.owner.userId);
+  users.push(currentUser._id);
   buildfire.navigation.navigateToSocialWall(
     {
-      title: '<Location>',
-      wallUserIds: ['60e3499de7fd9f139924c1a3']
+      title: selectedLocation.title,
+      wallUserIds: users
     },
     (err, result) => {
       if (err) console.error(err);
@@ -1042,47 +1050,49 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  // fetchTemplate('filter', injectTemplate);
-  // fetchTemplate('home', initHomeView);
-  fetchCategories(() => {
-    showLocationDetail();
-  })
-  initEventListeners();
+  fetchSettings(() => {
+    // fetchTemplate('filter', injectTemplate);
+    // fetchTemplate('home', initHomeView);
+    fetchCategories(() => {
+      showLocationDetail();
+    });
+    initEventListeners();
 
-  buildfire.deeplink.getData((deeplinkData) => {
-    if (deeplinkData?.locationId) {
-      // todo fetch location where id;
-      // todo navigate to location
-    }
-  });
+    buildfire.deeplink.getData((deeplinkData) => {
+      if (deeplinkData?.locationId) {
+        // todo fetch location where id;
+        // todo navigate to location
+      }
+    });
 
-  buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-    if (err) {
-      return console.error(err);
-    }
-    userPosition = position.coords;
-    updateLocationsDistance();
-  });
+    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+      if (err) {
+        return console.error(err);
+      }
+      userPosition = position.coords;
+      updateLocationsDistance();
+    });
 
-  buildfire.history.onPop((breadcrumb) => {
-    console.log('Breadcrumb popped', breadcrumb);
-    if (document.querySelector('section#filter').classList.contains('overlay')) {
-      toggleFilterOverlay();
-    } else if (document.querySelector('section#detail').classList.contains('active')) {
-      clearTemplate('detail');
-      navigateTo('home');
-    }
-  });
+    buildfire.history.onPop((breadcrumb) => {
+      console.log('Breadcrumb popped', breadcrumb);
+      if (document.querySelector('section#filter').classList.contains('overlay')) {
+        toggleFilterOverlay();
+      } else if (document.querySelector('section#detail').classList.contains('active')) {
+        clearTemplate('detail');
+        navigateTo('home');
+      }
+    });
 
-  buildfire.appearance.getAppTheme((err, appTheme) => {
-    if (err) return console.error(err);
-    const root = document.documentElement;
-    const { colors } = appTheme;
-    root.style.setProperty('--body-theme', colors.bodyText);
-    root.style.setProperty('--header-theme', colors.headerText);
-    root.style.setProperty('--background-color', colors.backgroundColor);
-    root.style.setProperty('--primary-color', colors.primaryTheme);
+    buildfire.appearance.getAppTheme((err, appTheme) => {
+      if (err) return console.error(err);
+      const root = document.documentElement;
+      const { colors } = appTheme;
+      root.style.setProperty('--body-theme', colors.bodyText);
+      root.style.setProperty('--header-theme', colors.headerText);
+      root.style.setProperty('--background-color', colors.backgroundColor);
+      root.style.setProperty('--primary-color', colors.primaryTheme);
+    });
   });
 };
 
-fetchSettings(init);
+authManager.enforceLogin(init);
