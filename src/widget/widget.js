@@ -683,7 +683,7 @@ const showLocationDetail = () => {
     locationAddressElement.textContent = selectedLocation.formattedAddress;
     locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates)
 
-    container.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});"></div>`).join('\n');
+    container.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
@@ -774,6 +774,11 @@ const fetchMoreIntroductoryLocations = (e) => {
     }
   }
 };
+
+const viewFullImage = (url) => {
+  buildfire.imagePreviewer.show({ images: [url] });
+};
+
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
@@ -807,6 +812,8 @@ const initEventListeners = () => {
       shareLocation();
     } else if (e.target.classList.contains('list-action-item')) {
       handleListActionItem(e);
+    } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
+      viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
     }
   });
 
