@@ -474,7 +474,7 @@ button span {
   color: #FFFFFF;
 }
 .location-detail__bottom-cover {
-  background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/350/200);
+  display: none;
   background-repeat: no-repeat;
   background-size: cover;
   height: 200px;

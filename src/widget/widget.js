@@ -677,7 +677,12 @@ const showLocationDetail = () => {
     const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
     const carouselContainer = document.querySelector('.location-detail__carousel');
     const locationActionItemsContainer = document.querySelector('.location-detail__actions');
+    const bottomCoverContainer = document.querySelector('.location-detail__bottom-cover');
 
+    if (selectedLocation.images.length > 0) {
+     bottomCoverContainer.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+     bottomCoverContainer.style.display = 'block';
+    }
     locationTitleElement.textContent = selectedLocation.title;
     locationSubtitleElement.textContent = selectedLocation.subtitle;
     locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
