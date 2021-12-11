@@ -689,6 +689,8 @@ const showLocationDetail = () => {
       showLabelInTitlebar: true
     });
     const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
+      mapTypeControl: true,
+      disableDefaultUI: true,
       center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
       zoom: 14,
     });
