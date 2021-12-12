@@ -30,6 +30,7 @@ let actionItemsUI = null;
 const state = {
   locations: [],
   categories: [],
+  pinnedLocations: [],
   categoriesLookup: {},
   map: null,
   locationObj: new Location(),
@@ -148,6 +149,14 @@ window.addEditLocation = (location) => {
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
+
+  if (state.pinnedLocations.length >= 3 || state.locationObj.pinIndex !== null) {
+    addLocationControls.pinTopBtn.disabled = true;
+  }
+
+  addLocationControls.pinTopBtn.onclick = () => {
+   state.locationObj.pinIndex = state.pinnedLocations.length + 1
+  }
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -943,12 +952,20 @@ const loadLocations = (filter, sort) => {
     options.filter = filter;
   }
 
-  LocationsController.searchLocations(options).then((locations) => {
-    state.locations = locations.result ?? [];
+  LocationsController.searchLocations(options).then(({result, recordCount}) => {
+    state.locations = result || [];
+    state.recordCount = recordCount || 0;
     handleLocationEmptyState(false);
-    locationsTable.renderData(locations.result, state.categories);
+    locationsTable.renderData(state.locations, state.categories);
   });
 };
+
+
+const getPinnedLocation = () => {
+  LocationsController.getPinnedLocation().then(({ result, recordCount }) => {
+    state.pinnedLocations = result || [];
+  });
+}
 
 const loadCategories = (callback) => {
   CategoriesController.searchCategories().then((categories) => {
@@ -972,7 +989,7 @@ window.initLocations = () => {
   loadCategories(() => {
     loadLocations();
   });
-
+  getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
     window.addEditLocation(obj);
   };

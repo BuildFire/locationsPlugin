@@ -8,15 +8,26 @@ export default {
     return Location.add(location.toJSON());
   },
   searchLocations(options = {}) {
-    const defaultOptions = {
-      recordCount: true
-    };
-    return Location.search({ ...defaultOptions, ...options });
+    options.recordCount = true;
+    return Location.search(options);
   },
   updateLocation(locationId, location) {
     location.lastUpdatedOn = new Date();
     location.lastUpdatedBy = authManager.currentUser;
     return Location.update(locationId, location.toJSON());
+  },
+  getPinnedLocation() {
+    const options = {};
+    options.sort = { "_buildfire.index.number1": 1 };
+
+    options.filter = {
+      $or: [
+      {"_buildfire.index.number1": 0},
+      {"_buildfire.index.number1": 1},
+      {"_buildfire.index.number1": 2},
+    ]
+  };
+   return this.searchLocations(options)
   },
   deleteLocation(locationId) {
     return Location.delete(locationId);
