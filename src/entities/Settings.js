@@ -2,7 +2,7 @@
  * Settings data model
  * @class
  */
-export default class Setting {
+export default class Settings {
   /**
    * @param {object} data
    * @constructor

@@ -210,6 +210,17 @@ export default class SearchTableHelper {
     });
 
     let t = this;
+
+    let ctd = this._create(
+      "td",
+      tr,
+      '<span class="btn--icon icon icon-copy"></span>',
+      ["deleteColumn"]
+    );
+    ctd.onclick = () => {
+      t.onCopy(obj, tr);
+    };
+
     if (this.config.options.showEditButton) {
       let td = this._create(
         "td",
@@ -235,6 +246,8 @@ export default class SearchTableHelper {
         });
       };
     }
+
+  
     this.onRowAdded(obj, tr);
   }
 

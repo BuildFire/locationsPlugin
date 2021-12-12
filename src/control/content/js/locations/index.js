@@ -4,7 +4,6 @@
 import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import Category from "../../../../entities/Category";
-import DataMocks from "../../../../DataMocks";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown } from "../../utils/helpers";
@@ -259,7 +258,7 @@ window.addEditLocation = (location) => {
         }
         state.locationObj.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl })));
 
-        locationImagesUI.init("location-image-items", state.locationObj.images);
+        locationImagesUI.init(state.locationObj.images);
       }
     );
   };
@@ -366,9 +365,8 @@ window.addEditLocation = (location) => {
     saveLocation(location ? "Edit" : "Add");
   };
 
-  locationImagesUI.init('location-image-items', state.locationObj.images);
-  actionItemsUI.init('location-action-items', state.locationObj.actionItems);
-
+  locationImagesUI.init(state.locationObj.images);
+  actionItemsUI.init(state.locationObj.actionItems);
 };
 
 const saveLocation = (action, callback) => {

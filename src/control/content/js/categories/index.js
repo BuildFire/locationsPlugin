@@ -185,11 +185,11 @@ window.addEditCategory = (category, callback = () => {}) => {
     const search = e.target.value;
 
     if (!search) {
-      subcategoriesListUI.init("subcategory-items", newCategory.subcategories);
+      subcategoriesListUI.init(newCategory.subcategories);
       return;
     }
     const data = newCategory.subcategories.filter((elem) => elem.title.toLowerCase().includes(search.toLowerCase()));
-    subcategoriesListUI.init("subcategory-items", data);
+    subcategoriesListUI.init(data);
   };
 
   inputCategoryControls.subcategory.downloadBtn.onclick = () => {
@@ -278,7 +278,7 @@ window.addEditCategory = (category, callback = () => {}) => {
     }
   };
 
-  subcategoriesListUI.init("subcategory-items", newCategory.subcategories);
+  subcategoriesListUI.init(newCategory.subcategories);
 };
 
 const addEditSubcategory = (
@@ -380,13 +380,13 @@ window.cancelAddCategory = () => {
 window.searchCategories = () => {
   const searchElem = categories.querySelector('#category-search-input');
   if (!searchElem.value) {
-    categoriesListUI.init("items", state.categories);
+    categoriesListUI.init(state.categories);
     return;
   }
 
   const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchElem.value.toLowerCase()));
 
-  categoriesListUI.init("items", data);
+  categoriesListUI.init(data);
 };
 
 window.openCategorySort = (e) => {
@@ -408,7 +408,7 @@ window.sortCategories = (sort) => {
     return a === b ? 0 : a > b ? 1 : - 1;
   });
   sortTextElem.innerHTML = sort === 'Z-A' ? 'Z - A' : 'A - Z';
-  categoriesListUI.init("items", state.categories);
+  categoriesListUI.init(state.categories);
 };
 
 window.openCategoryBulkAction = (e) => {
@@ -458,7 +458,7 @@ const loadCategories = () => {
   CategoriesController.searchCategories(options).then((categories) => {
     state.categories = categories;
     globalState.categories = categories;
-    categoriesListUI.init("items", categories);
+    categoriesListUI.init(categories);
     handleCategoriesEmptyState(false);
   });
 };

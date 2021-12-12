@@ -1,7 +1,10 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable max-len */
+/* eslint-disable no-use-before-define */
 import ListViewImagesList from "./listViewImagesList";
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
-import Setting from "../../../../entities/Setting";
+import Setting from "../../../../entities/Settings";
 import { generateUUID } from "../../utils/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
 
@@ -19,7 +22,7 @@ let pinnedLocationsList = null;
 const initListViewWysiwyg = () => {
   tinymce.init({
     selector: "#listview-description-wysiwyg",
-    init_instance_callback: function(editor) {
+    init_instance_callback: (editor) => {
       editor.on('keyup', onDescriptionChanged);
     }
   });
@@ -29,20 +32,19 @@ const initListViewWysiwyg = () => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       state.settings.introductoryListView.description = tinymce.activeEditor.getContent();
-      saveSettings()
+      saveSettings();
     }, 300);
   }
- 
 };
 
 window.onDescriptionChanged = () => {
   console.log('Hello');
-}
+};
 
 window.onShowListViewChanged = (e) => {
   state.settings.showIntroductoryListView = e.target.checked;
   saveSettings();
-}
+};
 
 window.addListViewImages = () => {
   buildfire.imageLib.showDialog(
@@ -59,8 +61,7 @@ window.addListViewImages = () => {
         locationImages.push(...selectedStockImages);
       }
       state.settings.introductoryListView.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl, action: null })));
-
-      listViewImagesList.init("listview-image-carousel-items", state.settings.introductoryListView.images);
+      listViewImagesList.init(state.settings.introductoryListView.images);
       saveSettings();
     }
   );
@@ -77,7 +78,7 @@ window.onSortLocationsChanged = (sorting) => {
 const patchListViewValues = () => {
   const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
   showBtn.checked = state.settings.showIntroductoryListView;
-  listViewImagesList.init("listview-image-carousel-items", state.settings.introductoryListView.images);
+  listViewImagesList.init(state.settings.introductoryListView.images);
   tinymce.activeEditor.setContent(state.settings.introductoryListView.description);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
@@ -85,7 +86,7 @@ const patchListViewValues = () => {
       radio.checked = true;
     }
   }
-}
+};
 
 const deleteListViewImage = (item, index, callback) => {
   buildfire.notifications.confirm(
@@ -106,13 +107,13 @@ const deleteListViewImage = (item, index, callback) => {
       if (data && data.selectedButton.key === "y") {
         state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
           (elem) => elem.id !== item.id
-        )
-        saveSettings()
+        );
+        saveSettings();
         callback(item);
       }
     }
   );
-}
+};
 
 const handlePinnedLocationEmptyState = (isLoading) => {
   const emptyState = listViewSection.querySelector('#pinned-location-empty-list');
@@ -129,25 +130,25 @@ const handlePinnedLocationEmptyState = (isLoading) => {
 
 const saveSettings = () => {
   SettingsController.saveSettings(state.settings).then().catch(console.error);
-}
+};
 
 const getPinnedLocations = () => {
   handlePinnedLocationEmptyState(true);
   LocationsController.getPinnedLocation().then(({result, recordCount}) => {
     state.pinnedLocations = result || [];
     state.recordCount = recordCount || 0;
-    pinnedLocationsList.init("listview-pinned-location-items", state.pinnedLocations);
+    pinnedLocationsList.init(state.pinnedLocations);
     handlePinnedLocationEmptyState(false);
     console.log(result);
   });
-}
+};
 
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
   }).catch(console.error);
-}
+};
 
 window.initListView = () => {
   listViewImagesList = new ListViewImagesList('listview-image-carousel-items');
@@ -156,9 +157,9 @@ window.initListView = () => {
   listViewImagesList.onDeleteItem = deleteListViewImage;
   listViewImagesList.onOrderChange = () => {
     state.settings.introductoryListView.images = listViewImagesList.sortableList.items;
-    saveSettings()
+    saveSettings();
   };
-  getSettings();
-  getPinnedLocations()
   initListViewWysiwyg();
+  getSettings();
+  getPinnedLocations();
 };
