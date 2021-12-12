@@ -4,7 +4,7 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 
 // todo tmp
-import Settings from '../entities/Settings';
+import Settings from '../entities/Setting';
 import DataMocks from '../DataMocks';
 
 const settings = new Settings().toJSON();

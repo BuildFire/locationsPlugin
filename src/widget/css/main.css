@@ -486,6 +486,7 @@ button span {
 .location-detail__cover p:first-child {
   font-size: 13px;
   margin: 0 0 8px;
+  max-width: calc(100% - 40px);
 }
 .location-detail__cover #workingHoursBtn {
   margin-bottom: 8px;
