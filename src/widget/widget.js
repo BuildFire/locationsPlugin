@@ -678,6 +678,7 @@ const showLocationDetail = () => {
     const carouselContainer = document.querySelector('.location-detail__carousel');
     const locationActionItemsContainer = document.querySelector('.location-detail__actions');
     const bottomCoverContainer = document.querySelector('.location-detail__bottom-cover');
+    const locationDescription = document.querySelector('.location-detail__description');
 
     if (selectedLocation.images.length > 0) {
      bottomCoverContainer.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
@@ -687,6 +688,7 @@ const showLocationDetail = () => {
     locationSubtitleElement.textContent = selectedLocation.subtitle;
     locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
     locationAddressElement.textContent = selectedLocation.formattedAddress;
+    locationDescription.innerHTML = selectedLocation.description;
     locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates);
 
     locationActionItemsContainer.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
