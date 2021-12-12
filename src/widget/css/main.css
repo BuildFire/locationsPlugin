@@ -519,7 +519,7 @@ button span {
 .location-detail__address {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   font-size: 12px;
   margin-top: 10px;
 }
@@ -530,6 +530,7 @@ button span {
 .location-detail__address p:last-child {
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 .location-detail__carousel {
   white-space: nowrap;
@@ -553,7 +554,7 @@ button span {
   font-weight: bold;
 }
 .location-detail .action-item {
-  width: 33.3%;
+  /*width: 31%;*/
   padding: 5px;
   display: inline-flex;
   flex-direction: column;
@@ -586,6 +587,8 @@ button span {
 }
 
 .location-detail__actions {
+  display: flex;
+  justify-content: space-between;
   margin: 10px -15px 0;
   padding: 15px;
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
