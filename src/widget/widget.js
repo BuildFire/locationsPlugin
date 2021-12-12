@@ -305,7 +305,7 @@ let selectedLocation = {
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = true;
+  settings.showIntroductoryListView = false;
   settings.design.listViewStyle = 'image';
   settings.design.detailsMapPosition = 'bottom'; // top or bottom
   if (settings.introductoryListView.images.length === 0) {
@@ -445,61 +445,48 @@ const renderIntroductoryLocations = (list) => {
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
-
   if (settings.design.listViewStyle === 'image') {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/800/400);">
+    container.innerHTML = introductoryLocations.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
             <div class="location-image-item__header">
-              <p>1 mi</p>
-              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">star_outline</i>
+              <p>${n.distance ? n.distance : '--'}</p>
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             </div>
             <div class="location-image-item__body">
-              <p class="margin-bottom-five">${n.subtitle}</p>
-              <p class="margin-top-zero">Category | Subcategory</p>
+              <p class="margin-bottom-five">${n.title}</p>
+              <p class="margin-top-zero">${transformCategories(n.categories)}</p>
               <p>
                 <span>${n.subtitle}</span>
-                <span>$$$</span>
+                <span>
+                  <span>${n.price.currency.repeat(n.price.range)}</span>
+                  <span style="margin-left: 10px;color: #91dba6;">Open Now</span>
+                </span>
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              <div class="mdc-chip" role="row">
+              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Send Email</span>
-                </span>
-              </span>
-              </div>
-              <div class="mdc-chip" role="row">
-                <div class="mdc-chip__ripple"></div>
-                <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Call</span>
-                </span>
-              </span>
-              </div>
-              <div class="mdc-chip" role="row">
-                <div class="mdc-chip__ripple"></div>
-                <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Reservation</span>
-                </span>
-              </span>
-              </div>
+                    <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                      <span class="mdc-chip__text">${a.title}</span>
+                    </span>
+                  </span>
+              </div>`).join('\n')}
+              ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
             </div>
           </div>
 `)).join('\n');
   } else {
     container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
-          <img src="https://placekitten.com/200/300" alt="Location image">
+          <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
             <p class="mdc-theme--text-body">${n.subtitle}</p>
             <p class="mdc-theme--text-body">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
-            <p class="mdc-theme--text-body">1 mi</p>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
@@ -728,7 +715,7 @@ const showLocationDetail = () => {
     selectors.categories.textContent = transformCategories(selectedLocation.categories);
     selectors.address.textContent = selectedLocation.formattedAddress;
     selectors.description.innerHTML = selectedLocation.description;
-    selectors.distance.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates);
+    selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
         <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
@@ -876,7 +863,7 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
-    } else if (e.target.classList.contains('location-item'))  {
+    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
@@ -885,7 +872,7 @@ const initEventListeners = () => {
       chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
-    } else if (e.target.classList.contains('list-action-item')) {
+    } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
       viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
@@ -1118,11 +1105,11 @@ const clearTemplate = (template) => {
 };
 const init = () => {
   fetchSettings(() => {
-    // fetchTemplate('filter', injectTemplate);
-    // fetchTemplate('home', initHomeView);
-    fetchCategories(() => {
-      showLocationDetail();
-    });
+    fetchTemplate('filter', injectTemplate);
+    fetchTemplate('home', initHomeView);
+    // fetchCategories(() => {
+    //   showLocationDetail();
+    // });
     initEventListeners();
 
     buildfire.deeplink.getData((deeplinkData) => {

@@ -592,7 +592,8 @@ button span {
 
 .location-detail__actions {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
   margin: 10px -15px 0;
   padding: 15px;
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
@@ -688,5 +689,13 @@ button span {
   pointer-events: none;
 }
 .action-item .mdc-chip * {
+  pointer-events: none;
+}
+.location-image-item .mdc-chip-set {
+  display: inline-flex;
+}
+.location-image-item__header, .location-image-item__header *,
+.location-image-item__body, .location-image-item__body *,
+.location-image-item .mdc-chip * {
   pointer-events: none;
 }
