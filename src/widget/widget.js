@@ -307,6 +307,7 @@ let selectedLocation = {
 const testingFn = () => {
   settings.showIntroductoryListView = true;
   settings.design.listViewStyle = 'image';
+  settings.design.detailsMapPosition = 'bottom'; // top or bottom
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -666,32 +667,70 @@ const transformCategories = (categories) => {
 const showLocationDetail = () => {
   fetchTemplate('detail', () => {
     injectTemplate('detail');
-    const currentActive = document.querySelector('section.active');
-    currentActive.classList.remove('active');
-    document.querySelector('section#detail').classList.add('active');
+    const pageMapPosition = settings.design.detailsMapPosition;
+    let selectors = {
+      address: document.querySelector('.location-detail__address p:first-child'),
+      distance: document.querySelector('.location-detail__address p:last-child'),
+      carousel: document.querySelector('.location-detail__carousel'),
+      actionItems: document.querySelector('.location-detail__actions'),
+      description: document.querySelector('.location-detail__description'),
+      rating: document.querySelector('.location-detail__rating')
+    };
 
-    const locationTitleElement = document.querySelector('.location-detail__top-header h1');
-    const locationSubtitleElement = document.querySelector('.location-detail__top-header h5');
-    const locationCategoriesElement = document.querySelector('.location-detail__top-subtitle p');
-    const locationAddressElement = document.querySelector('.location-detail__address p:first-child');
-    const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
-    const carouselContainer = document.querySelector('.location-detail__carousel');
-    const locationActionItemsContainer = document.querySelector('.location-detail__actions');
-    const bottomCoverContainer = document.querySelector('.location-detail__bottom-cover');
-    const locationDescription = document.querySelector('.location-detail__description');
+    if (pageMapPosition === 'top') {
+      selectors = {
+        ...selectors,
+        ...{
+          title: document.querySelector('.location-detail__top-header h1'),
+          subtitle: document.querySelector('.location-detail__top-header h5'),
+          categories: document.querySelector('.location-detail__top-subtitle p'),
+          cover: document.querySelector('.location-detail__bottom-cover'),
+          main: document.querySelector('.location-detail__top-view'),
+          map: document.querySelector('.location-detail__map--top-view')
+        }
+      };
+      selectors.main.style.display = 'block';
+      selectors.rating.classList.add('location-detail__rating--single-shadow');
+    } else {
+      selectors = {
+        ...selectors,
+        ...{
+          title: document.querySelector('.location-detail__cover h2'),
+          subtitle: document.querySelector('.location-detail__cover h4'),
+          categories: document.querySelector('.location-detail__cover p:first-child'),
+          main: document.querySelector('.location-detail__cover'),
+          map: document.querySelector('.location-detail__map')
+        }
+      };
+      selectors.main.style.display = 'flex';
+      selectors.rating.classList.add('location-detail__rating--dual-shadow');
+    }
 
     if (selectedLocation.images.length > 0) {
-     bottomCoverContainer.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
-     bottomCoverContainer.style.display = 'block';
+      if (pageMapPosition === 'top') {
+        selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+        selectors.cover.style.display = 'block';
+      } else {
+        selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+      }
     }
-    locationTitleElement.textContent = selectedLocation.title;
-    locationSubtitleElement.textContent = selectedLocation.subtitle;
-    locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
-    locationAddressElement.textContent = selectedLocation.formattedAddress;
-    locationDescription.innerHTML = selectedLocation.description;
-    locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates);
 
-    locationActionItemsContainer.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+    selectors.map.style.display = 'block';
+    const detailMap = new google.maps.Map(selectors.map, {
+      mapTypeControl: true,
+      disableDefaultUI: true,
+      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
+      zoom: 14,
+    });
+
+    selectors.title.textContent = selectedLocation.title;
+    selectors.subtitle.textContent = selectedLocation.subtitle;
+    selectors.categories.textContent = transformCategories(selectedLocation.categories);
+    selectors.address.textContent = selectedLocation.formattedAddress;
+    selectors.description.innerHTML = selectedLocation.description;
+    selectors.distance.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates);
+
+    selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
         <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
         <div class="mdc-chip" role="row">
           <div class="mdc-chip__ripple"></div>
@@ -702,17 +741,12 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-    carouselContainer.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+    selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
     });
-    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
-      mapTypeControl: true,
-      disableDefaultUI: true,
-      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
-      zoom: 14,
-    });
+
     navigateTo('detail');
   });
 };
