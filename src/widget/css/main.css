@@ -688,9 +688,13 @@ button span {
 .location-item .d-flex, .location-item .d-flex * {
   pointer-events: none;
 }
+.location-item .mdc-chip * {
+  pointer-events: none;
+}
 .action-item .mdc-chip * {
   pointer-events: none;
 }
+.location-item .mdc-chip-set,
 .location-image-item .mdc-chip-set {
   display: inline-flex;
 }

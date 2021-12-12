@@ -306,7 +306,7 @@ let selectedLocation = {
 // todo to be removed
 const testingFn = () => {
   settings.showIntroductoryListView = false;
-  settings.design.listViewStyle = 'image';
+  settings.design.listViewStyle = 'else';
   settings.design.detailsMapPosition = 'bottom'; // top or bottom
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -476,7 +476,7 @@ const renderListingLocations = () => {
           </div>
 `)).join('\n');
   } else {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
+    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
@@ -490,30 +490,16 @@ const renderListingLocations = () => {
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-          <div class="mdc-chip" role="row">
+        
+          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
+              <span role="gridcell">
                 <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Call</span>
+                  <span class="mdc-chip__text">${a.title}</span>
                 </span>
               </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Send Email</span>
-                </span>
-              </span>
-          </div>
-          <div class="mdc-chip" role="row">
-            <div class="mdc-chip__ripple"></div>
-            <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Reservation</span>
-                </span>
-              </span>
-          </div>
+            </div>`).join('\n')}
+          ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
         </div>
       </div>`)).join('\n');
   }
