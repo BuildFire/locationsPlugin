@@ -463,7 +463,7 @@ button span {
 
 .location-detail__cover {
   position: relative;
-  background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/800/400);
+  background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) );
   background-repeat: no-repeat;
   background-size: cover;
   display: flex;
@@ -474,15 +474,19 @@ button span {
   color: #FFFFFF;
 }
 .location-detail__bottom-cover {
-  background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/350/200);
+  display: none;
   background-repeat: no-repeat;
   background-size: cover;
   height: 200px;
   margin: 10px -15px 20px;
 }
+.location-detail__cover {
+  display: none;
+}
 .location-detail__cover p:first-child {
   font-size: 13px;
   margin: 0 0 8px;
+  max-width: calc(100% - 40px);
 }
 .location-detail__cover #workingHoursBtn {
   margin-bottom: 8px;
@@ -519,7 +523,7 @@ button span {
 .location-detail__address {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   font-size: 12px;
   margin-top: 10px;
 }
@@ -530,6 +534,7 @@ button span {
 .location-detail__address p:last-child {
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 .location-detail__carousel {
   white-space: nowrap;
@@ -553,7 +558,7 @@ button span {
   font-weight: bold;
 }
 .location-detail .action-item {
-  width: 33.3%;
+  /*width: 31%;*/
   padding: 5px;
   display: inline-flex;
   flex-direction: column;
@@ -586,6 +591,9 @@ button span {
 }
 
 .location-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
   margin: 10px -15px 0;
   padding: 15px;
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
@@ -619,6 +627,15 @@ button span {
 }
 .location-detail__rating [data-rating-id] .full-star {
   font-size: 22px;
+}
+.location-detail__top-view {
+  display: none;
+}
+.location-detail__map {
+  display: none;
+}
+.location-detail__map--top-view {
+  display: none;
 }
 .location-detail__top-header {
   display: flex;
@@ -669,5 +686,16 @@ button span {
   background-color: rgb(150 150 150 / 20%);
 }
 .location-item .d-flex, .location-item .d-flex * {
+  pointer-events: none;
+}
+.action-item .mdc-chip * {
+  pointer-events: none;
+}
+.location-image-item .mdc-chip-set {
+  display: inline-flex;
+}
+.location-image-item__header, .location-image-item__header *,
+.location-image-item__body, .location-image-item__body *,
+.location-image-item .mdc-chip * {
   pointer-events: none;
 }

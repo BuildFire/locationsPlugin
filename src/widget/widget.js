@@ -1,9 +1,10 @@
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
+import authManager from '../UserAccessControl/authManager';
 
 // todo tmp
-import Settings from '../entities/Settings';
+import Settings from '../entities/Setting';
 import DataMocks from '../DataMocks';
 
 const settings = new Settings().toJSON();
@@ -304,8 +305,9 @@ let selectedLocation = {
 
 // todo to be removed
 const testingFn = () => {
-  settings.showIntroductoryListView = true;
+  settings.showIntroductoryListView = false;
   settings.design.listViewStyle = 'image';
+  settings.design.detailsMapPosition = 'bottom'; // top or bottom
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
       {
@@ -443,61 +445,48 @@ const renderIntroductoryLocations = (list) => {
 };
 const renderListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
-
   if (settings.design.listViewStyle === 'image') {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(https://placeimg.com/800/400);">
+    container.innerHTML = introductoryLocations.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
             <div class="location-image-item__header">
-              <p>1 mi</p>
-              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">star_outline</i>
+              <p>${n.distance ? n.distance : '--'}</p>
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             </div>
             <div class="location-image-item__body">
-              <p class="margin-bottom-five">${n.subtitle}</p>
-              <p class="margin-top-zero">Category | Subcategory</p>
+              <p class="margin-bottom-five">${n.title}</p>
+              <p class="margin-top-zero">${transformCategories(n.categories)}</p>
               <p>
                 <span>${n.subtitle}</span>
-                <span>$$$</span>
+                <span>
+                  <span>${n.price.currency.repeat(n.price.range)}</span>
+                  <span style="margin-left: 10px;color: #91dba6;">Open Now</span>
+                </span>
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              <div class="mdc-chip" role="row">
+              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Send Email</span>
-                </span>
-              </span>
-              </div>
-              <div class="mdc-chip" role="row">
-                <div class="mdc-chip__ripple"></div>
-                <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Call</span>
-                </span>
-              </span>
-              </div>
-              <div class="mdc-chip" role="row">
-                <div class="mdc-chip__ripple"></div>
-                <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">Reservation</span>
-                </span>
-              </span>
-              </div>
+                    <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                      <span class="mdc-chip__text">${a.title}</span>
+                    </span>
+                  </span>
+              </div>`).join('\n')}
+              ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
             </div>
           </div>
 `)).join('\n');
   } else {
     container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item">
         <div class="d-flex">
-          <img src="https://placekitten.com/200/300" alt="Location image">
+          <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
             <p class="mdc-theme--text-body">${n.subtitle}</p>
             <p class="mdc-theme--text-body">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">star_outline</i>
-            <p class="mdc-theme--text-body">1 mi</p>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
@@ -665,86 +654,102 @@ const transformCategories = (categories) => {
 const showLocationDetail = () => {
   fetchTemplate('detail', () => {
     injectTemplate('detail');
-    const currentActive = document.querySelector('section.active');
-    currentActive.classList.remove('active');
-    document.querySelector('section#detail').classList.add('active');
-    const container = document.querySelector('.location-detail__carousel');
+    const pageMapPosition = settings.design.detailsMapPosition;
+    let selectors = {
+      address: document.querySelector('.location-detail__address p:first-child'),
+      distance: document.querySelector('.location-detail__address p:last-child'),
+      carousel: document.querySelector('.location-detail__carousel'),
+      actionItems: document.querySelector('.location-detail__actions'),
+      description: document.querySelector('.location-detail__description'),
+      rating: document.querySelector('.location-detail__rating')
+    };
 
-    const locationTitleElement = document.querySelector('.location-detail__top-header h1');
-    const locationSubtitleElement = document.querySelector('.location-detail__top-header h5');
-    const locationCategoriesElement = document.querySelector('.location-detail__top-subtitle p');
-    const locationAddressElement = document.querySelector('.location-detail__address p:first-child');
-    const locationDistanceElement = document.querySelector('.location-detail__address p:last-child');
+    if (pageMapPosition === 'top') {
+      selectors = {
+        ...selectors,
+        ...{
+          title: document.querySelector('.location-detail__top-header h1'),
+          subtitle: document.querySelector('.location-detail__top-header h5'),
+          categories: document.querySelector('.location-detail__top-subtitle p'),
+          cover: document.querySelector('.location-detail__bottom-cover'),
+          main: document.querySelector('.location-detail__top-view'),
+          map: document.querySelector('.location-detail__map--top-view')
+        }
+      };
+      selectors.main.style.display = 'block';
+      selectors.rating.classList.add('location-detail__rating--single-shadow');
+    } else {
+      selectors = {
+        ...selectors,
+        ...{
+          title: document.querySelector('.location-detail__cover h2'),
+          subtitle: document.querySelector('.location-detail__cover h4'),
+          categories: document.querySelector('.location-detail__cover p:first-child'),
+          main: document.querySelector('.location-detail__cover'),
+          map: document.querySelector('.location-detail__map')
+        }
+      };
+      selectors.main.style.display = 'flex';
+      selectors.rating.classList.add('location-detail__rating--dual-shadow');
+    }
 
+    if (selectedLocation.images.length > 0) {
+      if (pageMapPosition === 'top') {
+        selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+        selectors.cover.style.display = 'block';
+      } else {
+        selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+      }
+    }
 
-    locationTitleElement.textContent = selectedLocation.title;
-    locationSubtitleElement.textContent = selectedLocation.subtitle;
-    locationCategoriesElement.textContent = transformCategories(selectedLocation.categories);
-    locationAddressElement.textContent = selectedLocation.formattedAddress;
-    locationDistanceElement.childNodes[0].nodeValue = calculateLocationDistance(selectedLocation.coordinates)
+    selectors.map.style.display = 'block';
+    const detailMap = new google.maps.Map(selectors.map, {
+      mapTypeControl: true,
+      disableDefaultUI: true,
+      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
+      zoom: 14,
+    });
 
-    container.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});"></div>`).join('\n');
+    selectors.title.textContent = selectedLocation.title;
+    selectors.subtitle.textContent = selectedLocation.subtitle;
+    selectors.categories.textContent = transformCategories(selectedLocation.categories);
+    selectors.address.textContent = selectedLocation.formattedAddress;
+    selectors.description.innerHTML = selectedLocation.description;
+    selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
+
+    selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
+        <div class="mdc-chip" role="row">
+          <div class="mdc-chip__ripple"></div>
+          <span role="gridcell">
+            <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+              <span class="mdc-chip__text">${a.title}</span>
+            </span>
+          </span>
+        </div>
+      </div>`).join('\n');
+    selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
     buildfire.history.push('Location Detail', {
       showLabelInTitlebar: true
     });
-    const detailMap = new google.maps.Map(document.querySelector('.location-detail__map--top-view'), {
-      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
-      zoom: 14,
-    });
+
     navigateTo('detail');
   });
 };
 const showWorkingHoursDrawer = () => {
+  const { days } = selectedLocation.openingHours;
   buildfire.components.drawer.open(
     {
       header: 'Open Hours',
-      content: `    <table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Monday</td>
+      content: `<table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
+      ${Object.entries(days).map(([day, prop]) => `<tr>
+        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${day}</td>
         <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
+          ${!prop.active ? 'Closed' : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${t.from} - ${t.to}</p>`).join('\n')}
         </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Tuesday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 14:00</p>
-          <p style="margin-top: 10px; margin: 0;">16:00 - 24:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Wednesday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Thursday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Friday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">09:00 - 19:00</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Saturday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">Closed</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top; font-weight: bold;">Sunday</td>
-        <td style="vertical-align: top;">
-          <p style="margin: 0;">Closed</p>
-        </td>
-      </tr>
-    </table>
-`,
+      </tr>`).join('\n')}
+    </table>`,
       isHTML: true,
       enableFilter: false
     }
@@ -752,10 +757,18 @@ const showWorkingHoursDrawer = () => {
 };
 
 const chatWithOwner = () => {
+  const { currentUser } = authManager;
+  const users = [];
+
+  if (!currentUser) {
+    return console.warn('undefined currentUser');
+  }
+  users.push(selectedLocation.owner.userId);
+  users.push(currentUser._id);
   buildfire.navigation.navigateToSocialWall(
     {
-      title: '<Location>',
-      wallUserIds: ['60e3499de7fd9f139924c1a3']
+      title: selectedLocation.title,
+      wallUserIds: users
     },
     (err, result) => {
       if (err) console.error(err);
@@ -784,6 +797,18 @@ const shareLocation = () => {
   // todo testing
 };
 
+const handleDetailActionItem = (e) => {
+  const actionId = e.target.parentNode.dataset.id;
+  const actionItem = selectedLocation.actionItems.find((a) => a.id === actionId);
+  buildfire.actionItems.execute(
+    actionItem,
+    (err) => {
+      if (err) {
+        console.error(err);
+      }
+    }
+  );
+};
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
   const actionItem = introductoryLocations
@@ -811,6 +836,11 @@ const fetchMoreIntroductoryLocations = (e) => {
     }
   }
 };
+
+const viewFullImage = (url) => {
+  buildfire.imagePreviewer.show({ images: [url] });
+};
+
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
@@ -833,7 +863,7 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
-    } else if (e.target.classList.contains('location-item'))  {
+    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
@@ -842,8 +872,12 @@ const initEventListeners = () => {
       chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
-    } else if (e.target.classList.contains('list-action-item')) {
+    } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
+    } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
+      viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
+    } else if (e.target.parentNode.classList.contains('action-item')) {
+      handleDetailActionItem(e);
     }
   });
 
@@ -1070,47 +1104,49 @@ const clearTemplate = (template) => {
   document.querySelector(`section#${template}`).innerHTML = '';
 };
 const init = () => {
-  fetchTemplate('filter', injectTemplate);
-  fetchTemplate('home', initHomeView);
-  // fetchCategories(() => {
-  //   showLocationDetail();
-  // })
-  initEventListeners();
+  fetchSettings(() => {
+    fetchTemplate('filter', injectTemplate);
+    fetchTemplate('home', initHomeView);
+    // fetchCategories(() => {
+    //   showLocationDetail();
+    // });
+    initEventListeners();
 
-  buildfire.deeplink.getData((deeplinkData) => {
-    if (deeplinkData?.locationId) {
-      // todo fetch location where id;
-      // todo navigate to location
-    }
-  });
+    buildfire.deeplink.getData((deeplinkData) => {
+      if (deeplinkData?.locationId) {
+        // todo fetch location where id;
+        // todo navigate to location
+      }
+    });
 
-  buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-    if (err) {
-      return console.error(err);
-    }
-    userPosition = position.coords;
-    updateLocationsDistance();
-  });
+    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+      if (err) {
+        return console.error(err);
+      }
+      userPosition = position.coords;
+      updateLocationsDistance();
+    });
 
-  buildfire.history.onPop((breadcrumb) => {
-    console.log('Breadcrumb popped', breadcrumb);
-    if (document.querySelector('section#filter').classList.contains('overlay')) {
-      toggleFilterOverlay();
-    } else if (document.querySelector('section#detail').classList.contains('active')) {
-      clearTemplate('detail');
-      navigateTo('home');
-    }
-  });
+    buildfire.history.onPop((breadcrumb) => {
+      console.log('Breadcrumb popped', breadcrumb);
+      if (document.querySelector('section#filter').classList.contains('overlay')) {
+        toggleFilterOverlay();
+      } else if (document.querySelector('section#detail').classList.contains('active')) {
+        clearTemplate('detail');
+        navigateTo('home');
+      }
+    });
 
-  buildfire.appearance.getAppTheme((err, appTheme) => {
-    if (err) return console.error(err);
-    const root = document.documentElement;
-    const { colors } = appTheme;
-    root.style.setProperty('--body-theme', colors.bodyText);
-    root.style.setProperty('--header-theme', colors.headerText);
-    root.style.setProperty('--background-color', colors.backgroundColor);
-    root.style.setProperty('--primary-color', colors.primaryTheme);
+    buildfire.appearance.getAppTheme((err, appTheme) => {
+      if (err) return console.error(err);
+      const root = document.documentElement;
+      const { colors } = appTheme;
+      root.style.setProperty('--body-theme', colors.bodyText);
+      root.style.setProperty('--header-theme', colors.headerText);
+      root.style.setProperty('--background-color', colors.backgroundColor);
+      root.style.setProperty('--primary-color', colors.primaryTheme);
+    });
   });
 };
 
-fetchSettings(init);
+authManager.enforceLogin(init);
