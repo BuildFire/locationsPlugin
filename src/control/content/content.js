@@ -12,7 +12,6 @@ import './js/listView';
 
 
 const templates = {};
-console.log('Content Page');
 /** template management start */
 const fetchTemplate = (template, callback) => {
   if (templates[template]) {

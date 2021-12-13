@@ -8,7 +8,7 @@ export default class Location {
    * @constructor
    */
   constructor(data = {}) {
-    this.id = data.id || null;
+    this.id = data.id || undefined;
     this.title = data.title || null;
     this.subtitle = data.subtitle || null;
     this.pinIndex = data.pinIndex || null;
@@ -34,7 +34,6 @@ export default class Location {
     this.description = data.description || null;
     this.owner = data.owner || {};
     this.views = data.views || 0;
-    this.priceRange = data.priceRange || 0;
     this.price = data.price || { range: 0, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };
     this.bookmarksCount = data.bookmarksCount || 0;

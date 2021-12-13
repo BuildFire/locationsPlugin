@@ -18,6 +18,8 @@
   </div>
   <hr class="none" />
   <div class="actions">
+    <input type="file" id="location-file-input" accept=".csv" style="display:none">
+
     <div class="btn-group margin-right-fifteen" id="location-bulk-dropdown">
       <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false" onclick="openLocationsBulkAction(event)">
@@ -75,8 +77,14 @@
           <div class="col-md-3 pull-left padding-left-zero">
             <label class="" for="pin-top-btn">Pin Location on top of the list view</label>
           </div>
-          <div class="col-md-9 pull-right padding-right-zero">
-            <button class="btn btn-primary" id="pin-top-btn">Pin To Top</button>
+          <div class="col-md-9 pull-right padding-right-zero flex-row">
+            <div>
+              <button class="btn btn-primary" id="pin-top-btn">Pin To Top</button>
+            </div>
+            <div class="margin-left-twenty">
+              <p class="margin-bottom-zero text-muted" id="location-pinned-label">0 of 3 Pinned</p>
+              <p class="text-muted">You can change the pinned locations on <a>Introduction Screen</a> page</p>
+            </div>
           </div>
         </div>
         <hr class="none" />

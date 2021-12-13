@@ -4,11 +4,10 @@
 import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import Category from "../../../../entities/Category";
-import DataMocks from "../../../../DataMocks";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown } from "../../utils/helpers";
-import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
+import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
 import ActionItemsUI from "./actionItemsUI";
@@ -16,6 +15,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
+import authManager from '../../../../UserAccessControl/authManager';
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -49,20 +49,29 @@ const state = {
 };
 
 const locationTemplateHeader = {
-  id: 'Id',
-  title: "Title",
-  subtitle: "Subtitle",
-  address: "Address",
-  formattedAddress: "FormattedAddress",
-  addressAlias: "AddressAlias",
-  marker: "Marker",
-  settings: "Settings",
-  listImage: "ListImage",
-  description: "Description",
-  owner: "Owner",
-  views: "Views",
-  price: "Price",
-  rating: "Rating",
+  id: 'id',
+  title: "title",
+  subtitle: "subtitle",
+  address: "address",
+  formattedAddress: "formattedAddress",
+  addressAlias: "addressAlias",
+  lat: "lat",
+  lng: "lng",
+  listImage: "listImage",
+  description: "description",
+  categories: "categories",
+  markerType: "markerType",
+  markerImage: "markerImage",
+  markerColor: "markerColor",
+  showCategory: "showCategory",
+  showOpeningHours: "showOpeningHours",
+  showPriceRange: "showPriceRange",
+  showStarRating: "showStarRating",
+  images: "images",
+  views: "views",
+  priceRange: "priceRange",
+  priceCurrency: "priceCurrency",
+  bookmarksCount: "bookmarksCount"
 };
 
 const renderAddLocationsPage = () => {
@@ -76,6 +85,7 @@ const renderAddLocationsPage = () => {
     locationSubtitle: inputLocationForm.querySelector("#location-subtitle-input"),
     locationSubtitleError: inputLocationForm.querySelector("#location-subtitle-error"),
     pinTopBtn: inputLocationForm.querySelector("#pin-top-btn"),
+    pinnedLocationsLabel: inputLocationForm.querySelector("#location-pinned-label"),
     locationAddress: inputLocationForm.querySelector("#location-address-input"),
     locationAddressError: inputLocationForm.querySelector("#location-address-error"),
     locationCustomName: inputLocationForm.querySelector("#location-custom-name-input"),
@@ -145,7 +155,7 @@ window.addEditLocation = (location) => {
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
-
+  tinymce.EditorManager.execCommand('mceRemoveEditor', true, 'location-description-wysiwyg');
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
@@ -154,9 +164,19 @@ window.addEditLocation = (location) => {
     addLocationControls.pinTopBtn.disabled = true;
   }
 
+  
+  addLocationControls.pinnedLocationsLabel.innerHTML = `${state.pinnedLocations.length} of 3 Pinned`;
+  let isPinned = false;
   addLocationControls.pinTopBtn.onclick = () => {
-   state.locationObj.pinIndex = state.pinnedLocations.length + 1
-  }
+    if (!isPinned) {
+      state.locationObj.pinIndex = state.pinnedLocations.length + 1;
+      isPinned = true;
+    } else {
+      state.locationObj.pinIndex = null;
+      isPinned = false;
+    }
+    addLocationControls.pinnedLocationsLabel.innerHTML = `${ state.locationObj.pinIndex ?? state.pinnedLocations.length } of 3 Pinned`;
+  };
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -259,7 +279,7 @@ window.addEditLocation = (location) => {
         }
         state.locationObj.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl })));
 
-        locationImagesUI.init("location-image-items", state.locationObj.images);
+        locationImagesUI.init(state.locationObj.images);
       }
     );
   };
@@ -366,9 +386,8 @@ window.addEditLocation = (location) => {
     saveLocation(location ? "Edit" : "Add");
   };
 
-  locationImagesUI.init('location-image-items', state.locationObj.images);
-  actionItemsUI.init('location-action-items', state.locationObj.actionItems);
-
+  locationImagesUI.init(state.locationObj.images);
+  actionItemsUI.init(state.locationObj.actionItems);
 };
 
 const saveLocation = (action, callback) => {
@@ -936,12 +955,59 @@ window.downloadLocationTemplate = () =>  {
   downloadCsvTemplate(templateData, locationTemplateHeader);
 };
 
-window.importLocations = () =>  {
-
+const validateLocationCsv = (items) => {
+  if (!Array.isArray(items) || !items.length) {
+    return false;
+  }
+  return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
 
-window.exportLocations = () =>  {
+window.importLocations = () =>  {
+  locationsSection.querySelector("#location-file-input").click();
+  locationsSection.querySelector("#location-file-input").onchange = function (e) {
+    readCSVFile(this.files[0], (err, result) => {
+      if (!validateLocationCsv(result)) {
+        return;
+      }
+      const locations = result.map((elem) => {
+        delete elem.id;
+        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl }));
+        elem.marker = { type: elem.markerType || 'pin', color: elem.markerColor || null, image: elem.markerImage || null };
+        elem.settings = {
+          showCategory: elem.showCategory || true,
+          showOpeningHours: elem.showOpeningHours || false,
+          showPriceRange: elem.showPriceRange || false,
+          showStarRating: elem.showStarRating || false,
+        };
+        elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
+        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency };
+        const categories = elem.categories?.split(',').filter((elem) => elem)
+        const mainCategories = state.categories.filter(elem => categories.includes(elem.title)).map(elem => elem.id);
+        elem.categories = { main: mainCategories, subcategories: [] }
+        elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
+        elem.createdOn = new Date();
+        elem.createdBy = authManager.currentUser;
+        return new Location(elem).toJSON();
+      });
 
+      LocationsController.bulkCreateLocation(locations).then(() => {
+        loadLocations()
+      }).catch(console.error);
+    });
+  };
+};
+
+window.exportLocations = () => {
+  const data = state.locations.map(elem => ({
+    ...elem, ...elem.coordinates, ...elem.settings,
+    markerType: elem.marker.type,
+    markerImage: elem.marker.image,
+    markerColor: elem.marker.color,
+    priceRange: elem.price.range,
+    priceCurrency: elem.price.currency,
+    categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
+  }));
+ downloadCsvTemplate(data, locationTemplateHeader, 'locations');
 };
 
 const loadLocations = (filter, sort) => {

@@ -18,7 +18,7 @@ class SortableListUI {
 	This method will call the datastore to pull a single object
 	it needs to have an array property called `items` each item need {title, imgUrl}
   */
-  init(elementId, items) {
+  init(items) {
     this.container.innerHTML = "";
     this.render(items);
   }

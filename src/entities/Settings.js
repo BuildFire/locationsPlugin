@@ -2,38 +2,43 @@
  * Settings data model
  * @class
  */
-export default class Setting {
+export default class Settings {
   /**
    * @param {object} data
    * @constructor
    */
   constructor(data = {}) {
-    this.showIntroductoryListView = data.showIntroductoryListView || true;
+    this.showIntroductoryListView = typeof data.showIntroductoryListView === undefined? true : data.showIntroductoryListView;
     this.measurementUnit = data.measurementUnit || 'metric';
     this.introductoryListView = data.introductoryListView || {
       images: [],
       description: null,
       sorting: null
     };
-    this.listView = data.listView || {
-      defaultSorting: null,
+    this.chat = data.chat || {
+      allowChat: true
+    }
+    this.sorting = data.sorting || {
+      defaultSorting: 'distance',
       allowSortByReverseAlphabetical: true,
-      allowSortByPriceHighToLow: true,
+      allowSortByNearest: true,
       allowSortByPriceLowToHigh: true,
-      allowSortByViews: true,
+      allowSortByPriceHighToLow: true,
       allowSortByDate: true,
       allowSortByRating: true,
+      allowSortByViews: true,
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
+      allowFilterByLatest: true,
       allowFilterByBookmarks: true,
-      allowFilterByLatest: true
     };
     this.map = data.map || {
+      distanceUnit: 'metric',
       showPointsOfInterest: true,
       initialArea: true,
       offlineAreaSelection: true, // pending
-      initialAreaCoordinates: { latitude: null, longitude: null },
+      initialAreaCoordinates: { lat: null, lng: null },
       initialAreaString: null
     };
     this.bookmarks = data.bookmarks || {
@@ -64,7 +69,8 @@ export default class Setting {
       showIntroductoryListView: this.showIntroductoryListView,
       measurementUnit: this.measurementUnit,
       introductoryListView: this.introductoryListView,
-      listView: this.listView,
+      chat: this.chat,
+      sorting: this.sorting,
       filter: this.filter,
       map: this.map,
       bookmarks: this.bookmarks,

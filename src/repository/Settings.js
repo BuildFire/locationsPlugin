@@ -1,5 +1,4 @@
-import Setting from "../entities/Setting";
-
+import Setting from "../entities/Settings";
 
 export default class Settings {
   /**
@@ -9,13 +8,12 @@ export default class Settings {
     return "settings";
   }
 
-
   /**
    * @param {Function} callback Callback function
    */
   static get() {
     return new Promise((resolve, reject) => {
-      buildfire.datastore.get(Settings.TAG,  (err, res) => {
+      buildfire.datastore.get(Settings.TAG, (err, res) => {
         if (err) return reject(err);
 
         if (!res || !res.data || Object.keys(res.data).length === 0) {
@@ -33,13 +31,12 @@ export default class Settings {
    */
   static save(setting) {
     return new Promise((resolve, reject) => {
-      buildfire.datastore.save(setting, Settings.TAG,  (err, res) => {
+      buildfire.datastore.save(setting, Settings.TAG, (err, res) => {
         if (err || !res) {
-          return reject(err)
+          return reject(err);
         }
-        resolve(new Setting(res.data))
+        resolve(new Setting(res.data));
       });
-   })
+    });
   }
-
 }

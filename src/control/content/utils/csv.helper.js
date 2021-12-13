@@ -117,7 +117,7 @@ export const jsonToCsv = (objArray, options) => {
         const value1 = JSON.parse(JSON.stringify(array[rowNo][index]));
         let line1 = "";
         value1.forEach((val) => {
-          line1 += val.title + ",";
+          line1 += (val.title || val.imageUrl) + ",";
         });
         line += '"' + line1.replace(/"/g, '""') + '",';
       }
@@ -152,4 +152,20 @@ export const csvToJson = (csv, options) => {
     items.push(item);
   }
   return JSON.stringify(items).replace(/},/g, "},\r\n");
+};
+
+export const readCSVFile = (file, callback) => {
+  if (!file) {
+    callback(null, null);
+    return;
+  }
+
+  const fileReader = new FileReader();
+  fileReader.onload = () => {
+    console.log(fileReader.result);
+    const rows = JSON.parse(csvToJson(fileReader.result));
+    callback(null, rows);
+  };
+
+  fileReader.readAsText(file);
 };
