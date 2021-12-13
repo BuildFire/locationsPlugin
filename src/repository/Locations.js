@@ -41,6 +41,21 @@ export default class Locations {
     });
   }
 
+    /**
+   * Insert bulk locations
+   * @param {Location[]} locations
+   * @static
+   * @return {promise} query result
+   */
+     static bulkAdd(locations) {
+      return new Promise((resolve, reject) => {
+        buildfire.publicData.bulkInsert(locations, Locations.TAG, (error, record) => {
+          if (error) return reject(error);
+          resolve(record);
+        });
+      });
+    }
+
   /**
    * Get and pull a matching subset of the locations.
    * @param {object} options

@@ -60,7 +60,6 @@ const locationTemplateHeader = {
   listImage: "listImage",
   description: "description",
   categories: "categories",
-  subcategories: "subcategories",
   markerType: "markerType",
   markerImage: "markerImage",
   markerColor: "markerColor",
@@ -69,11 +68,9 @@ const locationTemplateHeader = {
   showPriceRange: "showPriceRange",
   showStarRating: "showStarRating",
   images: "images",
-  owner: "owner",
   views: "views",
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
-  rating: "rating",
   bookmarksCount: "bookmarksCount"
 };
 
@@ -88,6 +85,7 @@ const renderAddLocationsPage = () => {
     locationSubtitle: inputLocationForm.querySelector("#location-subtitle-input"),
     locationSubtitleError: inputLocationForm.querySelector("#location-subtitle-error"),
     pinTopBtn: inputLocationForm.querySelector("#pin-top-btn"),
+    pinnedLocationsLabel: inputLocationForm.querySelector("#location-pinned-label"),
     locationAddress: inputLocationForm.querySelector("#location-address-input"),
     locationAddressError: inputLocationForm.querySelector("#location-address-error"),
     locationCustomName: inputLocationForm.querySelector("#location-custom-name-input"),
@@ -157,7 +155,7 @@ window.addEditLocation = (location) => {
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
-
+  tinymce.EditorManager.execCommand('mceRemoveEditor', true, 'location-description-wysiwyg');
   tinymce.init({
     selector: "#location-description-wysiwyg",
   });
@@ -166,8 +164,18 @@ window.addEditLocation = (location) => {
     addLocationControls.pinTopBtn.disabled = true;
   }
 
+  
+  addLocationControls.pinnedLocationsLabel.innerHTML = `${state.pinnedLocations.length} of 3 Pinned`;
+  let isPinned = false;
   addLocationControls.pinTopBtn.onclick = () => {
-    state.locationObj.pinIndex = state.pinnedLocations.length + 1;
+    if (!isPinned) {
+      state.locationObj.pinIndex = state.pinnedLocations.length + 1;
+      isPinned = true;
+    } else {
+      state.locationObj.pinIndex = null;
+      isPinned = false;
+    }
+    addLocationControls.pinnedLocationsLabel.innerHTML = `${ state.locationObj.pinIndex ?? state.pinnedLocations.length } of 3 Pinned`;
   };
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
@@ -951,29 +959,55 @@ const validateLocationCsv = (items) => {
   if (!Array.isArray(items) || !items.length) {
     return false;
   }
-  return items.every((item, index, array) =>  item.title && item.address &&  item.formattedAddress && item.lat && item.lng);
+  return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
 
 window.importLocations = () =>  {
   locationsSection.querySelector("#location-file-input").click();
   locationsSection.querySelector("#location-file-input").onchange = function (e) {
     readCSVFile(this.files[0], (err, result) => {
-      if (!validateLocationCsv) {
+      if (!validateLocationCsv(result)) {
         return;
       }
       const locations = result.map((elem) => {
         delete elem.id;
-        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle }));
+        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl }));
+        elem.marker = { type: elem.markerType || 'pin', color: elem.markerColor || null, image: elem.markerImage || null };
+        elem.settings = {
+          showCategory: elem.showCategory || true,
+          showOpeningHours: elem.showOpeningHours || false,
+          showPriceRange: elem.showPriceRange || false,
+          showStarRating: elem.showStarRating || false,
+        };
+        elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
+        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency };
+        const categories = elem.categories?.split(',').filter((elem) => elem)
+        const mainCategories = state.categories.filter(elem => categories.includes(elem.title)).map(elem => elem.id);
+        elem.categories = { main: mainCategories, subcategories: [] }
+        elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
         elem.createdOn = new Date();
         elem.createdBy = authManager.currentUser;
-        return new Category(elem).toJSON();
+        return new Location(elem).toJSON();
       });
+
+      LocationsController.bulkCreateLocation(locations).then(() => {
+        loadLocations()
+      }).catch(console.error);
     });
   };
 };
 
-window.exportLocations = () =>  {
-
+window.exportLocations = () => {
+  const data = state.locations.map(elem => ({
+    ...elem, ...elem.coordinates, ...elem.settings,
+    markerType: elem.marker.type,
+    markerImage: elem.marker.image,
+    markerColor: elem.marker.color,
+    priceRange: elem.price.range,
+    priceCurrency: elem.price.currency,
+    categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
+  }));
+ downloadCsvTemplate(data, locationTemplateHeader, 'locations');
 };
 
 const loadLocations = (filter, sort) => {

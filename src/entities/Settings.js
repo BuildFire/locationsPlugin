@@ -8,7 +8,7 @@ export default class Settings {
    * @constructor
    */
   constructor(data = {}) {
-    this.showIntroductoryListView = data.showIntroductoryListView || true;
+    this.showIntroductoryListView = typeof data.showIntroductoryListView === undefined? true : data.showIntroductoryListView;
     this.measurementUnit = data.measurementUnit || 'metric';
     this.introductoryListView = data.introductoryListView || {
       images: [],

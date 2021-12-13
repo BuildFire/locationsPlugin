@@ -7,6 +7,9 @@ export default {
     location.createdBy = authManager.currentUser;
     return Location.add(location.toJSON());
   },
+  bulkCreateLocation(locations) {
+    return Location.bulkAdd(locations);
+  },
   searchLocations(options = {}) {
     options.recordCount = true;
     return Location.search(options);

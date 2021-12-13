@@ -7,7 +7,7 @@ import LocationsController from "../locations/controller";
 import Setting from "../../../../entities/Settings";
 import { generateUUID } from "../../utils/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
-
+import Location from "../../../../entities/Location";
 const state = {
   settings: new Setting(),
   pinnedLocations: [],
@@ -20,6 +20,8 @@ let listViewImagesList = null;
 let pinnedLocationsList = null;
 
 const initListViewWysiwyg = () => {
+  tinymce.EditorManager.execCommand('mceRemoveEditor', true, 'listview-description-wysiwyg');
+
   tinymce.init({
     selector: "#listview-description-wysiwyg",
     init_instance_callback: (editor) => {
@@ -143,6 +145,37 @@ const getPinnedLocations = () => {
   });
 };
 
+const deletePinnedLocation = (item, index, callback) => {
+  buildfire.notifications.confirm(
+    {
+      message: `Are you sure you want to delete the pin for this location?`,
+      confirmButton: {
+        text: "Delete",
+        key: "y",
+        type: "danger",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        item.pinIndex = null;
+        LocationsController.updateLocation(item.id, new Location(item))
+          .then(() => {
+            state.pinnedLocations = state.pinnedLocations.filter(elem => elem.id !== item.id);
+            handlePinnedLocationEmptyState(false);
+            callback(item);
+          })
+          .catch(console.error)
+      }
+    }
+  );
+  
+}
+
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
@@ -159,6 +192,7 @@ window.initListView = () => {
     state.settings.introductoryListView.images = listViewImagesList.sortableList.items;
     saveSettings();
   };
+  pinnedLocationsList.onDeleteItem = deletePinnedLocation
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();
