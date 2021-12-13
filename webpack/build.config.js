@@ -74,6 +74,41 @@ const WebpackConfig = {
       chunks: ['control/settings/settings']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/chat.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/chat.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/sorting.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/sorting.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/filtering.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/filtering.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/map.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/map.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/bookmarks.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/bookmarks.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/index.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
