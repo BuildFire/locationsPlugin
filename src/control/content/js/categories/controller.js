@@ -7,6 +7,9 @@ export default {
     category.createdBy = authManager.currentUser;
     return Categories.create(category.toJSON());
   },
+  bulkCreateCategories(categories) {
+    return Categories.bulkCreate(categories);
+  },
   searchCategories(options = {}) {
     return Categories.search(options);
   },

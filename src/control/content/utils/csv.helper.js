@@ -153,3 +153,19 @@ export const csvToJson = (csv, options) => {
   }
   return JSON.stringify(items).replace(/},/g, "},\r\n");
 };
+
+export const readCSVFile = (file, callback) => {
+  if (!file) {
+    callback(null, null);
+    return;
+  }
+
+  const fileReader = new FileReader();
+  fileReader.onload = () => {
+    console.log(fileReader.result);
+    const rows = JSON.parse(csvToJson(fileReader.result));
+    callback(null, rows);
+  };
+
+  fileReader.readAsText(file);
+};

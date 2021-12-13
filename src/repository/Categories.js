@@ -44,6 +44,21 @@ export default class Categories {
 
   /**
    *
+   * @param {Category} categories
+   * @static
+   * @returns {promise}
+   */
+  static bulkCreate(categories) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.bulkInsert(categories, Categories.TAG, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+    });
+  }
+
+  /**
+   *
    * @param {string} categoryId
    * @param {Category} category
    * @returns {promise}

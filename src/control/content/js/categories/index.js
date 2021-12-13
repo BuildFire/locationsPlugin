@@ -9,8 +9,9 @@ import SubcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
 import { generateUUID, createTemplate } from "../../utils/helpers";
-import { downloadCsv, jsonToCsv, csvToJson} from "../../utils/csv.helper";
+import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import globalState from '../../state';
+import authManager from '../../../../UserAccessControl/authManager';
 
 const state = {
   categories: [],
@@ -23,10 +24,13 @@ const subcategoryTemplateHeader = {
 };
 
 const categoriesTemplateHeader = {
-  id: 'Id',
+  id: 'id',
   title: "title",
   iconUrl: "iconUrl",
+  iconClassName: "iconClassName",
+  subcategories: "subcategories",
   quickAccess: "quickAccess",
+  createdOn: "createdOn"
 };
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -55,7 +59,7 @@ const renderAddCategoryPage = () => {
       bulkActionBtn: inputCategoryForm.querySelector(
         "#subcategory-bulk-actions-btn"
       ),
-      fileInput: inputCategoryForm.querySelector("#file-input"),
+      fileInput: inputCategoryForm.querySelector("#subcategory-file-input"),
       importBtn: inputCategoryForm.querySelector("#subcategory-import-btn"),
       exportBtn: inputCategoryForm.querySelector("#subcategory-export-btn"),
       downloadBtn: inputCategoryForm.querySelector("#subcategory-template-btn"),
@@ -369,8 +373,6 @@ const downloadCsvTemplate = (templateData, header, name) => {
   downloadCsv(csv, `${name? name : 'template'}.csv`);
 };
 
-const updateCategory = () => {};
-
 window.cancelAddCategory = () => {
   sidenavContainer.style.display = "flex";
   inputCategoryForm.innerHTML = "";
@@ -420,7 +422,28 @@ window.openCategoryBulkAction = (e) => {
 };
 
 window.importCategories = () => {
+  categories.querySelector("#category-file-input").click();
+  categories.querySelector("#category-file-input").onchange = function (e) {
+    readCSVFile(this.files[0], (err, result) => {
+      if (!Array.isArray(result) || !result.length || !result.every((item) =>  item.title)) {
+        buildfire.dialog.alert({
+          message: "Your file missing title for one row or more, please check and upload again.",
+        });
+        return;
+      }
 
+      const categories = result.map((elem) => {
+        delete elem.id;
+        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle }));
+        elem.createdOn = new Date();
+        elem.createdBy = authManager.currentUser;
+        return new Category(elem).toJSON();
+      });
+      CategoriesController.bulkCreateCategories(categories).then((result) => {
+        loadCategories();
+      }).catch(console.error);
+    });
+  };
 };
 
 window.exportCategories = () => {
@@ -432,7 +455,10 @@ window.downloadCategoryTemplate = () => {
     id: "",
     title: "",
     iconUrl: "",
-    quickAccess: ""
+    iconClassName: "",
+    subcategories: "",
+    quickAccess: "",
+    createdOn: "",
   }];
   downloadCsvTemplate(templateData, categoriesTemplateHeader);
 };

@@ -7,7 +7,7 @@ import Category from "../../../../entities/Category";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown } from "../../utils/helpers";
-import { downloadCsv, jsonToCsv, csvToJson } from "../../utils/csv.helper";
+import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
 import ActionItemsUI from "./actionItemsUI";
@@ -15,6 +15,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
+import authManager from '../../../../UserAccessControl/authManager';
 
 
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -48,20 +49,32 @@ const state = {
 };
 
 const locationTemplateHeader = {
-  id: 'Id',
-  title: "Title",
-  subtitle: "Subtitle",
-  address: "Address",
-  formattedAddress: "FormattedAddress",
-  addressAlias: "AddressAlias",
-  marker: "Marker",
-  settings: "Settings",
-  listImage: "ListImage",
-  description: "Description",
-  owner: "Owner",
-  views: "Views",
-  price: "Price",
-  rating: "Rating",
+  id: 'id',
+  title: "title",
+  subtitle: "subtitle",
+  address: "address",
+  formattedAddress: "formattedAddress",
+  addressAlias: "addressAlias",
+  lat: "lat",
+  lng: "lng",
+  listImage: "listImage",
+  description: "description",
+  categories: "categories",
+  subcategories: "subcategories",
+  markerType: "markerType",
+  markerImage: "markerImage",
+  markerColor: "markerColor",
+  showCategory: "showCategory",
+  showOpeningHours: "showOpeningHours",
+  showPriceRange: "showPriceRange",
+  showStarRating: "showStarRating",
+  images: "images",
+  owner: "owner",
+  views: "views",
+  priceRange: "priceRange",
+  priceCurrency: "priceCurrency",
+  rating: "rating",
+  bookmarksCount: "bookmarksCount"
 };
 
 const renderAddLocationsPage = () => {
@@ -154,8 +167,8 @@ window.addEditLocation = (location) => {
   }
 
   addLocationControls.pinTopBtn.onclick = () => {
-   state.locationObj.pinIndex = state.pinnedLocations.length + 1
-  }
+    state.locationObj.pinIndex = state.pinnedLocations.length + 1;
+  };
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -934,8 +947,29 @@ window.downloadLocationTemplate = () =>  {
   downloadCsvTemplate(templateData, locationTemplateHeader);
 };
 
-window.importLocations = () =>  {
+const validateLocationCsv = (items) => {
+  if (!Array.isArray(items) || !items.length) {
+    return false;
+  }
+  return items.every((item, index, array) =>  item.title && item.address &&  item.formattedAddress && item.lat && item.lng);
+};
 
+window.importLocations = () =>  {
+  locationsSection.querySelector("#location-file-input").click();
+  locationsSection.querySelector("#location-file-input").onchange = function (e) {
+    readCSVFile(this.files[0], (err, result) => {
+      if (!validateLocationCsv) {
+        return;
+      }
+      const locations = result.map((elem) => {
+        delete elem.id;
+        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle }));
+        elem.createdOn = new Date();
+        elem.createdBy = authManager.currentUser;
+        return new Category(elem).toJSON();
+      });
+    });
+  };
 };
 
 window.exportLocations = () =>  {
