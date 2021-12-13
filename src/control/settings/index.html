@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!--
@@ -10,19 +11,66 @@
         to keep you plugin as light weight as possible for performance and transport reasons
   -->
 
-  <!-- You can load helper.css to use our helper classes.
-  <link href="../../../../styles/helper.css" rel="stylesheet">
-  -->
+  <!-- You can load helper.css to use our helper classes. -->
+  <link href="../../../../../styles/helper.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assests/style.css">
 
   <!-- JS -->
-  <script src="../../../../scripts/buildfire.min.js"></script>
+  <script src="../../../../../scripts/buildfire.min.js"></script>
 </head>
-<body>
-  <h1>Settings - Hello World</h1>
 
+<body>
+  <div id="sidenav-container" class="sidenav-container">
+    <ul id="sidenav" class="sidenav">
+      <li id="chat-tab">
+        <a onclick="onSidenavChange('chat')" class="active">
+          <p>Chat with Owner</p>
+        </a>
+      </li>
+      <li id="sorting-tab">
+        <a onclick="onSidenavChange('sorting')">
+          <p>Sorting</p>
+        </a>
+      </li>
+      <li id="filtering-tab">
+        <a onclick="onSidenavChange('filtering')">
+          <p>Filtering</p>
+        </a>
+      </li>
+      <li id="map-tab">
+        <a onclick="onSidenavChange('map')">
+          <p>Map</p>
+        </a>
+      </li>
+      <li id="bookmarks-tab">
+        <a onclick="onSidenavChange('bookmarks')">
+          <p>Bookmarks</p>
+        </a>
+      </li>
+    </ul>
+    <div id="sidenav-content" class="sidenav-content">
+      <div id="main"></div>
+    </div>
+  </div>
+  <template id="switchBtnTemplate">
+    <div class="form-group main clearfix">
+      <div class="col-md-5 pull-left padding-left-zero">
+        <label class="btn-description"></label>
+      </div>
+      <div class="col-md-7 pull-right padding-right-zero flex-row">
+        <div class="button-switch">
+          <input id="switch-btn" type="checkbox" />
+          <label for="switch-btn" class="label-success switch-btn-label"></label>
+      </div>
+      </div>
+    </div>
+    <hr class="none" />
+  </template>
+  <script src="./settings.js"></script>
   <!--
     Do not include the 'settings.js' script tag!
     Webpack will inject it automatically to this html's body
   -->
 </body>
+
 </html>

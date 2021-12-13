@@ -1,0 +1,73 @@
+<template>
+  <div class="section-title">Map</div>
+  <div class="clearfix info">
+    <p class="info">Description.</p>
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-5 pull-left padding-left-zero">
+      <label class="">Distance Units</label>
+    </div>
+    <div class="col-md-7 pull-right padding-right-zero flex-row space-between align-items-center">
+      <div class="col-md-6 margin-top-zero radio radio-primary">
+        <input type="radio" name="distanceUnits" id="distanc-units-metric" value="metric" checked />
+        <label for="distanc-units-metric">Metric</label>
+      </div>
+      <div class="col-md-6 radio radio-primary">
+        <input type="radio" name="distanceUnits" id="distanc-units-imperial" value="imperial" />
+        <label for="distanc-units-imperial">Imperial</label>
+      </div>
+    </div>
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-5 pull-left padding-left-zero">
+      <label class="btn-description">Show Map's points of interest</label>
+    </div>
+    <div class="col-md-7 pull-right padding-right-zero">
+      <div class="button-switch">
+        <input id="show-points-of-interest" type="checkbox" />
+        <label for="show-points-of-interest" class="label-success"></label>
+      </div>
+    </div>
+  </div>
+  <hr class="none" />
+  <div>
+    <h5 class="text-bold">Default Map Area</h5>
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-5 pull-left padding-left-zero">
+      <label class="btn-description">Enable Map initial Area</label>
+    </div>
+    <div class="col-md-7 pull-right padding-right-zero">
+      <div class="button-switch">
+        <input id="enable-map-initial-area" type="checkbox" />
+        <label for="enable-map-initial-area" class="label-success"></label>
+      </div>
+    </div>
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-5 pull-left padding-left-zero">
+      <label class="required-label" for="location-address-input">initial Area Location</label>
+    </div>
+    <div class="col-md-7 pull-right padding-right-zero">
+      <input type="text" class="form-control" required maxlength="100" id="initial-area-location-input" placeholder="" />
+    </div>
+  </div>
+  <div id="location-map">
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-5 pull-left padding-left-zero">
+      <label class="btn-description">Allow Offline Area selection</label>
+    </div>
+    <div class="col-md-7 pull-right padding-right-zero">
+      <div class="button-switch">
+        <input id="enable-offline-area-selection" type="checkbox" />
+        <label for="enable-offline-area-selection" class="label-success"></label>
+      </div>
+    </div>
+  </div>
+</template>
