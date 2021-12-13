@@ -38,6 +38,7 @@
     "Promise": "readonly",
     "buildfire": "readonly",
     "mdc": "readonly",
-    "tinymce": "readonly"
+    "tinymce": "readonly",
+    "google": "readonly"
   }
 }

@@ -302,11 +302,12 @@ let selectedLocation = {
     }
   }
 };
+let mainMap;
 
 // todo to be removed
 const testingFn = () => {
   settings.showIntroductoryListView = false;
-  settings.design.listViewStyle = 'else';
+  settings.design.listViewStyle = 'image';
   settings.design.detailsMapPosition = 'bottom'; // top or bottom
   if (settings.introductoryListView.images.length === 0) {
     settings.introductoryListView.images = [
@@ -504,7 +505,9 @@ const renderListingLocations = () => {
       </div>`)).join('\n');
   }
 };
-
+const updateMapMarkers = (locations) => {
+  locations.forEach((location) => addMarker(location));
+};
 const fetchIntroductoryLocations = (done) => {
   introductoryLocationsPending = true;
   WidgetController
@@ -513,6 +516,7 @@ const fetchIntroductoryLocations = (done) => {
       introductoryLocations = introductoryLocations.concat(response.result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })));
       introductoryLocationsCount = response.totalRecord;
       introductoryLocationsPending = false;
+      updateMapMarkers(response.result);
       done(null, response.result);
     })
     .catch((err) => {
@@ -1024,12 +1028,56 @@ const navigateTo = (template) => {
     document.querySelector(`section#${template}`).classList.add('active');
 };
 
+const initMapViewMap = () => {
+  const mapTypeId = google.maps.MapTypeId.ROADMAP;
+  const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
+
+  const options = {
+    minZoom: 3,
+    maxZoom: 19,
+    center: { lat: 38.70290288229097, lng: 35.52352225602528 },
+    zoom: 15,
+    streetViewControl: false,
+    mapTypeControl: true,
+    fullscreenControl: false,
+    gestureHandling: 'greedy',
+    mapTypeId,
+    zoomControlOptions: {
+      position: zoomPosition
+    }
+  };
+
+  mainMap = new google.maps.Map(document.getElementById('mainMapContainer'), options);
+};
+
+
+const addMarker = (location) => {
+  if (mainMap) {
+
+    const iconOptions = {
+      url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
+      scaledSize: new google.maps.Size(20, 20),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(10, 10)
+    };
+
+    let marker = new google.maps.Marker({
+      position: location.coordinates,
+      markerData: location,
+      map: mainMap,
+      icon: iconOptions
+    });
+
+    marker.addListener('click', () => { console.log('marker clicked'); });
+  }
+};
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
   fetchCategories(() => {
     initFilterOverlay();
     refreshQuickFilter(); // todo if quick filter enabled
+    initMapViewMap();
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
         renderIntroductoryLocations(introductoryLocations);
