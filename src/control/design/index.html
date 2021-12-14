@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!--
@@ -10,19 +11,132 @@
         to keep you plugin as light weight as possible for performance and transport reasons
   -->
 
-  <!-- You can load helper.css to use our helper classes.
+  <!-- You can load helper.css to use our helper classes. -->
   <link href="../../../../styles/helper.css" rel="stylesheet">
-  -->
+  <link rel="stylesheet" href="../assests/style.css">
 
   <!-- JS -->
   <script src="../../../../scripts/buildfire.min.js"></script>
 </head>
-<body>
-  <h1>Design - Hello World</h1>
 
+<body>
+  <div class="main-content">
+    <div class="section-title">Location View</div>
+    <div class="clearfix info">
+      <p class="info">Description.</p>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">List View Position</label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero flex-row space-between align-items-center">
+        <div class="col-md-4 margin-top-zero radio radio-primary">
+          <input type="radio" name="listViewPosition" id="position-expanded" value="expanded" />
+          <label for="position-expanded">Expanded</label>
+        </div>
+        <div class="col-md-4 radio radio-primary">
+          <input type="radio" name="listViewPosition" id="position-collapsed" value="collapsed" />
+          <label for="position-collapsed">Collapsed</label>
+        </div>
+        <div class="col-md-4 radio radio-primary">
+          <input type="radio" name="listViewPosition" id="position-halfExpanded" value="halfExpanded" />
+          <label for="position-halfExpanded">Half Expanded</label>
+        </div>
+      </div>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">Default List View Style</label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero flex-row align-items-center">
+        <div class="col-md-4 margin-top-zero radio radio-primary">
+          <input type="radio" name="defaultListViewStyle" id="style-background" value="backgroundImage" />
+          <label for="style-background">Background Image</label>
+        </div>
+        <div class="col-md-4 radio radio-primary">
+          <input type="radio" name="defaultListViewStyle" id="style-small" value="smallImage" />
+          <label for="style-small">Small Image</label>
+        </div>
+      </div>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">Default Map Style</label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero">
+        <div class="flex-row align-items-center">
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="defaultMapStyle" id="map-style-streets" value="streets" />
+            <label for="map-style-streets">Streets</label>
+          </div>
+          <div class="col-md-4 radio radio-primary">
+            <input type="radio" name="defaultMapStyle" id="map-style-terrain" value="terrain" />
+            <label for="map-style-terrain">Terrain</label>
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="flex-row align-items-center">
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="defaultMapStyle" id="map-style-satellite" value="satellite" />
+            <label for="map-style-satellite">Satellite</label>
+          </div>
+          <div class="col-md-4 radio radio-primary">
+            <input type="radio" name="defaultMapStyle" id="map-style-dark" value="terrain" />
+            <label for="map-style-dark">Dark</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">Allow User's Map Style Selection</label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero flex-row">
+        <div class="button-switch">
+          <input id="allow-map-style-selection-btn" type="checkbox" />
+          <label for="allow-map-style-selection-btn" class="label-success"></label>
+        </div>
+      </div>
+    </div>
+    <hr class="none" />
+    <div class="section-title">Location Details Screen</div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">Show Category and Subcategory on Location details screen </label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero flex-row">
+        <div class="button-switch">
+          <input id="show-category-on-loc-details-btn" type="checkbox" />
+          <label for="show-category-on-loc-details-btn" class="label-success"></label>
+        </div>
+      </div>
+    </div>
+    <hr class="none" />
+    <div class="form-group main clearfix">
+      <div class="col-md-4 pull-left padding-left-zero">
+        <label class="">Map Position</label>
+      </div>
+      <div class="col-md-8 pull-right padding-right-zero flex-row align-items-center">
+        <div class="col-md-4 margin-top-zero radio radio-primary">
+          <input type="radio" name="mapPosition" id="map-position-top" value="top" />
+          <label for="map-position-top">Top</label>
+        </div>
+        <div class="col-md-4 radio radio-primary">
+          <input type="radio" name="mapPosition" id="map-position-bottom" value="bottom" />
+          <label for="map-position-bottom">Bottom</label>
+        </div>
+      </div>
+    </div>
+  </div>
   <!--
     Do not include the 'design.js' script tag!
     Webpack will inject it automatically to this html's body
   -->
 </body>
+
 </html>
