@@ -23,6 +23,7 @@ let introductoryLocationsCount = 0;
 let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
+let drawerTimeout;
 let selectedLocation = {
   "id": null,
   "title": "Hacı Steakhouse",
@@ -590,24 +591,52 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
+
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  const lowerMargin = 100;
-  const upperMargin = 125;
   let originalHeight = 0;
-  let originalY = 0;
   let originalMouseY = 0;
 
-  const resize = (e) => {
-    const height = originalHeight - (e.pageY - originalMouseY);
-    if (height > lowerMargin && height < (screenHeight - upperMargin)) {
-      console.log('resize called in if');
-      element.style.height = `${height}px`;
-      element.style.top = `${originalY + (e.pageY - originalMouseY)}px`;
-    }
+  element.style.height = '40px';
+  element.style.top = `${screenHeight - 40}px`;
+  const positions = {
+    expanded: screenHeight - 150,
+    centered: (screenHeight / 2),
+    collapsed: 40
   };
+  const resize = (e, execute = false) => {
+    if (!execute) {
+      clearTimeout(drawerTimeout);
+      drawerTimeout = setTimeout(() => { resize(e, true); }, 100);
+      return;
+    }
+
+    stopResize();
+    let targetTop;
+    let targetHeight;
+    if (e.pageY > originalMouseY) {
+      if (originalHeight > positions.centered) {
+        targetTop = screenHeight - positions.centered;
+        targetHeight = positions.centered;
+      } else {
+        targetHeight = positions.collapsed;
+        targetTop = screenHeight - positions.collapsed;
+      }
+    } else if (e.pageY < originalMouseY) {
+      if (originalHeight >= positions.centered) {
+        targetHeight = positions.expanded;
+        targetTop = screenHeight - positions.expanded;
+      } else {
+        targetHeight = positions.centered;
+        targetTop = screenHeight - positions.centered};
+    }
+
+    element.style.height = `${targetHeight}px`;
+    element.style.top = `${targetTop}px`;
+  };
+
   const stopResize = () => {
     document.removeEventListener('mousemove', resize);
   };
@@ -618,7 +647,6 @@ const initDrawer = () => {
   resizer.addEventListener('mousedown', (e) => {
     e.preventDefault();
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
-    originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY;
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
@@ -627,7 +655,6 @@ const initDrawer = () => {
   resizer.addEventListener('touchstart', (e) => {
     e.preventDefault();
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
-    originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY;
     document.addEventListener('touchmove', resize);
     document.addEventListener('touchend', stopTouchResize);
