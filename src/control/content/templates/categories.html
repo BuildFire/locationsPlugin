@@ -1,20 +1,18 @@
 <template>
-  <div class="section-title">Categories</div>
-  <div class="clearfix info">
-    <p class="info">
+  <h1 class="section-title">Categories</h1>
+  <div class="clearfix">
+    <p class="info-note">
       Please create the main the categories that your location and places can be
       grouped under for easy access by user.
     </p>
   </div>
   <hr class="none" />
-  <div class="input-group search-box">
-    <input type="text" class="form-control" placeholder="Search" id="category-search-input"
+  <div class="search-bar">
+    <input type="text"  placeholder="Search" id="category-search-input"
       onkeyup="searchCategories()" />
-    <span class="input-group-btn">
       <button class="btn btn-info" type="button" onclick="searchCategories()">
-        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+        <div class="search-icon">
       </button>
-    </span>
   </div>
   <hr class="none" />
   <div class="actions">
@@ -45,29 +43,27 @@
           <li><a onclick="exportCategories()">Export</a></li>
         </ul>
       </div>
-      <button type="button" class="btn btn-success btn--lg" onclick="addEditCategory()">
-        + Add Category
+      <button type="button" class="btn btn-success btn-add" onclick="addEditCategory()">
+        Add Category
       </button>
     </div>
   </div>
   <div id="items"></div>
-  <div class="text-center clearfix well hidden margin-top-fifteen" id="category-empty-list">
-    <h5>No Categories Added!</h5>
+  <div class="empty-state hidden margin-top-fifteen" id="category-empty-list">
+    <h4>No Categories Added!</h4>
   </div>
 
   <template id="addCategoryTemplate">
     <div class="sub-page">
       <div class="sub-page-body padded">
-        <div class="section-title">Add Category</div>
-        <div class="clearfix info">
-          <p class="info">Description.</p>
+        <h1 class="section-title">Add Category</h1>
+        <div class="clearfix">
+          <p class="info-note">Description.</p>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
-            <label class="required-label" for="category-icon-btn">Category Icon</label>
-          </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+        <div class="input-control side-label">
+          <label class="" for="category-icon-btn">Category Icon</label>
+          <div>
             <div class="icon-holder" id="category-icon-btn">
               <span class="add-icon text-success"> + </span>
               <img class="image-icon hidden" />
@@ -76,11 +72,9 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
-            <label class="required-label" for="category-name">Category Name</label>
-          </div>
-          <div class="col-md-8 pull-right padding-right-zero">
+        <div class="input-control side-label">
+          <label class="required-label" for="category-name">Category Name</label>
+          <div>
             <input type="text" class="form-control" required maxlength="100" id="category-name-input" placeholder="" />
             <div id="category-name-error" class="text-danger hidden">
               Required
@@ -88,13 +82,11 @@
           </div>
         </div>
         <hr class="none" />
-        <div class="input-group search-box">
-          <input type="text" class="form-control" placeholder="Search" name="searchTxt" id="subcategory-search-input" />
-          <span class="input-group-btn">
-            <button class="btn btn-info" type="button" id="subcategory-search-btn">
-              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-            </button>
-          </span>
+        <div class="search-bar">
+          <input type="text" placeholder="Search" name="searchTxt" id="subcategory-search-input" />
+          <button class="btn btn-info" type="button" id="subcategory-search-btn">
+            <div class="search-icon">
+          </button>
         </div>
         <hr class="none" />
         <div class="actions">
@@ -116,21 +108,20 @@
                 <li><a id="subcategory-export-btn">Export</a></li>
               </ul>
             </div>
-            <button type="button" class="btn btn-success btn--lg" id="subcategory-add-btn">
-              + Add Subcategory
+            <button type="button" class="btn btn-success btn-add" id="subcategory-add-btn">
+              Add Subcategory
             </button>
           </div>
         </div>
         <hr class="none" />
-        <div class="clearfix info">
-          <p class="info">
+        <div class="clearfix">
+          <p class="info-note">
             Include this category in the following category types.
           </p>
         </div>
-        <hr class="none" />
         <div id="subcategory-items"></div>
-        <div id="emptyState" class="well text-center hidden">
-          <h5>No Subcategories Added!</h5>
+        <div id="emptyState" class="empty-state hidden">
+          <h4>No Subcategories Added!</h4>
         </div>
       </div>
       <div class="sub-page-footer padded">
@@ -142,11 +133,13 @@
     </div>
   </template>
   <template id="addSubcategoryTemplate">
-    <div class="form-group clearfix">
+    <div class="input-control side-label">
       <label class="required-label" for="subcategory-name-input">Subcategory Name</label>
-      <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"
-        placeholder="Max 30 characters" />
-      <div id="subcategory-name-input-error" class="text-danger hidden">Required</div>
+      <div>
+        <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"
+          placeholder="Max 30 characters" />
+        <div id="subcategory-name-input-error" class="text-danger hidden">Required</div>
+      </div>
     </div>
   </template>
 </template>
