@@ -30,7 +30,7 @@ class PinnedLocationsList extends SortableListUI {
     title.innerHTML = item.title;
 
     const mediaHolder = document.createElement("div");
-    mediaHolder.className = "icon-holder";
+    mediaHolder.className = "media-holder";
 
     if (item.listImage) {
       const img = document.createElement("img");
