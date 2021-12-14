@@ -142,12 +142,12 @@ let selectedLocation = {
   },
   "images": [
     {
-      "id": "1e4ec407-da35-49b9-8008-bd8f5be6f9a7",
-      "imageUrl": "https://images.unsplash.com/photo-1554919428-20d72fa44a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mnx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
       "id": "63382c21-41d5-48c7-bacd-9fc61baf5ab8",
       "imageUrl": "https://images.unsplash.com/photo-1541557435984-1c79685a082b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NHx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
+    },
+    {
+      "id": "1e4ec407-da35-49b9-8008-bd8f5be6f9a7",
+      "imageUrl": "https://images.unsplash.com/photo-1554919428-20d72fa44a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mnx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
     },
     {
       "id": "2c80db58-abf2-4cd4-9a24-9a5db610ee73",
@@ -178,7 +178,7 @@ let selectedLocation = {
       "imageUrl": "https://images.unsplash.com/photo-1503022065603-daff0ed8a64a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NjZ8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDYz&ixlib=rb-1.2.1&q=80&w=1080"
     }
   ],
-  "listImage": "https://images.unsplash.com/photo-1582196016295-f8c8bd4b3a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MTl8fGJ1cmdlcnxlbnwwfHx8fDE2Mzg5NTYwMzM&ixlib=rb-1.2.1&q=80&w=1080",
+  "listImage": "https://images.unsplash.com/photo-1600891964923-c75689eb86d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080",
   "description": "<div>\n<p><strong>Lorem Ipsum</strong>&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>\n</div>\n<div>&nbsp;</div>",
   "owner": {
     "userId": "61241b2ddec0be058398daed",
@@ -516,7 +516,7 @@ const fetchIntroductoryLocations = (done) => {
       introductoryLocations = introductoryLocations.concat(response.result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })));
       introductoryLocationsCount = response.totalRecord;
       introductoryLocationsPending = false;
-      updateMapMarkers(response.result);
+      updateMapMarkers(introductoryLocations);
       done(null, response.result);
     })
     .catch((err) => {
@@ -853,7 +853,7 @@ const initEventListeners = () => {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
-    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item'))  {
+    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (e.target.id === 'workingHoursBtn') {
@@ -1050,10 +1050,35 @@ const initMapViewMap = () => {
   mainMap = new google.maps.Map(document.getElementById('mainMapContainer'), options);
 };
 
-
+const handleMarkerClick = (location, marker) => {
+  const summaryContainer = document.querySelector('#locationSummary');
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
+            <div class="location-summary__header">
+              <p>${location.distance ? location.distance : '--'}</p>
+              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            </div>
+            <div class="location-summary__body">
+              <p class="margin-bottom-five">${location.title}</p>
+              <p class="margin-top-zero">${transformCategories(location.categories)}</p>
+              <p>
+                <span>${location.subtitle}</span>
+              </p>
+            </div>
+            <div class="mdc-chip-set" role="grid">
+              ${location.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+                <div class="mdc-chip__ripple"></div>
+                <span role="gridcell">
+                    <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                      <span class="mdc-chip__text">${a.title}</span>
+                    </span>
+                  </span>
+              </div>`).join('\n')}
+            </div>
+          </div>`;
+  summaryContainer.classList.add('slide-in');
+};
 const addMarker = (location) => {
   if (mainMap) {
-
     const iconOptions = {
       url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
       scaledSize: new google.maps.Size(20, 20),
@@ -1061,14 +1086,16 @@ const addMarker = (location) => {
       anchor: new google.maps.Point(10, 10)
     };
 
-    let marker = new google.maps.Marker({
+    const marker = new google.maps.Marker({
       position: location.coordinates,
       markerData: location,
       map: mainMap,
       icon: iconOptions
     });
 
-    marker.addListener('click', () => { console.log('marker clicked'); });
+    marker.addListener('click', () => {
+      handleMarkerClick(location, marker);
+    });
   }
 };
 const initHomeView = () => {
