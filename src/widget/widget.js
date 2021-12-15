@@ -591,16 +591,21 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
-
+const resetDrawer = () => {
+  const element = document.querySelector('.drawer');
+  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  element.style.height = `${40}px`;
+  element.style.top = `${screenHeight - 40}px`;
+};
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
   const resizer = document.querySelector('.drawer .resizer');
+  const locationSummary = document.querySelector('#locationSummary');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   let originalHeight = 0;
   let originalMouseY = 0;
 
-  element.style.height = '40px';
-  element.style.top = `${screenHeight - 40}px`;
+  resetDrawer();
   const positions = {
     expanded: screenHeight - 150,
     centered: (screenHeight / 2),
@@ -630,7 +635,12 @@ const initDrawer = () => {
         targetTop = screenHeight - positions.expanded;
       } else {
         targetHeight = positions.centered;
-        targetTop = screenHeight - positions.centered};
+        targetTop = screenHeight - positions.centered;
+      }
+      if (locationSummary.classList.contains('slide-in')) {
+        locationSummary.classList.add('slide-out');
+        locationSummary.classList.remove('slide-in');
+      }
     }
 
     element.style.height = `${targetHeight}px`;
@@ -1102,6 +1112,8 @@ const handleMarkerClick = (location, marker) => {
               </div>`).join('\n')}
             </div>
           </div>`;
+  resetDrawer();
+  summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
 const addMarker = (location) => {
@@ -1191,7 +1203,19 @@ const clearTemplate = (template) => {
   }
   document.querySelector(`section#${template}`).innerHTML = '';
 };
+const initGoogleMapsSDK = () => {
+  const { apiKeys } = buildfire.getContext();
+  const { googleMapKey } = apiKeys;
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}`;
+  script.onload = () => {
+    console.info('Successfully loaded Google\'s Maps SDK.');
+  };
+  document.head.appendChild(script);
+};
 const init = () => {
+  initGoogleMapsSDK();
   fetchSettings(() => {
     fetchTemplate('filter', injectTemplate);
     fetchTemplate('home', initHomeView);

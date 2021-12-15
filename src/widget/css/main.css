@@ -335,6 +335,7 @@ div.empty-page {
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   overflow-y: scroll;
+  z-index: 100;
 /* todo rethink below approach */
   margin-left: -15px;
 }
@@ -354,7 +355,7 @@ div.empty-page {
   position: sticky;
   top: 0;
   background-color: #ffffff;
-  z-index: 2;
+  z-index: 1;
 }
 .drawer-header .bookmark-result p {
   font-size: 14px;
