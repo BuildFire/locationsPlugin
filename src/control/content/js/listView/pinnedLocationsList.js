@@ -25,8 +25,8 @@ class PinnedLocationsList extends SortableListUI {
     moveHandle.className = "icon icon-menu cursor-grab";
     title.className = "title ellipsis item-title";
 
-    deleteButton.className = "btn btn--icon icon icon-cross2";
-    editButton.className = "btn btn--icon icon icon-pencil3";
+    deleteButton.className = "btn--icon icon icon-cross2";
+    editButton.className = "btn--icon icon icon-pencil";
     title.innerHTML = item.title;
 
     const mediaHolder = document.createElement("div");

@@ -230,7 +230,7 @@ export default class SearchTableHelper {
       let td = this._create(
         "td",
         tr,
-        '<span class="btn--icon icon icon-pencil3"></span>',
+        '<span class="btn--icon icon icon-pencil"></span>',
         ["editColumn"]
       );
       td.onclick = () => {
