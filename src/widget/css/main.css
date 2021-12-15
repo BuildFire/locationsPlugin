@@ -331,7 +331,7 @@ div.empty-page {
   width: 100%;
   overflow: hidden;
   background-color: #ffffff;
-  transition: all 0.125s;
+  transition: all 0.25s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   overflow-y: scroll;

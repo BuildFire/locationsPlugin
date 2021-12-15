@@ -619,6 +619,7 @@ const initDrawer = () => {
     }
 
     stopResize();
+    stopTouchResize();
     let targetTop;
     let targetHeight;
     if (e.pageY > originalMouseY) {
@@ -659,7 +660,7 @@ const initDrawer = () => {
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalMouseY = e.pageY;
     document.addEventListener('mousemove', resize);
-    document.addEventListener('mouseup', stopResize);
+    // document.addEventListener('mouseup', stopResize);
   });
 
   resizer.addEventListener('touchstart', (e) => {
@@ -667,7 +668,7 @@ const initDrawer = () => {
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalMouseY = e.pageY;
     document.addEventListener('touchmove', resize);
-    document.addEventListener('touchend', stopTouchResize);
+    // document.addEventListener('touchend', stopTouchResize);
   });
 };
 const transformCategories = (categories) => {
