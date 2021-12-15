@@ -60,7 +60,7 @@ label{
   font-size: .75rem;
 }
 h4, h5, h6 {
-font-family: 'Conv_apercu_bold','Helvetica','Sans-Serif','Arial';
+font-family: 'Conv_apercu_bold','Helvetica','Sans-Serif','Arial' !important;
 margin-bottom: .5em;    
 }
 .section-title, h1{
@@ -70,7 +70,7 @@ margin-bottom: .5em;
   padding-top: .875rem;
   margin-bottom: 1.5rem;
   margin-top: 0;
-  font-family: 'Conv_apercu_bold','Helvetica','Sans-Serif','Arial';
+  font-family: 'Conv_apercu_bold','Helvetica','Sans-Serif','Arial' !important;
 }
 .section-title::before,
 h1::before {
@@ -91,7 +91,7 @@ h1::before {
   padding-top: .875rem;
   margin-bottom: 1.25rem;
   margin-top: 0;
-  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial'; 
+  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial' !important; 
 }
 
 /* Form Controls */
@@ -101,7 +101,7 @@ input[type="date"],
 input[type="email"],
 input[type="number"],
 textarea{
-  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial';
+  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial' !important;
   font-size: .875rem;
   padding: .375rem .75rem;
   border: 1px solid var(--c-gray3);
@@ -136,7 +136,7 @@ input[type="password"]:active {
     border: 1px solid var(--c-primary);
 }
 input[type="text"]::placeholder {
-  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial';
+  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial' !important;
   font-size: .875rem;
   color: var(--c-gray4);
 }
@@ -157,6 +157,9 @@ span.required{
   font-size: inherit;
   color: var(--c-danger);
   padding-right: .5rem;
+}
+.form-group label {
+  font-size: .875rem;
 }
 .input-control.required label::after{
   content: "*";
@@ -259,7 +262,7 @@ button{
   box-shadow: 0;
 }
 .btn {
-    font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial';
+    font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial' !important;
     font-size: .75rem;
     min-width: 6rem;
     height: 2.125rem;
@@ -618,7 +621,7 @@ color: var(--c-primary);
 }
 
 .table span.email {
-  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial';
+  font-family: 'Conv_apercu_regular','Helvetica','Sans-Serif','Arial' !important;
   font-size: .875rem;
   padding: .5rem .75rem;
   border: 1px solid transparent;

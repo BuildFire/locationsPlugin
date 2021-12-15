@@ -1,20 +1,17 @@
 <template>
-  <div class="section-title">Locations</div>
-  <div class="clearfix info">
-    <p class="info">
+  <h1 class="section-title">Locations</h1>
+  <div class="clearfix">
+    <p class="info-note">
       Please create the main the categories that your location and places can be
       grouped under for easy access by user.
     </p>
   </div>
-  <hr class="none" />
-  <div class="input-group search-box margin-left-zero">
-    <input type="text" class="form-control" placeholder="Search" id="location-search-input"
+  <div class="search-bar">
+    <input type="text" placeholder="Search" id="location-search-input"
       onkeyup="searchLocations(event)" />
-    <span class="input-group-btn">
-      <button class="btn btn-info" type="button">
-        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-      </button>
-    </span>
+    <button class="btn btn-info" type="button">
+      <div class="search-icon">
+    </button>
   </div>
   <hr class="none" />
   <div class="actions">
@@ -32,23 +29,22 @@
         <li><a onclick="exportLocations()">Export</a></li>
       </ul>
     </div>
-    <button type="button" class="btn btn-success btn--lg" onclick="addEditLocation()">
-      + Add Location
+    <button type="button" class="btn btn-success btn-add" onclick="addEditLocation()">
+       Add Location
     </button>
   </div>
   <table id="locations-items" class="table table-striped margin-top-fifteen margin-bottom-zero">
   </table>
-  <div class="text-center well hidden" id="location-empty-list">
-    <h5>No Locations Added!</h5>
+  <div class="empty-state hidden" id="location-empty-list">
+    <h4>No Locations Added!</h4>
   </div>
   <template id="addLocationTemplate">
     <div class="sub-page">
       <div class="sub-page-body padded">
         <div class="section-title">Location Details</div>
-        <div class="clearfix info">
-          <p class="info">Description.</p>
+        <div class="clearfix">
+          <p class="info-note">Description.</p>
         </div>
-        <hr class="none" />
         <div class="form-group main clearfix">
           <div class="col-md-3 pull-left padding-left-zero">
             <label class="required-label" for="location-title-input">Location Title</label>
@@ -185,7 +181,7 @@
               <div>
                 <button class="btn btn-primary" id="location-edit-categories-btn">Edit Location Categories</button>
               </div>
-              <div class="form-group">
+              <div class="form-group flex-row">
                   <label>Show category on Location Screen</label>
                   <div class="button-switch">
                       <input id="location-show-category-toggle" type="checkbox" onclick="" checked/>
@@ -316,8 +312,10 @@
           </div>
         </div>
         <hr class="none" /> 
-        <div class="main clearfix">
-          <label class="required-label">Description</label>
+        <div class="form-group main clearfix">
+          <div>
+            <label class="required-label">Description</label>
+          </div>
           <div>
             <textarea id="location-description-wysiwyg" name="content"></textarea>
           </div>
@@ -330,8 +328,8 @@
         <div>
           <h5 class="text-bold">Location Action</h5>
           <hr class="none" />
-          <div class="clearfix info">
-            <p class="info">Description.</p>
+          <div class="clearfix">
+            <p class="info-note">Description.</p>
           </div>
         </div>
         <hr class="none" />

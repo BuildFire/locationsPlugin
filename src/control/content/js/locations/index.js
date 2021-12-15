@@ -758,8 +758,8 @@ const creatCheckboxElem = () => {
 
 const createEmptyHolder = (message) => {
   const div = document.createElement("div");
-  div.className = 'well text-center margin-top-fifteen';
-  div.innerHTML = `<hr class="none"><h5>${ message? message : 'No Data' }!</h5>`;
+  div.className = 'empty-state margin-top-fifteen';
+  div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }!</h4>`;
   return div;
 };
 

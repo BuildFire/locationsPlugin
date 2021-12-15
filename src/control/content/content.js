@@ -103,7 +103,7 @@ window.onSidenavChange = (section) => {
 };
 
 const init = () => {
-  onSidenavChange('categories');
+  onSidenavChange('locations');
 };
 
 authManager.enforceLogin(init);
