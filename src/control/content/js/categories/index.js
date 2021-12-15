@@ -466,10 +466,10 @@ window.downloadCategoryTemplate = () => {
 const handleCategoriesEmptyState = (isLoading) => {
   const emptyState = categories.querySelector('#category-empty-list');
   if (isLoading) {
-    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.categories.length === 0) {
-    emptyState.innerHTML = `<h5>No Categories Added</h5>`;
+    emptyState.innerHTML = `<h4>No Categories Added</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');

@@ -1,6 +1,7 @@
+/* eslint-disable no-restricted-syntax */
 // This is the entry point of your plugin's settings control.
 // Feel free to require any local or npm modules you've installed.
-
+import buildfire from 'buildfire';
 import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
@@ -23,16 +24,16 @@ const state = {
     allowForLocations: "Allow Bookmark Location",
     allowForFilters: "Allow Bookmark Search"
   }
-}
+};
 
 const initChat = () => {
   const allowChat = document.querySelector('#allow-chat-btn');
   allowChat.checked = state.settings.chat.allowChat;
   allowChat.onchange = (e) => {
     state.settings.chat.allowChat = e.target.checked;
-    saveSettings()
-  }
-}
+    saveSettings();
+  };
+};
 
 const initSorting = () => {
   const sortingSettings = new Settings().sorting;
@@ -71,11 +72,11 @@ const initSorting = () => {
       console.log(e.target.checked);
       state.settings.sorting[key] = e.target.checked;
       saveSettings();
-    }
+    };
 
     sortingOptionsContainer.appendChild(switchBtn);
   }
-}
+};
 
 const initFiltering = () => {
   const filterSettings = new Settings().filter;
@@ -100,11 +101,11 @@ const initFiltering = () => {
     btn.onchange = (e) => {
       state.settings.filter[key] = e.target.checked;
       saveSettings();
-    }
+    };
 
     filterOptionsContainer.appendChild(switchBtn);
   }
-}
+};
 
 const iniBookmarks = () => {
   const bookmarkSettings = new Settings().bookmarks;
@@ -116,7 +117,7 @@ const iniBookmarks = () => {
   enableBookmarksBtn.onchange = (e) => {
     state.settings.bookmarks.enabled = e.target.checked;
     saveSettings();
-  }
+  };
 
   for (const key of Object.keys(bookmarkSettings)) {
     if (typeof bookmarkSettings[key] !== 'boolean' || key === 'enabled') {
@@ -135,11 +136,11 @@ const iniBookmarks = () => {
     btn.onchange = (e) => {
       state.settings.bookmarks[key] = e.target.checked;
       saveSettings();
-    }
+    };
 
     bookmarkOptionsContainer.appendChild(switchBtn);
   }
-}
+};
 
 const initMap = () => {
   const distanceUnitsRadios = document.querySelectorAll('input[name="distanceUnits"]');
@@ -175,12 +176,12 @@ const initMap = () => {
       const value = e.target.value;
       state.settings.map.distanceUnit = value;
       saveSettings();
-    }
+    };
   }
 
   // load map
   loadMap();
-}
+};
 
 window.intiGoogleMap = () => {
   const searchBoxElem = document.querySelector('#initial-area-location-input');
@@ -215,7 +216,7 @@ window.intiGoogleMap = () => {
   const currentPosition = {
     lat: state.settings.map.initialAreaCoordinates.lat,
     lng: state.settings.map.initialAreaCoordinates.lng
-  }
+  };
 
   if (state.settings.map.initialAreaString) {
     searchBoxElem.value = state.settings.map.initialAreaString;
@@ -296,15 +297,15 @@ const loadMap = () => {
   });
 };
 
- const createTemplate = (templateId) => {
+const createTemplate = (templateId) => {
   const template = document.getElementById(`${templateId}`);
   return document.importNode(template.content, true);
 };
 
 const createLoadingState = () => {
   const div = document.createElement("div");
-  div.className = 'well text-center';
-  div.innerHTML = `<hr class="none"><h5>Loading...</h5>`;
+  div.className = 'empty-state';
+  div.innerHTML = `<h4>Loading...</h4>`;
   return div;
 };
 
@@ -316,6 +317,7 @@ const fetchTemplate = (template, callback) => {
   }
 
   // show loading state
+  document.querySelector(`#main`).innerHTML = '';
   document.querySelector(`#main`).appendChild(createLoadingState());
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {
@@ -403,7 +405,7 @@ const saveSettings = () => {
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
-    onSidenavChange('chat')
+    onSidenavChange('chat');
   }).catch(console.error);
 };
 

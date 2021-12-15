@@ -15,8 +15,8 @@ const templates = {};
 
 const createLoadingState = () => {
   const div = document.createElement("div");
-  div.className = 'well text-center';
-  div.innerHTML = `<hr class="none"><h5>Loading...</h5>`;
+  div.className = 'empty-state';
+  div.innerHTML = `<h4>Loading...</h4>`;
   return div;
 };
 
@@ -29,6 +29,7 @@ const fetchTemplate = (template, callback) => {
   }
 
   // show loading state
+  document.querySelector(`#main`).innerHTML = '';
   document.querySelector(`#main`).appendChild(createLoadingState());
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {

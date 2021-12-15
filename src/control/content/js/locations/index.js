@@ -908,10 +908,10 @@ const deleteLocation = (item, row, callback = () => {}) => {
 const handleLocationEmptyState = (isLoading) => {
   const emptyState = locationsSection.querySelector('#location-empty-list');
   if (isLoading) {
-    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    emptyState.innerHTML = `<h5>No Locations Added</h5>`;
+    emptyState.innerHTML = `<h4>No Locations Added</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
