@@ -98,7 +98,6 @@ const initFiltering = () => {
 
     btn.checked = state.settings.filter[key];
     btn.onchange = (e) => {
-      console.log(e.target.checked);
       state.settings.filter[key] = e.target.checked;
       saveSettings();
     }
@@ -302,6 +301,13 @@ const loadMap = () => {
   return document.importNode(template.content, true);
 };
 
+const createLoadingState = () => {
+  const div = document.createElement("div");
+  div.className = 'well text-center';
+  div.innerHTML = `<hr class="none"><h5>Loading...</h5>`;
+  return div;
+};
+
 const fetchTemplate = (template, callback) => {
   if (templates[template]) {
     console.warn(`template ${template} already exist.`);
@@ -309,6 +315,8 @@ const fetchTemplate = (template, callback) => {
     return;
   }
 
+  // show loading state
+  document.querySelector(`#main`).appendChild(createLoadingState());
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {
     const content = xhr.responseText;

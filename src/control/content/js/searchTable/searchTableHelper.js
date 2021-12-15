@@ -1,15 +1,16 @@
+/* eslint-disable class-methods-use-this */
 import DataMocks from "../../../../DataMocks";
 import buildfire from "buildfire";
 
 export default class SearchTableHelper {
-  constructor(tableId,  config) {
+  constructor(tableId, config) {
     if (!config) throw "No config provided";
     if (!tableId) throw "No tableId provided";
     this.table = document.getElementById(tableId);
     if (!this.table) throw "Cant find table with ID that was provided";
     this.config = config;
     this.tag = null;
-    this.items = [] ;
+    this.items = [];
     this.sort = {};
     this.commands = {};
     this.init();
@@ -36,7 +37,7 @@ export default class SearchTableHelper {
           "icon-chevron-down",
         ]);
         const _t = this;
-        th.addEventListener("click",  () => {
+        th.addEventListener("click", () => {
           if (_t.sort[colConfig.sortBy] && _t.sort[colConfig.sortBy] > 0) {
             _t.sort = { [colConfig.sortBy]: -1 };
             icon.classList.remove("icon-chevron-up");
@@ -96,16 +97,20 @@ export default class SearchTableHelper {
   }
 
   renderData(items, categories = []) {
-    this.tbody.innerHTML = '';
+    this.tbody.innerHTML = "";
     items.forEach((location) => {
-      const selectedCategories = categories.filter(elem => location.categories.main.includes(elem.id));
-      location.categoriesName = selectedCategories.map(elem => elem.title).join(', ');
+      const selectedCategories = categories.filter((elem) =>
+        location.categories.main.includes(elem.id)
+      );
+      location.categoriesName = selectedCategories
+        .map((elem) => elem.title)
+        .join(", ");
       this.renderRow(location);
     });
   }
 
   clearData() {
-    this.tbody.innerHTML = '';
+    this.tbody.innerHTML = "";
     this.items = [];
   }
 
@@ -129,10 +134,10 @@ export default class SearchTableHelper {
       pageSize: pageSize,
     };
 
-	const results = DataMocks.generate('LOCATION', 10);
+    const results = DataMocks.generate("LOCATION", 10);
     this.searchOptions = options;
-	this.tbody.innerHTML = '';
-	results.forEach((r) => this.renderRow(r));
+    this.tbody.innerHTML = "";
+    results.forEach((r) => this.renderRow(r));
   }
 
   _onCommand(obj, tr, command) {
@@ -144,7 +149,7 @@ export default class SearchTableHelper {
   }
 
   getImage(obj) {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     if (obj.listImage) {
       const img = document.createElement("img");
       img.src = this._cropImage(obj.listImage, {
@@ -154,7 +159,7 @@ export default class SearchTableHelper {
 
       div.appendChild(img);
     } else {
-      const span = document.createElement('span');
+      const span = document.createElement("span");
       span.className = "add-icon text-success";
       span.innerHTML = "+";
       div.appendChild(span);
@@ -214,7 +219,7 @@ export default class SearchTableHelper {
     let ctd = this._create(
       "td",
       tr,
-      '<span class="btn--icon icon icon-copy"></span>',
+      '<span class="btn--icon icon icon-download2"></span>',
       ["deleteColumn"]
     );
     ctd.onclick = () => {
@@ -247,13 +252,13 @@ export default class SearchTableHelper {
       };
     }
 
-  
     this.onRowAdded(obj, tr);
   }
 
   onSearchSet(options) {
     return options;
   }
+
   onRowAdded(obj, tr) {}
 
   onEditRow(obj, tr) {
@@ -264,9 +269,9 @@ export default class SearchTableHelper {
     console.log("Record Delete", obj);
   }
 
-  onSort(sort) {
+  onSort(sort) {}
 
-  }
+  onCopy(obj) {}
 
   onCommand(command, cb) {
     this.commands[command] = cb;

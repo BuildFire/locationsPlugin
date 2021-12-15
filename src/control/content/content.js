@@ -12,6 +12,14 @@ import './js/listView';
 
 
 const templates = {};
+
+const createLoadingState = () => {
+  const div = document.createElement("div");
+  div.className = 'well text-center';
+  div.innerHTML = `<hr class="none"><h5>Loading...</h5>`;
+  return div;
+};
+
 /** template management start */
 const fetchTemplate = (template, callback) => {
   if (templates[template]) {
@@ -20,6 +28,8 @@ const fetchTemplate = (template, callback) => {
     return;
   }
 
+  // show loading state
+  document.querySelector(`#main`).appendChild(createLoadingState());
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {
     const content = xhr.responseText;
@@ -93,8 +103,7 @@ window.onSidenavChange = (section) => {
 };
 
 const init = () => {
-  navigate('listView');
-  setActiveSidenavTab('listView');
+  onSidenavChange('locations');
 };
 
 authManager.enforceLogin(init);

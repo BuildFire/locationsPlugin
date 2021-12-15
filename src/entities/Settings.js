@@ -47,11 +47,11 @@ export default class Settings {
       allowForFilters: true
     };
     this.design = data.design ||  {
-      listViewPosition: null,
-      listViewStyle: null,
-      defaultMapStyle: null,
+      listViewPosition: 'expanded',
+      listViewStyle: 'backgroundImage',
+      defaultMapStyle: 'streets',
       allowStyleSelection: true,
-      detailsMapPosition: null,
+      detailsMapPosition: 'top',
       showDetailsCategory: true
     };
     this.owner = data.owner || {};

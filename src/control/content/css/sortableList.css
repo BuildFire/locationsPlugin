@@ -23,10 +23,11 @@
 }
 .draggable-list-view .d-item span.icon{
     top: 0 !important;
-    /* margin-right: 0 !important; */
+    margin-right: 0 !important;
 }
 .draggable-list-view .d-item .media-holder{
-    margin-right: 1rem;
+    /* margin-right: 1rem; */
+    margin-left: 1rem;
     width: 40px !important;
     height: 40px !important;
     object-fit: contain;
@@ -40,7 +41,7 @@
 }
 
 .draggable-list-view .d-item .btn--icon.icon{
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: #000;
 }
 .draggable-list-view{
@@ -54,7 +55,7 @@
     border: 1px solid #ddd;
     border-radius: .25rem;
     background-color: #fff;
-    padding: .5rem;
+    padding: .5rem !important;
 }
 .draggable-list-view:hover{
     box-shadow: 0 .25rem .25rem -.25rem rgba(0, 0, 0, .2);
@@ -130,7 +131,7 @@
 
 /* Buttons style */
 .btn.btn--icon.icon.icon-cross:hover {
-    color: #ed4b4b;
+    color: #ed4b4b !important;
 }
 
 /* Switch Button */
