@@ -19,7 +19,7 @@ const generateDeeplinkUrl = (location, type) => {
         reject(err);
       } else {
         //  result.url,
-        resolve(result.url);
+        resolve(result);
       }
     });
   });

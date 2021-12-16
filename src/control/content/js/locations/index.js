@@ -1054,12 +1054,11 @@ const loadLocations = (filter, sort) => {
   });
 };
 
-
 const getPinnedLocation = () => {
   LocationsController.getPinnedLocation().then(({ result, recordCount }) => {
     state.pinnedLocations = result || [];
   });
-}
+};
 
 const loadCategories = (callback) => {
   CategoriesController.searchCategories().then((categories) => {
@@ -1069,6 +1068,21 @@ const loadCategories = (callback) => {
       state.categoriesLookup[category.id] = category;
     }
     callback();
+  });
+};
+
+const copyLocationDeepling = (location, tr) => {
+  generateDeeplinkUrl(location).then((result) => {
+    console.log(result);
+    const copyElement = document.createElement("textarea");
+    copyElement.style.position = 'fixed';
+    copyElement.style.opacity = '0';
+    copyElement.textContent = result.url;
+    const body = document.getElementsByTagName('body')[0];
+    body.appendChild(copyElement);
+    copyElement.select();
+    document.execCommand('copy');
+    body.removeChild(copyElement);
   });
 };
 
@@ -1093,4 +1107,5 @@ window.initLocations = () => {
   locationsTable.onSort = (sort) => {
     loadLocations({}, sort);
   };
+  locationsTable.onCopy = copyLocationDeepling;
 };
