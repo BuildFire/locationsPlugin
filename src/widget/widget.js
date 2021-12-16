@@ -1,8 +1,8 @@
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
-import MarkerClusterer from './js/lib/markercluster';
 import authManager from '../UserAccessControl/authManager';
+import MainMap from './js/Map';
 
 // todo tmp
 import Settings from '../entities/Settings';
@@ -509,7 +509,7 @@ const renderListingLocations = () => {
   }
 };
 const updateMapMarkers = (locations) => {
-  locations.forEach((location) => addMarker(location));
+  locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
 };
 const fetchIntroductoryLocations = (done) => {
   introductoryLocationsPending = true;
@@ -907,9 +907,9 @@ const initEventListeners = () => {
       shareLocation();
     } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
-    } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
+    } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
       viewFullImage(selectedLocation.images);
-    } else if (e.target.parentNode.classList.contains('action-item')) {
+    } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     }
   });
@@ -1072,45 +1072,7 @@ const navigateTo = (template) => {
 };
 
 const initMapViewMap = () => {
-  const mapTypeId = google.maps.MapTypeId.ROADMAP;
-  const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
-
-  const options = {
-    minZoom: 3,
-    maxZoom: 19,
-    center: { lat: 38.70290288229097, lng: 35.52352225602528 },
-    zoom: 15,
-    streetViewControl: false,
-    mapTypeControl: true,
-    fullscreenControl: false,
-    gestureHandling: 'greedy',
-    mapTypeId,
-    zoomControlOptions: {
-      position: zoomPosition
-    }
-  };
-
-  mainMap = new google.maps.Map(document.getElementById('mainMapContainer'), options);
-  initMarkerCluster();
-};
-
-const initMarkerCluster = () => {
-  if (mainMap) {
-    const clusterOptions = {
-      gridSize: 53,
-      styles: [
-        {
-          textColor: 'white',
-          url: 'https://app.buildfire.com/app/media/google_marker_blue_icon2.png',
-          height: 53,
-          width: 53
-        }
-      ],
-      maxZoom: 15
-    };
-    markerClusterer = new MarkerClusterer(mainMap, [], clusterOptions);
-    console.log('initialized: ', markerClusterer);
-  }
+  mainMap = new MainMap({ selector: document.getElementById('mainMapContainer') });
 };
 const handleMarkerClick = (location, marker) => {
   const summaryContainer = document.querySelector('#locationSummary');
@@ -1140,31 +1102,6 @@ const handleMarkerClick = (location, marker) => {
   resetDrawer();
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
-};
-const addMarker = (location) => {
-  if (mainMap) {
-    const iconOptions = {
-      url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
-      scaledSize: new google.maps.Size(20, 20),
-      origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(10, 10)
-    };
-
-    const marker = new google.maps.Marker({
-      position: location.coordinates,
-      markerData: location,
-      map: mainMap,
-      icon: iconOptions
-    });
-
-    marker.addListener('click', () => {
-      handleMarkerClick(location, marker);
-    });
-
-    if (markerClusterer) {
-      markerClusterer.addMarker(marker);
-    }
-  }
 };
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
