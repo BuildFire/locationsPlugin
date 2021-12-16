@@ -2,6 +2,7 @@ import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
+import MainMap from './js/Map';
 
 // todo tmp
 import Settings from '../entities/Settings';
@@ -24,6 +25,7 @@ let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
 let drawerTimeout;
+let markerClusterer;
 let selectedLocation = {
   "id": null,
   "title": "Hacı Steakhouse",
@@ -507,7 +509,7 @@ const renderListingLocations = () => {
   }
 };
 const updateMapMarkers = (locations) => {
-  locations.forEach((location) => addMarker(location));
+  locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
 };
 const fetchIntroductoryLocations = (done) => {
   introductoryLocationsPending = true;
@@ -518,7 +520,7 @@ const fetchIntroductoryLocations = (done) => {
       introductoryLocationsCount = response.totalRecord;
       introductoryLocationsPending = false;
       updateMapMarkers(introductoryLocations);
-      done(null, response.result);
+      done(null, introductoryLocations);
     })
     .catch((err) => {
       console.error('search error: ', err);
@@ -793,6 +795,9 @@ const chatWithOwner = () => {
   }
   users.push(selectedLocation.owner.userId);
   users.push(currentUser._id);
+  console.log('selectedLocation.owner.userId: ', selectedLocation.owner.userId);
+  console.log('currentUser._id: ', currentUser._id);
+  console.log('chatWithOwner users: ', users);
   buildfire.navigation.navigateToSocialWall(
     {
       title: selectedLocation.title,
@@ -866,7 +871,7 @@ const fetchMoreIntroductoryLocations = (e) => {
 };
 
 const viewFullImage = (url) => {
-  buildfire.imagePreviewer.show({ images: [url] });
+  buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
 const initEventListeners = () => {
@@ -902,9 +907,9 @@ const initEventListeners = () => {
       shareLocation();
     } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
-    } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
-      viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
-    } else if (e.target.parentNode.classList.contains('action-item')) {
+    } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
+      viewFullImage(selectedLocation.images);
+    } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     }
   });
@@ -1067,27 +1072,8 @@ const navigateTo = (template) => {
 };
 
 const initMapViewMap = () => {
-  const mapTypeId = google.maps.MapTypeId.ROADMAP;
-  const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
-
-  const options = {
-    minZoom: 3,
-    maxZoom: 19,
-    center: { lat: 38.70290288229097, lng: 35.52352225602528 },
-    zoom: 15,
-    streetViewControl: false,
-    mapTypeControl: true,
-    fullscreenControl: false,
-    gestureHandling: 'greedy',
-    mapTypeId,
-    zoomControlOptions: {
-      position: zoomPosition
-    }
-  };
-
-  mainMap = new google.maps.Map(document.getElementById('mainMapContainer'), options);
+  mainMap = new MainMap({ selector: document.getElementById('mainMapContainer') });
 };
-
 const handleMarkerClick = (location, marker) => {
   const summaryContainer = document.querySelector('#locationSummary');
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
@@ -1116,27 +1102,6 @@ const handleMarkerClick = (location, marker) => {
   resetDrawer();
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
-};
-const addMarker = (location) => {
-  if (mainMap) {
-    const iconOptions = {
-      url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
-      scaledSize: new google.maps.Size(20, 20),
-      origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(10, 10)
-    };
-
-    const marker = new google.maps.Marker({
-      position: location.coordinates,
-      markerData: location,
-      map: mainMap,
-      icon: iconOptions
-    });
-
-    marker.addListener('click', () => {
-      handleMarkerClick(location, marker);
-    });
-  }
 };
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
