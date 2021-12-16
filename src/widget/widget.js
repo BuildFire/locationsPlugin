@@ -1,6 +1,7 @@
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
+import MarkerClusterer from './js/lib/markercluster';
 import authManager from '../UserAccessControl/authManager';
 
 // todo tmp
@@ -24,6 +25,7 @@ let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
 let drawerTimeout;
+let markerClusterer;
 let selectedLocation = {
   "id": null,
   "title": "Hacı Steakhouse",
@@ -518,7 +520,7 @@ const fetchIntroductoryLocations = (done) => {
       introductoryLocationsCount = response.totalRecord;
       introductoryLocationsPending = false;
       updateMapMarkers(introductoryLocations);
-      done(null, response.result);
+      done(null, introductoryLocations);
     })
     .catch((err) => {
       console.error('search error: ', err);
@@ -793,6 +795,9 @@ const chatWithOwner = () => {
   }
   users.push(selectedLocation.owner.userId);
   users.push(currentUser._id);
+  console.log('selectedLocation.owner.userId: ', selectedLocation.owner.userId);
+  console.log('currentUser._id: ', currentUser._id);
+  console.log('chatWithOwner users: ', users);
   buildfire.navigation.navigateToSocialWall(
     {
       title: selectedLocation.title,
@@ -866,7 +871,7 @@ const fetchMoreIntroductoryLocations = (e) => {
 };
 
 const viewFullImage = (url) => {
-  buildfire.imagePreviewer.show({ images: [url] });
+  buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
 const initEventListeners = () => {
@@ -903,7 +908,7 @@ const initEventListeners = () => {
     } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode.classList.contains('location-detail__carousel')) {
-      viewFullImage(selectedLocation.images.find((i) => i.id === e.target.dataset.id).imageUrl);
+      viewFullImage(selectedLocation.images);
     } else if (e.target.parentNode.classList.contains('action-item')) {
       handleDetailActionItem(e);
     }
@@ -1086,8 +1091,27 @@ const initMapViewMap = () => {
   };
 
   mainMap = new google.maps.Map(document.getElementById('mainMapContainer'), options);
+  initMarkerCluster();
 };
 
+const initMarkerCluster = () => {
+  if (mainMap) {
+    const clusterOptions = {
+      gridSize: 53,
+      styles: [
+        {
+          textColor: 'white',
+          url: 'https://app.buildfire.com/app/media/google_marker_blue_icon2.png',
+          height: 53,
+          width: 53
+        }
+      ],
+      maxZoom: 15
+    };
+    markerClusterer = new MarkerClusterer(mainMap, [], clusterOptions);
+    console.log('initialized: ', markerClusterer);
+  }
+};
 const handleMarkerClick = (location, marker) => {
   const summaryContainer = document.querySelector('#locationSummary');
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
@@ -1136,6 +1160,10 @@ const addMarker = (location) => {
     marker.addListener('click', () => {
       handleMarkerClick(location, marker);
     });
+
+    if (markerClusterer) {
+      markerClusterer.addMarker(marker);
+    }
   }
 };
 const initHomeView = () => {

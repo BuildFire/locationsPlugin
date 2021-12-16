@@ -789,3 +789,7 @@ button span {
   font-size: 12px;
   color: #FFFFFF;
 }
+
+body section#home {
+  padding-bottom: 0;
+}
