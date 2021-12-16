@@ -16,9 +16,10 @@
 /* Sub Page Styles */
 
 .sub-page .sub-page-body {
-    max-height: calc(100vh - 100px);
-    min-height: calc(100vh - 100px);
+    max-height: calc(100vh - 140px);
+    min-height: calc(100vh - 140px);
     overflow: auto;
+	padding: 0 1rem;
 }
 
 .sub-page .sub-page-footer {

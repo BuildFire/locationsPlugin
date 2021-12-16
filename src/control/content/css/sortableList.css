@@ -15,7 +15,7 @@
 }
 .draggable-list-view .d-item .subTitle{
     width: calc(50% - 1rem);
-    margin-left: 1rem;
+    margin-left: .5rem;
     flex-shrink: 0;
 }
 .draggable-list-view .d-item:hover{
@@ -30,9 +30,16 @@
     margin-left: 1rem;
     width: 40px !important;
     height: 40px !important;
+    font-size: 20px;
+	cursor: pointer;
+    line-height: initial !important;
     object-fit: contain;
     overflow: hidden;
     flex-shrink: 0; 
+    display: flex !important;
+	line-height: initial !important;
+	justify-content: center;
+	align-items: center;
 }
 
 .draggable-list-view .d-item .media-holder img {
@@ -85,6 +92,11 @@
     flex: auto;
     color: #000;
     margin-left: .5rem;
+}
+.draggable-list-view .title-container {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
 }
 .draggable-list-view span.icon{
     top: 0;

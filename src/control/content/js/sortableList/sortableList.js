@@ -144,4 +144,8 @@ export default class SortableList {
   onToggleChange(item, index, divRow) {
     console.error("please handle onToggleChange", item);
   }
+
+  onImageClick(item, index, divRow) {
+
+  }
 }

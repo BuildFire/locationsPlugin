@@ -16,6 +16,9 @@ import authManager from '../../../../UserAccessControl/authManager';
 const state = {
   categories: [],
   newCategory: null,
+  breadcrumbs: [
+    { title: "Categories", goBack: true },
+  ]
 };
 
 const subcategoryTemplateHeader = {
@@ -33,6 +36,7 @@ const categoriesTemplateHeader = {
   createdOn: "createdOn"
 };
 
+const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const categories = document.querySelector("#main");
 const inputCategoryForm = document.querySelector("#form-holder");
@@ -48,10 +52,12 @@ const renderAddCategoryPage = () => {
   inputCategoryForm.style.display = "block";
 
   inputCategoryControls = {
+    formTitle: inputCategoryForm.querySelector('#category-form-title'),
     categoryIconBtn: inputCategoryForm.querySelector("#category-icon-btn"),
     categoryNameInput: inputCategoryForm.querySelector("#category-name-input"),
     categoryNameInputError: inputCategoryForm.querySelector("#category-name-error"),
     categorySave: inputCategoryForm.querySelector("#category-save-btn"),
+    cancelButton: inputCategoryForm.querySelector("#category-cancel-btn"),
     subcategory: {
       addBtn: inputCategoryForm.querySelector("#subcategory-add-btn"),
       searchInput: inputCategoryForm.querySelector("#subcategory-search-input"),
@@ -65,6 +71,22 @@ const renderAddCategoryPage = () => {
       downloadBtn: inputCategoryForm.querySelector("#subcategory-template-btn"),
     },
   };
+};
+
+const renderBreadcrumbs = () => {
+  breadcrumbsSelector.innerHTML = "";
+  for (const breadcrumb of state.breadcrumbs) {
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `<a>${breadcrumb.title}</a>`;
+    listItem.onclick = () => {
+      if (breadcrumb.goBack) {
+        state.breadcrumbs.pop();
+        breadcrumbsSelector.innerHTML = "";
+        cancelAddCategory();
+      }
+    };
+    breadcrumbsSelector.appendChild(listItem);
+  }
 };
 
 const toggleDropdown = (dropdownElement, forceClose) => {
@@ -112,14 +134,17 @@ const setCategoryIcon = (icon, type) => {
 
 window.addEditCategory = (category, callback = () => {}) => {
   renderAddCategoryPage();
-
   subcategoriesListUI = new SubcategoriesListUI('subcategory-items');
 
   // create category object
   let newCategory;
   if (!category) {
+    inputCategoryControls.formTitle.innerHTML = "Add Category";
+    state.breadcrumbs.push({ title: "Add Category" });
     newCategory = new Category();
   } else {
+    inputCategoryControls.formTitle.innerHTML = "Edit Category";
+    state.breadcrumbs.push({ title: "Edit Category" });
     newCategory = new Category(category);
     inputCategoryControls.categoryNameInput.value = newCategory.title;
     if (newCategory.iconUrl) {
@@ -128,6 +153,8 @@ window.addEditCategory = (category, callback = () => {}) => {
       setCategoryIcon(newCategory.iconClassName, "font");
     }
   }
+
+  renderBreadcrumbs();
 
   inputSubcategoryDialog = new DialogComponent(
     "dialogComponent",
@@ -259,6 +286,35 @@ window.addEditCategory = (category, callback = () => {}) => {
     console.log(newCategory);
   };
 
+  subcategoriesListUI.onImageClick = (item, index, divRow) => {
+    buildfire.imageLib.showDialog(
+      { showIcons: true, multiSelection: false }, (err, result) => {
+        if (err) return console.error(err);
+        if (!result) {
+          return null;
+        }
+        const { selectedFiles, selectedStockImages, selectedIcons } = result;
+        if (selectedFiles && selectedFiles.length > 0) {
+          item.iconUrl = selectedFiles[0];
+          item.iconClassName = null;
+        } else if (selectedStockImages && selectedStockImages.length > 0) {
+          item.iconUrl = selectedStockImages[0];
+          item.iconClassName = null;
+        } else if (selectedIcons && selectedIcons.length > 0) {
+          item.iconClassName = result.selectedIcons[0];
+          item.iconUrl = null;
+        }
+
+        const subcategory = newCategory.subcategories.find(
+          (elem) => elem.id === item.id
+        );
+        subcategory.iconUrl = item.iconUrl;
+        subcategory.iconClassName = item.iconClassName;
+        subcategoriesListUI.updateItem(subcategory, index, divRow);
+      }
+    );
+  };
+
   inputCategoryControls.categorySave.onclick = () => {
     const categoryName = inputCategoryControls.categoryNameInput.value;
     if (!categoryName) {
@@ -281,6 +337,8 @@ window.addEditCategory = (category, callback = () => {}) => {
       });
     }
   };
+
+  inputCategoryControls.cancelButton.onclick  = cancelAddCategory;
 
   subcategoriesListUI.init(newCategory.subcategories);
 };
@@ -325,6 +383,8 @@ const addEditSubcategory = (
         subcategory = {
           id: generateUUID(),
           title: subcategoryInput.value,
+          iconUrl: null,
+          iconClassName: null
         };
         category.subcategories.push(subcategory);
       }
@@ -373,10 +433,14 @@ const downloadCsvTemplate = (templateData, header, name) => {
   downloadCsv(csv, `${name? name : 'template'}.csv`);
 };
 
-window.cancelAddCategory = () => {
+const cancelAddCategory = () => {
   sidenavContainer.style.display = "flex";
   inputCategoryForm.innerHTML = "";
   inputCategoryForm.style.display = "none";
+  breadcrumbsSelector.innerHTML = "";
+  state.breadcrumbs = [
+    { title: "Categories", goBack: true },
+  ];
 };
 
 window.searchCategories = () => {

@@ -56,20 +56,11 @@ const injectTemplate = (template) => {
 };
 /** template management end */
 
-const navigate = (template) => {
+const navigate = (template, callback) => {
   fetchTemplate(template, () =>  {
     injectTemplate(template);
-    switch (template) {
-      case 'categories':
-        initCategories();
-        break;
-      case 'locations':
-        initLocations();
-        break;
-      case 'listView':
-        initListView();
-        break;
-      default:
+    if (callback) {
+      callback();
     }
   });
 };
@@ -86,20 +77,28 @@ const setActiveSidenavTab = (section) => {
 window.onSidenavChange = (section) => {
   switch (section) {
     case 'categories':
-      navigate('categories');
       setActiveSidenavTab(section);
+      navigate('categories', () => {
+        initCategories();
+      });
       break;
     case 'locations':
-      navigate('locations');
       setActiveSidenavTab(section);
+      navigate('locations', () => {
+        initLocations();
+      });
       break;
     case 'listView':
-      navigate('listView');
       setActiveSidenavTab(section);
+      navigate('listView', () => {
+        initListView();
+      });
       break;
     default:
-      navigate('categories');
       setActiveSidenavTab(section);
+      navigate('categories', () => {
+        initCategories();
+      });
   }
 };
 

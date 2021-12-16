@@ -17,7 +17,7 @@ import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
 import authManager from '../../../../UserAccessControl/authManager';
 
-
+const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
 const inputLocationForm = document.querySelector("#form-holder");
@@ -46,6 +46,9 @@ const state = {
     saturday: "Sat",
   },
   isMapLoaded: false,
+  breadcrumbs: [
+    { title: "Locations", goBack: true },
+  ]
 };
 
 const locationTemplateHeader = {
@@ -115,23 +118,46 @@ const renderAddLocationsPage = () => {
     deleteOwnerBtn: inputLocationForm.querySelector("#location-delete-owner-btn"),
     ownerTxt: inputLocationForm.querySelector("#location-owner-txt"),
     saveBtn: inputLocationForm.querySelector("#location-save-btn"),
+    cancelBtn: inputLocationForm.querySelector("#location-cancel-btn"),
   };
 };
 
-window.cancelAddLocation = () => {
+const cancelAddLocation = () => {
   sidenavContainer.style.display = "flex";
   inputLocationForm.innerHTML = "";
   inputLocationForm.style.display = "none";
   state.locationObj = new Location();
-  state.selectedLocationCategories = {main: [], subcategories: []};
+  state.selectedLocationCategories = { main: [], subcategories: [] };
+  state.breadcrumbs = [
+    { title: "Locations", goBack: true },
+  ];
+  breadcrumbsSelector.innerHTML = "";
+};
+
+const renderBreadcrumbs = () => {
+  breadcrumbsSelector.innerHTML = "";
+  for (const breadcrumb of state.breadcrumbs) {
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `<a>${breadcrumb.title}</a>`;
+    listItem.onclick = () => {
+      if (breadcrumb.goBack) {
+        state.breadcrumbs.pop();
+        breadcrumbsSelector.innerHTML = "";
+        cancelAddLocation();
+      }
+    };
+    breadcrumbsSelector.appendChild(listItem);
+  }
 };
 
 window.addEditLocation = (location) => {
   renderAddLocationsPage();
 
   if (!location) {
+    state.breadcrumbs.push({ title: "Add Location" });
     state.locationObj = new Location();
   } else {
+    state.breadcrumbs.push({ title: "Edit Location" });
     state.locationObj = new Location(location);
     addLocationControls.locationTitle.value = state.locationObj.title;
     addLocationControls.locationSubtitle.value = state.locationObj.subtitle;
@@ -146,7 +172,7 @@ window.addEditLocation = (location) => {
     addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
     addLocationControls.deleteOwnerBtn.classList.remove('hidden');
   }
-
+  renderBreadcrumbs();
   loadMap();
   renderCategoriesList(state.locationObj.categories);
   renderOpeningHours(state.locationObj.openingHours);
@@ -386,6 +412,8 @@ window.addEditLocation = (location) => {
     saveLocation(location ? "Edit" : "Add");
   };
 
+  addLocationControls.cancelBtn.onclick = cancelAddLocation;
+
   locationImagesUI.init(state.locationObj.images);
   actionItemsUI.init(state.locationObj.actionItems);
 };
@@ -419,12 +447,12 @@ const saveLocation = (action, callback) => {
   if (action === 'Add') {
     LocationsController.createLocation(state.locationObj).then((res) => {
       loadLocations();
-      window.cancelAddLocation();
+      cancelAddLocation();
     });
   } else {
     LocationsController.updateLocation(state.locationObj.id, state.locationObj).then((res) => {
       loadLocations();
-      window.cancelAddLocation();
+      cancelAddLocation();
     });
   }
 };

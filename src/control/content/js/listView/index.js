@@ -192,7 +192,7 @@ window.initListView = () => {
     state.settings.introductoryListView.images = listViewImagesList.sortableList.items;
     saveSettings();
   };
-  pinnedLocationsList.onDeleteItem = deletePinnedLocation
+  pinnedLocationsList.onDeleteItem = deletePinnedLocation;
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();

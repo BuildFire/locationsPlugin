@@ -54,8 +54,8 @@
 
   <template id="addCategoryTemplate">
     <div class="sub-page">
-      <div class="sub-page-body padded">
-        <h1 class="section-title">Add Category</h1>
+      <div class="sub-page-body">
+        <h1 class="section-title" id="category-form-title">Add Category</h1>
         <div class="clearfix">
           <p class="info-note">Description.</p>
         </div>
@@ -124,7 +124,7 @@
         </div>
       </div>
       <div class="sub-page-footer padded">
-        <button class="btn btn-default" onclick="cancelAddCategory()">
+        <button class="btn btn-default" id="category-cancel-btn">
           Cancel
         </button>
         <button class="btn btn-success" id="category-save-btn">Save</button>

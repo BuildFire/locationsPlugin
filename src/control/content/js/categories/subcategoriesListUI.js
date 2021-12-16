@@ -26,15 +26,45 @@ class SubcategoriesListUI extends SortableListUI {
     title.className = "title ellipsis item-title";
 
     deleteButton.className = "btn--icon icon icon-cross2";
-    editButton.className = "btn--icon icon icon-pencil";
+    editButton.className = "btn--icon icon icon-pencil3";
     title.innerHTML = item.title;
 
     // Append elements to the DOM
     divRow.appendChild(moveHandle);
 
+    const mediaHolder = document.createElement("div");
+    mediaHolder.className = "media-holder";
+
+    if (item.iconUrl) {
+      const img = document.createElement("img");
+      img.src = this._cropImage(item.iconUrl, {
+        width: 16,
+        height: 16,
+      });
+      mediaHolder.appendChild(img);
+    } else if (item.iconClassName) {
+      const span = document.createElement('span');
+      span.className = `glyph-icon ${item.iconClassName}`;
+      mediaHolder.appendChild(span);
+    } else {
+      const span = document.createElement('span');
+      span.className = "add-icon text-success";
+      span.innerHTML = "+";
+      mediaHolder.appendChild(span);
+    }
+
+    divRow.appendChild(mediaHolder);
+
     divRow.appendChild(title);
     divRow.appendChild(editButton);
     divRow.appendChild(deleteButton);
+
+    mediaHolder.onclick = () => {
+      let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
+      index = parseInt(index);
+      this.onImageClick(item, index, divRow);
+      return false;
+    };
 
     title.onclick = () => {
       let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property

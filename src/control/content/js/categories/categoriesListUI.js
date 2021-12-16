@@ -16,18 +16,26 @@ class CategoriesListUI extends SortableListUI {
 
     // Create the required DOM elements
     const moveHandle = document.createElement("span");
+    const titleContainer = document.createElement("div");
     const title = document.createElement("a");
+    const subTitle = document.createElement("span");
     const deleteButton = document.createElement("span");
     const editButton = document.createElement("span");
 
     // Add the required classes to the elements
     divRow.className = "d-item clearfix";
     moveHandle.className = "icon icon-menu cursor-grab";
+    titleContainer.className = "title-container ellipsis";
     title.className = "title ellipsis item-title";
+    subTitle.className = "ellipsis subTitle caption";
+
+    titleContainer.appendChild(title);
+    titleContainer.appendChild(subTitle);
 
     deleteButton.className = "btn--icon icon icon-cross2";
-    editButton.className = "btn--icon icon icon-pencil";
+    editButton.className = "btn--icon icon icon-pencil3";
     title.innerHTML = item.title;
+    subTitle.innerHTML = `${item?.subcategories.length} Subcategories`;
 
     // Append elements to the DOM
     // divRow.appendChild(moveHandle);
@@ -55,7 +63,8 @@ class CategoriesListUI extends SortableListUI {
 
     divRow.appendChild(mediaHolder);
 
-    divRow.appendChild(title);
+    // divRow.appendChild(title);
+    divRow.appendChild(titleContainer);
     divRow.appendChild(editButton);
     divRow.appendChild(deleteButton);
 
