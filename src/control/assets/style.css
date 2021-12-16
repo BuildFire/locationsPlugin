@@ -70,7 +70,7 @@
 	flex-wrap: wrap;
 }
 
-.section-title{
+/* .section-title{
 	color: #000;
 	font-size: 18px;
 	line-height: 1.5;
@@ -89,7 +89,7 @@
 	left: 0;
 	top: 0;
 	position: absolute;
-}
+} */
 
 p.info {
 	background-color: #f9f9f9;
