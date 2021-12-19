@@ -5,7 +5,6 @@ import Categories from '../repository/Categories';
 const DEFAULT_PAGE = 0;
 const DEFAULT_PAGE_SIZE = 7;
 
-
 export default {
   getLocation(id) {
     return Locations.getById(id);

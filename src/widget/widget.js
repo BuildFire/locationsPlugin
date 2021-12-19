@@ -447,10 +447,10 @@ const renderIntroductoryLocations = (list) => {
       </div>`)).join('\n');
   container.insertAdjacentHTML('beforeend', content);
 };
-const renderListingLocations = () => {
+const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   if (settings.design.listViewStyle === 'image') {
-    container.innerHTML = introductoryLocations.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
+    container.innerHTML = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -480,7 +480,7 @@ const renderListingLocations = () => {
           </div>
 `)).join('\n');
   } else {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
+    container.innerHTML = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
@@ -675,8 +675,16 @@ const initDrawer = () => {
 };
 const transformCategories = (categories) => {
   const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
-  const mainCategoriesTitles = categories.main.map((c) => CATEGORIES.find((p) => p.id === c).title);
-  const subCategoriesTitles = categories.subcategories.map((c) => subCategories.find((p) => p.id === c).title);
+  const mainCategoriesTitles = [];
+  const subCategoriesTitles = [];
+  categories.main.forEach((c) => {
+    const item = CATEGORIES.find((p) => p.id === c);
+    if (item) mainCategoriesTitles.push(item.title);
+  });
+  categories.subcategories.forEach((c) => {
+    const item = subCategories.find((p) => p.id === c);
+    if (item) subCategoriesTitles.push(item.title);
+  });
   return mainCategoriesTitles.length > 1
     ? categories.main.join(', ')
     : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
@@ -870,12 +878,24 @@ const fetchMoreIntroductoryLocations = (e) => {
   }
 };
 
+const fetchMoreListLocations = (e) => {
+  const listContainer = document.querySelector('#listingLocationsList');
+  if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
+    if (!introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
+      currentIntroductoryPage += 1;
+      fetchIntroductoryLocations((err, result) => {
+        renderListingLocations(result);
+      });
+    }
+  };
+};
 const viewFullImage = (url) => {
   buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
+  document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -1062,7 +1082,7 @@ const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
   initDrawer();
-  renderListingLocations();
+  renderListingLocations(introductoryLocations);
 };
 
 const navigateTo = (template) => {
@@ -1188,7 +1208,8 @@ const init = () => {
     // fetchCategories(() => {
     //   showLocationDetail();
     // });
-    initEventListeners();
+
+    setTimeout(() => { initEventListeners(); }, 1000);
 
     buildfire.deeplink.getData((deeplinkData) => {
       if (deeplinkData?.locationId) {
