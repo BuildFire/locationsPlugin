@@ -593,11 +593,16 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
-const resetDrawer = () => {
+const resetDrawer = (position) => {
   const element = document.querySelector('.drawer');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  element.style.height = `${40}px`;
-  element.style.top = `${screenHeight - 40}px`;
+  const positions = {
+    expanded: screenHeight - 150,
+    halfExpanded: (screenHeight / 2),
+    collapsed: 40
+  };
+  element.style.height = `${position ? positions[position] : positions.halfExpanded}px`;
+  element.style.top = `${screenHeight - (position ? positions[position] : positions.halfExpanded)}px`;
 };
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
@@ -607,10 +612,10 @@ const initDrawer = () => {
   let originalHeight = 0;
   let originalMouseY = 0;
 
-  resetDrawer();
+  resetDrawer(settings.design?.listViewPosition);
   const positions = {
     expanded: screenHeight - 150,
-    centered: (screenHeight / 2),
+    halfExpanded: (screenHeight / 2),
     collapsed: 40
   };
   const resize = (e, execute = false) => {
@@ -625,20 +630,20 @@ const initDrawer = () => {
     let targetTop;
     let targetHeight;
     if (e.pageY > originalMouseY) {
-      if (originalHeight > positions.centered) {
-        targetTop = screenHeight - positions.centered;
-        targetHeight = positions.centered;
+      if (originalHeight > positions.halfExpanded) {
+        targetTop = screenHeight - positions.halfExpanded;
+        targetHeight = positions.halfExpanded;
       } else {
         targetHeight = positions.collapsed;
         targetTop = screenHeight - positions.collapsed;
       }
     } else if (e.pageY < originalMouseY) {
-      if (originalHeight >= positions.centered) {
+      if (originalHeight >= positions.halfExpanded) {
         targetHeight = positions.expanded;
         targetTop = screenHeight - positions.expanded;
       } else {
-        targetHeight = positions.centered;
-        targetTop = screenHeight - positions.centered;
+        targetHeight = positions.halfExpanded;
+        targetTop = screenHeight - positions.halfExpanded;
       }
       if (locationSummary.classList.contains('slide-in')) {
         locationSummary.classList.add('slide-out');
@@ -1119,7 +1124,7 @@ const handleMarkerClick = (location, marker) => {
               </div>`).join('\n')}
             </div>
           </div>`;
-  resetDrawer();
+  resetDrawer('collapsed');
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
