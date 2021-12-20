@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-restricted-syntax */
 // This is the entry point of your plugin's settings control.
 // Feel free to require any local or npm modules you've installed.
@@ -399,7 +400,8 @@ window.onSidenavChange = (section) => {
 };
 
 const saveSettings = () => {
-  SettingsController.saveSettings(state.settings).then().catch(console.error);
+  SettingsController.saveSettings(state.settings)
+    .then(triggerWidgetOnDesignUpdate).catch(console.error);
 };
 
 const getSettings = () => {
@@ -407,6 +409,12 @@ const getSettings = () => {
     state.settings = settings;
     onSidenavChange('chat');
   }).catch(console.error);
+};
+
+const triggerWidgetOnDesignUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_settings",
+  });
 };
 
 const init = () => {

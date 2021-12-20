@@ -131,7 +131,7 @@ const handlePinnedLocationEmptyState = (isLoading) => {
 };
 
 const saveSettings = () => {
-  SettingsController.saveSettings(state.settings).then().catch(console.error);
+  SettingsController.saveSettings(state.settings).then(triggerWidgetOnListViewUpdate).catch(console.error);
 };
 
 const getPinnedLocations = () => {
@@ -167,20 +167,26 @@ const deletePinnedLocation = (item, index, callback) => {
           .then(() => {
             state.pinnedLocations = state.pinnedLocations.filter(elem => elem.id !== item.id);
             handlePinnedLocationEmptyState(false);
+            triggerWidgetOnListViewUpdate();
             callback(item);
           })
-          .catch(console.error)
+          .catch(console.error);
       }
     }
   );
-  
-}
+};
 
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
   }).catch(console.error);
+};
+
+const triggerWidgetOnListViewUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_intro",
+  });
 };
 
 window.initListView = () => {

@@ -16,28 +16,28 @@
 /* Sub Page Styles */
 
 .sub-page .sub-page-body {
-    max-height: calc(100vh - 140px);
-    min-height: calc(100vh - 140px);
+    max-height: calc(100vh - 120px);
+    min-height: calc(100vh - 120px);
     overflow: auto;
 	padding: 0 1rem;
 }
 
-.sub-page .sub-page-footer {
+/* .sub-page .sub-page-footer {
     text-align: right;
     border-top: 1px solid #ddd !important;
 }
 
 .sub-page .sub-page-footer button {
     margin-left: 8px;
-}
+} */
 
 /* End Sub Page Styles */
 
 /* Map */
-  #location-map {
-	  height: 40vh;
-	  width: 100%;
-  }
+#location-map {
+	height: 40vh;
+	width: 100%;
+}
 /* End Map */
 
 .button-switch {
@@ -55,4 +55,9 @@
 	margin-bottom: 5px;
 	display: flex;
 	flex-direction: row;
+}
+
+.btn--icon.btn-small {
+	width : 2rem !important;
+	height: 2rem !important;
 }

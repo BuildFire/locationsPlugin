@@ -68,6 +68,13 @@ class CategoriesListUI extends SortableListUI {
     divRow.appendChild(editButton);
     divRow.appendChild(deleteButton);
 
+    mediaHolder.onclick = () => {
+      let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
+      index = parseInt(index);
+      this.onImageClick(item, index, divRow);
+      return false;
+    };
+
     title.onclick = () => {
       let index = divRow.getAttribute("arrayIndex"); /// it may have bee reordered so get value of current property
       index = parseInt(index);

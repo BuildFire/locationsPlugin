@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-restricted-syntax */
 // This is the entry point of your plugin's design control.
 // Feel free to require any local or npm modules you've installed.
@@ -81,7 +82,8 @@ const render = () => {
 };
 
 const saveSettings = () => {
-  DesignController.saveSettings(state.settings).then().catch(console.error);
+  DesignController.saveSettings(state.settings)
+    .then(triggerWidgetOnDesignUpdate).catch(console.error);
 };
 
 const getSettings = () => {
@@ -89,6 +91,12 @@ const getSettings = () => {
     state.settings = settings;
     render();
   }).catch(console.error);
+};
+
+const triggerWidgetOnDesignUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_design",
+  });
 };
 
 const init = () => {

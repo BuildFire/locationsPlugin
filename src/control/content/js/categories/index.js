@@ -260,6 +260,7 @@ window.addEditCategory = (category, callback = () => {}) => {
   subcategoriesListUI.onDeleteItem = (item, index, callback) => {
     buildfire.notifications.confirm(
       {
+        title: "Delete Subcategory",
         message: `Are you sure you want to delete ${item.title} subcategory?`,
         confirmButton: {
           text: "Delete",
@@ -325,16 +326,9 @@ window.addEditCategory = (category, callback = () => {}) => {
     inputCategoryControls.categoryNameInputError.classList.add('hidden');
     newCategory.title = categoryName;
     if (!category) {
-      CategoriesController.createCategory(newCategory).then((res) => {
-        loadCategories();
-        cancelAddCategory();
-      });
+      createCategory(newCategory);
     } else {
-      CategoriesController.updateCategory(category.id, newCategory).then((res) => {
-        if (callback) {
-          callback(newCategory.toJSON());
-        }
-      });
+      updateCategory(category.id, newCategory, callback);
     }
   };
 
@@ -505,6 +499,7 @@ window.importCategories = () => {
       });
       CategoriesController.bulkCreateCategories(categories).then((result) => {
         loadCategories();
+        triggerWidgetOnCategoriesUpdate();
       }).catch(console.error);
     });
   };
@@ -533,7 +528,7 @@ const handleCategoriesEmptyState = (isLoading) => {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.categories.length === 0) {
-    emptyState.innerHTML = `<h4>No Categories Added</h4>`;
+    emptyState.innerHTML = `<h4>No Categories Added.</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
@@ -556,6 +551,7 @@ const loadCategories = () => {
 const deleteCategory = (item, index, callback) => {
   buildfire.notifications.confirm(
     {
+      title: 'Delete Category',
       message: `Are you sure you want to delete ${item.title} category?`,
       confirmButton: {
         text: "Delete",
@@ -573,6 +569,7 @@ const deleteCategory = (item, index, callback) => {
         CategoriesController.deleteCategory(item.id, new Category(item)).then(() => {
           state.categories = state.categories.filter((elem) => elem.id !== item.id);
           handleCategoriesEmptyState(false);
+          triggerWidgetOnCategoriesUpdate();
           callback(item);
         });
       }
@@ -580,9 +577,63 @@ const deleteCategory = (item, index, callback) => {
   );
 };
 
+const updateCategoryImage = (item, index, divRow) => {
+  buildfire.imageLib.showDialog(
+    { showIcons: true, multiSelection: false }, (err, result) => {
+      if (err) return console.error(err);
+      if (!result) {
+        return null;
+      }
+      const { selectedFiles, selectedStockImages, selectedIcons } = result;
+      if (selectedFiles && selectedFiles.length > 0) {
+        item.iconUrl = selectedFiles[0];
+        item.iconClassName = null;
+      } else if (selectedStockImages && selectedStockImages.length > 0) {
+        item.iconUrl = selectedStockImages[0];
+        item.iconClassName = null;
+      } else if (selectedIcons && selectedIcons.length > 0) {
+        item.iconClassName = result.selectedIcons[0];
+        item.iconUrl = null;
+      }
+
+      const category = state.categories.find(
+        (elem) => elem.id === item.id
+      );
+      category.iconUrl = item.iconUrl;
+      category.iconClassName = item.iconClassName;
+      updateCategory(category.id, new Category(category), (res) => {
+        categoriesListUI.updateItem(category, index, divRow);
+      });
+    }
+  );
+};
+
 document.body.onclick = () => {
   toggleDropdown(categories.querySelector('#category-sort-dropdown'), true);
   toggleDropdown(categories.querySelector('#category-bulk-dropdown'), true);
+};
+
+const createCategory = (category) => {
+  CategoriesController.createCategory(category).then((res) => {
+    loadCategories();
+    triggerWidgetOnCategoriesUpdate();
+    cancelAddCategory();
+  });
+};
+
+const updateCategory = (categoryId, category, callback) => {
+  CategoriesController.updateCategory(categoryId, category).then((res) => {
+    triggerWidgetOnCategoriesUpdate();
+    if (callback) {
+      callback(category.toJSON());
+    }
+  });
+};
+
+const triggerWidgetOnCategoriesUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_category",
+  });
 };
 
 // this called in content.js;
@@ -595,6 +646,7 @@ window.initCategories = () => {
     });
   };
   categoriesListUI.onDeleteItem = deleteCategory;
+  categoriesListUI.onImageClick = updateCategoryImage;
   handleCategoriesEmptyState(true);
   loadCategories();
 };
