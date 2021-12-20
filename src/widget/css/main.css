@@ -480,6 +480,7 @@ button span {
   font-size: 13px;
   margin: 0 0 8px;
   max-width: calc(100% - 40px);
+  display: none;
 }
 .location-detail__cover #workingHoursBtn {
   margin-bottom: 8px;
@@ -655,6 +656,7 @@ button span {
 }
 .location-detail__top-subtitle p {
   font-size: 13px;
+  display: none;
 }
 .location-detail__top-subtitle button {
   white-space: nowrap;

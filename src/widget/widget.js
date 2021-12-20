@@ -755,10 +755,14 @@ const showLocationDetail = () => {
 
     selectors.title.textContent = selectedLocation.title;
     selectors.subtitle.textContent = selectedLocation.subtitle;
-    selectors.categories.textContent = transformCategories(selectedLocation.categories);
     selectors.address.textContent = selectedLocation.formattedAddress;
     selectors.description.innerHTML = selectedLocation.description;
     selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
+
+    if (settings.design?.showDetailsCategory) {
+      selectors.categories.textContent = transformCategories(selectedLocation.categories);
+      selectors.categories.style.display = 'block';
+    }
 
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
         <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
