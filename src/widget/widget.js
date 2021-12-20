@@ -4,19 +4,11 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 
-// todo tmp
-import Settings from '../entities/Settings';
-import DataMocks from '../DataMocks';
-
-const settings = new Settings().toJSON();
-console.log('current settings...', settings);
-
-const inst = DataMocks.generate('LOCATION')[0];
-
 // if (templateSection.childNodes.length === 0) {
 //   injectTemplate(template);
 // }
 
+let settings;
 let CATEGORIES;
 let userPosition;
 let introductoryLocations = [];
@@ -331,7 +323,7 @@ const testingFn = () => {
   }
 };
 
-testingFn();
+// testingFn();
 
 const templates = {};
 
@@ -397,9 +389,16 @@ const hideElement = (selector) => {
 /** ui helpers end */
 
 const fetchSettings = (callback) => {
-  setTimeout(() => {
-    callback();
-  }, 500);
+  WidgetController
+    .getAppSettings()
+    .then((response) => {
+      settings = response;
+      callback();
+    })
+    .catch((err) => {
+      console.error('error fetching settings: ', err);
+      callback();
+    });
 };
 
 const fetchCategories = (done) => {
