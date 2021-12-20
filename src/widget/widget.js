@@ -393,6 +393,7 @@ const fetchSettings = (callback) => {
     .getAppSettings()
     .then((response) => {
       settings = response;
+      console.log('settings: ', settings);
       callback();
     })
     .catch((err) => {
@@ -564,7 +565,7 @@ const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = settings;
   if (introductoryListView.images.length > 0) {
     const carousel = new buildfire.components.carousel.view('.carousel');
-    const carouselItems = introductoryListView.images;
+    const carouselItems = introductoryListView.images.map((i) => ({ iconUrl: i.imageUrl }));
     carousel.loadItems(carouselItems);
   }
 };
