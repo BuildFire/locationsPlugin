@@ -172,7 +172,7 @@ const renderIntroductoryLocations = (list) => {
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   if (settings.design.listViewStyle === 'backgroundImage') {
-    container.innerHTML = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
+    container.innerHTML = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].iconUrl : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
