@@ -4,19 +4,11 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 
-// todo tmp
-import Settings from '../entities/Settings';
-import DataMocks from '../DataMocks';
-
-const settings = new Settings().toJSON();
-console.log('current settings...', settings);
-
-const inst = DataMocks.generate('LOCATION')[0];
-
 // if (templateSection.childNodes.length === 0) {
 //   injectTemplate(template);
 // }
 
+let settings;
 let CATEGORIES;
 let userPosition;
 let introductoryLocations = [];
@@ -26,285 +18,7 @@ let currentIntroductoryPage = 0;
 let filterElements = {};
 let drawerTimeout;
 let markerClusterer;
-let selectedLocation = {
-  "id": null,
-  "title": "Hacı Steakhouse",
-  "subtitle": "The best burger in town",
-  "pinIndex": null,
-  "address": "Melikgazi/Kayseri, Turkey",
-  "formattedAddress": "Melikgazi/Kayseri, Turkey",
-  "addressAlias": "Haci Alias",
-  "coordinates": {
-    "lat": 38.7511567,
-    "lng": 35.6969984
-  },
-  "marker": {
-    "type": "pin",
-    "image": null,
-    "color": null,
-    "base64Image": null
-  },
-  "categories": {
-    "main": [
-      "61b078405f30d606222ffb54"
-    ],
-    "subcategories": [
-      "f40285cc-c46c-4d3c-b971-34479c88d2bd",
-      "7e0f2288-2298-4892-8706-b685c5bb3fce"
-    ]
-  },
-  "settings": {
-    "showCategory": true,
-    "showOpeningHours": false,
-    "showPriceRange": true,
-    "showStarRating": true,
-    "allowChat": true
-  },
-  "openingHours": {
-    "timezone": null,
-    "days": {
-      "monday": {
-        "index": 0,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      },
-      "tuesday": {
-        "index": 1,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          },
-          {
-            "from": "13:00",
-            "to": "19:00"
-          },
-          {
-            "from": "20:00",
-            "to": "22:00"
-          }
-        ]
-      },
-      "wednesday": {
-        "index": 2,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      },
-      "thursday": {
-        "index": 3,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      },
-      "friday": {
-        "index": 4,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      },
-      "saturday": {
-        "index": 5,
-        "active": true,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      },
-      "sunday": {
-        "index": 6,
-        "active": false,
-        "intervals": [
-          {
-            "from": "09:00",
-            "to": "12:30"
-          }
-        ]
-      }
-    }
-  },
-  "images": [
-    {
-      "id": "63382c21-41d5-48c7-bacd-9fc61baf5ab8",
-      "imageUrl": "https://images.unsplash.com/photo-1541557435984-1c79685a082b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NHx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "1e4ec407-da35-49b9-8008-bd8f5be6f9a7",
-      "imageUrl": "https://images.unsplash.com/photo-1554919428-20d72fa44a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mnx8YnVyZ2VyJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE2Mzg5NTYwNDk&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "2c80db58-abf2-4cd4-9a24-9a5db610ee73",
-      "imageUrl": "https://images.unsplash.com/photo-1632577237955-f73cb2a054ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MjR8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDQ5&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "6d4cf478-2de7-41ce-a3d5-8b29acaf8f79",
-      "imageUrl": "https://images.unsplash.com/photo-1618538701087-fb7e0312de34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8Mjh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDQ5&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "3cf536e9-618e-470c-b004-e484a7423748",
-      "imageUrl": "https://images.unsplash.com/photo-1530524428108-f983ca74ad0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8MzN8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "a9cfa2fc-0d08-4c03-b3f6-a04357cc1dc6",
-      "imageUrl": "https://images.unsplash.com/photo-1552604617-eea98aa27234?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDB8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "b79b183b-b723-4b2c-9d3a-c0a2a377c47e",
-      "imageUrl": "https://images.unsplash.com/photo-1600891964923-c75689eb86d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "ce7f2d42-72eb-4fc7-98d8-3ea5bcc54275",
-      "imageUrl": "https://images.unsplash.com/photo-1468071174046-657d9d351a40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NTF8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080"
-    },
-    {
-      "id": "ead6b993-223c-4c15-a181-c03aec554349",
-      "imageUrl": "https://images.unsplash.com/photo-1503022065603-daff0ed8a64a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NjZ8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDYz&ixlib=rb-1.2.1&q=80&w=1080"
-    }
-  ],
-  "listImage": "https://images.unsplash.com/photo-1600891964923-c75689eb86d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=Mnw0NDA1fDB8MXxzZWFyY2h8NDh8fGJ1cmdlciUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNjM4OTU2MDU2&ixlib=rb-1.2.1&q=80&w=1080",
-  "description": "<div>\n<p><strong>Lorem Ipsum</strong>&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>\n</div>\n<div>&nbsp;</div>",
-  "owner": {
-    "userId": "61241b2ddec0be058398daed",
-    "firstName": "Nour",
-    "lastName": "Rizik",
-    "displayName": "Nour",
-    "username": "nrizik@madaincorp.com",
-    "isActive": true,
-    "userProfile": {
-      "address": {
-        "customFields": {}
-      },
-      "bio": "test",
-      "birthDate": "1993-02-01T22:00:00.000Z",
-      "tel": "0799998898"
-    },
-    "imageUrl": "https://s3.amazonaws.com/Kaleo.DevBucket/80wjgOipA9j6FK0HK8R3FmEo.jpg"
-  },
-  "views": 0,
-  "price": {
-    "range": "3",
-    "currency": "€"
-  },
-  "rating": {
-    "total": 0,
-    "count": 0,
-    "average": 0
-  },
-  "bookmarksCount": 0,
-  "actionItems": [
-    {
-      "title": "SEND SMS",
-      "action": "sendSms",
-      "phoneNumber": "00962799556565",
-      "id": "6c4ac807-4781-460b-b8b2-7dd49e31dc2f"
-    },
-    {
-      "title": "CALL",
-      "action": "callNumber",
-      "phoneNumber": "00962799556565",
-      "id": "3c3b0984-3429-4684-be33-b0e88dce9bed"
-    },
-    {
-      "title": "INSTAGRAM",
-      "action": "linkToSocialInstagram",
-      "url": "https://www.instagram.com",
-      "id": "e5993bdb-dda3-403d-9a62-ee1e5aec18d6"
-    }
-  ],
-  "createdOn": "2021-12-08T09:37:22.077Z",
-  "createdBy": {
-    "_id": "60a160faeb40095b7c9cf66d",
-    "createdOn": "2021-05-16T18:14:18.067Z",
-    "isActive": true,
-    "failedAttemptCount": 0,
-    "imageUrl": "https://s3.amazonaws.com/Kaleo.DevBucket/FiNyY29zRryOi92zpeYesJLo.jpeg",
-    "lastAccess": "2021-12-07T22:39:33.282Z",
-    "displayName": null,
-    "username": "iseenoob@outlook.com",
-    "email": "iseenoob@outlook.com",
-    "lastUpdated": "2021-10-10T20:52:39.428Z",
-    "lastUsedIPAddress": "172.30.2.72, 35.153.57.200",
-    "loginProviderType": "KAuth",
-    "userProfile": {},
-    "accessToken": "3kq8UbiqIPCRtm97P+aQwtrDqJdJoWorhLVVXXErxNA=",
-    "accessTokenExpiresIn": "2023-05-16T00:00:00.000Z",
-    "userToken": "90WIHhNp2pTkdcX5fqnx2O9RNZWClnly8g4drBKxbVo=",
-    "_cpUser": {
-      "userId": 484322,
-      "username": "iseenoob@outlook.com",
-      "loginMethod": "std",
-      "isActive": 1,
-      "isValidEmail": 1,
-      "firstName": "Mahmoud",
-      "lastName": "AlSharif",
-      "userToken": "60a160faeb40095b7c9cf66d",
-      "lastUpdatedOn": null,
-      "lastUpdatedBy": null,
-      "createdOn": "2021-05-16T18:14:18.000Z",
-      "createdBy": null,
-      "deletedOn": null,
-      "deletedBy": null,
-      "auth": "b4bda29655802ee20bf3bfec716bb2ea8b756feefe09b12982fd334491978774e69b1613f3f624f5deb33b6273e614227e01478bbbc810cf3dacc5a8461751e631bc2cf3b055dd5417cbe6274a258a4fb30e53a4bdcac2d7e736b3c0459b64901173005131199dfbbe5a3eded87afdc90d8a6ba0b12ba4fe03a4a3030724391cc6be4120",
-      "whitelabelId": ""
-    }
-  },
-  "lastUpdatedOn": "2021-12-08T09:29:48.537Z",
-  "lastUpdatedBy": null,
-  "deletedOn": null,
-  "deletedBy": null,
-  "isActive": 1,
-  "_buildfire": {
-    "index": {
-      "string1": "hacı steakhouse",
-      "date1": "2021-12-08T09:37:22.077Z",
-      "array1": [
-        {
-          "string1": "c_61b078405f30d606222ffb54"
-        },
-        {
-          "string1": "s_f40285cc-c46c-4d3c-b971-34479c88d2bd"
-        },
-        {
-          "string1": "s_7e0f2288-2298-4892-8706-b685c5bb3fce"
-        },
-        {
-          "string1": "v_0"
-        },
-        {
-          "string1": "pr_3"
-        }
-      ],
-      "number1": null
-    },
-    "geo": {
-      "type": "Point",
-      "coordinates": [
-        35.6969984,
-        38.7511567
-      ]
-    }
-  }
-};
+let selectedLocation;
 let mainMap;
 
 // todo to be removed
@@ -331,7 +45,7 @@ const testingFn = () => {
   }
 };
 
-testingFn();
+// testingFn();
 
 const templates = {};
 
@@ -397,9 +111,17 @@ const hideElement = (selector) => {
 /** ui helpers end */
 
 const fetchSettings = (callback) => {
-  setTimeout(() => {
-    callback();
-  }, 500);
+  WidgetController
+    .getAppSettings()
+    .then((response) => {
+      settings = response;
+      console.log('settings: ', settings);
+      callback();
+    })
+    .catch((err) => {
+      console.error('error fetching settings: ', err);
+      callback();
+    });
 };
 
 const fetchCategories = (done) => {
@@ -447,10 +169,10 @@ const renderIntroductoryLocations = (list) => {
       </div>`)).join('\n');
   container.insertAdjacentHTML('beforeend', content);
 };
-const renderListingLocations = () => {
+const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
-  if (settings.design.listViewStyle === 'image') {
-    container.innerHTML = introductoryLocations.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
+  if (settings.design.listViewStyle === 'backgroundImage') {
+    container.innerHTML = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.listImage});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -480,7 +202,7 @@ const renderListingLocations = () => {
           </div>
 `)).join('\n');
   } else {
-    container.innerHTML = introductoryLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
+    container.innerHTML = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
@@ -565,7 +287,7 @@ const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = settings;
   if (introductoryListView.images.length > 0) {
     const carousel = new buildfire.components.carousel.view('.carousel');
-    const carouselItems = introductoryListView.images;
+    const carouselItems = introductoryListView.images.map((i) => ({ iconUrl: i.imageUrl }));
     carousel.loadItems(carouselItems);
   }
 };
@@ -593,11 +315,16 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
-const resetDrawer = () => {
+const resetDrawer = (position) => {
   const element = document.querySelector('.drawer');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  element.style.height = `${40}px`;
-  element.style.top = `${screenHeight - 40}px`;
+  const positions = {
+    expanded: screenHeight - 150,
+    halfExpanded: (screenHeight / 2),
+    collapsed: 40
+  };
+  element.style.height = `${position ? positions[position] : positions.halfExpanded}px`;
+  element.style.top = `${screenHeight - (position ? positions[position] : positions.halfExpanded)}px`;
 };
 const initDrawer = () => {
   const element = document.querySelector('.drawer');
@@ -607,10 +334,10 @@ const initDrawer = () => {
   let originalHeight = 0;
   let originalMouseY = 0;
 
-  resetDrawer();
+  resetDrawer(settings.design?.listViewPosition);
   const positions = {
     expanded: screenHeight - 150,
-    centered: (screenHeight / 2),
+    halfExpanded: (screenHeight / 2),
     collapsed: 40
   };
   const resize = (e, execute = false) => {
@@ -625,20 +352,20 @@ const initDrawer = () => {
     let targetTop;
     let targetHeight;
     if (e.pageY > originalMouseY) {
-      if (originalHeight > positions.centered) {
-        targetTop = screenHeight - positions.centered;
-        targetHeight = positions.centered;
+      if (originalHeight > positions.halfExpanded) {
+        targetTop = screenHeight - positions.halfExpanded;
+        targetHeight = positions.halfExpanded;
       } else {
         targetHeight = positions.collapsed;
         targetTop = screenHeight - positions.collapsed;
       }
     } else if (e.pageY < originalMouseY) {
-      if (originalHeight >= positions.centered) {
+      if (originalHeight >= positions.halfExpanded) {
         targetHeight = positions.expanded;
         targetTop = screenHeight - positions.expanded;
       } else {
-        targetHeight = positions.centered;
-        targetTop = screenHeight - positions.centered;
+        targetHeight = positions.halfExpanded;
+        targetTop = screenHeight - positions.halfExpanded;
       }
       if (locationSummary.classList.contains('slide-in')) {
         locationSummary.classList.add('slide-out');
@@ -675,8 +402,16 @@ const initDrawer = () => {
 };
 const transformCategories = (categories) => {
   const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
-  const mainCategoriesTitles = categories.main.map((c) => CATEGORIES.find((p) => p.id === c).title);
-  const subCategoriesTitles = categories.subcategories.map((c) => subCategories.find((p) => p.id === c).title);
+  const mainCategoriesTitles = [];
+  const subCategoriesTitles = [];
+  categories.main.forEach((c) => {
+    const item = CATEGORIES.find((p) => p.id === c);
+    if (item) mainCategoriesTitles.push(item.title);
+  });
+  categories.subcategories.forEach((c) => {
+    const item = subCategories.find((p) => p.id === c);
+    if (item) subCategoriesTitles.push(item.title);
+  });
   return mainCategoriesTitles.length > 1
     ? categories.main.join(', ')
     : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
@@ -742,10 +477,14 @@ const showLocationDetail = () => {
 
     selectors.title.textContent = selectedLocation.title;
     selectors.subtitle.textContent = selectedLocation.subtitle;
-    selectors.categories.textContent = transformCategories(selectedLocation.categories);
     selectors.address.textContent = selectedLocation.formattedAddress;
     selectors.description.innerHTML = selectedLocation.description;
     selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
+
+    if (settings.design?.showDetailsCategory) {
+      selectors.categories.textContent = transformCategories(selectedLocation.categories);
+      selectors.categories.style.display = 'block';
+    }
 
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
         <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
@@ -870,12 +609,24 @@ const fetchMoreIntroductoryLocations = (e) => {
   }
 };
 
+const fetchMoreListLocations = (e) => {
+  const listContainer = document.querySelector('#listingLocationsList');
+  if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
+    if (!introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
+      currentIntroductoryPage += 1;
+      fetchIntroductoryLocations((err, result) => {
+        renderListingLocations(result);
+      });
+    }
+  };
+};
 const viewFullImage = (url) => {
   buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
+  document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -1062,7 +813,7 @@ const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
   initDrawer();
-  renderListingLocations();
+  renderListingLocations(introductoryLocations);
 };
 
 const navigateTo = (template) => {
@@ -1071,10 +822,25 @@ const navigateTo = (template) => {
     document.querySelector(`section#${template}`).classList.add('active');
 };
 
-const initMapViewMap = () => {
-  mainMap = new MainMap({ selector: document.getElementById('mainMapContainer') });
+const initMainMap = () => {
+  const { map, design } = settings;
+  const selector = document.getElementById('mainMapContainer');
+  const options = {
+    styles: []
+  };
+
+  if (!map.showPointsOfInterest) {
+    options.styles.push({
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [
+        { visibility: 'off' }
+      ]
+    });
+  }
+  mainMap = new MainMap(selector, options);
 };
-const handleMarkerClick = (location, marker) => {
+const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
             <div class="location-summary__header">
@@ -1099,7 +865,7 @@ const handleMarkerClick = (location, marker) => {
               </div>`).join('\n')}
             </div>
           </div>`;
-  resetDrawer();
+  resetDrawer('collapsed');
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
@@ -1109,7 +875,7 @@ const initHomeView = () => {
   fetchCategories(() => {
     initFilterOverlay();
     refreshQuickFilter(); // todo if quick filter enabled
-    initMapViewMap();
+    initMainMap();
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
         renderIntroductoryLocations(introductoryLocations);
@@ -1188,7 +954,8 @@ const init = () => {
     // fetchCategories(() => {
     //   showLocationDetail();
     // });
-    initEventListeners();
+
+    setTimeout(() => { initEventListeners(); }, 1000);
 
     buildfire.deeplink.getData((deeplinkData) => {
       if (deeplinkData?.locationId) {

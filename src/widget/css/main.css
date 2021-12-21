@@ -480,6 +480,7 @@ button span {
   font-size: 13px;
   margin: 0 0 8px;
   max-width: calc(100% - 40px);
+  display: none;
 }
 .location-detail__cover #workingHoursBtn {
   margin-bottom: 8px;
@@ -655,6 +656,7 @@ button span {
 }
 .location-detail__top-subtitle p {
   font-size: 13px;
+  display: none;
 }
 .location-detail__top-subtitle button {
   white-space: nowrap;
@@ -792,4 +794,35 @@ button span {
 
 body section#home {
   padding-bottom: 0;
+}
+
+.custom-marker {
+  position:absolute;
+  cursor:pointer;
+  background:#424242;
+  width:45px;
+  height:45px;
+  /* -width/2 */
+  margin-left:-10px;
+  /* -height + arrow */
+  margin-top:-60px;
+  border-radius:10px;
+  padding:0px;
+}
+.custom-marker:after {
+  content:"";
+  position: absolute;
+  bottom: -10px;
+  left: 15px;
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #424242 transparent;
+  display: block;
+  width: 0;
+}
+.custom-marker img {
+  width:40px;
+  height:40px;
+  margin:2px;
+  border-radius:10px;
 }

@@ -1,16 +1,18 @@
 import MarkerClusterer from './lib/markercluster';
+import CustomMarker from './CustomMarker';
 
 export default class Map {
-  constructor({ selector }) {
-    this.init(selector);
+  constructor(selector, options) {
+    this.init(selector, options);
     this.initMarkerCluster();
+    this.Marker = CustomMarker();
   }
 
-  init(selector) {
+  init(selector, userOptions) {
     const mapTypeId = google.maps.MapTypeId.ROADMAP;
     const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
-
     const options = {
+      ...userOptions,
       minZoom: 3,
       maxZoom: 19,
       center: { lat: 38.70290288229097, lng: 35.52352225602528 },
@@ -24,7 +26,6 @@ export default class Map {
         position: zoomPosition
       }
     };
-
     this.map = new google.maps.Map(selector, options);
   }
 
@@ -47,22 +48,29 @@ export default class Map {
   addMarker(location, onClick) {
     if (!this.map) return;
 
-    const iconOptions = {
-      url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
-      scaledSize: new google.maps.Size(20, 20),
-      origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(10, 10)
-    };
-    const marker = new google.maps.Marker({
-      position: location.coordinates,
-      markerData: location,
-      map: this.map,
-      icon: iconOptions
-    });
+    // const iconOptions = {
+    //   url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
+    //   scaledSize: new google.maps.Size(20, 20),
+    //   origin: new google.maps.Point(0, 0),
+    //   anchor: new google.maps.Point(10, 10)
+    // };
+    // const marker = new google.maps.Marker({
+    //   position: {lat: 37.77085, lng: -122.41356},
+    //   markerData: location,
+    //   map: this.map,
+    //   icon: iconOptions
+    // });
+    //
+    // marker.addListener('click', () => {
+    //   onClick(location, marker);
+    // });
 
-    marker.addListener('click', () => {
-      onClick(location, marker);
-    });
+    const marker = new this.Marker(
+      location,
+      'http://placekitten.com/90/90',
+      this.map,
+      onClick
+    );
 
     if (this.markerClusterer) {
       this.markerClusterer.addMarker(marker);
