@@ -1,3 +1,6 @@
+.breadcrumb-container {
+	padding: 0 1rem;
+}
 .main-content {
 	padding: 0 1rem;
 }
@@ -6,6 +9,7 @@
 
 .sidenav-container {
 	display: flex;
+	overflow: hidden;
 }
 
 .sidenav {
@@ -17,7 +21,7 @@
 .sidenav li a {
 	border-radius: 4px;
 	color: #000;
-	border: 2px solid #d3d2d2;
+	border: 1px solid #d3d2d2;
 	padding: 7px 10px;
 	display: flex;
 	align-items: center;
@@ -29,7 +33,7 @@
 
 .sidenav li a.active,
 .sidenav li a.active:hover {
-	border: 2px solid #00a1f1;
+	border: 1px solid #00a1f1;
 	color: #00a1f1;
 }
 
@@ -39,8 +43,8 @@
 
 .sidenav-content {
 	overflow-y: auto;
-	min-height:  calc(100vh - 30px);
-	max-height: calc(100vh - 30px);
+	/* min-height:  calc(100vh - 70px); */
+	max-height: calc(100vh - 50px);
 	padding: 0 1rem;
 	flex: auto;
 }
@@ -61,13 +65,19 @@
 .justify-content-center {
 	justify-content: center;
 }
-
+.justify-content-end {
+	justify-content: end;
+}
 .align-items-center {
 	align-items: center;
 }
 
 .flex-wrap {
 	flex-wrap: wrap;
+}
+
+.flex-auto {
+	flex: auto;
 }
 
 /* .section-title{
@@ -168,7 +178,7 @@ p.info::before {
 }
 
 .item-list {
-	margin-top: 1rem;
+	margin-top: 1.2rem;
 }
 
 .ellipsis-20 {

@@ -24,13 +24,20 @@ tbody {
     max-height: calc(100vh - 350px) !important;
 	overflow-y: auto;
 }
+table tbody tr {
+    background-color: #fff !important;
+}
 table tbody tr td {
     border-top: none!important;
     border-bottom: 1px solid #d8d8d8;
 }
 .editColumn,.deleteColumn{
-    width:40px;
+    width: 50px;
     text-align: center;
+}
+.actionsColumn{
+    width: auto;
+    text-align: right;
 }
 .btn-primary {
     margin-bottom: 16px;

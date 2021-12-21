@@ -15,8 +15,8 @@ const templates = {};
 
 const createLoadingState = () => {
   const div = document.createElement("div");
-  div.className = 'well text-center';
-  div.innerHTML = `<hr class="none"><h5>Loading...</h5>`;
+  div.className = 'empty-state';
+  div.innerHTML = `<h4>Loading...</h4>`;
   return div;
 };
 
@@ -29,6 +29,7 @@ const fetchTemplate = (template, callback) => {
   }
 
   // show loading state
+  document.querySelector(`#main`).innerHTML = '';
   document.querySelector(`#main`).appendChild(createLoadingState());
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {
@@ -55,20 +56,11 @@ const injectTemplate = (template) => {
 };
 /** template management end */
 
-const navigate = (template) => {
+const navigate = (template, callback) => {
   fetchTemplate(template, () =>  {
     injectTemplate(template);
-    switch (template) {
-      case 'categories':
-        initCategories();
-        break;
-      case 'locations':
-        initLocations();
-        break;
-      case 'listView':
-        initListView();
-        break;
-      default:
+    if (callback) {
+      callback();
     }
   });
 };
@@ -85,20 +77,28 @@ const setActiveSidenavTab = (section) => {
 window.onSidenavChange = (section) => {
   switch (section) {
     case 'categories':
-      navigate('categories');
       setActiveSidenavTab(section);
+      navigate('categories', () => {
+        initCategories();
+      });
       break;
     case 'locations':
-      navigate('locations');
       setActiveSidenavTab(section);
+      navigate('locations', () => {
+        initLocations();
+      });
       break;
     case 'listView':
-      navigate('listView');
       setActiveSidenavTab(section);
+      navigate('listView', () => {
+        initListView();
+      });
       break;
     default:
-      navigate('categories');
       setActiveSidenavTab(section);
+      navigate('categories', () => {
+        initCategories();
+      });
   }
 };
 

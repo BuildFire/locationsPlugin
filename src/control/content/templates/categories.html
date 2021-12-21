@@ -2,15 +2,14 @@
   <h1 class="section-title">Categories</h1>
   <div class="clearfix">
     <p class="info-note">
-      Please create the main the categories that your location and places can be
-      grouped under for easy access by user.
+      Make your locations easy to find by creating Categories.
     </p>
   </div>
   <div class="search-bar">
     <input type="text"  placeholder="Search" id="category-search-input"
       onkeyup="searchCategories()" />
       <button class="btn btn-info" type="button" onclick="searchCategories()">
-        <div class="search-icon">
+        <div class="search-icon"></div>
       </button>
   </div>
   <hr class="none" />
@@ -38,8 +37,8 @@
         </button>
         <ul class="dropdown-menu" role="menu">
           <li><a onclick="downloadCategoryTemplate()">Download Template</a></li>
-          <li><a onclick="importCategories()">Import</a></li>
           <li><a onclick="exportCategories()">Export</a></li>
+          <li><a onclick="importCategories()">Import</a></li>
         </ul>
       </div>
       <button type="button" class="btn btn-success btn-add" onclick="addEditCategory()">
@@ -49,16 +48,13 @@
   </div>
   <div id="items"></div>
   <div class="empty-state hidden margin-top-fifteen" id="category-empty-list">
-    <h4>No Categories Added!</h4>
+    <h4>No Categories Added.</h4>
   </div>
 
   <template id="addCategoryTemplate">
     <div class="sub-page">
-      <div class="sub-page-body padded">
-        <h1 class="section-title">Add Category</h1>
-        <div class="clearfix">
-          <p class="info-note">Description.</p>
-        </div>
+      <div class="sub-page-body">
+        <h1 class="section-title" id="category-form-title">Add Category</h1>
         <hr class="none" />
         <div class="input-control side-label">
           <label class="" for="category-icon-btn">Category Icon</label>
@@ -84,7 +80,7 @@
         <div class="search-bar">
           <input type="text" placeholder="Search" name="searchTxt" id="subcategory-search-input" />
           <button class="btn btn-info" type="button" id="subcategory-search-btn">
-            <div class="search-icon">
+            <div class="search-icon"></div>
           </button>
         </div>
         <hr class="none" />
@@ -103,8 +99,8 @@
               </button>
               <ul class="dropdown-menu" role="menu">
                 <li><a id="subcategory-template-btn">Download Template</a></li>
-                <li><a id="subcategory-import-btn" for="fileElem">Import</a></li>
                 <li><a id="subcategory-export-btn">Export</a></li>
+                <li><a id="subcategory-import-btn" for="fileElem">Import</a></li>
               </ul>
             </div>
             <button type="button" class="btn btn-success btn-add" id="subcategory-add-btn">
@@ -115,16 +111,16 @@
         <hr class="none" />
         <div class="clearfix">
           <p class="info-note">
-            Include this category in the following category types.
+            Create subcategories to make your locations more specific.
           </p>
         </div>
         <div id="subcategory-items"></div>
         <div id="emptyState" class="empty-state hidden">
-          <h4>No Subcategories Added!</h4>
+          <h4>No Subcategories Added.</h4>
         </div>
       </div>
-      <div class="sub-page-footer padded">
-        <button class="btn btn-default" onclick="cancelAddCategory()">
+      <div class="sub-page-footer bottom-actions">
+        <button class="btn btn-default" id="category-cancel-btn">
           Cancel
         </button>
         <button class="btn btn-success" id="category-save-btn">Save</button>
@@ -135,8 +131,7 @@
     <div class="input-control side-label">
       <label class="required-label" for="subcategory-name-input">Subcategory Name</label>
       <div>
-        <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"
-          placeholder="Max 30 characters" />
+        <input type="text" class="form-control" required maxlength="30" id="subcategory-name-input"/>
         <div id="subcategory-name-input-error" class="text-danger hidden">Required</div>
       </div>
     </div>

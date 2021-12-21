@@ -17,7 +17,7 @@ import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
 import authManager from '../../../../UserAccessControl/authManager';
 
-
+const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
 const inputLocationForm = document.querySelector("#form-holder");
@@ -46,6 +46,9 @@ const state = {
     saturday: "Sat",
   },
   isMapLoaded: false,
+  breadcrumbs: [
+    { title: "Locations", goBack: true },
+  ]
 };
 
 const locationTemplateHeader = {
@@ -115,23 +118,49 @@ const renderAddLocationsPage = () => {
     deleteOwnerBtn: inputLocationForm.querySelector("#location-delete-owner-btn"),
     ownerTxt: inputLocationForm.querySelector("#location-owner-txt"),
     saveBtn: inputLocationForm.querySelector("#location-save-btn"),
+    cancelBtn: inputLocationForm.querySelector("#location-cancel-btn"),
+    navigateToIntroLink: inputLocationForm.querySelector("#location-navigate-to-listview-link"),
+    editAllCategoriesLink: inputLocationForm.querySelector("#location-edit-all-categories"),
   };
 };
 
-window.cancelAddLocation = () => {
+const cancelAddLocation = () => {
   sidenavContainer.style.display = "flex";
   inputLocationForm.innerHTML = "";
   inputLocationForm.style.display = "none";
   state.locationObj = new Location();
-  state.selectedLocationCategories = {main: [], subcategories: []};
+  state.selectedLocationCategories = { main: [], subcategories: [] };
+  state.breadcrumbs = [
+    { title: "Locations", goBack: true },
+  ];
+  breadcrumbsSelector.innerHTML = "";
+  getPinnedLocation();
+};
+
+const renderBreadcrumbs = () => {
+  breadcrumbsSelector.innerHTML = "";
+  for (const breadcrumb of state.breadcrumbs) {
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `<a>${breadcrumb.title}</a>`;
+    listItem.onclick = () => {
+      if (breadcrumb.goBack) {
+        state.breadcrumbs.pop();
+        breadcrumbsSelector.innerHTML = "";
+        cancelAddLocation();
+      }
+    };
+    breadcrumbsSelector.appendChild(listItem);
+  }
 };
 
 window.addEditLocation = (location) => {
   renderAddLocationsPage();
 
   if (!location) {
+    state.breadcrumbs.push({ title: "Add Location" });
     state.locationObj = new Location();
   } else {
+    state.breadcrumbs.push({ title: "Edit Location" });
     state.locationObj = new Location(location);
     addLocationControls.locationTitle.value = state.locationObj.title;
     addLocationControls.locationSubtitle.value = state.locationObj.subtitle;
@@ -143,12 +172,15 @@ window.addEditLocation = (location) => {
     addLocationControls.showPriceRangeBtn.checked = state.locationObj.settings.showPriceRange;
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
     setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
-    addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
-    addLocationControls.deleteOwnerBtn.classList.remove('hidden');
-  }
 
+    if (state.locationObj.owner && Object.keys(state.locationObj.owner).length > 0) {
+      addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
+      addLocationControls.deleteOwnerBtn.classList.remove('hidden');
+    }
+  }
+  renderBreadcrumbs();
   loadMap();
-  renderCategoriesList(state.locationObj.categories);
+  renderSelectedCategoriesList(state.locationObj.categories);
   renderOpeningHours(state.locationObj.openingHours);
   onMarkerTypeChanged(state.locationObj.marker);
   onPriceRangeChanged(state.locationObj.price);
@@ -160,22 +192,49 @@ window.addEditLocation = (location) => {
     selector: "#location-description-wysiwyg",
   });
 
-  if (state.pinnedLocations.length >= 3 || state.locationObj.pinIndex !== null) {
+  if (state.pinnedLocations.length >= 3 && state.locationObj.pinIndex === null) {
     addLocationControls.pinTopBtn.disabled = true;
   }
 
-  
-  addLocationControls.pinnedLocationsLabel.innerHTML = `${state.pinnedLocations.length} of 3 Pinned`;
   let isPinned = false;
+  let pinnedLocationsCount = state.pinnedLocations.length;
+  if (state.locationObj.pinIndex !== null) {
+    addLocationControls.pinTopBtn.innerHTML = 'Unpin';
+    isPinned = true;
+  }
+
+  addLocationControls.pinnedLocationsLabel.innerHTML = `${pinnedLocationsCount} of 3 Pinned`;
   addLocationControls.pinTopBtn.onclick = () => {
     if (!isPinned) {
-      state.locationObj.pinIndex = state.pinnedLocations.length + 1;
+      addLocationControls.pinTopBtn.innerHTML = 'Unpin';
+      pinnedLocationsCount += 1;
+      state.locationObj.pinIndex = pinnedLocationsCount;
       isPinned = true;
     } else {
+      addLocationControls.pinTopBtn.innerHTML = 'Pin to Top';
+      pinnedLocationsCount -= 1;
       state.locationObj.pinIndex = null;
       isPinned = false;
     }
-    addLocationControls.pinnedLocationsLabel.innerHTML = `${ state.locationObj.pinIndex ?? state.pinnedLocations.length } of 3 Pinned`;
+    addLocationControls.pinnedLocationsLabel.innerHTML = `${pinnedLocationsCount} of 3 Pinned`;
+  };
+
+  addLocationControls.navigateToIntroLink.onclick = () => {
+    openConfirmationLeaveDialog((err, confirmed) => {
+      if (confirmed) {
+        cancelAddLocation();
+        onSidenavChange('listView');
+      }
+    });
+  };
+
+  addLocationControls.editAllCategoriesLink.onclick = () => {
+    openConfirmationLeaveDialog((err, confirmed) => {
+      if (confirmed) {
+        cancelAddLocation();
+        onSidenavChange('categories');
+      }
+    });
   };
 
   addLocationControls.selectMarkerImageBtn.onclick = () => {
@@ -288,7 +347,9 @@ window.addEditLocation = (location) => {
     buildfire.actionItems.showDialog(null, null, (err, actionItem) => {
       if (err) return console.error(err);
 
-      if (!actionItem) return;
+      if (!actionItem) {
+        return false;
+      }
       console.log("Action item created", actionItem);
       actionItem.id = generateUUID();
       state.locationObj.actionItems.push(actionItem);
@@ -319,6 +380,7 @@ window.addEditLocation = (location) => {
   locationImagesUI.onDeleteItem = (item, index, callback) => {
     buildfire.notifications.confirm(
       {
+        title: "Delete Image",
         message: `Are you sure you want to delete this image?`,
         confirmButton: {
           text: "Delete",
@@ -346,6 +408,7 @@ window.addEditLocation = (location) => {
   actionItemsUI.onDeleteItem = (item, index, callback) => {
     buildfire.notifications.confirm(
       {
+        title: "Delete Action Item",
         message: `Are you sure you want to delete ${item.title} action?`,
         confirmButton: {
           text: "Delete",
@@ -386,6 +449,8 @@ window.addEditLocation = (location) => {
     saveLocation(location ? "Edit" : "Add");
   };
 
+  addLocationControls.cancelBtn.onclick = cancelAddLocation;
+
   locationImagesUI.init(state.locationObj.images);
   actionItemsUI.init(state.locationObj.actionItems);
 };
@@ -417,15 +482,9 @@ const saveLocation = (action, callback) => {
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
   if (action === 'Add') {
-    LocationsController.createLocation(state.locationObj).then((res) => {
-      loadLocations();
-      window.cancelAddLocation();
-    });
+    createLocation(state.locationObj);
   } else {
-    LocationsController.updateLocation(state.locationObj.id, state.locationObj).then((res) => {
-      loadLocations();
-      window.cancelAddLocation();
-    });
+    updateLocation(state.locationObj.id, state.locationObj);
   }
 };
 
@@ -527,7 +586,7 @@ const openSelectCategoriesDialog = (action) => {
   categoriesListContainer.classList.add("select-categories-list");
 
   const searchBox = createTemplate('searchBoxTemplate');
-  createSelectCategoryList(state.categories, categoriesListContainer, state.locationObj.categories);
+  createDialogCategoriesList(state.categories, categoriesListContainer, state.locationObj.categories);
 
   const dialogContent = document.createElement("div");
 
@@ -540,7 +599,7 @@ const openSelectCategoriesDialog = (action) => {
     const searchValue = e.target.value;
     console.log(searchValue);
     const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchValue.toLowerCase()));
-    createSelectCategoryList(data, categoriesListContainer, state.locationObj.categories);
+    createDialogCategoriesList(data, categoriesListContainer, state.locationObj.categories);
   };
 
   selectCategoryDialog = new DialogComponent("dialogComponent", dialogContent);
@@ -554,18 +613,18 @@ const openSelectCategoriesDialog = (action) => {
     (e) => {
       e.preventDefault();
       state.locationObj.categories = { ...state.selectedLocationCategories };
-      renderCategoriesList(state.locationObj.categories);
+      renderSelectedCategoriesList(state.locationObj.categories);
       selectCategoryDialog.close(e);
     }
   );
 };
 
-const createSelectCategoryList = (categories, categoriesContainer, selected) => {
+const createDialogCategoriesList = (categories, categoriesContainer, selected) => {
   categoriesContainer.innerHTML = "";
   state.selectedLocationCategories = { ...state.locationObj.categories };
 
   if (categories.length === 0) {
-    categoriesContainer.appendChild(createEmptyHolder('No Categories'));
+    categoriesContainer.appendChild(createEmptyHolder('No Categories Found'));
     return;
   }
   // eslint-disable-next-line no-restricted-syntax
@@ -624,7 +683,7 @@ const createSelectCategoryList = (categories, categoriesContainer, selected) => 
     // eslint-disable-next-line no-restricted-syntax
     for (const subcategory of _category.subcategories) {
       const checkboxDiv = creatCheckboxElem();
-      checkboxDiv.className = 'col-md-5  padding-zero margin-top-ten flex-row align-items-center ';
+      checkboxDiv.className = 'col-md-5 margin-top-ten checkbox checkbox-primary';
       const checkboxInput = checkboxDiv.querySelector('.checkbox-input');
       const checkboxLabel = checkboxDiv.querySelector('.checkbox-label');
 
@@ -653,12 +712,12 @@ const createSelectCategoryList = (categories, categoriesContainer, selected) => 
   }
 };
 
-const renderCategoriesList = (locationCategories) => {
+const renderSelectedCategoriesList = (locationCategories) => {
   addLocationControls.categoriesList.innerHTML = "";
 
   if (locationCategories?.main?.length === 0) {
     addLocationControls.categoriesCount.innerHTML = "";
-    addLocationControls.categoriesList.innerHTML = `<div class="text-center"><h5>No Categories Selected!</h5></div>`;
+    addLocationControls.categoriesList.innerHTML = `<div class="text-center"><h5>No Categories Selected.</h5></div>`;
     return;
   }
 
@@ -672,7 +731,7 @@ const renderCategoriesList = (locationCategories) => {
     categoryListItem.className = 'item-list';
     const itemContent = `
     <div class="item-list">
-       <h6 class="text-bold">${category.title}</h6>
+       <h5 class="text-bold">${category.title}</h5>
        <span class="text-muted">${subcategories.map((elem) => elem.title).join(', ')}</span>
      </div>
     `;
@@ -680,6 +739,31 @@ const renderCategoriesList = (locationCategories) => {
 
     addLocationControls.categoriesList.appendChild(categoryListItem);
   }
+};
+
+const openConfirmationLeaveDialog = (callback) => {
+  buildfire.notifications.confirm(
+    {
+      message: `You are about to leave this page. your progress will be loosed?`,
+      confirmButton: {
+        text: "OK",
+        key: "y",
+        type: "primary",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    }
+  );
 };
 
 const renderOpeningHours = (openingHours) => {
@@ -751,7 +835,7 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 const creatCheckboxElem = () => {
   const div = document.createElement("div");
   div.innerHTML = `<input type="checkbox" class="checkbox-input"/>
-  <label for="checkbox1" class="checkbox-label ellipsis ellipsis-20 margin-bottom-zero margin-left-ten"></label>`;
+  <label for="checkbox1" class="checkbox-label "></label>`;
 
   return div;
 };
@@ -759,7 +843,7 @@ const creatCheckboxElem = () => {
 const createEmptyHolder = (message) => {
   const div = document.createElement("div");
   div.className = 'empty-state margin-top-fifteen';
-  div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }!</h4>`;
+  div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }.</h4>`;
   return div;
 };
 
@@ -881,6 +965,7 @@ const loadMap = () => {
 const deleteLocation = (item, row, callback = () => {}) => {
   buildfire.notifications.confirm(
     {
+      title: "Delete Location",
       message: `Are you sure you want to delete ${item.title} location?`,
       confirmButton: {
         text: "Delete",
@@ -908,10 +993,10 @@ const deleteLocation = (item, row, callback = () => {}) => {
 const handleLocationEmptyState = (isLoading) => {
   const emptyState = locationsSection.querySelector('#location-empty-list');
   if (isLoading) {
-    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    emptyState.innerHTML = `<h5>No Locations Added</h5>`;
+    emptyState.innerHTML = `<h4>No Locations Added</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
@@ -981,9 +1066,10 @@ window.importLocations = () =>  {
         };
         elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
         elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency };
-        const categories = elem.categories?.split(',').filter((elem) => elem)
-        const mainCategories = state.categories.filter(elem => categories.includes(elem.title)).map(elem => elem.id);
-        elem.categories = { main: mainCategories, subcategories: [] }
+        let categories = elem.categories ? elem.categories : "";
+        categories = elem.categories?.split(',').filter((elem) => elem);
+        const mainCategories = state.categories.filter((elem) => categories?.includes((elem).title)).map((elem) => elem.id);
+        elem.categories = { main: mainCategories, subcategories: [] };
         elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
         elem.createdOn = new Date();
         elem.createdBy = authManager.currentUser;
@@ -991,7 +1077,8 @@ window.importLocations = () =>  {
       });
 
       LocationsController.bulkCreateLocation(locations).then(() => {
-        loadLocations()
+        loadLocations();
+        triggerWidgetOnLocationsUpdate();
       }).catch(console.error);
     });
   };
@@ -1026,12 +1113,11 @@ const loadLocations = (filter, sort) => {
   });
 };
 
-
 const getPinnedLocation = () => {
   LocationsController.getPinnedLocation().then(({ result, recordCount }) => {
     state.pinnedLocations = result || [];
   });
-}
+};
 
 const loadCategories = (callback) => {
   CategoriesController.searchCategories().then((categories) => {
@@ -1041,6 +1127,68 @@ const loadCategories = (callback) => {
       state.categoriesLookup[category.id] = category;
     }
     callback();
+  });
+};
+
+const copyLocationDeepling = (location, tr) => {
+  generateDeeplinkUrl(location).then((result) => {
+    console.log(result);
+    const copyElement = document.createElement("textarea");
+    copyElement.style.position = 'fixed';
+    copyElement.style.opacity = '0';
+    copyElement.textContent = result.url;
+    const body = document.getElementsByTagName('body')[0];
+    body.appendChild(copyElement);
+    copyElement.select();
+    document.execCommand('copy');
+    body.removeChild(copyElement);
+  });
+};
+
+const updateLocationImage = (obj, tr) => {
+  buildfire.imageLib.showDialog(
+    { showIcons: false, multiSelection: false }, (err, result) => {
+      if (err) return console.error(err);
+      if (!result) {
+        return null;
+      }
+      const { selectedFiles, selectedStockImages } = result;
+      let iconUrl = null;
+      if (selectedFiles && selectedFiles.length > 0) {
+        iconUrl = selectedFiles[0];
+      } else if (selectedStockImages && selectedStockImages.length > 0) {
+        iconUrl = selectedStockImages[0];
+      }
+
+      const location = state.locations.find((elem) => elem.id === obj.id);
+      if (iconUrl && location) {
+        location.listImage = iconUrl;
+        locationsTable.renderRow(location, tr);
+        updateLocation(location.id, new Location(location));
+      }
+    }
+  );
+};
+
+const createLocation = (location) => {
+  LocationsController.createLocation(location).then((res) => {
+    loadLocations();
+    triggerWidgetOnLocationsUpdate();
+    cancelAddLocation();
+  });
+};
+
+const updateLocation = (locationId, location) => {
+  LocationsController.updateLocation(locationId, location).then((res) => {
+    loadLocations();
+    triggerWidgetOnLocationsUpdate();
+    cancelAddLocation();
+  });
+};
+
+const triggerWidgetOnLocationsUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_location"
   });
 };
 
@@ -1061,8 +1209,10 @@ window.initLocations = () => {
   };
 
   locationsTable.onRowDeleted = deleteLocation;
+  locationsTable.onImageClick = updateLocationImage;
 
   locationsTable.onSort = (sort) => {
     loadLocations({}, sort);
   };
+  locationsTable.onCopy = copyLocationDeepling;
 };

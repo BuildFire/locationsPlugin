@@ -120,10 +120,10 @@ const deleteListViewImage = (item, index, callback) => {
 const handlePinnedLocationEmptyState = (isLoading) => {
   const emptyState = listViewSection.querySelector('#pinned-location-empty-list');
   if (isLoading) {
-    emptyState.innerHTML = `<h5> Loading... </h5>`;
+    emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.pinnedLocations.length === 0) {
-    emptyState.innerHTML = `<h5>You haven't pinned any locations yet</h5>`;
+    emptyState.innerHTML = `<h4>You haven't pinned any locations yet</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
@@ -131,7 +131,7 @@ const handlePinnedLocationEmptyState = (isLoading) => {
 };
 
 const saveSettings = () => {
-  SettingsController.saveSettings(state.settings).then().catch(console.error);
+  SettingsController.saveSettings(state.settings).then(triggerWidgetOnListViewUpdate).catch(console.error);
 };
 
 const getPinnedLocations = () => {
@@ -167,20 +167,26 @@ const deletePinnedLocation = (item, index, callback) => {
           .then(() => {
             state.pinnedLocations = state.pinnedLocations.filter(elem => elem.id !== item.id);
             handlePinnedLocationEmptyState(false);
+            triggerWidgetOnListViewUpdate();
             callback(item);
           })
-          .catch(console.error)
+          .catch(console.error);
       }
     }
   );
-  
-}
+};
 
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
   }).catch(console.error);
+};
+
+const triggerWidgetOnListViewUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_intro",
+  });
 };
 
 window.initListView = () => {
@@ -192,7 +198,7 @@ window.initListView = () => {
     state.settings.introductoryListView.images = listViewImagesList.sortableList.items;
     saveSettings();
   };
-  pinnedLocationsList.onDeleteItem = deletePinnedLocation
+  pinnedLocationsList.onDeleteItem = deletePinnedLocation;
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();

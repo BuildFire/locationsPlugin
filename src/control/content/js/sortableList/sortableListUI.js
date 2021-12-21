@@ -31,6 +31,7 @@ class SortableListUI {
       this.sortableList.onUpdateItem = this.onUpdateItem;
       this.sortableList.onOrderChange = this.onOrderChange;
       this.sortableList.onToggleChange = this.onToggleChange;
+      this.sortableList.onImageClick = this.onImageClick;
     } else {
       this.sortableList.loadItems(items);
     }
@@ -78,6 +79,10 @@ class SortableListUI {
   }
 
   onToggleChange() {}
+
+  onImageClick(item, index, divRow) {
+
+  }
 }
 
 export default SortableListUI;

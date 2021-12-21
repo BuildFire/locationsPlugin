@@ -32,7 +32,7 @@ export default class Location {
     this.images = data.images || [];
     this.listImage = data.listImage || null;
     this.description = data.description || null;
-    this.owner = data.owner || {};
+    this.owner = data.owner || null;
     this.views = data.views || 0;
     this.price = data.price || { range: 0, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };

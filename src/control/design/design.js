@@ -1,6 +1,9 @@
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-restricted-syntax */
 // This is the entry point of your plugin's design control.
 // Feel free to require any local or npm modules you've installed.
 //
+import buildfire from 'buildfire';
 import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import DesignController from "./design.controller";
@@ -26,7 +29,7 @@ const render = () => {
       const value = e.target.value;
       state.settings.design.listViewPosition = value;
       saveSettings();
-    }
+    };
   }
 
   for (const radio of defaultListViewStyleRadios) {
@@ -38,7 +41,7 @@ const render = () => {
       const value = e.target.value;
       state.settings.design.listViewStyle = value;
       saveSettings();
-    }
+    };
   }
 
   for (const radio of defaultMapStyleRadios) {
@@ -50,7 +53,7 @@ const render = () => {
       const value = e.target.value;
       state.settings.design.defaultMapStyle = value;
       saveSettings();
-    }
+    };
   }
 
   for (const radio of mapPositionRadios) {
@@ -62,32 +65,38 @@ const render = () => {
       const value = e.target.value;
       state.settings.design.detailsMapPosition = value;
       saveSettings();
-    }
+    };
   }
 
   allowMapStyleSelectionBtn.checked = state.settings.design.allowStyleSelection;
   allowMapStyleSelectionBtn.onchange = (e) => {
     state.settings.design.allowStyleSelection = e.target.checked;
-    saveSettings()
-  }
+    saveSettings();
+  };
 
   showCategoryOnLocDetailsBtn.checked = state.settings.design.showDetailsCategory;
   showCategoryOnLocDetailsBtn.onchange = (e) => {
     state.settings.design.showDetailsCategory = e.target.checked;
-    saveSettings()
-  }
-
+    saveSettings();
+  };
 };
 
 const saveSettings = () => {
-  DesignController.saveSettings(state.settings).then().catch(console.error);
+  DesignController.saveSettings(state.settings)
+    .then(triggerWidgetOnDesignUpdate).catch(console.error);
 };
 
 const getSettings = () => {
   DesignController.getSettings().then((settings) => {
     state.settings = settings;
-    render()
+    render();
   }).catch(console.error);
+};
+
+const triggerWidgetOnDesignUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: "update_design",
+  });
 };
 
 const init = () => {

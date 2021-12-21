@@ -17,8 +17,8 @@
         </div>
         <div class="col-md-9 pull-right padding-right-zero">
           <div class="">
-            <button type="button" class="btn btn-success btn--lg" id="listview-add-images-btn" onclick="addListViewImages()">
-              + Add Images
+            <button type="button" class="btn btn-success btn-add" id="listview-add-images-btn" onclick="addListViewImages()">
+              Add Images
             </button>
           </div>
           <div id="listview-image-carousel-items" class="margin-top-ten">
@@ -43,8 +43,8 @@
             <p class="info-note">Description.</p>
         </div>
         <div id="listview-pinned-location-items"></div>
-        <div class="text-center well" id="pinned-location-empty-list">
-            <h5>You haven't pinned any locations yet</h5>
+        <div class="empty-state" id="pinned-location-empty-list">
+            <h4>You haven't pinned any locations yet</h4>
         </div>
     </div>
     <hr class="none" />
@@ -64,7 +64,7 @@
             <div class="col-md-4 margin-top-zero radio radio-primary">
               <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-alpha" value="alphabetical" 
                 onchange="onSortLocationsChanged('alphabetical')"/>
-              <label for="listview-sort-location-by-alpha">Alphabetical Order</label>
+              <label for="listview-sort-location-by-alpha">Alphabetical</label>
             </div>
             <div class="col-md-4 margin-top-zero radio radio-primary">
               <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-newest" value="newest"

@@ -64,11 +64,7 @@ export default class SearchTableHelper {
       if (colConfig.width) th.style.width = colConfig.width;
     });
 
-    if (this.config.options.showEditButton)
-      this._create("th", this.thead, "", ["editColumn"]);
-
-    if (this.config.options.showDeleteButton)
-      this._create("th", this.thead, "", ["deleteColumn"]);
+    this._create("th", this.thead, "", ["actionsColumn"]);
   }
 
   renderBody() {
@@ -182,6 +178,7 @@ export default class SearchTableHelper {
       else if (colConfig.type === "number") classes = ["text-right"];
       else classes = ["text-left"];
       let td;
+
       if (colConfig.type === "command") {
         td = this._create(
           "td",
@@ -200,6 +197,9 @@ export default class SearchTableHelper {
           `<div class="icon-holder">${this.getImage(obj)}</div>`,
           ["imageColumn"]
         );
+        td.onclick = () => {
+          this.onImageClick(obj, tr);
+        };
       } else {
         let output = "";
         try {
@@ -214,43 +214,48 @@ export default class SearchTableHelper {
       if (colConfig.width) td.style.width = colConfig.width;
     });
 
-    let t = this;
+    const t = this;
+    const actionsDiv = document.createElement("div");
+    actionsDiv.className = "flex-row justify-content-end";
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "btn btn--icon";
+    copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>`;
+    actionsDiv.appendChild(copyBtn);
 
-    let ctd = this._create(
-      "td",
-      tr,
-      '<span class="btn--icon icon icon-download2"></span>',
-      ["deleteColumn"]
-    );
-    ctd.onclick = () => {
+    const editBtn = document.createElement("span");
+    editBtn.className = "btn--icon icon icon-pencil3";
+    actionsDiv.appendChild(editBtn);
+
+    const deleteBtn = document.createElement("span");
+    deleteBtn.className = "btn--icon icon icon-cross2";
+    actionsDiv.appendChild(deleteBtn);
+
+    copyBtn.onclick = () => {
+      console.log('Hello');
       t.onCopy(obj, tr);
     };
+    editBtn.onclick = () => {
+      t.onEditRow(obj, tr);
+    };
+    deleteBtn.onclick = () => {
+      t.onRowDeleted(obj, tr, () => {
+        tr.classList.add("hidden");
+      });
+    };
 
-    if (this.config.options.showEditButton) {
-      let td = this._create(
-        "td",
-        tr,
-        '<span class="btn--icon icon icon-pencil3"></span>',
-        ["editColumn"]
-      );
-      td.onclick = () => {
-        t.onEditRow(obj, tr);
-      };
-    }
+    const actionsColumn = document.createElement("td");
+    actionsColumn.className = "actionsColumn";
+    actionsColumn.appendChild(actionsDiv);
+    tr.appendChild(actionsColumn);
 
-    if (this.config.options.showDeleteButton) {
-      let td = this._create(
-        "td",
-        tr,
-        '<span class="btn--icon icon icon-cross2"></span>',
-        ["deleteColumn"]
-      );
-      td.onclick = () => {
-        t.onRowDeleted(obj, tr, () => {
-          tr.classList.add("hidden");
-        });
-      };
-    }
+    // this._create(
+    //   "td",
+    //   tr,
+    //   `<div class="flex-row justify-content-end">
+    //     ${actionsDiv.innerHTML}
+    //   </div>`,
+    //   ["actionsColumn"]
+    // );
 
     this.onRowAdded(obj, tr);
   }
@@ -272,6 +277,8 @@ export default class SearchTableHelper {
   onSort(sort) {}
 
   onCopy(obj) {}
+
+  onImageClick(obj, tr) {}
 
   onCommand(command, cb) {
     this.commands[command] = cb;

@@ -56,7 +56,7 @@ p {
   display: block;
 }
 label{
-  color: var(--c-info);
+  /* color: var(--c-info); */
   font-size: .75rem;
 }
 h4, h5, h6 {
@@ -67,7 +67,7 @@ margin-bottom: .5em;
   font-size: 1.125rem;
   font-weight: bold;
   color: var(--c-info);
-  padding-top: .875rem;
+  /* padding-top: .875rem; */
   margin-bottom: 1.5rem;
   margin-top: 0;
   font-family: 'Conv_apercu_bold','Helvetica','Sans-Serif','Arial' !important;
@@ -293,8 +293,8 @@ button{
 }
 .btn--info,
 .btn-info {
-    background-color: var(--c-info);
-    color: var(--c-white);
+    background-color: var(--c-info) !important;
+    color: var(--c-white) !important;
 }
 .btn--info:hover,
 .btn-info:hover {
@@ -326,12 +326,16 @@ button{
 .btn .icon-plus {
     margin-right: .25rem;
 }
-.btn--icon:hover .icon-cross2 {
-    color: var(--c-danger);
+.btn--icon.icon-cross2:hover{
+    color: var(--c-danger) !important;
 }
-.btn--icon:hover .icon-pencil {
-    color: var(--c-primary);
+.btn--icon.icon-pencil:hover{
+    color: var(--c-primary) !important;
 }
+.btn--icon.icon-pencil3:hover{
+  color: var(--c-primary) !important;
+}
+
 .btn-outlined{
   background-color: transparent;
 }
