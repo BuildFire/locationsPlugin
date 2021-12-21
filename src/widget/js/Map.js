@@ -15,7 +15,6 @@ export default class Map {
       ...userOptions,
       minZoom: 3,
       maxZoom: 19,
-      center: { lat: 38.70290288229097, lng: 35.52352225602528 },
       zoom: 15,
       streetViewControl: false,
       mapTypeControl: true,

@@ -829,6 +829,21 @@ const initMainMap = () => {
     styles: []
   };
 
+  if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
+    options.center = {
+      lat: map.initialAreaCoordinates.lat,
+      lng: map.initialAreaCoordinates.lng
+    };
+  } else if (userPosition) {
+    options.center = {
+      lat: userPosition.latitude,
+      lng: userPosition.longitude
+    };
+  } else {
+    // todo change to san diego
+    options.center = { lat: 38.70290288229097, lng: 35.52352225602528 };
+  }
+
   if (!map.showPointsOfInterest) {
     options.styles.push({
       featureType: 'poi',
