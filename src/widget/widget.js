@@ -287,8 +287,8 @@ const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = settings;
   if (introductoryListView.images.length > 0) {
     const carousel = new buildfire.components.carousel.view('.carousel');
-    const carouselItems = introductoryListView.images.map((i) => ({ iconUrl: i.imageUrl }));
-    carousel.loadItems(carouselItems);
+    // const carouselItems = introductoryListView.images.map((i) => ({ iconUrl: i.imageUrl }));
+    carousel.loadItems(introductoryListView.images);
   }
 };
 
