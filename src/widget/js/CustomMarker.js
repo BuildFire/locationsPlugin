@@ -25,7 +25,7 @@ export default (function () {
       img.src = this.icon;
       div.appendChild(img);
       panes.floatPane.appendChild(div);
-      google.maps.event.addDomListener(div, "click", () => {
+      google.maps.event.addDomListener(div, 'click', () => {
         this.onClick(this.location);
       });
     }

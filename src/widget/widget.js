@@ -822,8 +822,23 @@ const navigateTo = (template) => {
     document.querySelector(`section#${template}`).classList.add('active');
 };
 
-const initMapViewMap = () => {
-  mainMap = new MainMap({ selector: document.getElementById('mainMapContainer') });
+const initMainMap = () => {
+  const { map, design } = settings;
+  const selector = document.getElementById('mainMapContainer');
+  const options = {
+    styles: []
+  };
+
+  if (!map.showPointsOfInterest) {
+    options.styles.push({
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [
+        { visibility: 'off' }
+      ]
+    });
+  }
+  mainMap = new MainMap(selector, options);
 };
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
@@ -860,7 +875,7 @@ const initHomeView = () => {
   fetchCategories(() => {
     initFilterOverlay();
     refreshQuickFilter(); // todo if quick filter enabled
-    initMapViewMap();
+    initMainMap();
     fetchIntroductoryLocations(() => {
       if (showIntroductoryListView) {
         renderIntroductoryLocations(introductoryLocations);

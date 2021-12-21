@@ -2,17 +2,17 @@ import MarkerClusterer from './lib/markercluster';
 import CustomMarker from './CustomMarker';
 
 export default class Map {
-  constructor({ selector }) {
-    this.init(selector);
+  constructor(selector, options) {
+    this.init(selector, options);
     this.initMarkerCluster();
     this.Marker = CustomMarker();
   }
 
-  init(selector) {
+  init(selector, userOptions) {
     const mapTypeId = google.maps.MapTypeId.ROADMAP;
     const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
-
     const options = {
+      ...userOptions,
       minZoom: 3,
       maxZoom: 19,
       center: { lat: 38.70290288229097, lng: 35.52352225602528 },
@@ -26,7 +26,6 @@ export default class Map {
         position: zoomPosition
       }
     };
-
     this.map = new google.maps.Map(selector, options);
   }
 
