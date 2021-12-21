@@ -147,7 +147,7 @@ const initMap = () => {
   const distanceUnitsRadios = document.querySelectorAll('input[name="distanceUnits"]');
   const showPointsOfInterestBtn = document.querySelector('#show-points-of-interest');
   const enableMapInitialAreaBtn = document.querySelector('#enable-map-initial-area');
-  const enableOfflineAreaSelectionBtn = document.querySelector('#enable-offline-area-selection');
+  // const enableOfflineAreaSelectionBtn = document.querySelector('#enable-offline-area-selection');
 
   showPointsOfInterestBtn.checked = state.settings.map?.showPointsOfInterest;
   showPointsOfInterestBtn.onchange = (e) => {
@@ -161,11 +161,11 @@ const initMap = () => {
     saveSettings();
   };
 
-  enableOfflineAreaSelectionBtn.checked = state.settings.map?.offlineAreaSelection;
-  enableOfflineAreaSelectionBtn.onchange = (e) => {
-    state.settings.map.offlineAreaSelection = e.target.checked;
-    saveSettings();
-  };
+  // enableOfflineAreaSelectionBtn.checked = state.settings.map?.offlineAreaSelection;
+  // enableOfflineAreaSelectionBtn.onchange = (e) => {
+  //   state.settings.map.offlineAreaSelection = e.target.checked;
+  //   saveSettings();
+  // };
 
   // Distance Units Selection
   for (const radio of distanceUnitsRadios) {
@@ -387,12 +387,12 @@ window.onSidenavChange = (section) => {
         initMap();
       });
       break;
-    case 'bookmarks':
-      setActiveSidenavTab('bookmarks');
-      navigate('bookmarks', () => {
-        iniBookmarks();
-      });
-      break;
+    // case 'bookmarks':
+    //   setActiveSidenavTab('bookmarks');
+    //   navigate('bookmarks', () => {
+    //     iniBookmarks();
+    //   });
+    //   break;
     default:
       setActiveSidenavTab('chat');
       navigate('chat');

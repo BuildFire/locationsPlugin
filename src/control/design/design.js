@@ -10,13 +10,15 @@ import DesignController from "./design.controller";
 
 const state = {
   settings: new Settings()
-}
+};
 
 const render = () => {
   const listViewPositionRadios = document.querySelectorAll('input[name="listViewPosition"]');
   const defaultListViewStyleRadios = document.querySelectorAll('input[name="defaultListViewStyle"]');
   const defaultMapStyleRadios = document.querySelectorAll('input[name="defaultMapStyle"]');
+  const defaultMapTypeRadios = document.querySelectorAll('input[name="defaultMapType"]');
   const mapPositionRadios = document.querySelectorAll('input[name="mapPosition"]');
+  const enableMapTerrainViewBtn = document.querySelector('#enable-map-terrain-view-btn');
   const allowMapStyleSelectionBtn = document.querySelector('#allow-map-style-selection-btn');
   const showCategoryOnLocDetailsBtn = document.querySelector('#show-category-on-loc-details-btn');
 
@@ -56,6 +58,18 @@ const render = () => {
     };
   }
 
+  for (const radio of defaultMapTypeRadios) {
+    if (radio.value === state.settings.design?.defaultMapType) {
+      radio.checked = true;
+    }
+
+    radio.onchange = (e) => {
+      const value = e.target.value;
+      state.settings.design.defaultMapType = value;
+      saveSettings();
+    };
+  }
+
   for (const radio of mapPositionRadios) {
     if (radio.value === state.settings.design?.detailsMapPosition) {
       radio.checked = true;
@@ -67,6 +81,12 @@ const render = () => {
       saveSettings();
     };
   }
+
+  enableMapTerrainViewBtn.checked = state.settings.design.enableMapTerrainView;
+  enableMapTerrainViewBtn.onchange = (e) => {
+    state.settings.design.enableMapTerrainView = e.target.checked;
+    saveSettings();
+  };
 
   allowMapStyleSelectionBtn.checked = state.settings.design.allowStyleSelection;
   allowMapStyleSelectionBtn.onchange = (e) => {
