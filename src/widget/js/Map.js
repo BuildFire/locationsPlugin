@@ -12,18 +12,18 @@ export default class Map {
     const mapTypeId = google.maps.MapTypeId.ROADMAP;
     const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
     const options = {
-      ...userOptions,
       minZoom: 3,
       maxZoom: 19,
       zoom: 15,
       streetViewControl: false,
-      mapTypeControl: true,
       fullscreenControl: false,
+      mapTypeControl: false,
       gestureHandling: 'greedy',
       mapTypeId,
       zoomControlOptions: {
         position: zoomPosition
-      }
+      },
+      ...userOptions
     };
     this.map = new google.maps.Map(selector, options);
   }

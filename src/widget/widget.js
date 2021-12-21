@@ -829,6 +829,10 @@ const initMainMap = () => {
     styles: []
   };
 
+  if (design.allowStyleSelection) {
+    options.mapTypeControl = true;
+  }
+
   if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
     options.center = {
       lat: map.initialAreaCoordinates.lat,
