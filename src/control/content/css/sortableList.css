@@ -81,7 +81,7 @@
 }
 
 .draggable-list-view .copy{
-    display: flex;
+    display: flex !important;
     align-items: center;
     /* top: 0; */
     justify-content: space-between;
@@ -112,11 +112,10 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.25rem;
-    font-size: 1.125rem;
+    font-size: 1.125rem !important;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size:1.25rem !important;
     font-family: 'icomoon' !important;
     speak: none;
     font-style: normal;
@@ -127,6 +126,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+
 .draggable-list-view span.btn-icon::before{
     content: "\e60e";
 }
@@ -140,6 +141,45 @@
 .draggable-list-view span.btn-icon.btn-danger {
     color: red;
 } */
+.draggable-list-view.carousel-items .pull-right .btn-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.25rem;
+    font-size: 1.125rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: unset;
+    background-color: transparent;
+    color: #000;
+    /* margin: 0 !important; */
+    top: auto !important;
+}
+
+.draggable-list-view.carousel-items .pull-right .btn-icon:hover {
+    background-color: #f2f2f2;
+}
+
+#carousel .draggable-list-view.carousel-items .d-item .copy {
+    top: auto !important;
+    /* padding-left: 15px; */
+    /* max-width: 85% !important; */
+    /* width: 100% !important; */
+}
+
+#carousel .carousel-items div > div.copy.pull-right > div {
+    display: flex;
+    align-items: center;
+}
+
+
+.draggable-list-view.carousel-items .d-item span.title {
+    width: 35% !important;
+    top: 0 !important;
+    /* flex-grow: 1; */
+    /* margin-left: 10px; */
+}
+
 
 /* Buttons style */
 .btn.btn--icon.icon.icon-cross:hover {

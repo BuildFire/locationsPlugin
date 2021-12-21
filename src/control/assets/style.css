@@ -71,6 +71,9 @@
 .align-items-center {
 	align-items: center;
 }
+.align-items-start {
+	align-items: start;
+}
 
 .flex-wrap {
 	flex-wrap: wrap;

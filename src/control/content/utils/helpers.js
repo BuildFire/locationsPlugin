@@ -39,3 +39,18 @@ export const toggleDropdown = (dropdownElement, forceClose) => {
     dropdownElement.classList.add("open");
   }
 };
+
+export const handleInputError = (elem, hasError, message) => {
+  if (!elem) {
+    return;
+  }
+
+  if (hasError) {
+    elem.parentNode.classList.add('has-error');
+    elem.classList.remove('hidden');
+    elem.innerHTML = message || 'Required';
+  } else {
+    elem.classList.add('hidden');
+    elem.parentNode.classList.remove('has-error');
+  }
+};
