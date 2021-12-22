@@ -29,5 +29,8 @@ export default {
       ...options
     };
     return Locations.search({ ...defaultOptions, ...options });
+  },
+  searchLocationsV2(pipelines = [], page = 0, pageSize = 10) {
+    return Locations.aggregate(pipelines, page, pageSize);
   }
 };

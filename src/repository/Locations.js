@@ -72,8 +72,30 @@ export default class Locations {
     });
   }
 
+  /**
+   * Get and aggregate data.
+   * @param {Array} pipelines stages
+   * @param {number} skip
+   * @param {number} limit
+   * @static
+   * @return {promise} query result
+  */
+  
+  static aggregate(pipelines = [], page = 0, pageSize = 50) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.aggregate({
+        pipelineStages: pipelines,
+        page,
+        pageSize
+      },  Locations.TAG, function (err, result) {
+        if (error) return reject(error);
+        result = result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
+        resolve(result);
+      });
+    });
+  }
+
    /**
-   *
    * @param {string} locationId
    * @param {Location} location
    * @returns {promise}
