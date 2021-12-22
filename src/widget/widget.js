@@ -3,6 +3,7 @@ import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
+import drawer from './js/drawer';
 
 // if (templateSection.childNodes.length === 0) {
 //   injectTemplate(template);
@@ -16,7 +17,6 @@ let introductoryLocationsCount = 0;
 let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
-let drawerTimeout;
 let markerClusterer;
 let selectedLocation;
 let mainMap;
@@ -315,91 +315,6 @@ const toggleDropdownMenu = (element) => {
   menu.open = true;
 };
 
-const resetDrawer = (position) => {
-  const element = document.querySelector('.drawer');
-  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  const positions = {
-    expanded: screenHeight - 150,
-    halfExpanded: (screenHeight / 2),
-    collapsed: 40
-  };
-  element.style.height = `${position ? positions[position] : positions.halfExpanded}px`;
-  element.style.top = `${screenHeight - (position ? positions[position] : positions.halfExpanded)}px`;
-};
-const initDrawer = () => {
-  const element = document.querySelector('.drawer');
-  const resizer = document.querySelector('.drawer .resizer');
-  const locationSummary = document.querySelector('#locationSummary');
-  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  let originalHeight = 0;
-  let originalMouseY = 0;
-
-  resetDrawer(settings.design?.listViewPosition);
-  const positions = {
-    expanded: screenHeight - 150,
-    halfExpanded: (screenHeight / 2),
-    collapsed: 40
-  };
-  const resize = (e, execute = false) => {
-    if (!execute) {
-      clearTimeout(drawerTimeout);
-      drawerTimeout = setTimeout(() => { resize(e, true); }, 100);
-      return;
-    }
-
-    stopResize();
-    stopTouchResize();
-    let targetTop;
-    let targetHeight;
-    if (e.pageY > originalMouseY) {
-      if (originalHeight > positions.halfExpanded) {
-        targetTop = screenHeight - positions.halfExpanded;
-        targetHeight = positions.halfExpanded;
-      } else {
-        targetHeight = positions.collapsed;
-        targetTop = screenHeight - positions.collapsed;
-      }
-    } else if (e.pageY < originalMouseY) {
-      if (originalHeight >= positions.halfExpanded) {
-        targetHeight = positions.expanded;
-        targetTop = screenHeight - positions.expanded;
-      } else {
-        targetHeight = positions.halfExpanded;
-        targetTop = screenHeight - positions.halfExpanded;
-      }
-      if (locationSummary.classList.contains('slide-in')) {
-        locationSummary.classList.add('slide-out');
-        locationSummary.classList.remove('slide-in');
-      }
-    }
-
-    element.style.height = `${targetHeight}px`;
-    element.style.top = `${targetTop}px`;
-  };
-
-  const stopResize = () => {
-    document.removeEventListener('mousemove', resize);
-  };
-  const stopTouchResize = () => {
-    document.removeEventListener('touchmove', resize);
-  };
-
-  resizer.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
-    originalMouseY = e.pageY;
-    document.addEventListener('mousemove', resize);
-    // document.addEventListener('mouseup', stopResize);
-  });
-
-  resizer.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
-    originalMouseY = e.pageY;
-    document.addEventListener('touchmove', resize);
-    // document.addEventListener('touchend', stopTouchResize);
-  });
-};
 const transformCategories = (categories) => {
   const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
@@ -534,9 +449,6 @@ const chatWithOwner = () => {
   }
   users.push(selectedLocation.owner.userId);
   users.push(currentUser._id);
-  console.log('selectedLocation.owner.userId: ', selectedLocation.owner.userId);
-  console.log('currentUser._id: ', currentUser._id);
-  console.log('chatWithOwner users: ', users);
   buildfire.navigation.navigateToSocialWall(
     {
       title: selectedLocation.title,
@@ -812,7 +724,7 @@ const initFilterOverlay = () => {
 const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
-  initDrawer();
+  drawer.initialize(settings);
   renderListingLocations(introductoryLocations);
 };
 
@@ -884,7 +796,7 @@ const handleMarkerClick = (location) => {
               </div>`).join('\n')}
             </div>
           </div>`;
-  resetDrawer('collapsed');
+  drawer.reset('collapsed');
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
