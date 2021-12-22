@@ -9,27 +9,12 @@
       </div>
     </div>
     <div class="clearfix">
-        <p class="info-note">This section is optional. if the carousel and text editors are empty, the default list of locations will show.</p>
+        <p class="info-note">Use the introduction screen as a way to highlight your locations and include additional information about them.</p>
     </div>
-    <div class="form-group main clearfix">
-        <div class="col-md-3 pull-left padding-left-zero">
-          <label class="">Image Carousel</label>
-        </div>
-        <div class="col-md-9 pull-right padding-right-zero">
-          <div class="">
-            <button type="button" class="btn btn-success btn-add" id="listview-add-images-btn" onclick="addListViewImages()">
-              Add Images
-            </button>
-          </div>
-          <div id="listview-image-carousel-items" class="margin-top-ten">
+    <div id="listview-carousel">
 
-          </div>
-        </div>
     </div>
     <hr class="none" /> 
-    <div id="carousel">
-
-    </div>
     <div class="main clearfix">
         <div>
             <textarea id="listview-description-wysiwyg" onchange="onDescriptionChanged(event)" name="content"></textarea>
@@ -40,11 +25,11 @@
         <h5 class="text-bold">Pinned to top locations</h5>
         <hr class="none" />
         <div class="clearfix">
-            <p class="info-note">Description.</p>
+            <p class="info-note margin-bottom-fifteen">Pin locations to the top of the list to highlight them.</p>
         </div>
         <div id="listview-pinned-location-items"></div>
         <div class="empty-state" id="pinned-location-empty-list">
-            <h4>You haven't pinned any locations yet</h4>
+            <h4>You haven't pinned any locations yet.</h4>
         </div>
     </div>
     <hr class="none" />

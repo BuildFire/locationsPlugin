@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
-import ListViewImagesList from "./listViewImagesList";
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
 import Setting from "../../../../entities/Settings";
@@ -16,7 +15,7 @@ const state = {
 
 const listViewSection = document.querySelector("#main");
 
-let listViewImagesList = null;
+let listViewImagesCarousel = null;
 let pinnedLocationsList = null;
 
 const initListViewWysiwyg = () => {
@@ -48,27 +47,6 @@ window.onShowListViewChanged = (e) => {
   saveSettings();
 };
 
-window.addListViewImages = () => {
-  buildfire.imageLib.showDialog(
-    { showIcons: false, multiSelection: true }, (err, result) => {
-      if (err) return console.error(err);
-      if (!result) {
-        return null;
-      }
-      const { selectedFiles, selectedStockImages } = result;
-      const locationImages = [];
-      if (selectedFiles) {
-        locationImages.push(...selectedFiles);
-      } else if (selectedStockImages) {
-        locationImages.push(...selectedStockImages);
-      }
-      state.settings.introductoryListView.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl, action: null })));
-      listViewImagesList.init(state.settings.introductoryListView.images);
-      saveSettings();
-    }
-  );
-};
-
 window.onSortLocationsChanged = (sorting) => {
   if (!sorting) {
     return;
@@ -78,9 +56,10 @@ window.onSortLocationsChanged = (sorting) => {
 };
 
 const patchListViewValues = () => {
+  console.log(state.settings.introductoryListView.images);
   const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
   showBtn.checked = state.settings.showIntroductoryListView;
-  listViewImagesList.init(state.settings.introductoryListView.images);
+  listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
   tinymce.activeEditor.setContent(state.settings.introductoryListView.description);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
@@ -88,33 +67,6 @@ const patchListViewValues = () => {
       radio.checked = true;
     }
   }
-};
-
-const deleteListViewImage = (item, index, callback) => {
-  buildfire.notifications.confirm(
-    {
-      message: `Are you sure you want to delete this image?`,
-      confirmButton: {
-        text: "Delete",
-        key: "y",
-        type: "danger",
-      },
-      cancelButton: {
-        text: "Cancel",
-        key: "n",
-        type: "default",
-      },
-    }, (e, data) => {
-      if (e) console.error(e);
-      if (data && data.selectedButton.key === "y") {
-        state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
-          (elem) => elem.id !== item.id
-        );
-        saveSettings();
-        callback(item);
-      }
-    }
-  );
 };
 
 const handlePinnedLocationEmptyState = (isLoading) => {
@@ -190,12 +142,41 @@ const triggerWidgetOnListViewUpdate = () => {
 };
 
 window.initListView = () => {
-  listViewImagesList = new ListViewImagesList('listview-image-carousel-items');
   pinnedLocationsList = new PinnedLocationsList('listview-pinned-location-items');
+  listViewImagesCarousel = new buildfire.components.carousel.editor("#listview-carousel", []);
 
-  listViewImagesList.onDeleteItem = deleteListViewImage;
-  listViewImagesList.onOrderChange = () => {
-    state.settings.introductoryListView.images = listViewImagesList.sortableList.items;
+  listViewImagesCarousel.onAddItems = (items) => {
+    state.settings.introductoryListView.images.push(...items.map((item) => ({ ...item, id: generateUUID() })));
+    saveSettings();
+  };
+  listViewImagesCarousel.onItemChange = (item, index) => {
+    const imageId = state.settings.introductoryListView.images[index]?.id;
+    state.settings.introductoryListView.images[index] = { ...item, id: imageId };
+    saveSettings();
+  };
+  listViewImagesCarousel.onDeleteItem = (item, index,) => {
+    state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
+      (elem) => elem.id !== item.id
+    );
+    saveSettings();
+  };
+  listViewImagesCarousel.onOrderChange = (item, oldIndex, newIndex) => {
+    const items = state.settings.introductoryListView.images;
+
+    const tmp = items[oldIndex];
+
+    if (oldIndex < newIndex) {
+      for (let i = oldIndex + 1; i <= newIndex; i++) {
+        items[i - 1] = items[i];
+      }
+    } else {
+      for (let i = oldIndex - 1; i >= newIndex; i--) {
+        items[i + 1] = items[i];
+      }
+    }
+    items[newIndex] = tmp;
+
+    state.settings.introductoryListView.images = items;
     saveSettings();
   };
   pinnedLocationsList.onDeleteItem = deletePinnedLocation;

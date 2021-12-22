@@ -49,7 +49,9 @@ export default class Settings {
     this.design = data.design ||  {
       listViewPosition: 'expanded',
       listViewStyle: 'backgroundImage',
-      defaultMapStyle: 'streets',
+      defaultMapStyle: 'light',
+      defaultMapType: 'streets',
+      enableMapTerrainView: false,
       allowStyleSelection: true,
       detailsMapPosition: 'top',
       showDetailsCategory: true

@@ -8,7 +8,7 @@ import CategoriesListUI from "./categoriesListUI";
 import SubcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
-import { generateUUID, createTemplate } from "../../utils/helpers";
+import { generateUUID, createTemplate, handleInputError } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import globalState from '../../state';
 import authManager from '../../../../UserAccessControl/authManager';
@@ -317,14 +317,12 @@ window.addEditCategory = (category, callback = () => {}) => {
   };
 
   inputCategoryControls.categorySave.onclick = () => {
-    const categoryName = inputCategoryControls.categoryNameInput.value;
-    if (!categoryName) {
-      inputCategoryControls.categoryNameInputError.classList.remove('hidden');
+    newCategory.title = inputCategoryControls.categoryNameInput.value;
+
+    if (!categoryInputValidation(newCategory)) {
       return;
     }
 
-    inputCategoryControls.categoryNameInputError.classList.add('hidden');
-    newCategory.title = categoryName;
     if (!category) {
       createCategory(newCategory);
     } else {
@@ -335,6 +333,24 @@ window.addEditCategory = (category, callback = () => {}) => {
   inputCategoryControls.cancelButton.onclick  = cancelAddCategory;
 
   subcategoriesListUI.init(newCategory.subcategories);
+};
+
+const categoryInputValidation = (category) => {
+  const { title } = category;
+  let isValid = true;
+
+  if (!title) {
+    handleInputError(inputCategoryControls.categoryNameInputError, true);
+    isValid = false;
+  } else {
+    handleInputError(inputCategoryControls.categoryNameInputError, false);
+  }
+
+  const invalidInput = document.querySelector(".has-error");
+  if (invalidInput) {
+    invalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  return isValid;
 };
 
 const addEditSubcategory = (

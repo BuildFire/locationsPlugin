@@ -6,7 +6,7 @@ import Location from "../../../../entities/Location";
 import Category from "../../../../entities/Category";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -103,6 +103,7 @@ const renderAddLocationsPage = () => {
     categoriesContainer: inputLocationForm.querySelector("#location-categories-container"),
     categoriesCount: inputLocationForm.querySelector("#location-categories-count-txt"),
     categoriesList: inputLocationForm.querySelector("#location-categories-list"),
+    locationCategoriesError: inputLocationForm.querySelector("#location-categories-error"),
     showOpeningHoursBtn: inputLocationForm.querySelector("#location-show-opening-hours-btn"),
     openingHoursContainer: inputLocationForm.querySelector("#location-opening-hours-container"),
     showPriceRangeBtn: inputLocationForm.querySelector("#location-show-price-range-btn"),
@@ -110,6 +111,7 @@ const renderAddLocationsPage = () => {
     selectPriceCurrency: inputLocationForm.querySelector("#location-select-price-currency"),
     showStarRatingBtn: inputLocationForm.querySelector("#location-show-star-rating-btn"),
     listImageBtn: inputLocationForm.querySelector("#location-list-image"),
+    listImageError: inputLocationForm.querySelector("#location-list-image-error"),
     addLocationImageBtn: inputLocationForm.querySelector("#location-add-images-btn"),
     locationDescription: inputLocationForm.querySelector("#location-description-wysiwyg"),
     locationDescriptionError: inputLocationForm.querySelector("#location-description-error"),
@@ -462,22 +464,9 @@ const saveLocation = (action, callback) => {
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
 
-  if (!state.locationObj.title) {
-    handleInputError(addLocationControls.locationTitleError, true);
-  } else {
-    handleInputError(addLocationControls.locationTitleError, false);
-  }
-
-  if (!state.locationObj.address) {
-    handleInputError(addLocationControls.locationAddressError, true);
-  } else {
-    handleInputError(addLocationControls.locationAddressError, false);
-  }
-  if (!state.locationObj.description) {
-    handleInputError(addLocationControls.locationDescriptionError, true);
+  if (!locationInputValidation()) {
     return;
   }
-  handleInputError(addLocationControls.locationDescriptionError, false);
 
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
@@ -486,6 +475,60 @@ const saveLocation = (action, callback) => {
   } else {
     updateLocation(state.locationObj.id, state.locationObj);
   }
+};
+
+const locationInputValidation = () => {
+  const { title, address, description, coordinates, listImage, categories } = state.locationObj;
+  let isValid = true;
+
+  if (!title) {
+    handleInputError(addLocationControls.locationTitleError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.locationTitleError, false);
+  }
+
+  if (!address || !coordinates.lat || !coordinates.lng) {
+    handleInputError(addLocationControls.locationAddressError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.locationAddressError, false);
+  }
+
+  // if (!coordinates.lat || !coordinates.lng) {
+  //   handleInputError(addLocationControls.locationAddressError, true, 'Please select correct Address');
+  //   isValid = false;
+  // } else {
+  //   handleInputError(addLocationControls.locationAddressError, false);
+  // }
+
+  if (!categories || categories?.main?.length === 0) {
+    handleInputError(addLocationControls.locationCategoriesError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.locationCategoriesError, false);
+  }
+
+  if (!listImage) {
+    handleInputError(addLocationControls.listImageError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.listImageError, false);
+  }
+
+  if (!description) {
+    handleInputError(addLocationControls.locationDescriptionError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.locationDescriptionError, false);
+  }
+
+  const invalidInput = document.querySelector(".has-error");
+  if (invalidInput) {
+    invalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  return isValid;
 };
 
 const onMarkerTypeChanged = (marker) => {
@@ -845,16 +888,6 @@ const createEmptyHolder = (message) => {
   div.className = 'empty-state margin-top-fifteen';
   div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }.</h4>`;
   return div;
-};
-
-const handleInputError = (elem, hasError) => {
-  if (hasError) {
-    elem.parentNode.classList.add('has-error');
-    elem.classList.remove('hidden');
-  } else {
-    elem.classList.add('hidden');
-    elem.parentNode.classList.remove('has-error');
-  }
 };
 
 window.intiMap = () => {
