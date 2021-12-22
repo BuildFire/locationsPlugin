@@ -1,10 +1,9 @@
 export default (function () {
-  function CustomMarker(location, icon, map, onClick) {
+  function CustomMarker(location, map, onClick) {
     const { lat, lng } = location.coordinates;
     this.location = location;
     this.position = new google.maps.LatLng(lat, lng);
     this.draggable = false;
-    this.icon = icon;
     this.map = map;
     this.onClick = onClick;
 
@@ -18,12 +17,33 @@ export default (function () {
     const panes = this.getPanes();
     if (!div) {
       this.div_ = document.createElement('div');
-      const img = document.createElement('img');
+
       div = this.div_;
       // Create the DIV representing our CustomMarker
-      div.className = 'custom-marker';
-      img.src = this.icon;
-      div.appendChild(img);
+      div.classList.add('custom-marker');
+
+      if (this.location.marker.type === 'image') {
+        const img = document.createElement('img');
+        // todo cdn
+        img.src = this.location.marker.image;
+        div.appendChild(img);
+        div.classList.add('custom-marker__image');
+      } else {
+        const svgns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgns, 'svg');
+        const circle = document.createElementNS(svgns, 'circle');
+        svg.setAttributeNS(null, 'height', 25);
+        svg.setAttributeNS(null, 'width', 25);
+        circle.setAttributeNS(null, 'cx', 12.5);
+        circle.setAttributeNS(null, 'cy', 12.5);
+        circle.setAttributeNS(null, 'r', 10);
+        circle.setAttributeNS(null, 'stroke', '#FFFFFF');
+        circle.setAttributeNS(null, 'stroke-width', 4);
+        circle.setAttributeNS(null, 'fill', this.location.marker.color);
+        svg.appendChild(circle);
+        div.appendChild(svg);
+        div.classList.add('custom-marker__circle');
+      }
       panes.floatPane.appendChild(div);
       google.maps.event.addDomListener(div, 'click', () => {
         this.onClick(this.location);

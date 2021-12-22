@@ -44,33 +44,45 @@ export default class Map {
 
   addMarker(location, onClick) {
     if (!this.map) return;
+    const { lat, lng } = location.coordinates;
+    let marker;
 
-    // const iconOptions = {
-    //   url: 'https://app.buildfire.com/app/media/google_marker_red_icon.png',
-    //   scaledSize: new google.maps.Size(20, 20),
-    //   origin: new google.maps.Point(0, 0),
-    //   anchor: new google.maps.Point(10, 10)
-    // };
-    // const marker = new google.maps.Marker({
-    //   position: {lat: 37.77085, lng: -122.41356},
-    //   markerData: location,
-    //   map: this.map,
-    //   icon: iconOptions
-    // });
-    //
-    // marker.addListener('click', () => {
-    //   onClick(location, marker);
-    // });
-
-    const marker = new this.Marker(
-      location,
-      'http://placekitten.com/90/90',
-      this.map,
-      onClick
-    );
+    if ((location.marker.type === 'circle' && location.marker.color) || (location.marker.type === 'image' && location.marker.image)) {
+      marker = new this.Marker(
+        location,
+        this.map,
+        onClick
+      );
+    } else {
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(lat, lng),
+        markerData: location,
+        map: this.map,
+      });
+      marker.addListener('click', () => {
+        onClick(location, marker);
+      });
+    }
 
     if (this.markerClusterer) {
       this.markerClusterer.addMarker(marker);
     }
+  }
+
+  addUserPosition(coordinates) {
+    if (!this.map) return;
+    const { latitude, longitude } = coordinates;
+    const iconOptions = {
+      url: 'https://app.buildfire.com/app/media/google_marker_blue_icon.png',
+      scaledSize: new google.maps.Size(20, 20),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(10, 10)
+    };
+
+    new google.maps.Marker({
+      position: new google.maps.LatLng(latitude, longitude),
+      map: this.map,
+      icon: iconOptions
+    });
   }
 }

@@ -860,6 +860,9 @@ const initMainMap = () => {
     });
   }
   mainMap = new MainMap(selector, options);
+  if (userPosition) {
+    mainMap.addUserPosition(userPosition);
+  }
 };
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
@@ -991,6 +994,9 @@ const init = () => {
       }
       userPosition = position.coords;
       updateLocationsDistance();
+      if (mainMap) {
+        mainMap.addUserPosition(userPosition);
+      }
     });
 
     buildfire.history.onPop((breadcrumb) => {
