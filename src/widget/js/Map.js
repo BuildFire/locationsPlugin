@@ -9,7 +9,6 @@ export default class Map {
   }
 
   init(selector, userOptions) {
-    const mapTypeId = google.maps.MapTypeId.ROADMAP;
     const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
     const options = {
       minZoom: 3,
@@ -19,7 +18,6 @@ export default class Map {
       fullscreenControl: false,
       mapTypeControl: false,
       gestureHandling: 'greedy',
-      mapTypeId,
       zoomControlOptions: {
         position: zoomPosition
       },

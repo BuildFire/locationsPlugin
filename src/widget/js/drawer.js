@@ -71,8 +71,9 @@ const initialize = (settings) => {
     document.removeEventListener('mousemove', resize);
     adjustDrawer(e);
   };
-  const stopTouchResize = () => {
+  const stopTouchResize = (e) => {
     document.removeEventListener('touchmove', resize);
+    adjustDrawer(e);
   };
 
   resizer.addEventListener('mousedown', (e) => {
