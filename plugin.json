@@ -1,7 +1,7 @@
 {
   "author":"BuildFire",
   "pluginName": "Locations-Dev",
-  "pluginDescription": "BuildFire plugin template for Webpack",
+  "pluginDescription": "Create locations on the map and categorize them; add details, open hours, price range, custom actions, and other settings.",
   "requireLogin": true,
   "supportEmail":"support@buildfire.com",
   "control": {
