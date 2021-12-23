@@ -55,8 +55,10 @@ const injectTemplate = (template) => {
     console.warn(`template ${template} not found.`);
     return;
   }
+  const templateElement = document.querySelector(`#${template}`);
   const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  document.querySelector(`#${template}`).appendChild(createTemplate);
+  templateElement.innerHTML = '';
+  templateElement.appendChild(createTemplate);
 };
 
 const fetchTemplate = (template, done) => {
@@ -292,6 +294,12 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
+const hideFilterOverlay = () => {
+  const filterOverlay = document.querySelector('section#filter');
+  if (filterOverlay.classList.contains('overlay')) {
+    filterOverlay.classList.remove('overlay');
+  }
+};
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const homeView = document.querySelector('section#home');
@@ -724,13 +732,11 @@ const initFilterOverlay = () => {
 const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
-  drawer.initialize(settings);
-  renderListingLocations(introductoryLocations);
 };
 
 const navigateTo = (template) => {
     const currentActive = document.querySelector('section.active');
-    currentActive.classList.remove('active');
+    currentActive?.classList.remove('active');
     document.querySelector(`section#${template}`).classList.add('active');
 };
 
@@ -864,6 +870,136 @@ const initMainMap = () => {
     mainMap.addUserPosition(userPosition);
   }
 };
+
+const refreshMapOptions = () => {
+  if (mainMap) {
+    const { map, design } = settings;
+    const options = {
+      styles: [],
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    if (design.allowStyleSelection) {
+      options.mapTypeControl = true;
+    }
+
+    if (design.enableMapTerrainView) {
+      options.mapTypeId = google.maps.MapTypeId.TERRAIN;
+    } else if (design.defaultMapType === 'satellite') {
+      options.mapTypeId = google.maps.MapTypeId.SATELLITE;
+    }
+
+    if (design.defaultMapStyle === 'dark') {
+      options.styles = options.styles.concat([
+        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+        {
+          featureType: "administrative.locality",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "geometry",
+          stylers: [{ color: "#263c3f" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#6b9a76" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#38414e" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#212a37" }],
+        },
+        {
+          featureType: "road",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9ca5b3" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry",
+          stylers: [{ color: "#746855" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#1f2835" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#f3d19c" }],
+        },
+        {
+          featureType: "transit",
+          elementType: "geometry",
+          stylers: [{ color: "#2f3948" }],
+        },
+        {
+          featureType: "transit.station",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#17263c" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#515c6d" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.stroke",
+          stylers: [{ color: "#17263c" }],
+        },
+      ]);
+    }
+
+    if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
+      options.center = {
+        lat: map.initialAreaCoordinates.lat,
+        lng: map.initialAreaCoordinates.lng
+      };
+    } else if (userPosition) {
+      options.center = {
+        lat: userPosition.latitude,
+        lng: userPosition.longitude
+      };
+    } else {
+      // todo change to san diego
+      options.center = { lat: 38.70290288229097, lng: 35.52352225602528 };
+    }
+
+    if (!map.showPointsOfInterest) {
+      options.styles.push({
+        featureType: 'poi',
+        elementType: 'labels',
+        stylers: [
+          { visibility: 'off' }
+        ]
+      });
+    }
+
+    mainMap.updateOptions(options);
+  }
+};
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
@@ -901,6 +1037,8 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     initMainMap();
     fetchIntroductoryLocations(() => {
+      drawer.initialize(settings);
+      renderListingLocations(introductoryLocations);
       if (showIntroductoryListView) {
         renderIntroductoryLocations(introductoryLocations);
         refreshIntroductoryDescription();
@@ -970,6 +1108,38 @@ const initGoogleMapsSDK = () => {
   };
   document.head.appendChild(script);
 };
+
+const handleCPSync = (scope) => {
+  const outdatedSettings = { ...settings };
+  console.log('handle cp sync for: ', scope)
+  if (scope === 'design') {
+    fetchSettings(() => {
+      // current design
+      const d = settings.design;
+      // outdated design
+      const o = outdatedSettings.design;
+
+      if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
+        hideFilterOverlay();
+        navigateTo('home');
+        showMapView();
+        drawer.reset(d.listViewPosition);
+        renderListingLocations(introductoryLocations);
+      } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
+        if (introductoryLocations.length > 0) {
+          [selectedLocation] = introductoryLocations;
+          showLocationDetail();
+        }
+      } else {
+        hideFilterOverlay();
+        navigateTo('home');
+        showMapView();
+        refreshMapOptions();
+      }
+    });
+  }
+};
+
 const init = () => {
   initGoogleMapsSDK();
   fetchSettings(() => {
@@ -1018,6 +1188,13 @@ const init = () => {
       root.style.setProperty('--background-color', colors.backgroundColor);
       root.style.setProperty('--primary-color', colors.primaryTheme);
     });
+
+    buildfire.messaging.onReceivedMessage = (message) => {
+      if (message.cmd === 'sync') {
+        handleCPSync(message.scope);
+      }
+      console.log('widget message: ', message);
+    };
   });
 };
 

@@ -115,7 +115,8 @@ const getSettings = () => {
 
 const triggerWidgetOnDesignUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
-    cmd: "update_design",
+    cmd: 'sync',
+    scope: 'design'
   });
 };
 

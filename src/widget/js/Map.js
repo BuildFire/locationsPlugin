@@ -85,4 +85,12 @@ export default class Map {
       icon: iconOptions
     });
   }
+
+  updateOptions(userOptions) {
+    const options = {
+      mapTypeControl: false,
+      ...userOptions
+    };
+    this.map.setOptions(options);
+  }
 }
