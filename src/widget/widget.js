@@ -550,7 +550,7 @@ const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchTextField') {
+    if (e.target.id === 'searchTextField' && settings.filter.allowFilterByArea) {
       showElement('#areaSearchLabel');
       hideElement('.header-qf');
     }
@@ -730,8 +730,10 @@ const initFilterOverlay = () => {
 };
 
 const showMapView = () => {
+  const introLocationsList = document.querySelector('#introLocationsList');
   hideElement('section#intro');
   showElement('section#listing');
+  introLocationsList.innerHTML = '';
 };
 
 const navigateTo = (template) => {
@@ -1086,9 +1088,19 @@ const updateLocationsDistance = () => {
   introductoryLocations = introductoryLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
+    const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
+
     if (distanceSelector) distanceSelector.textContent = distance;
+    if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
     return { ...location, ...{ distance } };
   });
+  if (selectedLocation) {
+    const locationDetailSelector = document.querySelector('.location-detail__address p:last-child');
+    selectedLocation.distance = calculateLocationDistance(selectedLocation.coordinates);
+    if (locationDetailSelector) {
+      locationDetailSelector.childNodes[0].nodeValue = selectedLocation.distance;
+    }
+  }
 };
 const clearTemplate = (template) => {
   if (!templates[template]) {
@@ -1111,7 +1123,7 @@ const initGoogleMapsSDK = () => {
 
 const handleCPSync = (scope) => {
   const outdatedSettings = { ...settings };
-  console.log('handle cp sync for: ', scope)
+  console.log('handle cp sync for: ', scope);
   if (scope === 'design') {
     fetchSettings(() => {
       // current design
@@ -1131,6 +1143,30 @@ const handleCPSync = (scope) => {
           showLocationDetail();
         }
       } else {
+        hideFilterOverlay();
+        navigateTo('home');
+        showMapView();
+        refreshMapOptions();
+      }
+    });
+  } else if (scope === 'settings') {
+    fetchSettings(() => {
+      const f = settings.filter;
+      const of = outdatedSettings.filter;
+      const ms = settings.map;
+      const oms = outdatedSettings.map;
+      if (f.allowFilterByArea !== of.allowFilterByArea) {
+        const areaSearchInput = document.querySelector('#areaSearchLabel');
+        if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
+          showElement('.header-qf');
+          hideElement('#areaSearchLabel');
+        }
+      } else if (settings.measurementUnit !== outdatedSettings.measurementUnit) {
+        updateLocationsDistance();
+      } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
+        || ms.initialArea !== oms.initialArea
+        || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
+        || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
         hideFilterOverlay();
         navigateTo('home');
         showMapView();

@@ -169,13 +169,13 @@ const initMap = () => {
 
   // Distance Units Selection
   for (const radio of distanceUnitsRadios) {
-    if (radio.value === state.settings.map?.distanceUnit) {
+    if (radio.value === state.settings.measurementUnit) {
       radio.checked = true;
     }
 
     radio.onchange = (e) => {
       const value = e.target.value;
-      state.settings.map.distanceUnit = value;
+      state.settings.measurementUnit = value;
       saveSettings();
     };
   }
@@ -413,7 +413,8 @@ const getSettings = () => {
 
 const triggerWidgetOnDesignUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
-    cmd: "update_settings",
+    cmd: 'sync',
+    scope: 'settings'
   });
 };
 
