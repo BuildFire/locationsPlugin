@@ -1233,7 +1233,8 @@ const updateLocation = (locationId, location) => {
 
 const triggerWidgetOnLocationsUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
-    cmd: "update_location"
+    cmd: 'sync',
+    scope: 'locations'
   });
 };
 

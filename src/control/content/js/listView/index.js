@@ -137,7 +137,8 @@ const getSettings = () => {
 
 const triggerWidgetOnListViewUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
-    cmd: "update_intro",
+    cmd: 'sync',
+    scope: 'intro'
   });
 };
 
