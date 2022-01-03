@@ -1013,7 +1013,7 @@ const deleteLocation = (item, row, callback = () => {}) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        LocationsController.deleteLocation(item.id).then(() => {
+        LocationsController.deleteLocation(item.id, item.searchEngineRefId).then(() => {
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
           callback(item);

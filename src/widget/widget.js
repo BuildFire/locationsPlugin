@@ -117,7 +117,7 @@ const searchLocations = ({ searchValue, point, sort }) => {
     $match["_buildfire.index.array1.string1"] = { $in: [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)] };
   }
 
-  if (Object.keys($match).length === 0) {
+  if (Object.keys($match).length === 0 && Object.keys($geoNear).length === 0) {
     $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
   }
 
@@ -126,9 +126,8 @@ const searchLocations = ({ searchValue, point, sort }) => {
   const $sort = {};
   if (sort) {
     $sort[sort.sortBy] = sort.order;
+    pipelines.push({ $sort });
   }
-
-  pipelines.push({ $sort });
 
   WidgetController.searchLocationsV2(pipelines).then((result) => {
     console.log(result);

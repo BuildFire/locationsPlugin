@@ -48,6 +48,7 @@ export default class Location {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
+    this.searchEngineRefId = data.searchEngineRefId || null;
   }
 
   get instanceId() {
@@ -84,6 +85,7 @@ export default class Location {
       deletedOn: this.deletedOn,
       deletedBy: this.deletedBy,
       isActive: this.isActive,
+      searchEngineRefId: this.searchEngineRefId,
       _buildfire: {
         index: {
           text: this.title.toLowerCase(),
