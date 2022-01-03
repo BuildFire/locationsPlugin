@@ -1,3 +1,6 @@
+
+import {convertTimeToDate} from '../../../utils/datetime';
+
 export const generateUUID = () => {
   let dt = new Date().getTime();
   const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -15,7 +18,7 @@ export const createTemplate = (templateId) => {
 };
 
 export const getDefaultOpeningHours = () => {
-  const intervals = [{from: "08:00", to: "20:00"}]
+  const intervals = [{ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") }];
   return {
     days: {
       monday: {index: 0, active: true, intervals: [...intervals]},

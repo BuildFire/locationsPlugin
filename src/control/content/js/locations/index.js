@@ -15,6 +15,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
+import {convertTimeToDate, convertDateToTime} from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
@@ -810,7 +811,8 @@ const openConfirmationLeaveDialog = (callback) => {
 };
 
 const renderOpeningHours = (openingHours) => {
-  const days = openingHours && Object.keys(openingHours?.days).length? openingHours?.days : state.selectedOpeningHours?.days;
+  state.selectedOpeningHours =  { ...state.selectedOpeningHours, ...openingHours };
+  const { days } = state.selectedOpeningHours;
   for (const day in days) {
     if (days[day]) {
       const openingHoursDayItem = createTemplate("openingHoursDayItemTemplate");
@@ -823,12 +825,12 @@ const renderOpeningHours = (openingHours) => {
       enableDayLabel.htmlFor = `enable-${day}-checkbox`;
       enableDayLabel.innerHTML = state.weekDays[day];
 
-      enableDayInput.checked = !!days[day]?.active
+      enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
       };
       addHoursBtn.onclick = (e) => {
-        days[day].intervals?.push({ from: "08:00", to: "20:00" });
+        days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
       };
       renderDayIntervals(days[day], dayIntervals);
@@ -850,9 +852,8 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     const dayIntervalId = generateUUID();
     dayInterval.id = dayIntervalId;
-
-    fromInput.value = interval.from;
-    toInput.value = interval.to;
+    fromInput.value = convertDateToTime(interval.from);
+    toInput.value = convertDateToTime(interval.to);
 
     if (intervalIndex === 0) {
       deleteBtn.classList.add('hidden');
@@ -862,11 +863,11 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     fromInput.onchange = (e) => {
       console.log(convertTimeToDate(e.target.value));
-      interval.from = e.target.value;
+      interval.from = convertTimeToDate(e.target.value);
     };
     toInput.onchange = (e) => {
       console.log(new Date(e.target.value));
-      interval.to = e.target.value;
+      interval.to = convertTimeToDate(e.target.value);
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
@@ -875,16 +876,6 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     dayIntervalsContainer.appendChild(dayInterval);
   });
-};
-
-const convertTimeToDate = (time) => {
-  const date = new Date();
-  date.setFullYear(2020, 0, 1);
-  time = time.split(':');
-  const hour = Number(time[0]);
-  const min = Number(time[1]);
-  date.setHours(hour, min, 0, 0);
-  return new Date(date);
 };
 
 const creatCheckboxElem = () => {
