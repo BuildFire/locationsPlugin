@@ -20,6 +20,13 @@ let filterElements = {};
 let markerClusterer;
 let selectedLocation;
 let mainMap;
+let introCarousel;
+
+if (!buildfire.components.carousel.view.prototype.clear) {
+  buildfire.components.carousel.view.prototype.clear = function() {
+    return this._removeAll();
+  };
+}
 
 // todo to be removed
 const testingFn = () => {
@@ -281,16 +288,18 @@ const refreshQuickFilter = () => {
 const refreshIntroductoryDescription = () => {
   if (settings.introductoryListView.description) {
     const container = document.querySelector('.intro-details');
-    container.innerHTML = `<h2 style="text-align: center;">Introduction to TinyMCE!</h2>`;
+    container.innerHTML = settings.introductoryListView.description;
   }
 };
 
 const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = settings;
-  if (introductoryListView.images.length > 0) {
-    const carousel = new buildfire.components.carousel.view('.carousel');
-    // const carouselItems = introductoryListView.images.map((i) => ({ iconUrl: i.imageUrl }));
-    carousel.loadItems(introductoryListView.images);
+  if (introCarousel) {
+    introCarousel.clear();
+    introCarousel.append(introductoryListView.images);
+  } else if (introductoryListView.images.length > 0) {
+    introCarousel = new buildfire.components.carousel.view('.carousel');
+    introCarousel.loadItems(introductoryListView.images);
   }
 };
 
@@ -1171,6 +1180,29 @@ const handleCPSync = (scope) => {
         navigateTo('home');
         showMapView();
         refreshMapOptions();
+      }
+    });
+  } else if (scope === 'intro') {
+    fetchSettings(() => {
+      if (settings.showIntroductoryListView) {
+        const container = document.querySelector('#introLocationsList');
+        container.innerHTML = '';
+        renderIntroductoryLocations(introductoryLocations);
+        refreshIntroductoryDescription();
+        hideFilterOverlay();
+        navigateTo('home');
+        showElement('section#intro');
+        hideElement('section#listing');
+        refreshIntroductoryCarousel();
+        if (settings.introductoryListView.images.length === 0
+          && introductoryLocations.length === 0
+          && !settings.introductoryListView.description) {
+          showElement('div.empty-page');
+        }
+        // eslint-disable-next-line no-new
+        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+      } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
+        showMapView();
       }
     });
   }
