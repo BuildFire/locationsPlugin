@@ -21,9 +21,10 @@ let markerClusterer;
 let selectedLocation;
 let mainMap;
 let introCarousel;
+let breadcrumbs = [];
 
 if (!buildfire.components.carousel.view.prototype.clear) {
-  buildfire.components.carousel.view.prototype.clear = function() {
+  buildfire.components.carousel.view.prototype.clear = function () {
     return this._removeAll();
   };
 }
@@ -309,12 +310,20 @@ const hideFilterOverlay = () => {
     filterOverlay.classList.remove('overlay');
   }
 };
+
+const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
+  breadcrumbs.push({ name: pageName });
+  buildfire.history.push(label, {
+    showLabelInTitlebar: showLabel
+  });
+};
 const showFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
 
   currentActive?.classList.remove('active');
   filterOverlay.classList.add('overlay');
+  addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
 };
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
@@ -326,9 +335,7 @@ const toggleFilterOverlay = () => {
   } else {
     filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
-    buildfire.history.push('Advanced Filter', {
-      showLabelInTitlebar: true
-    });
+    addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
   }
 };
 const toggleDropdownMenu = (element) => {
@@ -438,10 +445,8 @@ const showLocationDetail = () => {
       </div>`).join('\n');
     selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
     buildfire.components.ratingSystem.injectRatings();
-    buildfire.history.push('Location Detail', {
-      showLabelInTitlebar: true
-    });
 
+    addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
     navigateTo('detail');
   });
 };
@@ -749,9 +754,12 @@ const showMapView = () => {
 };
 
 const navigateTo = (template) => {
-    const currentActive = document.querySelector('section.active');
-    currentActive?.classList.remove('active');
-    document.querySelector(`section#${template}`).classList.add('active');
+  const currentActive = document.querySelector('section.active');
+  currentActive?.classList.remove('active');
+  document.querySelector(`section#${template}`).classList.add('active');
+  if (template === 'home' && breadcrumbs.length) {
+    addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
+  }
 };
 
 const initMainMap = () => {
@@ -1250,11 +1258,21 @@ const init = () => {
 
     buildfire.history.onPop((breadcrumb) => {
       console.log('Breadcrumb popped', breadcrumb);
-      if (document.querySelector('section#filter').classList.contains('overlay')) {
-        toggleFilterOverlay();
-      } else if (document.querySelector('section#detail').classList.contains('active')) {
-        clearTemplate('detail');
+      console.log('Breadcrumb popped', breadcrumbs);
+
+      breadcrumbs.pop();
+      if (!breadcrumbs.length) {
         navigateTo('home');
+      } else {
+        const page = breadcrumbs[breadcrumbs.length - 1];
+        if (page.name === 'af') {
+          showFilterOverlay();
+        } else if (page.name === 'detail') {
+          showLocationDetail();
+        } else {
+          navigateTo('home');
+        }
+        breadcrumbs.pop();
       }
     });
 
