@@ -20,6 +20,15 @@ let filterElements = {};
 let markerClusterer;
 let selectedLocation;
 let mainMap;
+const criteria = {
+  searchValue: '',
+  openingNow: false,
+  priceRange: null,
+  sort: {
+    sortBy: 'distance',
+    order: -1
+  }
+};
 
 // todo to be removed
 const testingFn = () => {
@@ -81,23 +90,16 @@ const fetchTemplate = (template, done) => {
 };
 /** template management end */
 
-const searchLocations = ({ searchValue, point, sort }) => {
+const searchLocations = ({ searchValue, point, sort, mapBounds }) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
 
-  let $geoNear = null;
-
-  if (point) {
-    $geoNear = {
-      near: { type: "Point", coordinates: [point.lng, point.lat] },
-      key: "_buildfire.geo",
-      maxDistance: 10000,
-      distanceField: "distance",
-      query: { }
-    };
-    pipelines.push({ $geoNear });
+  const query = {};
+  if (criteria.searchValue) {
+    query["_buildfire.index.text"] = criteria.searchValue.toLowerCase();
   }
 
+  // categories & subcategories filter
   const categoryIds = [];
   const subcategoryIds = [];
   // eslint-disable-next-line no-restricted-syntax
@@ -107,25 +109,65 @@ const searchLocations = ({ searchValue, point, sort }) => {
       subcategoryIds.push(...filterElements[key]);
     }
   }
-
-  const $match = { };
-  if (searchValue) {
-    $match["_buildfire.index.text"] = searchValue.toLowerCase();
-  }
-
   if (categoryIds.length > 0 || subcategoryIds.length > 0) {
-    $match["_buildfire.index.array1.string1"] = { $in: [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)] };
+    query["_buildfire.index.array1.string1"] = { $in: [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)] };
   }
 
-  if (Object.keys($match).length === 0 && Object.keys($geoNear).length === 0) {
-    $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
+  let $geoNear = null;
+  if (point) {
+    $geoNear = {
+      near: { type: "Point", coordinates: [point.lng, point.lat] },
+      key: "_buildfire.geo",
+      maxDistance: 10000,
+      distanceField: "distance",
+      query: { ...query }
+    };
+    pipelines.push({ $geoNear });
+  } else {
+    const $match = { ...query };
+    /*
+      mapBounds = [
+        [west, north],
+        [east, north],
+        [east, south],
+        [west, south],
+        [west, north]
+      ]
+    */
+    if (mapBounds && Array.isArray(mapBounds)) {
+      $match["_buildfire.geo.coordinates"] =  {
+        $geoWithin: {
+          $geometry: {
+            type : "Polygon",
+            coordinates: [...mapBounds]
+          }
+        }
+      };
+    }
+
+    if (Object.keys($match).length === 0) {
+      $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
+    }
+    pipelines.push({ $match });
   }
 
-  pipelines.push({ $match });
+  if (criteria.openingNow) {
+    const $match2 = {  };
+    query["openingHours.days.sun.intervals"] = {
+      $elemMatch: {
+        from: { $lte: new Date() },
+        to: { $gt: new Date() }
+      }
+    };
+  }
 
   const $sort = {};
-  if (sort) {
-    $sort[sort.sortBy] = sort.order;
+  if (criteria.sort) {
+    if (criteria.sort.sortBy === 'distance' && !$geoNear) {
+      $sort["_buildfire.index.text"] = 1;
+    } else {
+      $sort[criteria.sort.sortBy] = criteria.sort.order;
+    }
     pipelines.push({ $sort });
   }
 
