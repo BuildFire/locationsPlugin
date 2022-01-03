@@ -1,3 +1,6 @@
+/* eslint-disable class-methods-use-this */
+import buildfire from 'buildfire';
+
 /**
  * Location data model
  * @class
@@ -47,6 +50,10 @@ export default class Location {
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
   }
 
+  get instanceId() {
+    return buildfire.getContext().instanceId;
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -79,7 +86,8 @@ export default class Location {
       isActive: this.isActive,
       _buildfire: {
         index: {
-          string1: this.title.toLowerCase(),
+          text: this.title.toLowerCase(),
+          string1: this.instanceId,
           date1: this.createdOn,
           array1: [...this.categories.main.map(elemId => ({ string1: 'c_' + elemId })),
             ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),

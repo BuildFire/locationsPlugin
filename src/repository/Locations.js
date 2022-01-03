@@ -80,16 +80,19 @@ export default class Locations {
    * @static
    * @return {promise} query result
   */
-  
+
   static aggregate(pipelines = [], page = 0, pageSize = 50) {
     return new Promise((resolve, reject) => {
       buildfire.publicData.aggregate({
         pipelineStages: pipelines,
         page,
         pageSize
-      },  Locations.TAG, function (err, result) {
-        if (error) return reject(error);
-        result = result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
+      },  Locations.TAG, (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+
+        result = result.map((c) => new Location({ ...c.data, id: c._id }).toJSON());
         resolve(result);
       });
     });
