@@ -361,6 +361,9 @@ const hideFilterOverlay = () => {
 };
 
 const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
+  if (breadcrumbs.length && breadcrumbs[breadcrumbs.length - 1].name === pageName) {
+    return;
+  }
   breadcrumbs.push({ name: pageName });
   buildfire.history.push(label, {
     showLabelInTitlebar: showLabel
@@ -672,6 +675,10 @@ const initEventListeners = () => {
       viewFullImage(selectedLocation.images);
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
+    } else if (e.target.id === 'mapCenterBtn') {
+      if (mainMap && userPosition.latitude && userPosition.longitude) {
+        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+      }
     }
   }, false);
 
@@ -1394,14 +1401,17 @@ const init = () => {
 
       breadcrumbs.pop();
       if (!breadcrumbs.length) {
+        hideFilterOverlay();
         navigateTo('home');
       } else {
         const page = breadcrumbs[breadcrumbs.length - 1];
         if (page.name === 'af') {
           showFilterOverlay();
         } else if (page.name === 'detail') {
+          hideFilterOverlay();
           showLocationDetail();
         } else {
+          hideFilterOverlay();
           navigateTo('home');
         }
         breadcrumbs.pop();

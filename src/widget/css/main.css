@@ -831,3 +831,43 @@ body section#home {
   height: 50px;
   margin: 2px;
 }
+
+.map-center-btn {
+  position: fixed;
+  right: 10px;
+  bottom: 90px;
+  text-align: center;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.map-center-btn * {
+  pointer-events: none;
+}
+
+.map-center-btn .button-container {
+  background-color: #000000;
+  opacity: 0.8;
+  box-shadow: 0 1px 1.5px 0 rgba(0, 0, 0, 0.5);
+  width: 55px;
+  height: 55px;
+  border-radius: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.map-center-btn div {
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.map-center-btn img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+}
