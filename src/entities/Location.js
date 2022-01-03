@@ -1,3 +1,6 @@
+/* eslint-disable class-methods-use-this */
+import buildfire from 'buildfire';
+
 /**
  * Location data model
  * @class
@@ -45,6 +48,11 @@ export default class Location {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
+    this.searchEngineRefId = data.searchEngineRefId || null;
+  }
+
+  get instanceId() {
+    return buildfire.getContext().instanceId;
   }
 
   toJSON() {
@@ -77,9 +85,11 @@ export default class Location {
       deletedOn: this.deletedOn,
       deletedBy: this.deletedBy,
       isActive: this.isActive,
+      searchEngineRefId: this.searchEngineRefId,
       _buildfire: {
         index: {
-          string1: this.title.toLowerCase(),
+          text: this.title.toLowerCase(),
+          string1: this.instanceId,
           date1: this.createdOn,
           array1: [...this.categories.main.map(elemId => ({ string1: 'c_' + elemId })),
             ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),

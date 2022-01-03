@@ -89,8 +89,57 @@ const fetchTemplate = (template, done) => {
 };
 /** template management end */
 
-const searchLocations = () => {
-  console.log('search Locations triggered')
+const searchLocations = ({ searchValue, point, sort }) => {
+  // add geo stage when search user location , area, open Now
+  const pipelines = [];
+
+  let $geoNear = null;
+
+  if (point) {
+    $geoNear = {
+      near: { type: "Point", coordinates: [point.lng, point.lat] },
+      key: "_buildfire.geo",
+      maxDistance: 10000,
+      distanceField: "distance",
+      query: { }
+    };
+    pipelines.push({ $geoNear });
+  }
+
+  const categoryIds = [];
+  const subcategoryIds = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in filterElements) {
+    if (filterElements[key] && filterElements[key].length > 0) {
+      categoryIds.push(key);
+      subcategoryIds.push(...filterElements[key]);
+    }
+  }
+
+  const $match = { };
+  if (searchValue) {
+    $match["_buildfire.index.text"] = searchValue.toLowerCase();
+  }
+
+  if (categoryIds.length > 0 || subcategoryIds.length > 0) {
+    $match["_buildfire.index.array1.string1"] = { $in: [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)] };
+  }
+
+  if (Object.keys($match).length === 0 && Object.keys($geoNear).length === 0) {
+    $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
+  }
+
+  pipelines.push({ $match });
+
+  const $sort = {};
+  if (sort) {
+    $sort[sort.sortBy] = sort.order;
+    pipelines.push({ $sort });
+  }
+
+  WidgetController.searchLocationsV2(pipelines).then((result) => {
+    console.log(result);
+  }).catch(console.error);
 };
 
 /** ui helpers start */
@@ -581,13 +630,33 @@ const initEventListeners = () => {
     if (!e.target) return;
 
     if (e.target.id === 'searchLocationsBtn') {
-      searchLocations(e);
+      searchLocations({ searchValue: e.target.value });
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
+      const menu = new mdc.menu.MDCMenu(e.target.nextElementSibling);
+      menu.selected = () => {
+        console.log('Hello this moe');
+      }
+      menu.listen('MDCMenu:selected', (event) => {
+        const value = event.detail.item.getAttribute('data-value');
+        const params = {};
+        if (e.target.id === 'priceSortingBtn') {
+          params.priceRange = Number(value);
+        } else if (e.target.id === 'otherSortingBtn') {
+          if (value === 'distance') {
+            params.sort = { sortBy: 'distance', order: -1 };
+          } else if (value === 'A-Z') {
+            params.sort = { sortBy: '_buildfire.index.text', order: 1 };
+          } else if (value === 'Z-A') {
+            params.sort = { sortBy: '_buildfire.index.text', order: -1 };
+          }
+        }
+        searchLocations(params);
+      });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
@@ -604,7 +673,7 @@ const initEventListeners = () => {
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     }
-  });
+  }, false);
 
   document.addEventListener('keydown', (e) => {
     if (!e.target) return;
@@ -612,9 +681,46 @@ const initEventListeners = () => {
     const keyCode = e.which || e.keyCode;
 
     if (keyCode === 13 && e.target.id === 'searchTextField') {
-      searchLocations(e);
+      searchLocations({ searchValue: e.target.value });
     }
   });
+
+  const searchTextField = document.querySelector('#searchTextField');
+  searchTextField.onkeyup = (e) => {
+    const searchValue = e.target.value;
+    searchLocations({ searchValue });
+  };
+
+  const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  myCurrentLocationBtn.onclick = (e) => {
+    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+      if (err || !position) {
+        return console.error(err, position);
+      }
+      const { coords } = position;
+      const geoCoder = new google.maps.Geocoder();
+      const positionPoints = { lat: coords.latitude, lng: coords.longitude };
+      searchLocations({ point: positionPoints });
+      geoCoder.geocode(
+        { location: positionPoints },
+        (results, status) => {
+          console.log(results);
+          if (status === "OK") {
+            if (results[0]) {
+              areaSearchTextField.value = results[0].formatted_address;
+            } else {
+              console.log("No results found");
+            }
+          } else {
+            console.log("Geocoder failed due to: " + status);
+          }
+        }
+      );
+    });
+  };
+
+  const priceSortingBtn = document.querySelector('#priceSortingBtn');
 };
 
 const initFilterOverlay = () => {
@@ -760,6 +866,31 @@ const navigateTo = (template) => {
   if (template === 'home' && breadcrumbs.length) {
     addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
   }
+};
+
+const initAreaAutocompleteField = (template) => {
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  const autocomplete = new google.maps.places.Autocomplete(
+    areaSearchTextField,
+    {
+      types: ["address"],
+    }
+  );
+
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (!place || !place.geometry || !place.geometry) {
+      return;
+    }
+
+    const point = {
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng()
+    };
+    searchLocations({ point });
+
+    console.log(place);
+  });
 };
 
 const initMainMap = () => {
@@ -1058,6 +1189,7 @@ const initHomeView = () => {
     initFilterOverlay();
     refreshQuickFilter(); // todo if quick filter enabled
     initMainMap();
+    initAreaAutocompleteField();
     fetchIntroductoryLocations(() => {
       drawer.initialize(settings);
       renderListingLocations(introductoryLocations);
@@ -1134,7 +1266,7 @@ const initGoogleMapsSDK = () => {
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
   script.type = 'text/javascript';
-  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}`;
+  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
   };
