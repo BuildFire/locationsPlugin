@@ -861,10 +861,12 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
     }
 
     fromInput.onchange = (e) => {
-      interval.from = e.target.value
+      console.log(convertTimeToDate(e.target.value));
+      interval.from = e.target.value;
     };
     toInput.onchange = (e) => {
-      interval.to = e.target.value
+      console.log(new Date(e.target.value));
+      interval.to = e.target.value;
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
@@ -873,6 +875,16 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     dayIntervalsContainer.appendChild(dayInterval);
   });
+};
+
+const convertTimeToDate = (time) => {
+  const date = new Date();
+  date.setFullYear(2020, 0, 1);
+  time = time.split(':');
+  const hour = Number(time[0]);
+  const min = Number(time[1]);
+  date.setHours(hour, min, 0, 0);
+  return new Date(date);
 };
 
 const creatCheckboxElem = () => {
