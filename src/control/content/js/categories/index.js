@@ -648,7 +648,8 @@ const updateCategory = (categoryId, category, callback) => {
 
 const triggerWidgetOnCategoriesUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
-    cmd: "update_category",
+    cmd: 'sync',
+    scope: 'category'
   });
 };
 

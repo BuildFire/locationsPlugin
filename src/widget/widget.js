@@ -309,6 +309,13 @@ const hideFilterOverlay = () => {
     filterOverlay.classList.remove('overlay');
   }
 };
+const showFilterOverlay = () => {
+  const filterOverlay = document.querySelector('section#filter');
+  const currentActive = document.querySelector('section.active');
+
+  currentActive?.classList.remove('active');
+  filterOverlay.classList.add('overlay');
+};
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const homeView = document.querySelector('section#home');
@@ -606,10 +613,6 @@ const initEventListeners = () => {
 };
 
 const initFilterOverlay = () => {
-  if (Object.keys(filterElements).length > 0) {
-    return;
-  }
-
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
   CATEGORIES.forEach((category) => {
@@ -1204,6 +1207,14 @@ const handleCPSync = (scope) => {
       } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
         showMapView();
       }
+    });
+  } else if (scope === 'locations') {
+    // todo incase there is data object then navigate to detail page with the given data
+    // todo else just refetch the latest data and reflect on intro and listing page
+  } else if (scope === 'category') {
+    fetchCategories(() => {
+      initFilterOverlay();
+      showFilterOverlay();
     });
   }
 };
