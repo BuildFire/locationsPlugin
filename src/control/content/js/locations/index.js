@@ -3,7 +3,6 @@
 /* eslint-disable no-use-before-define */
 import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
-import Category from "../../../../entities/Category";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError } from "../../utils/helpers";
@@ -15,7 +14,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
-import {convertTimeToDate, convertDateToTime, getCurrentDayName} from "../../../../utils/datetime";
+import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
@@ -141,6 +140,7 @@ const cancelAddLocation = () => {
   inputLocationForm.style.display = "none";
   state.locationObj = new Location();
   state.selectedLocationCategories = { main: [], subcategories: [] };
+  state.selectedOpeningHours = getDefaultOpeningHours();
   state.breadcrumbs = [
     { title: "Locations", goBack: true },
   ];
@@ -165,6 +165,11 @@ const renderBreadcrumbs = () => {
 };
 
 window.addEditLocation = (location) => {
+  if (state.categories.length === 0) {
+    openRequiredCategoriesDialog();
+    return;
+  }
+
   renderAddLocationsPage();
 
   if (!location) {
@@ -540,6 +545,31 @@ const locationInputValidation = () => {
   return isValid;
 };
 
+const openRequiredCategoriesDialog = () => {
+  buildfire.notifications.confirm(
+    {
+      title: "No Categories Added",
+      message: `You need to create location categories before adding a location.`,
+      confirmButton: {
+        text: "Go to Categories",
+        key: "y",
+        type: "primary",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        cancelAddLocation();
+        onSidenavChange('categories');
+      }
+    }
+  );
+};
+
 const onMarkerTypeChanged = (marker) => {
   handleMarkerType(marker?.type);
   if (marker.image) {
@@ -565,9 +595,12 @@ const onMarkerTypeChanged = (marker) => {
     if (type === 'image') {
       addLocationControls.selectMarkerImageContainer.classList.remove('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
-    } else {
+    } else if (type === 'circle') {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
+    } else {
+      addLocationControls.selectMarkerImageContainer.classList.add('hidden');
+      addLocationControls.selectMarkerColorContainer.classList.add('hidden');
     }
   }
 };
@@ -819,7 +852,7 @@ const openConfirmationLeaveDialog = (callback) => {
 };
 
 const renderOpeningHours = (openingHours) => {
-  state.selectedOpeningHours =  { ...state.selectedOpeningHours, ...openingHours };
+  state.selectedOpeningHours.days =  { ...state.selectedOpeningHours.days, ...openingHours.days };
   const { days } = state.selectedOpeningHours;
   for (const day in days) {
     if (days[day]) {
