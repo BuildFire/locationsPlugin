@@ -583,16 +583,15 @@ const chatWithOwner = () => {
   );
 };
 const shareLocation = () => {
-  console.log('share Location clicked');
   buildfire.deeplink.generateUrl(
     {
-      data: { locationId: 'THIS-IS-TEST-ID' },
+      data: { locationId: selectedLocation.id },
     },
     (err, result) => {
       if (err) return console.error(err);
       buildfire.device.share({
-        subject: 'Location URL',
-        text: 'Location shared: ',
+        subject: selectedLocation.title,
+        text: selectedLocation.title,
         link: result.url
       }, (err, result) => {
         if (err) console.error(err);
@@ -600,8 +599,6 @@ const shareLocation = () => {
       });
     }
   );
-  // todo getData()
-  // todo testing
 };
 
 const handleDetailActionItem = (e) => {
@@ -1423,11 +1420,18 @@ const init = () => {
     // });
 
     setTimeout(() => { initEventListeners(); }, 1000);
-
     buildfire.deeplink.getData((deeplinkData) => {
+      console.log('getData deeplinkData: ', deeplinkData);
       if (deeplinkData?.locationId) {
-        // todo fetch location where id;
-        // todo navigate to location
+        WidgetController
+          .getLocation(deeplinkData.locationId)
+          .then((response) => {
+            selectedLocation = response.data;
+            showLocationDetail();
+          })
+          .catch((err) => {
+            console.error('fetch location error: ', err);
+          });
       }
     });
 
