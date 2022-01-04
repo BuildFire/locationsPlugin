@@ -1156,16 +1156,16 @@ const loadLocations = () => {
     options.sort = { "_buildfire.index.text": -1 };
   }
 
-  options.pageIndex = state.pageIndex;
+  options.page = state.pageIndex;
   options.pageSize = state.pageSize;
 
-  LocationsController.searchLocations(options).then(({ result, recordCount }) => {
+  LocationsController.searchLocations(options).then(({ result, totalRecord }) => {
     state.locations = state.locations.concat(result || []);
-    state.recordCount = recordCount || 0;
+    state.totalRecord = totalRecord || 0;
     handleLocationEmptyState(false);
     locationsTable.renderData(state.locations, state.categories);
     state.fetchingNextPage = false;
-    state.fetchingEndReached = state.locations.length >= recordCount;
+    state.fetchingEndReached = state.locations.length <= totalRecord;
   });
 };
 
@@ -1185,7 +1185,7 @@ const refreshLocations = () => {
 };
 
 const getPinnedLocation = () => {
-  LocationsController.getPinnedLocation().then(({ result, recordCount }) => {
+  LocationsController.getPinnedLocation().then(({ result, totalRecord }) => {
     state.pinnedLocations = result || [];
   });
 };
