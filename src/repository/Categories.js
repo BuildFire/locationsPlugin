@@ -16,7 +16,7 @@ export default class Categories {
    * @static
    * @returns {promise} query result
    */
-  static search(options) {
+  static search(options = {}) {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Categories.TAG, (error, result) => {
         if (error) return reject(error);

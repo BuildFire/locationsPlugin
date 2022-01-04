@@ -114,9 +114,9 @@ const searchLocations = ({point, mapBounds }) => {
   const subcategoryIds = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const key in filterElements) {
-    if (filterElements[key] && filterElements[key].length > 0) {
+    if (filterElements[key].checked) {
       categoryIds.push(key);
-      subcategoryIds.push(...filterElements[key]);
+      subcategoryIds.push(...filterElements[key].subcategories);
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0) {
@@ -406,6 +406,9 @@ const hideFilterOverlay = () => {
 };
 
 const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
+  if (breadcrumbs.length && breadcrumbs[breadcrumbs.length - 1].name === pageName) {
+    return;
+  }
   breadcrumbs.push({ name: pageName });
   buildfire.history.push(label, {
     showLabelInTitlebar: showLabel
@@ -583,16 +586,15 @@ const chatWithOwner = () => {
   );
 };
 const shareLocation = () => {
-  console.log('share Location clicked');
   buildfire.deeplink.generateUrl(
     {
-      data: { locationId: 'THIS-IS-TEST-ID' },
+      data: { locationId: selectedLocation.id },
     },
     (err, result) => {
       if (err) return console.error(err);
       buildfire.device.share({
-        subject: 'Location URL',
-        text: 'Location shared: ',
+        subject: selectedLocation.title,
+        text: selectedLocation.title,
         link: result.url
       }, (err, result) => {
         if (err) console.error(err);
@@ -600,8 +602,6 @@ const shareLocation = () => {
       });
     }
   );
-  // todo getData()
-  // todo testing
 };
 
 const handleDetailActionItem = (e) => {
@@ -717,6 +717,10 @@ const initEventListeners = () => {
       viewFullImage(selectedLocation.images);
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
+    } else if (e.target.id === 'mapCenterBtn') {
+      if (mainMap && userPosition.latitude && userPosition.longitude) {
+        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+      }
     }
   }, false);
 
@@ -778,7 +782,7 @@ const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
   CATEGORIES.forEach((category) => {
-    filterElements[category.id] = [];
+    filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
@@ -848,13 +852,15 @@ const initFilterOverlay = () => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     if (!target.checked) {
-      filterElements[categoryId] = [];
+      filterElements[categoryId] = { checked: false, subcategories: [] };
+    } else {
+      filterElements[categoryId].checked = true;
     }
 
     chipSets[categoryId].chips.forEach((c) => {
       const { sid } = c.root_.dataset;
-      if (target.checked && !filterElements[categoryId].includes(sid)) {
-        filterElements[categoryId].push(sid);
+      if (target.checked && !filterElements[categoryId]?.subcategories.includes(sid)) {
+        filterElements[categoryId].subcategories.push(sid);
       }
       c.selected = target.checked;
     });
@@ -883,19 +889,22 @@ const initFilterOverlay = () => {
     const subcategoryId = mdcChip.dataset.sid;
     const category = CATEGORIES.find((c) => c.id === categoryId);
 
-    if (selected && !filterElements[categoryId].includes(subcategoryId)) {
-      filterElements[categoryId].push(subcategoryId);
+    if (selected && !filterElements[categoryId].subcategories.includes(subcategoryId)) {
+      filterElements[categoryId].subcategories.push(subcategoryId);
     } else {
-      filterElements[categoryId] = filterElements[categoryId].filter((item) => item !== subcategoryId);
+      filterElements[categoryId].subcategories = filterElements[categoryId].subcategories.filter((item) => item !== subcategoryId);
     }
 
     input.indeterminate = false;
-    if (filterElements[categoryId].length === 0) {
+    if (filterElements[categoryId].subcategories.length === 0) {
       input.checked = false;
-    } else if (filterElements[categoryId].length === category.subcategories.length) {
+      filterElements[categoryId].checked = false;
+    } else if (filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
+      filterElements[categoryId].checked = true;
     } else {
       input.indeterminate = true;
+      filterElements[categoryId].checked = true;
     }
 
     mdcChip.classList.add('disabled');
@@ -1423,11 +1432,18 @@ const init = () => {
     // });
 
     setTimeout(() => { initEventListeners(); }, 1000);
-
     buildfire.deeplink.getData((deeplinkData) => {
+      console.log('getData deeplinkData: ', deeplinkData);
       if (deeplinkData?.locationId) {
-        // todo fetch location where id;
-        // todo navigate to location
+        WidgetController
+          .getLocation(deeplinkData.locationId)
+          .then((response) => {
+            selectedLocation = response.data;
+            showLocationDetail();
+          })
+          .catch((err) => {
+            console.error('fetch location error: ', err);
+          });
       }
     });
 
@@ -1448,14 +1464,17 @@ const init = () => {
       debugger
       breadcrumbs.pop();
       if (!breadcrumbs.length) {
+        hideFilterOverlay();
         navigateTo('home');
       } else {
         const page = breadcrumbs[breadcrumbs.length - 1];
         if (page.name === 'af') {
           showFilterOverlay();
         } else if (page.name === 'detail') {
+          hideFilterOverlay();
           showLocationDetail();
         } else {
+          hideFilterOverlay();
           navigateTo('home');
         }
         breadcrumbs.pop();

@@ -93,4 +93,9 @@ export default class Map {
     };
     this.map.setOptions(options);
   }
+
+  center(position) {
+    if (!position.lat || !position.lng) return;
+    this.map.setCenter(position);
+  }
 }
