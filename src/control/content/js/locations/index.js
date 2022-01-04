@@ -49,7 +49,15 @@ const state = {
   isMapLoaded: false,
   breadcrumbs: [
     { title: "Locations", goBack: true },
-  ]
+  ],
+  filter: {},
+  sort: {
+    "_buildfire.index.text": -1
+  },
+  pageIndex: 0,
+  pageSize: 50,
+  fetchingNextPage: false,
+  fetchingEndReached: false,
 };
 
 const locationTemplateHeader = {
@@ -549,8 +557,8 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const value = e.target.value;
       state.locationObj.marker.type = value;
-      handleMarkerType(value)
-    }
+      handleMarkerType(value);
+    };
   }
 
   function handleMarkerType(type) {
@@ -1046,11 +1054,13 @@ window.searchLocations = (e) => {
   timeoutId = setTimeout(() => {
     const filter = {};
     if (searchValue) {
-      filter["_buildfire.index.string1"] = { $regex: searchValue, $options: "-i" };
+      state.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+    } else {
+      delete state.filter["_buildfire.index.text"];
     }
     locationsTable.clearData();
     handleLocationEmptyState(true);
-    loadLocations(filter, null);
+    refreshLocations();
   }, 300);
 };
 
@@ -1113,7 +1123,7 @@ window.importLocations = () =>  {
       });
 
       LocationsController.bulkCreateLocation(locations).then(() => {
-        loadLocations();
+        refreshLocations();
         triggerWidgetOnLocationsUpdate();
       }).catch(console.error);
     });
@@ -1133,20 +1143,45 @@ window.exportLocations = () => {
  downloadCsvTemplate(data, locationTemplateHeader, 'locations');
 };
 
-const loadLocations = (filter, sort) => {
+const loadLocations = () => {
   const options = {};
-  options.sort = { "_buildfire.index.text": sort ? sort.title : -1 };
 
-  if (filter) {
-    options.filter = filter;
+  if (state.filter) {
+    options.filter = state.filter;
   }
 
-  LocationsController.searchLocations(options).then(({result, recordCount}) => {
-    state.locations = result || [];
+  if (state.sort) {
+    options.sort = state.sort;
+  } else {
+    options.sort = { "_buildfire.index.text": -1 };
+  }
+
+  options.pageIndex = state.pageIndex;
+  options.pageSize = state.pageSize;
+
+  LocationsController.searchLocations(options).then(({ result, recordCount }) => {
+    state.locations = state.locations.concat(result || []);
     state.recordCount = recordCount || 0;
     handleLocationEmptyState(false);
     locationsTable.renderData(state.locations, state.categories);
+    state.fetchingNextPage = false;
+    state.fetchingEndReached = state.locations.length >= recordCount;
   });
+};
+
+const loadMoreLocations = () => {
+  if (state.fetchingNextPage || state.fetchingEndReached) return;
+  state.fetchingNextPage = true;
+  state.pageIndex += 1;
+  loadLocations();
+};
+
+const refreshLocations = () => {
+  state.locations = [];
+  state.fetchingNextPage = false;
+  state.fetchingEndReached = false;
+  state.pageIndex = 0;
+  loadLocations();
 };
 
 const getPinnedLocation = () => {
@@ -1208,7 +1243,7 @@ const updateLocationImage = (obj, tr) => {
 
 const createLocation = (location) => {
   LocationsController.createLocation(location).then((res) => {
-    loadLocations();
+    refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
   });
@@ -1216,7 +1251,7 @@ const createLocation = (location) => {
 
 const updateLocation = (locationId, location) => {
   LocationsController.updateLocation(locationId, location).then((res) => {
-    loadLocations();
+    refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
   });
@@ -1249,7 +1284,9 @@ window.initLocations = () => {
   locationsTable.onImageClick = updateLocationImage;
 
   locationsTable.onSort = (sort) => {
-    loadLocations({}, sort);
+    state.sort["_buildfire.index.text"] = sort.title;
+    refreshLocations();
   };
   locationsTable.onCopy = copyLocationDeepling;
+  locationsTable.onLoadMore = loadMoreLocations;
 };

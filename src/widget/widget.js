@@ -28,7 +28,7 @@ const criteria = {
   priceRange: null,
   sort: {
     sortBy: 'distance',
-    order: -1
+    order: 1
   }
 };
 let introCarousel;
@@ -169,6 +169,7 @@ const searchLocations = ({point, mapBounds }) => {
         to: { $gt: openingNowDate() }
       }
     };
+    $match2[`openingHours.days.${getCurrentDayName()}.active`] = true;
     pipelines.push({ $match: $match2 });
   }
 
@@ -693,7 +694,7 @@ const initEventListeners = () => {
           criteria.priceRange = Number(value);
         } else if (e.target.id === 'otherSortingBtn') {
           if (value === 'distance') {
-            criteria.sort = { sortBy: 'distance', order: -1 };
+            criteria.sort = { sortBy: 'distance', order: 1 };
           } else if (value === 'A-Z') {
             criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
           } else if (value === 'Z-A') {
@@ -1461,7 +1462,6 @@ const init = () => {
     buildfire.history.onPop((breadcrumb) => {
       console.log('Breadcrumb popped', breadcrumb);
       console.log('Breadcrumb popped', breadcrumbs);
-      debugger
       breadcrumbs.pop();
       if (!breadcrumbs.length) {
         hideFilterOverlay();
