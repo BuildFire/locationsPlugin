@@ -1,5 +1,12 @@
-import runTests from '../../tests/setup';
+import authManager from "../../UserAccessControl/authManager";
+import CategoriesSpec from "./spec/categories.spec";
+import LocationsSpec from "./spec/locations.spec";
+import SettingsSpec from "./spec/settings.spec";
 
-document.getElementById("runTestButton").addEventListener("click", () => {
-  runTests();
-});
+const init = () => {
+  CategoriesSpec.run();
+  LocationsSpec.run();
+  SettingsSpec.run();
+};
+
+authManager.enforceLogin(init);

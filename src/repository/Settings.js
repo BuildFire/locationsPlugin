@@ -19,6 +19,8 @@ export default class Settings {
         if (!res || !res.data || Object.keys(res.data).length === 0) {
           const settings = new Setting();
           Settings.save(settings.toJSON());
+          resolve(settings);
+          return;
         }
         resolve(new Setting(res.data));
       });
