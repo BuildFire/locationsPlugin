@@ -4,6 +4,7 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
+import {openingNowDate, getCurrentDayName, convertDateToTime} from '../utils/datetime';
 
 // if (templateSection.childNodes.length === 0) {
 //   injectTemplate(template);
@@ -20,6 +21,7 @@ let filterElements = {};
 let markerClusterer;
 let selectedLocation;
 let mainMap;
+let currentLocation;
 const criteria = {
   searchValue: '',
   openingNow: false,
@@ -98,7 +100,7 @@ const fetchTemplate = (template, done) => {
 };
 /** template management end */
 
-const searchLocations = ({ searchValue, point, sort, mapBounds }) => {
+const searchLocations = ({point, mapBounds }) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
 
@@ -122,9 +124,9 @@ const searchLocations = ({ searchValue, point, sort, mapBounds }) => {
   }
 
   let $geoNear = null;
-  if (point) {
+  if (currentLocation) {
     $geoNear = {
-      near: { type: "Point", coordinates: [point.lng, point.lat] },
+      near: { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] },
       key: "_buildfire.geo",
       maxDistance: 10000,
       distanceField: "distance",
@@ -161,12 +163,13 @@ const searchLocations = ({ searchValue, point, sort, mapBounds }) => {
 
   if (criteria.openingNow) {
     const $match2 = {  };
-    query["openingHours.days.sun.intervals"] = {
+    $match2[`openingHours.days.${getCurrentDayName()}.intervals`] = {
       $elemMatch: {
-        from: { $lte: new Date() },
-        to: { $gt: new Date() }
+        from: { $lte: openingNowDate() },
+        to: { $gt: openingNowDate() }
       }
     };
+    pipelines.push({ $match: $match2 });
   }
 
   const $sort = {};
@@ -284,7 +287,7 @@ const renderListingLocations = (list) => {
               <p>
                 <span>${n.subtitle}</span>
                 <span>
-                  <span>${n.price.currency.repeat(n.price.range)}</span>
+                  <span>${n.price.currency?.repeat(n.price?.range)}</span>
                   <span style="margin-left: 10px;color: #91dba6;">Open Now</span>
                 </span>
               </p>
@@ -672,7 +675,8 @@ const initEventListeners = () => {
     if (!e.target) return;
 
     if (e.target.id === 'searchLocationsBtn') {
-      searchLocations({ searchValue: e.target.value });
+      criteria.searchValue = e.target.value;
+      searchLocations({ });
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
@@ -685,19 +689,18 @@ const initEventListeners = () => {
       }
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
-        const params = {};
         if (e.target.id === 'priceSortingBtn') {
-          params.priceRange = Number(value);
+          criteria.priceRange = Number(value);
         } else if (e.target.id === 'otherSortingBtn') {
           if (value === 'distance') {
-            params.sort = { sortBy: 'distance', order: -1 };
+            criteria.sort = { sortBy: 'distance', order: -1 };
           } else if (value === 'A-Z') {
-            params.sort = { sortBy: '_buildfire.index.text', order: 1 };
+            criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
           } else if (value === 'Z-A') {
-            params.sort = { sortBy: '_buildfire.index.text', order: -1 };
+            criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
           }
         }
-        searchLocations(params);
+        searchLocations({});
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
@@ -723,14 +726,15 @@ const initEventListeners = () => {
     const keyCode = e.which || e.keyCode;
 
     if (keyCode === 13 && e.target.id === 'searchTextField') {
-      searchLocations({ searchValue: e.target.value });
+      criteria.searchValue = e.target.value;
+      searchLocations({ });
     }
   });
 
   const searchTextField = document.querySelector('#searchTextField');
   searchTextField.onkeyup = (e) => {
-    const searchValue = e.target.value;
-    searchLocations({ searchValue });
+    criteria.searchValue = e.target.value;
+    searchLocations({  });
   };
 
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
@@ -743,6 +747,7 @@ const initEventListeners = () => {
       const { coords } = position;
       const geoCoder = new google.maps.Geocoder();
       const positionPoints = { lat: coords.latitude, lng: coords.longitude };
+      currentLocation = positionPoints;
       searchLocations({ point: positionPoints });
       geoCoder.geocode(
         { location: positionPoints },
@@ -762,7 +767,11 @@ const initEventListeners = () => {
     });
   };
 
-  const priceSortingBtn = document.querySelector('#priceSortingBtn');
+  const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
+  openNowSortingBtn.onclick = () => {
+    criteria.openingNow = !criteria.openingNow;
+    searchLocations({});
+  };
 };
 
 const initFilterOverlay = () => {
@@ -929,6 +938,7 @@ const initAreaAutocompleteField = (template) => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng()
     };
+    currentLocation = point;
     searchLocations({ point });
 
     console.log(place);
@@ -1041,11 +1051,13 @@ const initMainMap = () => {
       lat: map.initialAreaCoordinates.lat,
       lng: map.initialAreaCoordinates.lng
     };
+    currentLocation = { ...map.initialAreaCoordinates };
   } else if (userPosition) {
     options.center = {
       lat: userPosition.latitude,
       lng: userPosition.longitude
     };
+    currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
   } else {
     // todo change to san diego
     options.center = { lat: 38.70290288229097, lng: 35.52352225602528 };
@@ -1433,7 +1445,7 @@ const init = () => {
     buildfire.history.onPop((breadcrumb) => {
       console.log('Breadcrumb popped', breadcrumb);
       console.log('Breadcrumb popped', breadcrumbs);
-
+      debugger
       breadcrumbs.pop();
       if (!breadcrumbs.length) {
         navigateTo('home');

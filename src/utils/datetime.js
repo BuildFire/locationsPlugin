@@ -13,3 +13,24 @@ export const convertDateToTime = (date) => {
   time = time.split(":", 2).join(":");
   return time;
 };
+
+export const openingNowDate = () => {
+  const date = new Date();
+  date.setFullYear(2020, 0, 1);
+  return new Date(date);
+};
+
+export const getCurrentDayName = () => {
+  const dayNames = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday'
+  ];
+
+  const d = new Date();
+  return dayNames[d.getDay()];
+};

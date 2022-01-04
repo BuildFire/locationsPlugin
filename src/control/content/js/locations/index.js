@@ -15,7 +15,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
-import {convertTimeToDate, convertDateToTime} from "../../../../utils/datetime";
+import {convertTimeToDate, convertDateToTime, getCurrentDayName} from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
@@ -1101,7 +1101,7 @@ window.importLocations = () =>  {
           showStarRating: elem.showStarRating || false,
         };
         elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
-        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency };
+        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
         let categories = elem.categories ? elem.categories : "";
         categories = elem.categories?.split(',').filter((elem) => elem);
         const mainCategories = state.categories.filter((elem) => categories?.includes((elem).title)).map((elem) => elem.id);
@@ -1135,7 +1135,7 @@ window.exportLocations = () => {
 
 const loadLocations = (filter, sort) => {
   const options = {};
-  options.sort = { "_buildfire.index.string1": sort ? sort.title : -1 };
+  options.sort = { "_buildfire.index.text": sort ? sort.title : -1 };
 
   if (filter) {
     options.filter = filter;
