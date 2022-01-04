@@ -1,6 +1,6 @@
 export const convertTimeToDate = (time) => {
   const date = new Date();
-  date.setFullYear(2020, 0, 1);
+  date.setFullYear(2020, 1, 1);
   time = time.split(":");
   const hour = Number(time[0]);
   const min = Number(time[1]);
@@ -16,7 +16,7 @@ export const convertDateToTime = (date) => {
 
 export const openingNowDate = () => {
   const date = new Date();
-  date.setFullYear(2020, 0, 1);
+  date.setFullYear(2020, 1, 1);
   return new Date(date);
 };
 

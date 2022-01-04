@@ -44,7 +44,7 @@
 .sidenav-content {
 	overflow-y: auto;
 	/* min-height:  calc(100vh - 70px); */
-	max-height: calc(100vh - 50px);
+	max-height: calc(100vh - 45px);
 	padding: 0 1rem;
 	flex: auto;
 }
