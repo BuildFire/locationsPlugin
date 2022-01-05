@@ -298,6 +298,12 @@ const loadMoreLocations = () => {
   searchLocations();
 };
 
+const refreshLocations = () => {
+  listLocations = [];
+  criteria.page = 0;
+  searchLocations();
+};
+
 /** ui helpers start */
 const showElement = (selector) => {
   let element = selector;
