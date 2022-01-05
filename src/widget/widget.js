@@ -285,13 +285,6 @@ const searchLocations = (mapBounds) => {
   }).catch(console.error);
 };
 
-const loadMoreLocations = () => {
-  if (fetchingNextPage || fetchingEndReached) return;
-  fetchingNextPage = true;
-  criteria.page += 1;
-  searchLocations();
-};
-
 /** ui helpers start */
 const showElement = (selector) => {
   let element = selector;
@@ -863,7 +856,7 @@ const initEventListeners = () => {
     const keyCode = e.which || e.keyCode;
     const { value } = e.target;
 
-    if (e.target.id === 'searchTextField' && value) {
+    if (e.target.id === 'searchTextField') {
       criteria.searchValue = value;
       clearAndSearchWithDelay();
     }
@@ -887,7 +880,7 @@ const initEventListeners = () => {
       const geoCoder = new google.maps.Geocoder();
       const positionPoints = { lat: coords.latitude, lng: coords.longitude };
       currentLocation = positionPoints;
-      searchLocations();
+      clearAndSearchWithDelay();
       geoCoder.geocode(
         { location: positionPoints },
         (results, status) => {
@@ -1083,8 +1076,7 @@ const initAreaAutocompleteField = (template) => {
       lng: place.geometry.location.lng()
     };
     currentLocation = point;
-    searchLocations();
-
+    clearAndSearchWithDelay();
     console.log(place);
   });
 };
