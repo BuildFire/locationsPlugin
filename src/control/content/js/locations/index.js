@@ -1198,7 +1198,7 @@ const loadLocations = () => {
     handleLocationEmptyState(false);
     locationsTable.renderData(state.locations, state.categories);
     state.fetchingNextPage = false;
-    state.fetchingEndReached = state.locations.length <= totalRecord;
+    state.fetchingEndReached = state.locations.length >= totalRecord;
   });
 };
 

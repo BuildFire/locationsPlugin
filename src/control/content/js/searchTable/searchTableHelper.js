@@ -70,7 +70,9 @@ export default class SearchTableHelper {
   renderBody() {
     this.tbody = this._create("tbody", this.table);
     this.tbody.onscroll = (e) => {
-      if (this.tbody.scrollTop / (this.tbody.scrollHeight - this.tbody.offsetHeight) > 0.8) this.onLoadMore();
+      if (this.tbody.scrollTop / (this.tbody.scrollHeight - this.tbody.offsetHeight) > 0.8) {
+        this.onLoadMore();
+      }
     };
   }
 

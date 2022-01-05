@@ -34,13 +34,9 @@ export default {
     options.sort = { "_buildfire.index.number1": 1 };
 
     options.filter = {
-      $or: [
-      {"_buildfire.index.number1": 0},
-      {"_buildfire.index.number1": 1},
-      {"_buildfire.index.number1": 2},
-    ]
-  };
-   return this.searchLocations(options)
+      "_buildfire.index.number1": { $in: [0, 1, 2] }
+    };
+    return this.searchLocations(options);
   },
   deleteLocation(locationId, searchEngineRefId) {
     const promiseChain = [

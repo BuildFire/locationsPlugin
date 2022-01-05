@@ -29,8 +29,14 @@ const criteria = {
   sort: {
     sortBy: 'distance',
     order: 1
-  }
+  },
+  page: 0,
+  pageSize: 50,
 };
+let listLocations = [];
+let mapLocations = [];
+let fetchingNextPage = false;
+let fetchingEndReached = false;
 let introCarousel;
 let breadcrumbs = [];
 
@@ -100,10 +106,16 @@ const fetchTemplate = (template, done) => {
 };
 /** template management end */
 
-const searchLocations = ({point, mapBounds }) => {
+let SEARCH_TIMEOUT;
+const searchLocationsWithDelay = () => {
+  clearTimeout(SEARCH_TIMEOUT);
+  SEARCH_TIMEOUT = setTimeout(searchLocations, 300);
+};
+
+const searchLocations = (mapBounds) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
-
+  let pageIndex = criteria.page;
   const query = {};
   if (criteria.searchValue) {
     query["_buildfire.index.text"] = criteria.searchValue.toLowerCase();
@@ -119,12 +131,16 @@ const searchLocations = ({point, mapBounds }) => {
       subcategoryIds.push(...filterElements[key].subcategories);
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0) {
-    query["_buildfire.index.array1.string1"] = { $in: [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)] };
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || criteria.priceRange) {
+    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    if (criteria.priceRange) {
+      array1Index.push(`pr_${criteria.priceRange}`);
+    }
+    query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
 
   let $geoNear = null;
-  if (currentLocation) {
+  if (currentLocation && !mapBounds) {
     $geoNear = {
       near: { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] },
       key: "_buildfire.geo",
@@ -145,7 +161,7 @@ const searchLocations = ({point, mapBounds }) => {
       ]
     */
     if (mapBounds && Array.isArray(mapBounds)) {
-      $match["_buildfire.geo.coordinates"] =  {
+      $match["_buildfire.geo"] =  {
         $geoWithin: {
           $geometry: {
             type : "Polygon",
@@ -153,6 +169,7 @@ const searchLocations = ({point, mapBounds }) => {
           }
         }
       };
+      pageIndex = 0;
     }
 
     if (Object.keys($match).length === 0) {
@@ -183,9 +200,20 @@ const searchLocations = ({point, mapBounds }) => {
     pipelines.push({ $sort });
   }
 
-  WidgetController.searchLocationsV2(pipelines).then((result) => {
+  return WidgetController.searchLocationsV2(pipelines, pageIndex).then((result) => {
     console.log(result);
+    listLocations = listLocations.concat(result || []);
+    fetchingNextPage = false;
+    fetchingEndReached = result.length < criteria.pageSize;
+    return result;
   }).catch(console.error);
+};
+
+const loadMoreLocations = () => {
+  if (fetchingNextPage || fetchingEndReached) return;
+  fetchingNextPage = true;
+  criteria.page += 1;
+  searchLocations();
 };
 
 /** ui helpers start */
@@ -557,7 +585,7 @@ const showWorkingHoursDrawer = () => {
       ${Object.entries(days).map(([day, prop]) => `<tr>
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${day}</td>
         <td style="vertical-align: top;">
-          ${!prop.active ? 'Closed' : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${t.from} - ${t.to}</p>`).join('\n')}
+          ${!prop.active ? 'Closed' : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -677,7 +705,7 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchLocationsBtn') {
       criteria.searchValue = e.target.value;
-      searchLocations({ });
+      searchLocations();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
@@ -685,9 +713,6 @@ const initEventListeners = () => {
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       toggleDropdownMenu(e.target.nextElementSibling);
       const menu = new mdc.menu.MDCMenu(e.target.nextElementSibling);
-      menu.selected = () => {
-        console.log('Hello this moe');
-      }
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
@@ -701,7 +726,7 @@ const initEventListeners = () => {
             criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
           }
         }
-        searchLocations({});
+        searchLocationsWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
@@ -732,14 +757,14 @@ const initEventListeners = () => {
 
     if (keyCode === 13 && e.target.id === 'searchTextField') {
       criteria.searchValue = e.target.value;
-      searchLocations({ });
+      searchLocations();
     }
   });
 
   const searchTextField = document.querySelector('#searchTextField');
   searchTextField.onkeyup = (e) => {
     criteria.searchValue = e.target.value;
-    searchLocations({  });
+    searchLocationsWithDelay();
   };
 
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
@@ -753,7 +778,7 @@ const initEventListeners = () => {
       const geoCoder = new google.maps.Geocoder();
       const positionPoints = { lat: coords.latitude, lng: coords.longitude };
       currentLocation = positionPoints;
-      searchLocations({ point: positionPoints });
+      searchLocations();
       geoCoder.geocode(
         { location: positionPoints },
         (results, status) => {
@@ -775,7 +800,7 @@ const initEventListeners = () => {
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
   openNowSortingBtn.onclick = () => {
     criteria.openingNow = !criteria.openingNow;
-    searchLocations({});
+    searchLocations();
   };
 };
 
@@ -949,7 +974,7 @@ const initAreaAutocompleteField = (template) => {
       lng: place.geometry.location.lng()
     };
     currentLocation = point;
-    searchLocations({ point });
+    searchLocations();
 
     console.log(place);
   });
