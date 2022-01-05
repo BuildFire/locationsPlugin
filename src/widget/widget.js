@@ -187,13 +187,6 @@ const fetchTemplate = (template, done) => {
   xhr.send(null);
 };
 /** template management end */
-
-let SEARCH_TIMEOUT;
-const searchLocationsWithDelay = () => {
-  clearTimeout(SEARCH_TIMEOUT);
-  SEARCH_TIMEOUT = setTimeout(searchLocations, 300);
-};
-
 const searchLocations = (mapBounds) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
@@ -284,7 +277,8 @@ const searchLocations = (mapBounds) => {
 
   return WidgetController.searchLocationsV2(pipelines, pageIndex).then((result) => {
     console.log(result);
-    listLocations = listLocations.concat(result || []);
+    listLocations = listLocations.concat(result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })) || []);
+    updateMapMarkers(listLocations);
     fetchingNextPage = false;
     fetchingEndReached = result.length < criteria.pageSize;
     return result;
@@ -354,6 +348,14 @@ const fetchCategories = (done) => {
     });
 };
 
+const clearIntroductoryLocations = () => {
+  const container = document.querySelector('#introLocationsList');
+  container.innerHTML = '';
+};
+const clearListingLocations = () => {
+  const container = document.querySelector('#listingLocationsList');
+  container.innerHTML = '';
+};
 const renderIntroductoryLocations = (list) => {
   const container = document.querySelector('#introLocationsList');
   const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
@@ -447,21 +449,6 @@ const renderListingLocations = (list) => {
 };
 const updateMapMarkers = (locations) => {
   locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
-};
-const fetchIntroductoryLocations = (done) => {
-  introductoryLocationsPending = true;
-  WidgetController
-    .searchLocations({ page: currentIntroductoryPage })
-    .then((response) => {
-      introductoryLocations = introductoryLocations.concat(response.result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })));
-      introductoryLocationsCount = response.totalRecord;
-      introductoryLocationsPending = false;
-      updateMapMarkers(introductoryLocations);
-      done(null, introductoryLocations);
-    })
-    .catch((err) => {
-      console.error('search error: ', err);
-    });
 };
 
 const refreshQuickFilter = () => {
@@ -738,7 +725,7 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  const actionItem = introductoryLocations
+  const actionItem = listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
   buildfire.actionItems.execute(
@@ -757,9 +744,10 @@ const fetchMoreIntroductoryLocations = (e) => {
   if (activeTemplate === 'intro' && !introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
       currentIntroductoryPage += 1;
-      fetchIntroductoryLocations((err, result) => {
-        renderIntroductoryLocations(result);
-      });
+      searchLocations()
+        .then((result) => {
+          renderIntroductoryLocations(result);
+        });
     }
   }
 };
@@ -769,14 +757,39 @@ const fetchMoreListLocations = (e) => {
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
     if (!introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
       currentIntroductoryPage += 1;
-      fetchIntroductoryLocations((err, result) => {
-        renderListingLocations(result);
-      });
+      searchLocations()
+        .then((result) => {
+          renderListingLocations(result);
+        });
     }
   };
 };
 const viewFullImage = (url) => {
   buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
+};
+
+const clearLocations = () => {
+  listLocations = [];
+};
+
+let SEARCH_TIMOUT;
+const clearAndSearchLocations = () => {
+  clearLocations();
+  searchLocations()
+    .then(() => {
+      console.log('list locations', listLocations)
+      const { showIntroductoryListView } = settings;
+      if (showIntroductoryListView) {
+        clearIntroductoryLocations();
+        renderIntroductoryLocations(listLocations);
+      }
+      clearListingLocations();
+      renderListingLocations(listLocations);
+    });
+};
+const clearAndSearchWithDelay = () => {
+  if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
+  SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
 };
 
 const initEventListeners = () => {
@@ -796,7 +809,7 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchLocationsBtn') {
       criteria.searchValue = e.target.value;
-      searchLocations();
+      clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
@@ -820,7 +833,7 @@ const initEventListeners = () => {
         searchLocationsWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
-      selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
+      selectedLocation = listLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
@@ -841,22 +854,24 @@ const initEventListeners = () => {
     }
   }, false);
 
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener('keyup', (e) => {
     if (!e.target) return;
 
     const keyCode = e.which || e.keyCode;
+    const { value } = e.target;
 
-    if (keyCode === 13 && e.target.id === 'searchTextField') {
-      criteria.searchValue = e.target.value;
-      searchLocations();
+    if (e.target.id === 'searchTextField' && value) {
+      criteria.searchValue = value;
+      clearAndSearchWithDelay();
+    }
+
+    // this is to refresh only
+    if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
+      console.log('value: ', value);
+      criteria.searchValue = value;
+      clearAndSearchWithDelay();
     }
   });
-
-  const searchTextField = document.querySelector('#searchTextField');
-  searchTextField.onkeyup = (e) => {
-    criteria.searchValue = e.target.value;
-    searchLocationsWithDelay();
-  };
 
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
@@ -1212,27 +1227,28 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     initMainMap();
     initAreaAutocompleteField();
-    fetchIntroductoryLocations(() => {
-      drawer.initialize(settings);
-      renderListingLocations(introductoryLocations);
-      if (showIntroductoryListView) {
-        renderIntroductoryLocations(introductoryLocations);
-        refreshIntroductoryDescription();
-        showElement('section#intro');
-        refreshIntroductoryCarousel();
+    searchLocations()
+      .then(() => {
+        drawer.initialize(settings);
+        renderListingLocations(listLocations);
+        if (showIntroductoryListView) {
+          renderIntroductoryLocations(listLocations);
+          refreshIntroductoryDescription();
+          showElement('section#intro');
+          refreshIntroductoryCarousel();
 
-        if (introductoryListView.images.length === 0
-          && introductoryLocations.length === 0
-          && !introductoryListView.description) {
-          showElement('div.empty-page');
+          if (introductoryListView.images.length === 0
+            && listLocations.length === 0
+            && !introductoryListView.description) {
+            showElement('div.empty-page');
+          }
+
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        } else {
+          showMapView();
         }
-
-        // eslint-disable-next-line no-new
-        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-      } else {
-        showMapView();
-      }
-    });
+      });
   });
 };
 
@@ -1259,7 +1275,7 @@ const calculateLocationDistance = (address) => {
 };
 
 const updateLocationsDistance = () => {
-  introductoryLocations = introductoryLocations.map((location) => {
+  listLocations = listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
@@ -1311,10 +1327,10 @@ const handleCPSync = (message) => {
         navigateTo('home');
         showMapView();
         drawer.reset(d.listViewPosition);
-        renderListingLocations(introductoryLocations);
+        renderListingLocations(listLocations);
       } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
-        if (introductoryLocations.length > 0) {
-          [selectedLocation] = introductoryLocations;
+        if (listLocations.length > 0) {
+          [selectedLocation] = listLocations;
           showLocationDetail();
         }
       } else {
@@ -1353,7 +1369,7 @@ const handleCPSync = (message) => {
       if (settings.showIntroductoryListView) {
         const container = document.querySelector('#introLocationsList');
         container.innerHTML = '';
-        renderIntroductoryLocations(introductoryLocations);
+        renderIntroductoryLocations(listLocations);
         refreshIntroductoryDescription();
         hideFilterOverlay();
         navigateTo('home');
@@ -1361,7 +1377,7 @@ const handleCPSync = (message) => {
         hideElement('section#listing');
         refreshIntroductoryCarousel();
         if (settings.introductoryListView.images.length === 0
-          && introductoryLocations.length === 0
+          && listLocations.length === 0
           && !settings.introductoryListView.description) {
           showElement('div.empty-page');
         }
