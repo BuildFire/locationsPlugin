@@ -482,7 +482,7 @@ button span {
   max-width: calc(100% - 40px);
   display: none;
 }
-.location-detail__cover #workingHoursBtn {
+.location-detail__cover #coverWorkingHoursBtn {
   margin-bottom: 8px;
 }
 .working-hours-button {
