@@ -388,8 +388,9 @@ const renderIntroductoryLocations = (list) => {
 };
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
+  let content;
   if (settings.design.listViewStyle === 'backgroundImage') {
-    container.innerHTML = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].iconUrl : './images/default-location-cover.png'});">
+    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].iconUrl : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -419,7 +420,7 @@ const renderListingLocations = (list) => {
           </div>
 `)).join('\n');
   } else {
-    container.innerHTML = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
+    content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
@@ -446,6 +447,7 @@ const renderListingLocations = (list) => {
         </div>
       </div>`)).join('\n');
   }
+  container.insertAdjacentHTML('beforeend', content);
 };
 const updateMapMarkers = (locations) => {
   locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
@@ -741,9 +743,10 @@ const fetchMoreIntroductoryLocations = (e) => {
   const listContainer = document.querySelector('section#intro');
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
 
-  if (activeTemplate === 'intro' && !introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
+  if (activeTemplate === 'intro' && !fetchingNextPage && !fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-      currentIntroductoryPage += 1;
+      fetchingNextPage = true;
+      criteria.page += 1;
       searchLocations()
         .then((result) => {
           renderIntroductoryLocations(result);
@@ -755,8 +758,9 @@ const fetchMoreIntroductoryLocations = (e) => {
 const fetchMoreListLocations = (e) => {
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    if (!introductoryLocationsPending && introductoryLocationsCount > introductoryLocations.length) {
-      currentIntroductoryPage += 1;
+    if (!fetchingNextPage && !fetchingEndReached) {
+      fetchingNextPage = true;
+      criteria.page += 1;
       searchLocations()
         .then((result) => {
           renderListingLocations(result);
@@ -777,7 +781,6 @@ const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
     .then(() => {
-      console.log('list locations', listLocations)
       const { showIntroductoryListView } = settings;
       if (showIntroductoryListView) {
         clearIntroductoryLocations();
@@ -830,7 +833,7 @@ const initEventListeners = () => {
             criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
           }
         }
-        searchLocationsWithDelay();
+        clearAndSearchWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = listLocations.find((i) => i.id === e.target.dataset.id);
