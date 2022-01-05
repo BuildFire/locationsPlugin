@@ -3,7 +3,6 @@
 /* eslint-disable no-use-before-define */
 import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
-import Category from "../../../../entities/Category";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError } from "../../utils/helpers";
@@ -15,6 +14,7 @@ import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
 import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
+import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
@@ -49,7 +49,15 @@ const state = {
   isMapLoaded: false,
   breadcrumbs: [
     { title: "Locations", goBack: true },
-  ]
+  ],
+  filter: {},
+  sort: {
+    "_buildfire.index.text": -1
+  },
+  pageIndex: 0,
+  pageSize: 50,
+  fetchingNextPage: false,
+  fetchingEndReached: false,
 };
 
 const locationTemplateHeader = {
@@ -133,6 +141,7 @@ const cancelAddLocation = () => {
   inputLocationForm.style.display = "none";
   state.locationObj = new Location();
   state.selectedLocationCategories = { main: [], subcategories: [] };
+  state.selectedOpeningHours = getDefaultOpeningHours();
   state.breadcrumbs = [
     { title: "Locations", goBack: true },
   ];
@@ -157,6 +166,11 @@ const renderBreadcrumbs = () => {
 };
 
 window.addEditLocation = (location) => {
+  if (state.categories.length === 0) {
+    openRequiredCategoriesDialog();
+    return;
+  }
+
   renderAddLocationsPage();
 
   if (!location) {
@@ -553,6 +567,31 @@ const locationInputValidation = () => {
   return isValid;
 };
 
+const openRequiredCategoriesDialog = () => {
+  buildfire.notifications.confirm(
+    {
+      title: "No Categories Added",
+      message: `You need to create location categories before adding a location.`,
+      confirmButton: {
+        text: "Go to Categories",
+        key: "y",
+        type: "primary",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        cancelAddLocation();
+        onSidenavChange('categories');
+      }
+    }
+  );
+};
+
 const onMarkerTypeChanged = (marker) => {
   handleMarkerType(marker?.type);
   if (marker.image) {
@@ -570,17 +609,20 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const value = e.target.value;
       state.locationObj.marker.type = value;
-      handleMarkerType(value)
-    }
+      handleMarkerType(value);
+    };
   }
 
   function handleMarkerType(type) {
     if (type === 'image') {
       addLocationControls.selectMarkerImageContainer.classList.remove('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
-    } else {
+    } else if (type === 'circle') {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
+    } else {
+      addLocationControls.selectMarkerImageContainer.classList.add('hidden');
+      addLocationControls.selectMarkerColorContainer.classList.add('hidden');
     }
   }
 };
@@ -833,7 +875,8 @@ const openConfirmationLeaveDialog = (callback) => {
 };
 
 const renderOpeningHours = (openingHours) => {
-  const days = openingHours && Object.keys(openingHours?.days).length? openingHours?.days : state.selectedOpeningHours?.days;
+  state.selectedOpeningHours.days =  { ...state.selectedOpeningHours.days, ...openingHours.days };
+  const { days } = state.selectedOpeningHours;
   for (const day in days) {
     if (days[day]) {
       const openingHoursDayItem = createTemplate("openingHoursDayItemTemplate");
@@ -846,13 +889,13 @@ const renderOpeningHours = (openingHours) => {
       enableDayLabel.htmlFor = `enable-${day}-checkbox`;
       enableDayLabel.innerHTML = state.weekDays[day];
 
-      enableDayInput.checked = !!days[day]?.active
+      enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
         triggerWidgetOnLocationsUpdate(true);
       };
       addHoursBtn.onclick = (e) => {
-        days[day].intervals?.push({ from: "08:00", to: "20:00" });
+        days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
         triggerWidgetOnLocationsUpdate(true);
       };
@@ -875,9 +918,8 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     const dayIntervalId = generateUUID();
     dayInterval.id = dayIntervalId;
-
-    fromInput.value = interval.from;
-    toInput.value = interval.to;
+    fromInput.value = convertDateToTime(interval.from);
+    toInput.value = convertDateToTime(interval.to);
 
     if (intervalIndex === 0) {
       deleteBtn.classList.add('hidden');
@@ -887,12 +929,12 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     fromInput.onchange = (e) => {
       console.log(convertTimeToDate(e.target.value));
-      interval.from = e.target.value;
+      interval.from = convertTimeToDate(e.target.value);
       triggerWidgetOnLocationsUpdate(true);
     };
     toInput.onchange = (e) => {
       console.log(new Date(e.target.value));
-      interval.to = e.target.value;
+      interval.to = convertTimeToDate(e.target.value);
       triggerWidgetOnLocationsUpdate(true);
     };
     deleteBtn.onclick = (e) => {
@@ -903,16 +945,6 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     dayIntervalsContainer.appendChild(dayInterval);
   });
-};
-
-const convertTimeToDate = (time) => {
-  const date = new Date();
-  date.setFullYear(2020, 0, 1);
-  time = time.split(':');
-  const hour = Number(time[0]);
-  const min = Number(time[1]);
-  date.setHours(hour, min, 0, 0);
-  return new Date(date);
 };
 
 const creatCheckboxElem = () => {
@@ -1086,11 +1118,13 @@ window.searchLocations = (e) => {
   timeoutId = setTimeout(() => {
     const filter = {};
     if (searchValue) {
-      filter["_buildfire.index.string1"] = { $regex: searchValue, $options: "-i" };
+      state.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+    } else {
+      delete state.filter["_buildfire.index.text"];
     }
     locationsTable.clearData();
     handleLocationEmptyState(true);
-    loadLocations(filter, null);
+    refreshLocations();
   }, 300);
 };
 
@@ -1141,7 +1175,7 @@ window.importLocations = () =>  {
           showStarRating: elem.showStarRating || false,
         };
         elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
-        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency };
+        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
         let categories = elem.categories ? elem.categories : "";
         categories = elem.categories?.split(',').filter((elem) => elem);
         const mainCategories = state.categories.filter((elem) => categories?.includes((elem).title)).map((elem) => elem.id);
@@ -1153,7 +1187,7 @@ window.importLocations = () =>  {
       });
 
       LocationsController.bulkCreateLocation(locations).then(() => {
-        loadLocations();
+        refreshLocations();
         triggerWidgetOnLocationsUpdate();
       }).catch(console.error);
     });
@@ -1173,24 +1207,49 @@ window.exportLocations = () => {
  downloadCsvTemplate(data, locationTemplateHeader, 'locations');
 };
 
-const loadLocations = (filter, sort) => {
+const loadLocations = () => {
   const options = {};
-  options.sort = { "_buildfire.index.string1": sort ? sort.title : -1 };
 
-  if (filter) {
-    options.filter = filter;
+  if (state.filter) {
+    options.filter = state.filter;
   }
 
-  LocationsController.searchLocations(options).then(({result, recordCount}) => {
-    state.locations = result || [];
-    state.recordCount = recordCount || 0;
+  if (state.sort) {
+    options.sort = state.sort;
+  } else {
+    options.sort = { "_buildfire.index.text": -1 };
+  }
+
+  options.page = state.pageIndex;
+  options.pageSize = state.pageSize;
+
+  LocationsController.searchLocations(options).then(({ result, totalRecord }) => {
+    state.locations = state.locations.concat(result || []);
+    state.totalRecord = totalRecord || 0;
     handleLocationEmptyState(false);
     locationsTable.renderData(state.locations, state.categories);
+    state.fetchingNextPage = false;
+    state.fetchingEndReached = state.locations.length <= totalRecord;
   });
 };
 
+const loadMoreLocations = () => {
+  if (state.fetchingNextPage || state.fetchingEndReached) return;
+  state.fetchingNextPage = true;
+  state.pageIndex += 1;
+  loadLocations();
+};
+
+const refreshLocations = () => {
+  state.locations = [];
+  state.fetchingNextPage = false;
+  state.fetchingEndReached = false;
+  state.pageIndex = 0;
+  loadLocations();
+};
+
 const getPinnedLocation = () => {
-  LocationsController.getPinnedLocation().then(({ result, recordCount }) => {
+  LocationsController.getPinnedLocation().then(({ result, totalRecord }) => {
     state.pinnedLocations = result || [];
   });
 };
@@ -1248,7 +1307,7 @@ const updateLocationImage = (obj, tr) => {
 
 const createLocation = (location) => {
   LocationsController.createLocation(location).then((res) => {
-    loadLocations();
+    refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
   });
@@ -1256,7 +1315,7 @@ const createLocation = (location) => {
 
 const updateLocation = (locationId, location) => {
   LocationsController.updateLocation(locationId, location).then((res) => {
-    loadLocations();
+    refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
   });
@@ -1311,7 +1370,9 @@ window.initLocations = () => {
   locationsTable.onImageClick = updateLocationImage;
 
   locationsTable.onSort = (sort) => {
-    loadLocations({}, sort);
+    state.sort["_buildfire.index.text"] = sort.title;
+    refreshLocations();
   };
   locationsTable.onCopy = copyLocationDeepling;
+  locationsTable.onLoadMore = loadMoreLocations;
 };

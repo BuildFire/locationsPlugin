@@ -69,9 +69,8 @@ export default class SearchTableHelper {
 
   renderBody() {
     this.tbody = this._create("tbody", this.table);
-    let t = this;
     this.tbody.onscroll = (e) => {
-      if (t.tbody.scrollTop / t.tbody.scrollHeight > 0.8) t._fetchNextPage();
+      if (this.tbody.scrollTop / (this.tbody.scrollHeight - this.tbody.offsetHeight) > 0.8) this.onLoadMore();
     };
   }
 
@@ -280,9 +279,13 @@ export default class SearchTableHelper {
 
   onImageClick(obj, tr) {}
 
+  onLoadMore() {}
+
+
   onCommand(command, cb) {
     this.commands[command] = cb;
   }
+
 
   _create(elementType, appendTo, innerHTML, classNameArray) {
     let e = document.createElement(elementType);

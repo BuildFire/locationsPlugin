@@ -31,7 +31,7 @@ export default class Settings {
     this.filter = data.filter || {
       allowFilterByArea: true,
       allowFilterByLatest: true,
-      allowFilterByBookmarks: true,
+      // allowFilterByBookmarks: true,
     };
     this.map = data.map || {
       distanceUnit: 'metric',

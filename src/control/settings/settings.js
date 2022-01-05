@@ -363,12 +363,12 @@ const setActiveSidenavTab = (section) => {
 
 window.onSidenavChange = (section) => {
   switch (section) {
-    case 'chat':
-      setActiveSidenavTab('chat');
-      navigate('chat', () => {
-        initChat()
-      });
-      break;
+    // case 'chat':
+    //   setActiveSidenavTab('chat');
+    //   navigate('chat', () => {
+    //     initChat()
+    //   });
+    //   break;
     case 'sorting':
       setActiveSidenavTab('sorting');
       navigate('sorting', () => {
@@ -394,8 +394,8 @@ window.onSidenavChange = (section) => {
     //   });
     //   break;
     default:
-      setActiveSidenavTab('chat');
-      navigate('chat');
+      setActiveSidenavTab('sorting');
+      navigate('sorting');
   }
 };
 
@@ -407,7 +407,7 @@ const saveSettings = () => {
 const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
-    onSidenavChange('chat');
+    onSidenavChange('sorting');
   }).catch(console.error);
 };
 
