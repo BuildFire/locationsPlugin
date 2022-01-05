@@ -37,6 +37,7 @@ let listLocations = [];
 let mapLocations = [];
 let fetchingNextPage = false;
 let fetchingEndReached = false;
+const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 let introCarousel;
 let breadcrumbs = [];
 
@@ -510,7 +511,8 @@ const showLocationDetail = () => {
           categories: document.querySelector('.location-detail__top-subtitle p'),
           cover: document.querySelector('.location-detail__bottom-cover'),
           main: document.querySelector('.location-detail__top-view'),
-          map: document.querySelector('.location-detail__map--top-view')
+          map: document.querySelector('.location-detail__map--top-view'),
+          workingHoursBtn: document.querySelector('#topWorkingHoursBtn')
         }
       };
       selectors.main.style.display = 'block';
@@ -523,7 +525,8 @@ const showLocationDetail = () => {
           subtitle: document.querySelector('.location-detail__cover h4'),
           categories: document.querySelector('.location-detail__cover p:first-child'),
           main: document.querySelector('.location-detail__cover'),
-          map: document.querySelector('.location-detail__map')
+          map: document.querySelector('.location-detail__map'),
+          workingHoursBtn: document.querySelector('#coverWorkingHoursBtn')
         }
       };
       selectors.main.style.display = 'flex';
@@ -553,11 +556,18 @@ const showLocationDetail = () => {
     selectors.description.innerHTML = selectedLocation.description;
     selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
-    if (settings.design?.showDetailsCategory) {
+    if (settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
       selectors.categories.textContent = transformCategories(selectedLocation.categories);
       selectors.categories.style.display = 'block';
     }
 
+    if (!selectedLocation.settings.showOpeningHours) {
+      selectors.workingHoursBtn.style.display = 'none';
+    }
+
+    if (!selectedLocation.settings.showStarRating) {
+      document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
+    }
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
         <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
         <div class="mdc-chip" role="row">
@@ -731,7 +741,7 @@ const initEventListeners = () => {
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       selectedLocation = introductoryLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
-    } else if (e.target.id === 'workingHoursBtn') {
+    } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
     } else if (e.target.id === 'chatWithOwnerBtn') {
       chatWithOwner();
@@ -1095,7 +1105,7 @@ const initMainMap = () => {
     currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
   } else {
     // todo change to san diego
-    options.center = { lat: 38.70290288229097, lng: 35.52352225602528 };
+    options.center = DEFAULT_LOCATION;
   }
 
   if (!map.showPointsOfInterest) {
@@ -1362,9 +1372,10 @@ const initGoogleMapsSDK = () => {
   document.head.appendChild(script);
 };
 
-const handleCPSync = (scope) => {
+const handleCPSync = (message) => {
   const outdatedSettings = { ...settings };
-  console.log('handle cp sync for: ', scope);
+  const { scope } = message;
+
   if (scope === 'design') {
     fetchSettings(() => {
       // current design
@@ -1438,8 +1449,40 @@ const handleCPSync = (scope) => {
       }
     });
   } else if (scope === 'locations') {
-    // todo incase there is data object then navigate to detail page with the given data
-    // todo else just refetch the latest data and reflect on intro and listing page
+    const { data, realtimeUpdate } = message;
+    if (realtimeUpdate) {
+      selectedLocation = {
+        id: 'tmp-location',
+        title: 'Location Title',
+        subtitle: 'Location Subtitle',
+        formattedAddress: 'Location Address',
+        coordinates: DEFAULT_LOCATION,
+        categories: {
+          main: [],
+          subcategories: []
+        },
+        settings: {},
+        description: 'Location description',
+        rating: {
+          total: 0,
+          count: 0,
+          average: 0
+        },
+        bookmarksCount: 0
+      };
+      if (data && Object.keys(data).length > 0) {
+        for (const [key, value] of Object.entries(data)) {
+          if (value) {
+            selectedLocation[key] = value;
+          }
+        }
+      }
+      showLocationDetail();
+    } else {
+      hideFilterOverlay();
+      navigateTo('home');
+      showMapView();
+    }
   } else if (scope === 'category') {
     fetchCategories(() => {
       initFilterOverlay();
@@ -1453,10 +1496,6 @@ const init = () => {
   fetchSettings(() => {
     fetchTemplate('filter', injectTemplate);
     fetchTemplate('home', initHomeView);
-    // fetchCategories(() => {
-    //   showLocationDetail();
-    // });
-
     setTimeout(() => { initEventListeners(); }, 1000);
     buildfire.deeplink.getData((deeplinkData) => {
       console.log('getData deeplinkData: ', deeplinkData);
@@ -1518,7 +1557,7 @@ const init = () => {
 
     buildfire.messaging.onReceivedMessage = (message) => {
       if (message.cmd === 'sync') {
-        handleCPSync(message.scope);
+        handleCPSync(message);
       }
       console.log('widget message: ', message);
     };
