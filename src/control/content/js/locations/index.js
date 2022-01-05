@@ -247,8 +247,11 @@ window.addEditLocation = (location) => {
   addLocationControls.navigateToIntroLink.onclick = () => {
     openConfirmationLeaveDialog((err, confirmed) => {
       if (confirmed) {
-        cancelAddLocation();
-        onSidenavChange('listView');
+        saveLocation(location ? "Edit" : "Add", (done) => {
+          if (done) {
+            onSidenavChange('listView');
+          }
+        });
       }
     });
   };
@@ -256,8 +259,11 @@ window.addEditLocation = (location) => {
   addLocationControls.editAllCategoriesLink.onclick = () => {
     openConfirmationLeaveDialog((err, confirmed) => {
       if (confirmed) {
-        cancelAddLocation();
-        onSidenavChange('categories');
+        saveLocation(location ? "Edit" : "Add", (done) => {
+          if (done) {
+            onSidenavChange('categories');
+          }
+        });
       }
     });
   };
@@ -501,15 +507,16 @@ const saveLocation = (action, callback) => {
   state.locationObj.description = tinymce.activeEditor.getContent();
 
   if (!locationInputValidation()) {
+    callback(false);
     return;
   }
 
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
   if (action === 'Add') {
-    createLocation(state.locationObj);
+    createLocation(state.locationObj).then(callback);
   } else {
-    updateLocation(state.locationObj.id, state.locationObj);
+    updateLocation(state.locationObj.id, state.locationObj).then(callback);
   }
 };
 
@@ -852,7 +859,8 @@ const renderSelectedCategoriesList = (locationCategories) => {
 const openConfirmationLeaveDialog = (callback) => {
   buildfire.notifications.confirm(
     {
-      message: `You are about to leave this page. your progress will be loosed?`,
+      title: 'Warning',
+      message: `You are about to leave this page. your progress will be saved`,
       confirmButton: {
         text: "OK",
         key: "y",
@@ -1306,18 +1314,20 @@ const updateLocationImage = (obj, tr) => {
 };
 
 const createLocation = (location) => {
-  LocationsController.createLocation(location).then((res) => {
+  return LocationsController.createLocation(location).then((res) => {
     refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
+    return true;
   });
 };
 
 const updateLocation = (locationId, location) => {
-  LocationsController.updateLocation(locationId, location).then((res) => {
+  return LocationsController.updateLocation(locationId, location).then((res) => {
     refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();
+    return true;
   });
 };
 

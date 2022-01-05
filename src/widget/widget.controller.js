@@ -30,7 +30,7 @@ export default {
     };
     return Locations.search({ ...defaultOptions, ...options });
   },
-  searchLocationsV2(pipelines = [], page = 0, pageSize = 10) {
+  searchLocationsV2(pipelines = [], page = 0, pageSize = 50) {
     return Locations.aggregate(pipelines, page, pageSize);
   }
 };
