@@ -17,7 +17,7 @@ export default class Settings {
     };
     this.chat = data.chat || {
       allowChat: true
-    }
+    };
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
       allowSortByReverseAlphabetical: true,
