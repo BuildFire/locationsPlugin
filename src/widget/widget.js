@@ -36,6 +36,7 @@ const criteria = {
 };
 let listLocations = [];
 let mapBounds = null;
+let firstSearchInit = false;
 let fetchingNextPage = false;
 let fetchingEndReached = false;
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
@@ -188,7 +189,7 @@ const fetchTemplate = (template, done) => {
   xhr.send(null);
 };
 /** template management end */
-const searchLocations = (mapBounds) => {
+const searchLocations = (type) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
   let pageIndex = criteria.page;
@@ -216,7 +217,7 @@ const searchLocations = (mapBounds) => {
   }
 
   let $geoNear = null;
-  if (currentLocation && !mapBounds) {
+  if (type !== 'bound' && currentLocation) {
     $geoNear = {
       near: { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] },
       key: "_buildfire.geo",
@@ -237,7 +238,7 @@ const searchLocations = (mapBounds) => {
         [west, north]
       ]
     */
-    if (mapBounds && Array.isArray(mapBounds)) {
+    if (type === 'bound' && Array.isArray(mapBounds)) {
       $match["_buildfire.geo"] =  {
         $geoWithin: {
           $geometry: {
@@ -246,7 +247,7 @@ const searchLocations = (mapBounds) => {
           }
         }
       };
-      pageIndex = 0;
+      pageIndex = criteria.page2;
     }
 
     // if (Object.keys($match).length === 0) {
@@ -279,10 +280,13 @@ const searchLocations = (mapBounds) => {
 
   return WidgetController.searchLocationsV2(pipelines, pageIndex).then((result) => {
     console.log(result);
-    listLocations = listLocations.concat(result.map((r) => ({ ...r, ...{ distance: calculateLocationDistance(r.coordinates) } })) || []);
+    result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))
+      .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
+    listLocations = listLocations.concat(result);
     updateMapMarkers(listLocations);
     fetchingNextPage = false;
     fetchingEndReached = result.length < criteria.pageSize;
+    firstSearchInit = true;
     return result;
   }).catch(console.error);
 };
@@ -755,7 +759,11 @@ const fetchMoreListLocations = (e) => {
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
     if (!fetchingNextPage && !fetchingEndReached) {
       fetchingNextPage = true;
-      criteria.page += 1;
+      if (mapBounds) {
+        criteria.page2 += 1;
+      } else {
+        criteria.page += 1;
+      }
       searchLocations()
         .then((result) => {
           renderListingLocations(result);
@@ -769,7 +777,9 @@ const viewFullImage = (url) => {
 
 const clearLocations = () => {
   listLocations = [];
+  mapBounds = null;
   criteria.page = 0;
+  criteria.page2 = 0;
   fetchingNextPage = false;
   fetchingEndReached = false;
 };
@@ -793,11 +803,15 @@ const clearAndSearchWithDelay = () => {
   SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
 };
 
-const onMapBoundsChange = (mapBounds) => {
+const onMapBoundsChange = (bounds) => {
   console.log(mapBounds);
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    searchLocations(mapBounds);
+    if (!firstSearchInit) {
+      return;
+    }
+    mapBounds = bounds;
+    searchLocations('bound');
   }, 500);
 };
 
