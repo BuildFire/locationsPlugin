@@ -31,10 +31,11 @@ const criteria = {
     order: 1
   },
   page: 0,
+  page2: 0,
   pageSize: 50,
 };
 let listLocations = [];
-let mapLocations = [];
+let mapBounds = null;
 let fetchingNextPage = false;
 let fetchingEndReached = false;
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
@@ -193,7 +194,7 @@ const searchLocations = (mapBounds) => {
   let pageIndex = criteria.page;
   const query = {};
   if (criteria.searchValue) {
-    query["_buildfire.index.text"] = criteria.searchValue.toLowerCase();
+    query["_buildfire.index.text"] = { $regex: criteria.searchValue.toLowerCase(), $options: "-i" };
   }
 
   // categories & subcategories filter
@@ -221,7 +222,8 @@ const searchLocations = (mapBounds) => {
       key: "_buildfire.geo",
       maxDistance: 10000,
       distanceField: "distance",
-      query: { ...query }
+      query: { ...query },
+      num: 5000
     };
     pipelines.push({ $geoNear });
   } else {
@@ -240,16 +242,16 @@ const searchLocations = (mapBounds) => {
         $geoWithin: {
           $geometry: {
             type : "Polygon",
-            coordinates: [...mapBounds]
+            coordinates: [mapBounds]
           }
         }
       };
       pageIndex = 0;
     }
 
-    if (Object.keys($match).length === 0) {
-      $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
-    }
+    // if (Object.keys($match).length === 0) {
+    $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
+    // }
     pipelines.push({ $match });
   }
 
@@ -767,6 +769,9 @@ const viewFullImage = (url) => {
 
 const clearLocations = () => {
   listLocations = [];
+  criteria.page = 0;
+  fetchingNextPage = false;
+  fetchingEndReached = false;
 };
 
 let SEARCH_TIMOUT;
@@ -786,6 +791,14 @@ const clearAndSearchLocations = () => {
 const clearAndSearchWithDelay = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
+};
+
+const onMapBoundsChange = (mapBounds) => {
+  console.log(mapBounds);
+  if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
+  SEARCH_TIMOUT = setTimeout(() => {
+    searchLocations(mapBounds);
+  }, 500);
 };
 
 const initEventListeners = () => {
@@ -1133,6 +1146,7 @@ const initMainMap = () => {
   if (userPosition) {
     mainMap.addUserPosition(userPosition);
   }
+  mainMap.onBoundsChange = onMapBoundsChange;
 };
 
 const refreshMapOptions = () => {

@@ -1,5 +1,5 @@
-import MarkerClusterer from './lib/markercluster';
-import CustomMarker from './CustomMarker';
+import MarkerClusterer from "./lib/markercluster";
+import CustomMarker from "./CustomMarker";
 
 export default class Map {
   constructor(selector, options) {
@@ -17,13 +17,20 @@ export default class Map {
       streetViewControl: false,
       fullscreenControl: false,
       mapTypeControl: false,
-      gestureHandling: 'greedy',
+      gestureHandling: "greedy",
       zoomControlOptions: {
-        position: zoomPosition
+        position: zoomPosition,
       },
-      ...userOptions
+      ...userOptions,
     };
     this.map = new google.maps.Map(selector, options);
+    google.maps.event.addListenerOnce(this.map, 'idle', this.attachMapListeners.bind(this));
+  }
+
+  attachMapListeners() {
+    this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
+    this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
+    this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
   }
 
   initMarkerCluster() {
@@ -31,13 +38,13 @@ export default class Map {
       gridSize: 53,
       styles: [
         {
-          textColor: 'white',
-          url: 'https://app.buildfire.com/app/media/google_marker_blue_icon2.png',
+          textColor: "white",
+          url: "https://app.buildfire.com/app/media/google_marker_blue_icon2.png",
           height: 53,
-          width: 53
-        }
+          width: 53,
+        },
       ],
-      maxZoom: 15
+      maxZoom: 15,
     };
     this.markerClusterer = new MarkerClusterer(this.map, [], clusterOptions);
   }
@@ -47,19 +54,18 @@ export default class Map {
     const { lat, lng } = location.coordinates;
     let marker;
 
-    if ((location.marker.type === 'circle' && location.marker.color) || (location.marker.type === 'image' && location.marker.image)) {
-      marker = new this.Marker(
-        location,
-        this.map,
-        onClick
-      );
+    if (
+      (location.marker.type === "circle" && location.marker.color) ||
+      (location.marker.type === "image" && location.marker.image)
+    ) {
+      marker = new this.Marker(location, this.map, onClick);
     } else {
       marker = new google.maps.Marker({
         position: new google.maps.LatLng(lat, lng),
         markerData: location,
         map: this.map,
       });
-      marker.addListener('click', () => {
+      marker.addListener("click", () => {
         onClick(location, marker);
       });
     }
@@ -73,23 +79,23 @@ export default class Map {
     if (!this.map) return;
     const { latitude, longitude } = coordinates;
     const iconOptions = {
-      url: 'https://app.buildfire.com/app/media/google_marker_blue_icon.png',
+      url: "https://app.buildfire.com/app/media/google_marker_blue_icon.png",
       scaledSize: new google.maps.Size(20, 20),
       origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(10, 10)
+      anchor: new google.maps.Point(10, 10),
     };
 
     new google.maps.Marker({
       position: new google.maps.LatLng(latitude, longitude),
       map: this.map,
-      icon: iconOptions
+      icon: iconOptions,
     });
   }
 
   updateOptions(userOptions) {
     const options = {
       mapTypeControl: false,
-      ...userOptions
+      ...userOptions,
     };
     this.map.setOptions(options);
   }
@@ -98,4 +104,18 @@ export default class Map {
     if (!position.lat || !position.lng) return;
     this.map.setCenter(position);
   }
+
+  _mapViewPortChanged() {
+    console.log("mapViewPortChanged");
+    const boundsFields = this.map.getBounds().toJSON();
+    this.onBoundsChange([
+      [boundsFields.west, boundsFields.north],
+      [boundsFields.east, boundsFields.north],
+      [boundsFields.east, boundsFields.south],
+      [boundsFields.west, boundsFields.south],
+      [boundsFields.west, boundsFields.north],
+    ]);
+  }
+
+  onBoundsChange(mapBounds) {}
 }
