@@ -788,6 +788,23 @@ const clearAndSearchWithDelay = () => {
   SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
 };
 
+const getFormattedAddress = (coords, cb) => {
+  const geoCoder = new google.maps.Geocoder();
+  geoCoder.geocode(
+    { location: coords },
+    (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          cb(null, results[0].formatted_address);
+        } else {
+          console.log("No results found");
+        }
+      } else {
+        console.log("Geocoder failed due to: " + status);
+      }
+    }
+  );
+};
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
@@ -853,7 +870,12 @@ const initEventListeners = () => {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
       if (mainMap && userPosition.latitude && userPosition.longitude) {
-        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+        getFormattedAddress({ lat: userPosition.latitude, lng: userPosition.longitude }, (err, address) => {
+          mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+          mainMap.addUserPosition(userPosition);
+          const areaSearchTextField = document.querySelector('#areaSearchTextField');
+          areaSearchTextField.value = address;
+        });
       }
     }
   }, false);
