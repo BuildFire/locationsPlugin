@@ -846,9 +846,13 @@ const initEventListeners = () => {
           } else if (value === 'date') {
             criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
           } else if (value === 'price-low-high') {
+            criteria.sort = { sortBy: 'price.range', order: -1 };
           } else if (value === 'price-high-low') {
+            criteria.sort = { sortBy: 'price.range', order: 1 };
           } else if (value === 'rating') {
+            criteria.sort = { sortBy: 'rating.average', order: 1 };
           } else if (value === 'views') {
+            criteria.sort = { sortBy: 'views', order: 1 };
           }
         }
         clearAndSearchWithDelay();
