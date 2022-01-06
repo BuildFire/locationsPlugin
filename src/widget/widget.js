@@ -815,6 +815,23 @@ const onMapBoundsChange = (bounds) => {
   }, 500);
 };
 
+const getFormattedAddress = (coords, cb) => {
+  const geoCoder = new google.maps.Geocoder();
+  geoCoder.geocode(
+    { location: coords },
+    (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          cb(null, results[0].formatted_address);
+        } else {
+          console.log("No results found");
+        }
+      } else {
+        console.log("Geocoder failed due to: " + status);
+      }
+    }
+  );
+};
 const initEventListeners = () => {
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
@@ -856,9 +873,13 @@ const initEventListeners = () => {
           } else if (value === 'date') {
             criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
           } else if (value === 'price-low-high') {
+            criteria.sort = { sortBy: 'price.range', order: -1 };
           } else if (value === 'price-high-low') {
+            criteria.sort = { sortBy: 'price.range', order: 1 };
           } else if (value === 'rating') {
+            criteria.sort = { sortBy: 'rating.average', order: 1 };
           } else if (value === 'views') {
+            criteria.sort = { sortBy: 'views', order: 1 };
           }
         }
         clearAndSearchWithDelay();
@@ -880,7 +901,12 @@ const initEventListeners = () => {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
       if (mainMap && userPosition.latitude && userPosition.longitude) {
-        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+        getFormattedAddress({ lat: userPosition.latitude, lng: userPosition.longitude }, (err, address) => {
+          mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+          mainMap.addUserPosition(userPosition);
+          const areaSearchTextField = document.querySelector('#areaSearchTextField');
+          areaSearchTextField.value = address;
+        });
       }
     }
   }, false);
