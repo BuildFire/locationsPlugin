@@ -888,6 +888,10 @@ const initEventListeners = () => {
       const geoCoder = new google.maps.Geocoder();
       const positionPoints = { lat: coords.latitude, lng: coords.longitude };
       currentLocation = positionPoints;
+      if (mainMap) {
+        mainMap.addUserPosition(userPosition);
+        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+      }
       clearAndSearchWithDelay();
       geoCoder.geocode(
         { location: positionPoints },
@@ -1117,6 +1121,8 @@ const initMainMap = () => {
       lng: map.initialAreaCoordinates.lng
     };
     currentLocation = { ...map.initialAreaCoordinates };
+    const areaSearchTextField = document.querySelector('#areaSearchTextField');
+    areaSearchTextField.value = map.initialAreaString;
   } else if (userPosition) {
     options.center = {
       lat: userPosition.latitude,
@@ -1126,6 +1132,7 @@ const initMainMap = () => {
   } else {
     // todo change to san diego
     options.center = DEFAULT_LOCATION;
+    currentLocation = DEFAULT_LOCATION;
   }
 
   if (!map.showPointsOfInterest) {
@@ -1166,18 +1173,18 @@ const refreshMapOptions = () => {
     }
 
     if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
-      options.center = {
-        lat: map.initialAreaCoordinates.lat,
-        lng: map.initialAreaCoordinates.lng
-      };
+      options.center = { ...map.initialAreaCoordinates };
+      currentLocation = { ...map.initialAreaCoordinates };
+      const areaSearchTextField = document.querySelector('#areaSearchTextField');
+      areaSearchTextField.value = map.initialAreaString;
     } else if (userPosition) {
       options.center = {
         lat: userPosition.latitude,
         lng: userPosition.longitude
       };
     } else {
-      // todo change to san diego
-      options.center = { lat: 38.70290288229097, lng: 35.52352225602528 };
+      options.center = DEFAULT_LOCATION;
+      currentLocation = DEFAULT_LOCATION;
     }
 
     if (!map.showPointsOfInterest) {
