@@ -811,7 +811,9 @@ const initEventListeners = () => {
     } else if (e.target.id === 'showMapView') {
       showMapView();
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
-      toggleDropdownMenu(e.target.nextElementSibling);
+      drawer.reset('expanded');
+      setTimeout(() => { toggleDropdownMenu(e.target.nextElementSibling); }, 200);
+
       const menu = new mdc.menu.MDCMenu(e.target.nextElementSibling);
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
@@ -824,6 +826,12 @@ const initEventListeners = () => {
             criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
           } else if (value === 'Z-A') {
             criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+          } else if (value === 'date') {
+            criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+          } else if (value === 'price-low-high') {
+          } else if (value === 'price-high-low') {
+          } else if (value === 'rating') {
+          } else if (value === 'views') {
           }
         }
         clearAndSearchWithDelay();
@@ -902,7 +910,7 @@ const initEventListeners = () => {
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
   openNowSortingBtn.onclick = () => {
     criteria.openingNow = !criteria.openingNow;
-    searchLocations();
+    clearAndSearchWithDelay();
   };
 };
 
@@ -1214,6 +1222,70 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
+const initDrawerFilterOptions = () => {
+  const { sorting } = settings;
+  const otherSortingMenu = document.querySelector('.other-sorting-menu');
+  const otherSortingMenuList = otherSortingMenu.querySelector('ul');
+  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+  const otherSortingMenuBtnLabel = otherSortingMenuBtn.querySelector('#otherSortingBtn .mdc-button__label');
+
+  let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Title (A-Z)</span>
+            </li>`;
+
+  if (sorting.defaultSorting === 'distance') {
+    otherSortingMenuBtnLabel.textContent = 'Distance';
+  } else {
+    otherSortingMenuBtnLabel.textContent = 'A-Z';
+  }
+
+  if (sorting.allowSortByReverseAlphabetical) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="Z-A">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Title (Z-A)</span>
+            </li>`;
+  }
+  if (sorting.allowSortByNearest) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="distance">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Distance</span>
+            </li>`;
+    otherSortingMenuBtnLabel.textContent = 'Distance';
+  }
+  if (sorting.allowSortByRating) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="rating">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Recommended</span>
+            </li>`;
+  }
+  if (sorting.allowSortByPriceHighToLow) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="price-high-low">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Price (High > Low)</span>
+            </li>`;
+  }
+  if (sorting.allowSortByPriceLowToHigh) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="price-low-high">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Price (Low > High)</span>
+            </li>`;
+  }
+  if (sorting.allowSortByDate) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="date">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Newest (New to old)</span>
+            </li>`;
+  }
+  if (sorting.allowSortByViews) {
+    list += `<li class="mdc-list-item" role="menuitem" data-value="views">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Most Viewed</span>
+            </li>`;
+  }
+
+  otherSortingMenuList.innerHTML = list;
+};
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = settings;
   injectTemplate('home');
@@ -1225,6 +1297,7 @@ const initHomeView = () => {
     searchLocations()
       .then(() => {
         drawer.initialize(settings);
+        initDrawerFilterOptions();
         renderListingLocations(listLocations);
         if (showIntroductoryListView) {
           renderIntroductoryLocations(listLocations);
@@ -1259,7 +1332,7 @@ const calculateLocationDistance = (address) => {
   };
   const distance = buildfire.geo.calculateDistance(origin, destination, { decimalPlaces: 5 });
   let result;
-  if (distance < 0.5) {
+  if (distance < 0.2) {
     result = `${Math.round(distance * 5280).toLocaleString()} ft`;
   } else if (settings.measurementUnit === 'metric') {
     result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
