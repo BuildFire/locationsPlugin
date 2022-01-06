@@ -23,14 +23,20 @@ export default {
       pageSize: DEFAULT_PAGE_SIZE,
       page: DEFAULT_PAGE,
       recordCount: true,
-      sort: {
-        title: -1
-      },
       ...options
     };
-    return Locations.search({ ...defaultOptions, ...options });
+    return Locations.search(defaultOptions);
   },
   searchLocationsV2(pipelines = [], page = 0, pageSize = 50) {
     return Locations.aggregate(pipelines, page, pageSize);
+  },
+  getPinnedLocations() {
+    const options = {};
+    options.sort = { "_buildfire.index.number1": 1 };
+
+    options.filter = {
+      "_buildfire.index.number1": { $in: [0, 1, 2] }
+    };
+    return this.searchLocations(options);
   }
 };

@@ -1183,7 +1183,6 @@ const initMainMap = () => {
     };
     currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
   } else {
-    // todo change to san diego
     options.center = DEFAULT_LOCATION;
     currentLocation = DEFAULT_LOCATION;
   }
