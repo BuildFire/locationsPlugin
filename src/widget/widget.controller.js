@@ -1,6 +1,7 @@
 import Locations from '../repository/Locations';
 import Categories from '../repository/Categories';
 import Settings from '../repository/Settings';
+import searchEngine from '../repository/searchEngine';
 // import Location from '../../entities/Location';
 // import authManager from '../../UserAccessControl/authManager';
 const DEFAULT_PAGE = 0;
@@ -29,6 +30,13 @@ export default {
       ...options
     };
     return Locations.search({ ...defaultOptions, ...options });
+  },
+  getSearchEngineResults(searchValue, page = 0, pageSize = 50) {
+    return searchEngine.search(Locations.TAG, {
+      searchText: searchValue,
+      pageIndex: page,
+      pageSize
+    });
   },
   searchLocationsV2(pipelines = [], page = 0, pageSize = 50) {
     return Locations.aggregate(pipelines, page, pageSize);
