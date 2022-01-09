@@ -6,10 +6,6 @@ import MainMap from './js/Map';
 import drawer from './js/drawer';
 import {openingNowDate, getCurrentDayName, convertDateToTime} from '../utils/datetime';
 
-// if (templateSection.childNodes.length === 0) {
-//   injectTemplate(template);
-// }
-
 let settings;
 let CATEGORIES;
 let userPosition;
@@ -19,6 +15,7 @@ let introductoryLocationsPending = false;
 let currentIntroductoryPage = 0;
 let filterElements = {};
 let markerClusterer;
+let pinnedLocations = [];
 let selectedLocation;
 let mainMap;
 let currentLocation;
@@ -353,9 +350,12 @@ const clearListingLocations = () => {
   const container = document.querySelector('#listingLocationsList');
   container.innerHTML = '';
 };
-const renderIntroductoryLocations = (list) => {
+const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
-  const content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+  let reducedLocations = list.reduce((filtered, n) => {
+    const index = pinnedLocations.findIndex((pinned) => pinned.id === n.id);
+    if (index === -1) {
+      filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
@@ -380,7 +380,40 @@ const renderIntroductoryLocations = (list) => {
             </div>`).join('\n')}
          ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
         </div>
-      </div>`)).join('\n');
+      </div>`);
+    }
+    return filtered;
+  }, []);
+
+  if (includePinned) {
+    reducedLocations = pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+        <div class="d-flex">
+          <img src=${n.listImage} alt="Location image">
+          <div class="location-item__description">
+            <p class="mdc-theme--text-header">${n.title}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
+          </div>
+          <div class="location-item__actions">
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
+          </div>
+        </div>
+        <div class="mdc-chip-set" role="grid">
+
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+              <div class="mdc-chip__ripple"></div>
+              <span role="gridcell">
+                  <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                    <span class="mdc-chip__text">${a.title}</span>
+                  </span>
+                </span>
+            </div>`).join('\n')}
+         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
+        </div>
+      </div>`)).concat(reducedLocations);
+  }
+  const content = reducedLocations.join('\n');
   container.insertAdjacentHTML('beforeend', content);
 };
 const renderListingLocations = (list) => {
@@ -783,6 +816,18 @@ const clearLocations = () => {
 };
 
 let SEARCH_TIMOUT;
+
+const fetchPinnedLocations = (done) => {
+  WidgetController
+    .getPinnedLocations()
+    .then((locations) => {
+      pinnedLocations = locations.result;
+      done(null, locations.result);
+    })
+    .catch((err) => {
+      console.error('error fetching pinned locations: ', err);
+    });
+};
 const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
@@ -790,7 +835,9 @@ const clearAndSearchLocations = () => {
       const { showIntroductoryListView } = settings;
       if (showIntroductoryListView) {
         clearIntroductoryLocations();
-        renderIntroductoryLocations(listLocations);
+        fetchPinnedLocations(() => {
+          renderIntroductoryLocations(listLocations, true);
+        });
       }
       clearListingLocations();
       renderListingLocations(listLocations);
@@ -1361,19 +1408,20 @@ const initHomeView = () => {
         drawer.initialize(settings);
         initDrawerFilterOptions();
         if (showIntroductoryListView) {
-          renderIntroductoryLocations(listLocations);
-          refreshIntroductoryDescription();
-          showElement('section#intro');
-          refreshIntroductoryCarousel();
+          fetchPinnedLocations(() => {
+            renderIntroductoryLocations(listLocations, true);
+            refreshIntroductoryDescription();
+            showElement('section#intro');
+            refreshIntroductoryCarousel();
 
-          if (introductoryListView.images.length === 0
-            && listLocations.length === 0
-            && !introductoryListView.description) {
-            showElement('div.empty-page');
-          }
-
-          // eslint-disable-next-line no-new
-          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+            if (introductoryListView.images.length === 0
+              && !listLocations.length
+              && !introductoryListView.description) {
+              showElement('div.empty-page');
+            }
+            // eslint-disable-next-line no-new
+            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+          });
         } else {
           renderListingLocations(listLocations);
           showMapView();
@@ -1499,20 +1547,22 @@ const handleCPSync = (message) => {
       if (settings.showIntroductoryListView) {
         const container = document.querySelector('#introLocationsList');
         container.innerHTML = '';
-        renderIntroductoryLocations(listLocations);
-        refreshIntroductoryDescription();
-        hideFilterOverlay();
-        navigateTo('home');
-        showElement('section#intro');
-        hideElement('section#listing');
-        refreshIntroductoryCarousel();
-        if (settings.introductoryListView.images.length === 0
-          && listLocations.length === 0
-          && !settings.introductoryListView.description) {
-          showElement('div.empty-page');
-        }
-        // eslint-disable-next-line no-new
-        new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        fetchPinnedLocations(() => {
+          renderIntroductoryLocations(listLocations, true);
+          refreshIntroductoryDescription();
+          hideFilterOverlay();
+          navigateTo('home');
+          showElement('section#intro');
+          hideElement('section#listing');
+          refreshIntroductoryCarousel();
+          if (settings.introductoryListView.images.length === 0
+            && listLocations.length === 0
+            && !settings.introductoryListView.description) {
+            showElement('div.empty-page');
+          }
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        });
       } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
         showMapView();
       }

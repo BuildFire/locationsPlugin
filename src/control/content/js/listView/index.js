@@ -24,7 +24,7 @@ const initListViewWysiwyg = () => {
   tinymce.init({
     selector: "#listview-description-wysiwyg",
     init_instance_callback: (editor) => {
-      editor.on('keyup', onDescriptionChanged);
+      editor.on('keydown', onDescriptionChanged);
     }
   });
 
