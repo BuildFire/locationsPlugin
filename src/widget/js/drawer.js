@@ -68,11 +68,15 @@ const initialize = (settings) => {
     }
   };
   const stopResize = (e) => {
+    e.preventDefault();
     document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
     adjustDrawer(e);
   };
   const stopTouchResize = (e) => {
+    e.preventDefault();
     document.removeEventListener('touchmove', resize);
+    document.removeEventListener('touchend', stopTouchResize);
     adjustDrawer(e);
   };
 
@@ -92,7 +96,7 @@ const initialize = (settings) => {
     document.addEventListener('touchmove', resize);
     document.addEventListener('touchend', stopTouchResize);
   });
-}
+};
 
 
 export default { initialize, reset };
