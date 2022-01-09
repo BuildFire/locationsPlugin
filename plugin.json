@@ -2,7 +2,7 @@
   "author":"BuildFire",
   "pluginName": "Locations-Dev",
   "pluginDescription": "Create locations on the map and categorize them; add details, open hours, price range, custom actions, and other settings.",
-  "requireLogin": true,
+  "requireLogin": false,
   "supportEmail":"support@buildfire.com",
   "control": {
     "content":{

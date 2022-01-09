@@ -2,6 +2,7 @@ import Locations from '../repository/Locations';
 import Categories from '../repository/Categories';
 import Settings from '../repository/Settings';
 import searchEngine from '../repository/searchEngine';
+import Location from '../repository/Locations';
 // import Location from '../../entities/Location';
 // import authManager from '../../UserAccessControl/authManager';
 const DEFAULT_PAGE = 0;
@@ -46,5 +47,18 @@ export default {
       "_buildfire.index.number1": { $in: [0, 1, 2] }
     };
     return this.searchLocations(options);
+  },
+  updateLocationRating(locationId, summary) {
+    const payload = {
+      $set: {
+        lastUpdatedOn: new Date(),
+        rating: {
+          total: summary.total,
+          count: summary.count,
+          average: (summary.total / summary.count)
+        }
+      }
+    };
+    return Location.update(locationId, payload);
   }
 };
