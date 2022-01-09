@@ -279,14 +279,12 @@ const searchLocations = (type) => {
   }
 
   return WidgetController.searchLocationsV2(pipelines, pageIndex).then((result) => {
-    console.log(result);
+    fetchingNextPage = false;
+    fetchingEndReached = result.length < criteria.pageSize;
     result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))
       .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
     listLocations = listLocations.concat(result);
-    updateMapMarkers(listLocations);
-    fetchingNextPage = false;
-    fetchingEndReached = result.length < criteria.pageSize;
-    firstSearchInit = true;
+    updateMapMarkers(result);
     return result;
   }).catch(console.error);
 };
@@ -764,7 +762,7 @@ const fetchMoreListLocations = (e) => {
       } else {
         criteria.page += 1;
       }
-      searchLocations()
+      searchLocations(mapBounds? "bound" : "point")
         .then((result) => {
           renderListingLocations(result);
         });
@@ -811,7 +809,10 @@ const onMapBoundsChange = (bounds) => {
       return;
     }
     mapBounds = bounds;
-    searchLocations('bound');
+    criteria.page2 = 0;
+    searchLocations('bound').then((result) => {
+      renderListingLocations(result);
+    });
   }, 500);
 };
 
@@ -1109,6 +1110,7 @@ const showMapView = () => {
   const introLocationsList = document.querySelector('#introLocationsList');
   hideElement('section#intro');
   showElement('section#listing');
+  firstSearchInit = true;
   introLocationsList.innerHTML = '';
 };
 
@@ -1358,7 +1360,6 @@ const initHomeView = () => {
       .then(() => {
         drawer.initialize(settings);
         initDrawerFilterOptions();
-        renderListingLocations(listLocations);
         if (showIntroductoryListView) {
           renderIntroductoryLocations(listLocations);
           refreshIntroductoryDescription();
@@ -1374,6 +1375,7 @@ const initHomeView = () => {
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         } else {
+          renderListingLocations(listLocations);
           showMapView();
         }
       });

@@ -28,9 +28,18 @@ export default class Map {
   }
 
   attachMapListeners() {
-    this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
-    this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
-    this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    this.boundsChangedHandler = this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
+    this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
+    this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+  }
+
+  detachMapListeners () {
+    google.maps.event.removeListener(this.boundsChangedHandler);
+
+    google.maps.event.removeListener(this.zoomChangedHandler);
+
+    google.maps.event.removeListener(this.centerChangedHandler);
+    console.log("DETACH LISTENERS");
   }
 
   initMarkerCluster() {
