@@ -599,7 +599,8 @@ const showLocationDetail = () => {
       carousel: document.querySelector('.location-detail__carousel'),
       actionItems: document.querySelector('.location-detail__actions'),
       description: document.querySelector('.location-detail__description'),
-      rating: document.querySelector('.location-detail__rating')
+      rating: document.querySelector('.location-detail__rating'),
+      ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
     };
 
     if (pageMapPosition === 'top') {
@@ -672,6 +673,9 @@ const showLocationDetail = () => {
 
     if (!selectedLocation.settings.showStarRating) {
       document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
+    } else {
+      selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
+      buildfire.components.ratingSystem.injectRatings();
     }
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
@@ -686,8 +690,6 @@ const showLocationDetail = () => {
         </div>
       </div>`).join('\n');
     selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
-    buildfire.components.ratingSystem.injectRatings();
-
     addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
     navigateTo('detail');
   });
