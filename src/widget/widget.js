@@ -494,7 +494,7 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row">
+  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
         <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
@@ -507,7 +507,19 @@ const refreshQuickFilter = () => {
         </span>
       </div>`).join('\n');
   const chipSets = document.querySelectorAll('#home .mdc-chip-set');
-  Array.from(chipSets).forEach((c) => new mdc.chips.MDCChipSet(c));
+  Array.from(chipSets).forEach((c) => {
+    const chip = new mdc.chips.MDCChipSet(c);
+    chip.listen('MDCChip:interaction', (event) => {
+      const categoryId = event.detail.chipId;
+      console.log(categoryId);
+      if (filterElements[categoryId]) {
+        filterElements[categoryId].checked = !filterElements[categoryId].checked;
+      } else {
+        filterElements[categoryId] = { checked: true, subcategories: [] };
+      }
+      clearAndSearchWithDelay();
+    });
+  });
 };
 
 const refreshIntroductoryDescription = () => {
