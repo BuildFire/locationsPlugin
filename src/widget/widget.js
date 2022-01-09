@@ -650,6 +650,11 @@ const showLocationDetail = () => {
       zoom: 14,
     });
 
+    new google.maps.Marker({
+      position: new google.maps.LatLng({ lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng }),
+      map: detailMap,
+    });
+
     selectors.title.textContent = selectedLocation.title;
     selectors.subtitle.textContent = selectedLocation.subtitle;
     selectors.address.textContent = selectedLocation.formattedAddress;
