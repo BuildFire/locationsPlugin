@@ -592,6 +592,11 @@ button span {
   padding: 15px;
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
 }
+.location-detail__actions .action-item img {
+  width: 50px;
+  height: auto;
+  object-fit: contain;
+}
 .location-detail__rating {
   margin-right: -15px;
   margin-left: -15px;

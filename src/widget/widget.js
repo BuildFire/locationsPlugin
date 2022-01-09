@@ -674,7 +674,8 @@ const showLocationDetail = () => {
       document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
     }
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>
+<!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
+      ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
         <div class="mdc-chip" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
