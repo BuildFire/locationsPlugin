@@ -210,7 +210,7 @@ window.addEditLocation = (location) => {
   tinymce.init({
     selector: "#location-description-wysiwyg",
     setup: (ed) => {
-      ed.on('keydown', () => {
+      ed.on('keyup change', () => {
         state.locationObj.description = tinymce.activeEditor.getContent();
         triggerWidgetOnLocationsUpdate(true);
       });
