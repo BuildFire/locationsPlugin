@@ -586,6 +586,9 @@ const toggleDropdownMenu = (element) => {
 };
 
 const transformCategories = (categories) => {
+  if (!categories.main.length) {
+    return '--';
+  }
   const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
   const subCategoriesTitles = [];
