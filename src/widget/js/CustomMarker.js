@@ -23,11 +23,13 @@ export default (function () {
       div.classList.add('custom-marker');
 
       if (this.location.marker.type === 'image') {
+        const imageContainer = document.createElement('div');
         const img = document.createElement('img');
-        // todo cdn
         img.src = this.location.marker.image;
-        div.appendChild(img);
-        div.classList.add('custom-marker__image');
+        imageContainer.appendChild(img);
+        div.appendChild(imageContainer);
+        imageContainer.classList.add('custom-marker__image');
+        div.classList.add('custom-marker__container');
       } else {
         const svgns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgns, 'svg');
