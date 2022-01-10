@@ -891,3 +891,7 @@ body section#home {
   width: 22px;
   height: 22px;
 }
+
+#openNowSortingBtn.selected {
+  opacity: 0.8;
+}
