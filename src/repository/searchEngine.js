@@ -7,18 +7,21 @@ export default class SearchEngine {
 
   /**
    * Insert a new data object
-   * @param {object} data
+   * @param {string} tag
+   * @param {string} key
+   * @param {Object} data
    * @static
    * @return {promise} query result
    */
-  static add(tag, data) {
+  static add(tag, key, data) {
     return new Promise((resolve, reject) => {
-      buildfire.services.searchEngine.insert({
+      buildfire.services.searchEngine.save({
         tag,
+        key,
         title: data.title,
-        description: data.description,
+        description: data.description ? data.description.replace(/(<([^>]+)>)/gi, "") : "",
         imageUrl: data.listImage,
-        data
+        keywords: [data.address, data.formattedAddress, data.addressAlias, data.subtitle].join(',')
       }, (error, record) => {
         if (error) return reject(error);
         resolve(record);
@@ -27,7 +30,8 @@ export default class SearchEngine {
   }
 
   /**
-   * @param {object} options
+   * @param {string} tag
+   * @param {object} params
    * @static
    * @return {promise} query result
    */
@@ -46,19 +50,20 @@ export default class SearchEngine {
   }
 
   /**
-   * @param {string} id
+   * @param {string} tag
+   * @param {string} key
    * @param {Object} data
    * @returns {promise}
    */
-  static update(tag, id, data) {
+  static update(tag, key, data) {
     return new Promise((resolve, reject) => {
-      buildfire.services.searchEngine.update({
-        id,
+      buildfire.services.searchEngine.save({
         tag,
+        key,
         title: data.title,
-        description: data.description,
+        description: data.description ? data.description.replace(/(<([^>]+)>)/gi, "") : "",
         imageUrl: data.listImage,
-        data
+        keywords: [data.address, data.formattedAddress, data.addressAlias, data.subtitle].join(',')
       }, (error, result) => {
         if (error) return reject(error);
         resolve(result);

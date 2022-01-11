@@ -5,7 +5,7 @@ import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -499,7 +499,7 @@ window.addEditLocation = (location) => {
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
-const saveLocation = (action, callback) => {
+const saveLocation = (action, callback = () => {}) => {
   state.locationObj.title = addLocationControls.locationTitle.value;
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
   state.locationObj.address = addLocationControls.locationAddress.value;
@@ -1096,7 +1096,7 @@ const deleteLocation = (item, row, callback = () => {}) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        LocationsController.deleteLocation(item.id, item.searchEngineRefId).then(() => {
+        LocationsController.deleteLocation(item.id).then(() => {
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
           callback(item);
@@ -1160,9 +1160,30 @@ window.downloadLocationTemplate = () =>  {
 
 const validateLocationCsv = (items) => {
   if (!Array.isArray(items) || !items.length) {
+    showImportErrorMessage({
+      message: "Please make sure of uploading correct CSV file.",
+    });
     return false;
   }
-  return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!item.title || !item.address || !item.description) {
+      showImportErrorMessage({
+        message: `This file has missing title, address or description in row number [${i + 1}], please fix it and upload it again.`,
+      });
+      return false;
+    }
+
+    if (!isLatitude(item.lat) || !isLongitude(item.lng)) {
+      showImportErrorMessage({
+        message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
+      });
+      return false;
+    }
+  }
+
+  return true;
+  // return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
 
 window.importLocations = () =>  {
@@ -1194,10 +1215,22 @@ window.importLocations = () =>  {
         return new Location(elem).toJSON();
       });
 
-      LocationsController.bulkCreateLocation(locations).then(() => {
+      const dialogRef = showProgressDialog({
+        title: 'Importing Locations',
+        message: 'We’re importing your locations, please wait.'
+      });
+      LocationsController.bulkCreateLocation(locations).then((result) => {
+        dialogRef.close();
+        buildfire.dialog.toast({
+          message: "Successfully imported locations",
+          type: "success",
+        });
         refreshLocations();
         triggerWidgetOnLocationsUpdate();
-      }).catch(console.error);
+      }).catch((err) => {
+        dialogRef.close();
+        console.error(err);
+      });
     });
   };
 };
@@ -1213,6 +1246,16 @@ window.exportLocations = () => {
     categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
   }));
  downloadCsvTemplate(data, locationTemplateHeader, 'locations');
+};
+
+const showImportErrorMessage = ({ message }) => {
+  buildfire.dialog.alert(
+    {
+      title: "Couldn't import locations",
+      message,
+    },
+    (err, actionButton) => {}
+  );
 };
 
 const loadLocations = () => {
@@ -1315,6 +1358,7 @@ const updateLocationImage = (obj, tr) => {
 
 const createLocation = (location) => {
   return LocationsController.createLocation(location).then((res) => {
+    console.log(res);
     refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();

@@ -8,7 +8,7 @@ import CategoriesListUI from "./categoriesListUI";
 import SubcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
 import Category from "../../../../entities/Category";
-import { generateUUID, createTemplate, handleInputError } from "../../utils/helpers";
+import { generateUUID, createTemplate, handleInputError, showProgressDialog } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import globalState from '../../state';
 import authManager from '../../../../UserAccessControl/authManager';
@@ -513,10 +513,23 @@ window.importCategories = () => {
         elem.createdBy = authManager.currentUser;
         return new Category(elem).toJSON();
       });
+
+      const dialogRef = showProgressDialog({
+        title: 'Importing Categories',
+        message: 'We’re importing your categories, please wait.'
+      });
       CategoriesController.bulkCreateCategories(categories).then((result) => {
+        dialogRef.close();
+        buildfire.dialog.toast({
+          message: "Successfully imported categories",
+          type: "success",
+        });
         loadCategories();
         triggerWidgetOnCategoriesUpdate();
-      }).catch(console.error);
+      }).catch((err) => {
+        dialogRef.close();
+        console.error(err);
+      });
     });
   };
 };

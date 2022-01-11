@@ -17,9 +17,9 @@ export default class DialogComponent {
 
     dialogBody.appendChild(template);
 
-    const closeButton = this.container.querySelector(".close-modal");
-    if (closeButton) {
-      closeButton.onclick = (e) => {
+    this.closeButton = this.container.querySelector(".close-modal");
+    if (this.closeButton) {
+      this.closeButton.onclick = (e) => {
         this.hideBackdrop();
         this.container.classList.remove("activeDialog");
         this.onClose(e);
@@ -37,7 +37,11 @@ export default class DialogComponent {
     btnSave.onclick = saveCallback;
 
     const btnCancelButton = this.container.querySelector(".dialog-cancel-btn");
-    btnCancelButton.style.display = ''; //reset
+    btnCancelButton.style.display = ''; // reset
+    btnSave.style.display = ''; // reset
+    this.container.querySelector('.dialog-footer').style.display = ''; // reset
+    this.closeButton.style.display = '';
+
     btnCancelButton.onclick = (e) => {
       this.close(e);
     };
@@ -52,6 +56,15 @@ export default class DialogComponent {
 
       if (options.hideDelete) {
         btnCancelButton.style.display = 'none';
+      }
+      if (options.hideSave) {
+        btnSave.style.display = 'none';
+      }
+      if (options.hideFooter) {
+        this.container.querySelector('.dialog-footer').style.display = 'none';
+      }
+      if (options.hideCancel) {
+        this.closeButton.style.display = 'none';
       }
     }
     this.showBackdrop();

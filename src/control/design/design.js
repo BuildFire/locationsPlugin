@@ -64,7 +64,7 @@ const render = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.design.defaultMapType = value;
       saveSettings();
     };

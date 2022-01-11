@@ -1,5 +1,5 @@
-
-import {convertTimeToDate} from '../../../utils/datetime';
+import { convertTimeToDate } from '../../../utils/datetime';
+import DialogComponent from '../js/dialog/dialog';
 
 export const generateUUID = () => {
   let dt = new Date().getTime();
@@ -56,4 +56,21 @@ export const handleInputError = (elem, hasError, message) => {
     elem.classList.add('hidden');
     elem.parentNode.classList.remove('has-error');
   }
+};
+
+export const isLatitude = (num) => isFinite(num) && Math.abs(num) <= 90;
+
+export const isLongitude = (num) => isFinite(num) && Math.abs(num) <= 180;
+
+export const showProgressDialog = ({ title, message }) => {
+  const progressDialog = new DialogComponent("dialogComponent", 'progressDialogTemplate');
+  progressDialog.container.querySelector('.progress-message').innerHTML = message || 'Please wait...';
+  progressDialog.showDialog({
+    title: title || `Importing Locations`,
+    hideDelete: true,
+    hideCancel: true,
+    hideSave: true,
+    hideFooter: true
+  });
+  return progressDialog;
 };
