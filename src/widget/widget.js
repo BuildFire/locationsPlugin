@@ -586,6 +586,9 @@ const toggleDropdownMenu = (element) => {
 };
 
 const transformCategories = (categories) => {
+  if (!categories.main.length) {
+    return '--';
+  }
   const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
   const subCategoriesTitles = [];
@@ -927,11 +930,15 @@ const initEventListeners = () => {
       setTimeout(() => { toggleDropdownMenu(e.target.nextElementSibling); }, 200);
 
       const menu = new mdc.menu.MDCMenu(e.target.nextElementSibling);
+      const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+      const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
           criteria.priceRange = Number(value);
+          priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         } else if (e.target.id === 'otherSortingBtn') {
+          otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
           if (value === 'distance') {
             criteria.sort = { sortBy: 'distance', order: 1 };
           } else if (value === 'A-Z') {
@@ -1035,6 +1042,11 @@ const initEventListeners = () => {
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
   openNowSortingBtn.onclick = () => {
     criteria.openingNow = !criteria.openingNow;
+    if (criteria.openingNow) {
+      openNowSortingBtn.classList.add('selected');
+    } else {
+      openNowSortingBtn.classList.remove('selected');
+    }
     clearAndSearchWithDelay();
   };
 };
@@ -1356,7 +1368,7 @@ const initDrawerFilterOptions = () => {
   const otherSortingMenu = document.querySelector('.other-sorting-menu');
   const otherSortingMenuList = otherSortingMenu.querySelector('ul');
   const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
-  const otherSortingMenuBtnLabel = otherSortingMenuBtn.querySelector('#otherSortingBtn .mdc-button__label');
+  const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
 
   let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
