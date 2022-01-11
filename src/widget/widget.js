@@ -440,7 +440,7 @@ const renderListingLocations = (list) => {
                 <span>${n.subtitle}</span>
                 <span>
                   <span>${n.price.currency?.repeat(n.price?.range)}</span>
-                  <span style="margin-left: 10px;color: #91dba6;">Open Now</span>
+                  <span class="location-image__open-status">${isLocationOpen(n) ? 'Open Now' : 'Closed'}</span>
                 </span>
               </p>
             </div>
@@ -612,6 +612,21 @@ const transformCategories = (categories) => {
     ? categories.main.join(', ')
     : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
 };
+
+const isLocationOpen = (location) => {
+  let isOpen = false;
+  const today = location.openingHours.days[getCurrentDayName()];
+  const now = openingNowDate();
+
+  if (today.active) {
+    const interval = today.intervals.find((i) => (new Date(i.from) < now) && (new Date(i.to) > now));
+    if (interval) {
+      isOpen = true;
+    }
+  }
+  return isOpen;
+};
+
 const showLocationDetail = () => {
   fetchTemplate('detail', () => {
     injectTemplate('detail');
@@ -637,7 +652,8 @@ const showLocationDetail = () => {
           cover: document.querySelector('.location-detail__bottom-cover'),
           main: document.querySelector('.location-detail__top-view'),
           map: document.querySelector('.location-detail__map--top-view'),
-          workingHoursBtn: document.querySelector('#topWorkingHoursBtn')
+          workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
+          workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label')
         }
       };
       selectors.main.style.display = 'block';
@@ -651,7 +667,8 @@ const showLocationDetail = () => {
           categories: document.querySelector('.location-detail__cover p:first-child'),
           main: document.querySelector('.location-detail__cover'),
           map: document.querySelector('.location-detail__map'),
-          workingHoursBtn: document.querySelector('#coverWorkingHoursBtn')
+          workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
+          workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label')
         }
       };
       selectors.main.style.display = 'flex';
@@ -693,6 +710,8 @@ const showLocationDetail = () => {
 
     if (!selectedLocation.settings.showOpeningHours) {
       selectors.workingHoursBtn.style.display = 'none';
+    } else if (!isLocationOpen(selectedLocation)) {
+      selectors.workingHoursBtnLabel.textContent = 'Closed';
     }
 
     if (!selectedLocation.settings.showStarRating) {
@@ -1490,7 +1509,7 @@ const initHomeView = () => {
             if (introductoryListView.images.length === 0
               && !listLocations.length
               && !introductoryListView.description) {
-              showElement('div.empty-page');
+              showElement('#intro div.empty-page');
             }
             // eslint-disable-next-line no-new
             new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
@@ -1631,7 +1650,7 @@ const handleCPSync = (message) => {
           if (settings.introductoryListView.images.length === 0
             && listLocations.length === 0
             && !settings.introductoryListView.description) {
-            showElement('div.empty-page');
+            showElement('#intro div.empty-page');
           }
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
