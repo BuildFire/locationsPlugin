@@ -10,7 +10,6 @@ import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/d
 const filterElements = {};
 let pinnedLocations = [];
 let mainMap;
-let currentLocation;
 const criteria = {
   searchValue: '',
   openingNow: false,
@@ -180,9 +179,9 @@ const searchLocations = (type) => {
   }
 
   let $geoNear = null;
-  if (type !== 'bound' && currentLocation) {
+  if (type !== 'bound' && state.currentLocation) {
     $geoNear = {
-      near: { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] },
+      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
       key: "_buildfire.geo",
       maxDistance: 10000,
       distanceField: "distance",
@@ -1039,7 +1038,7 @@ const initEventListeners = () => {
     if (!state.userPosition) return;
     const geoCoder = new google.maps.Geocoder();
     const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
-    currentLocation = positionPoints;
+    state.currentLocation = positionPoints;
     if (mainMap) {
       mainMap.addUserPosition(state.userPosition);
       mainMap.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
@@ -1244,7 +1243,7 @@ const initAreaAutocompleteField = (template) => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng()
     };
-    currentLocation = point;
+    state.currentLocation = point;
     mainMap.center(point);
     clearAndSearchWithDelay();
     console.log(place);
@@ -1278,7 +1277,7 @@ const initMainMap = () => {
       lat: map.initialAreaCoordinates.lat,
       lng: map.initialAreaCoordinates.lng
     };
-    currentLocation = { ...map.initialAreaCoordinates };
+    state.currentLocation = { ...map.initialAreaCoordinates };
     const areaSearchTextField = document.querySelector('#areaSearchTextField');
     areaSearchTextField.value = map.initialAreaString;
   } else if (state.userPosition) {
@@ -1286,10 +1285,10 @@ const initMainMap = () => {
       lat: state.userPosition.latitude,
       lng: state.userPosition.longitude
     };
-    currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
+    state.currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
   } else {
     options.center = DEFAULT_LOCATION;
-    currentLocation = DEFAULT_LOCATION;
+    state.currentLocation = DEFAULT_LOCATION;
   }
 
   if (!map.showPointsOfInterest) {
@@ -1332,7 +1331,7 @@ const refreshMapOptions = () => {
 
     if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
       options.center = { ...map.initialAreaCoordinates };
-      currentLocation = { ...map.initialAreaCoordinates };
+      state.currentLocation = { ...map.initialAreaCoordinates };
       const areaSearchTextField = document.querySelector('#areaSearchTextField');
       areaSearchTextField.value = map.initialAreaString;
     } else if (state.userPosition) {
@@ -1340,9 +1339,10 @@ const refreshMapOptions = () => {
         lat: state.userPosition.latitude,
         lng: state.userPosition.longitude
       };
+      state.currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
     } else {
       options.center = DEFAULT_LOCATION;
-      currentLocation = DEFAULT_LOCATION;
+      state.currentLocation = DEFAULT_LOCATION;
     }
 
     if (!map.showPointsOfInterest) {

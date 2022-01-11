@@ -3,4 +3,5 @@ export default {
   categories: null,
   userPosition: null,
   selectedLocation: null,
+  currentLocation: null,
 };
