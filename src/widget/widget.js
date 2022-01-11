@@ -1222,6 +1222,7 @@ const initAreaAutocompleteField = (template) => {
       lng: place.geometry.location.lng()
     };
     currentLocation = point;
+    mainMap.center(point);
     clearAndSearchWithDelay();
     console.log(place);
   });
