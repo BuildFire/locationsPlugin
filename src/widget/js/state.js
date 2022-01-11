@@ -1,4 +1,10 @@
 export default {
+  maps: {
+    main: null,
+    detail: null
+  },
+  breadcrumbs: [],
+  introCarousel: null,
   settings: null,
   categories: null,
   userPosition: null,
@@ -15,5 +21,12 @@ export default {
     page: 0,
     page2: 0,
     pageSize: 50,
-  }
+  },
+  pinnedLocations: [],
+  listLocations: [],
+  mapBounds: null,
+  firstSearchInit: false,
+  fetchingNextPage: false,
+  fetchingEndReached: false,
+  filterElements: {}
 };

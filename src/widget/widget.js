@@ -7,18 +7,7 @@ import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 
-const filterElements = {};
-let pinnedLocations = [];
-let mainMap;
-
-let listLocations = [];
-let mapBounds = null;
-let firstSearchInit = false;
-let fetchingNextPage = false;
-let fetchingEndReached = false;
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
-let introCarousel;
-let breadcrumbs = [];
 
 const darkMapStyle = [
   { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -153,10 +142,10 @@ const searchLocations = (type) => {
   const categoryIds = [];
   const subcategoryIds = [];
   // eslint-disable-next-line no-restricted-syntax
-  for (const key in filterElements) {
-    if (filterElements[key].checked) {
+  for (const key in state.filterElements) {
+    if (state.filterElements[key].checked) {
       categoryIds.push(key);
-      subcategoryIds.push(...filterElements[key].subcategories);
+      subcategoryIds.push(...state.filterElements[key].subcategories);
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange) {
@@ -180,21 +169,12 @@ const searchLocations = (type) => {
     pipelines.push({ $geoNear });
   } else {
     const $match = { ...query };
-    /*
-      mapBounds = [
-        [west, north],
-        [east, north],
-        [east, south],
-        [west, south],
-        [west, north]
-      ]
-    */
-    if (type === 'bound' && Array.isArray(mapBounds)) {
+    if (type === 'bound' && Array.isArray(state.mapBounds)) {
       $match["_buildfire.geo"] =  {
         $geoWithin: {
           $geometry: {
             type : "Polygon",
-            coordinates: [mapBounds]
+            coordinates: [state.mapBounds]
           }
         }
       };
@@ -238,11 +218,11 @@ const searchLocations = (type) => {
 
   return Promise.all(promiseChain).then(([result, result2]) => {
     console.log(result2);
-    fetchingNextPage = false;
-    fetchingEndReached = result.length < state.searchCriteria.pageSize;
-    result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))
+    state.fetchingNextPage = false;
+    state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
+    result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
       .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
-    listLocations = listLocations.concat(result);
+    state.listLocations = state.listLocations.concat(result);
     updateMapMarkers(result);
     return result;
   }).catch(console.error);
@@ -315,7 +295,7 @@ const clearListingLocations = () => {
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
   let reducedLocations = list.reduce((filtered, n) => {
-    const index = pinnedLocations.findIndex((pinned) => pinned.id === n.id);
+    const index = state.pinnedLocations.findIndex((pinned) => pinned.id === n.id);
     if (index === -1) {
       filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
@@ -348,7 +328,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   }, []);
 
   if (includePinned) {
-    reducedLocations = pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+    reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
@@ -442,7 +422,7 @@ const renderListingLocations = (list) => {
   container.insertAdjacentHTML('beforeend', content);
 };
 const updateMapMarkers = (locations) => {
-  locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
+  locations.forEach((location) => state.maps.main.addMarker(location, handleMarkerClick));
 };
 
 const refreshQuickFilter = () => {
@@ -474,10 +454,10 @@ const refreshQuickFilter = () => {
     chip.listen('MDCChip:interaction', (event) => {
       const categoryId = event.detail.chipId;
       console.log(categoryId);
-      if (filterElements[categoryId]) {
-        filterElements[categoryId].checked = !filterElements[categoryId].checked;
+      if (state.filterElements[categoryId]) {
+        state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
       } else {
-        filterElements[categoryId] = { checked: true, subcategories: [] };
+        state.filterElements[categoryId] = { checked: true, subcategories: [] };
       }
       clearAndSearchWithDelay();
     });
@@ -493,12 +473,12 @@ const refreshIntroductoryDescription = () => {
 
 const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = state.settings;
-  if (introCarousel) {
-    introCarousel.clear();
-    introCarousel.append(introductoryListView.images);
+  if (state.introCarousel) {
+    state.introCarousel.clear();
+    state.introCarousel.append(introductoryListView.images);
   } else if (introductoryListView.images.length > 0) {
-    introCarousel = new buildfire.components.carousel.view('.carousel');
-    introCarousel.loadItems(introductoryListView.images);
+    state.introCarousel = new buildfire.components.carousel.view('.carousel');
+    state.introCarousel.loadItems(introductoryListView.images);
   }
 };
 
@@ -510,10 +490,10 @@ const hideFilterOverlay = () => {
 };
 
 const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
-  if (breadcrumbs.length && breadcrumbs[breadcrumbs.length - 1].name === pageName) {
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === pageName) {
     return;
   }
-  breadcrumbs.push({ name: pageName });
+  state.breadcrumbs.push({ name: pageName });
   buildfire.history.push(label, {
     showLabelInTitlebar: showLabel
   });
@@ -762,7 +742,7 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  const actionItem = listLocations
+  const actionItem = state.listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
   buildfire.actionItems.execute(
@@ -778,9 +758,9 @@ const fetchMoreIntroductoryLocations = (e) => {
   const listContainer = document.querySelector('section#intro');
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
 
-  if (activeTemplate === 'intro' && !fetchingNextPage && !fetchingEndReached) {
+  if (activeTemplate === 'intro' && !state.fetchingNextPage && !state.fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-      fetchingNextPage = true;
+      state.fetchingNextPage = true;
       state.searchCriteria.page += 1;
       searchLocations()
         .then((result) => {
@@ -793,14 +773,14 @@ const fetchMoreIntroductoryLocations = (e) => {
 const fetchMoreListLocations = (e) => {
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    if (!fetchingNextPage && !fetchingEndReached) {
-      fetchingNextPage = true;
-      if (mapBounds) {
+    if (!state.fetchingNextPage && !state.fetchingEndReached) {
+      state.fetchingNextPage = true;
+      if (state.mapBounds) {
         state.searchCriteria.page2 += 1;
       } else {
         state.searchCriteria.page += 1;
       }
-      searchLocations(mapBounds? "bound" : "point")
+      searchLocations(state.mapBounds? "bound" : "point")
         .then((result) => {
           renderListingLocations(result);
         });
@@ -829,13 +809,13 @@ const setDefaultSorting = () => {
 };
 
 const clearLocations = () => {
-  listLocations = [];
-  mapBounds = null;
+  state.listLocations = [];
+  state.mapBounds = null;
   state.searchCriteria.page = 0;
   state.searchCriteria.page2 = 0;
-  fetchingNextPage = false;
-  fetchingEndReached = false;
-  if (mainMap) mainMap.clearMarkers();
+  state.fetchingNextPage = false;
+  state.fetchingEndReached = false;
+  if (state.maps.main) state.maps.main.clearMarkers();
 };
 
 let SEARCH_TIMOUT;
@@ -844,7 +824,7 @@ const fetchPinnedLocations = (done) => {
   WidgetController
     .getPinnedLocations()
     .then((locations) => {
-      pinnedLocations = locations.result;
+      state.pinnedLocations = locations.result;
       done(null, locations.result);
     })
     .catch((err) => {
@@ -859,11 +839,11 @@ const clearAndSearchLocations = () => {
       if (showIntroductoryListView) {
         clearIntroductoryLocations();
         fetchPinnedLocations(() => {
-          renderIntroductoryLocations(listLocations, true);
+          renderIntroductoryLocations(state.listLocations, true);
         });
       }
       clearListingLocations();
-      renderListingLocations(listLocations);
+      renderListingLocations(state.listLocations);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -872,13 +852,13 @@ const clearAndSearchWithDelay = () => {
 };
 
 const onMapBoundsChange = (bounds) => {
-  console.log(mapBounds);
+  console.log(state.mapBounds);
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    if (!firstSearchInit) {
+    if (!state.firstSearchInit) {
       return;
     }
-    mapBounds = bounds;
+    state.mapBounds = bounds;
     state.searchCriteria.page2 = 0;
     searchLocations('bound').then((result) => {
       renderListingLocations(result);
@@ -935,7 +915,7 @@ const initEventListeners = () => {
         clearListingLocations();
         searchLocations()
           .then(() => {
-            renderListingLocations(listLocations);
+            renderListingLocations(state.listLocations);
             showMapView();
           });
       } else {
@@ -976,7 +956,7 @@ const initEventListeners = () => {
         clearAndSearchWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
-      state.selectedLocation = listLocations.find((i) => i.id === e.target.dataset.id);
+      state.selectedLocation = state.listLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
@@ -991,10 +971,10 @@ const initEventListeners = () => {
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
-      if (mainMap && state.userPosition.latitude && state.userPosition.longitude) {
+      if (state.maps.main && state.userPosition.latitude && state.userPosition.longitude) {
         getFormattedAddress({ lat: state.userPosition.latitude, lng: state.userPosition.longitude }, (err, address) => {
-          mainMap.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
-          mainMap.addUserPosition(state.userPosition);
+          state.maps.main.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+          state.maps.main.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
@@ -1028,9 +1008,9 @@ const initEventListeners = () => {
     const geoCoder = new google.maps.Geocoder();
     const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
     state.currentLocation = positionPoints;
-    if (mainMap) {
-      mainMap.addUserPosition(state.userPosition);
-      mainMap.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+    if (state.maps.main) {
+      state.maps.main.addUserPosition(state.userPosition);
+      state.maps.main.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
     }
     clearAndSearchWithDelay();
     geoCoder.geocode(
@@ -1066,7 +1046,7 @@ const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
   state.categories.forEach((category) => {
-    filterElements[category.id] = { checked: false, subcategories: [] };
+    state.filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
@@ -1136,15 +1116,15 @@ const initFilterOverlay = () => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     if (!target.checked) {
-      filterElements[categoryId] = { checked: false, subcategories: [] };
+      state.filterElements[categoryId] = { checked: false, subcategories: [] };
     } else {
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     }
 
     chipSets[categoryId].chips.forEach((c) => {
       const { sid } = c.root_.dataset;
-      if (target.checked && !filterElements[categoryId]?.subcategories.includes(sid)) {
-        filterElements[categoryId].subcategories.push(sid);
+      if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
+        state.filterElements[categoryId].subcategories.push(sid);
       }
       c.selected = target.checked;
     });
@@ -1173,22 +1153,22 @@ const initFilterOverlay = () => {
     const subcategoryId = mdcChip.dataset.sid;
     const category = state.categories.find((c) => c.id === categoryId);
 
-    if (selected && !filterElements[categoryId].subcategories.includes(subcategoryId)) {
-      filterElements[categoryId].subcategories.push(subcategoryId);
+    if (selected && !state.filterElements[categoryId].subcategories.includes(subcategoryId)) {
+      state.filterElements[categoryId].subcategories.push(subcategoryId);
     } else {
-      filterElements[categoryId].subcategories = filterElements[categoryId].subcategories.filter((item) => item !== subcategoryId);
+      state.filterElements[categoryId].subcategories = state.filterElements[categoryId].subcategories.filter((item) => item !== subcategoryId);
     }
 
     input.indeterminate = false;
-    if (filterElements[categoryId].subcategories.length === 0) {
+    if (state.filterElements[categoryId].subcategories.length === 0) {
       input.checked = false;
-      filterElements[categoryId].checked = false;
-    } else if (filterElements[categoryId].subcategories.length === category.subcategories.length) {
+      state.filterElements[categoryId].checked = false;
+    } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     } else {
       input.indeterminate = true;
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     }
 
     mdcChip.classList.add('disabled');
@@ -1200,7 +1180,7 @@ const showMapView = () => {
   const introLocationsList = document.querySelector('#introLocationsList');
   hideElement('section#intro');
   showElement('section#listing');
-  firstSearchInit = true;
+  state.firstSearchInit = true;
   introLocationsList.innerHTML = '';
 };
 
@@ -1208,7 +1188,7 @@ const navigateTo = (template) => {
   const currentActive = document.querySelector('section.active');
   currentActive?.classList.remove('active');
   document.querySelector(`section#${template}`).classList.add('active');
-  if (template === 'home' && breadcrumbs.length) {
+  if (template === 'home' && state.breadcrumbs.length) {
     addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
   }
 };
@@ -1233,7 +1213,7 @@ const initAreaAutocompleteField = (template) => {
       lng: place.geometry.location.lng()
     };
     state.currentLocation = point;
-    mainMap.center(point);
+    state.maps.main.center(point);
     clearAndSearchWithDelay();
     console.log(place);
   });
@@ -1289,15 +1269,15 @@ const initMainMap = () => {
       ]
     });
   }
-  mainMap = new MainMap(selector, options);
+  state.maps.main = new MainMap(selector, options);
   if (state.userPosition) {
-    mainMap.addUserPosition(state.userPosition);
+    state.maps.main.addUserPosition(state.userPosition);
   }
-  mainMap.onBoundsChange = onMapBoundsChange;
+  state.maps.main.onBoundsChange = onMapBoundsChange;
 };
 
 const refreshMapOptions = () => {
-  if (mainMap) {
+  if (state.maps.main) {
     const { map, design } = state.settings;
     const options = {
       styles: [],
@@ -1344,7 +1324,7 @@ const refreshMapOptions = () => {
       });
     }
 
-    mainMap.updateOptions(options);
+    state.maps.main.updateOptions(options);
   }
 };
 const handleMarkerClick = (location) => {
@@ -1455,13 +1435,13 @@ const initHomeView = () => {
         initDrawerFilterOptions();
         if (showIntroductoryListView) {
           fetchPinnedLocations(() => {
-            renderIntroductoryLocations(listLocations, true);
+            renderIntroductoryLocations(state.listLocations, true);
             refreshIntroductoryDescription();
             showElement('section#intro');
             refreshIntroductoryCarousel();
 
             if (introductoryListView.images.length === 0
-              && !listLocations.length
+              && !state.listLocations.length
               && !introductoryListView.description) {
               showElement('#intro div.empty-page');
             }
@@ -1469,7 +1449,7 @@ const initHomeView = () => {
             new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
           });
         } else {
-          renderListingLocations(listLocations);
+          renderListingLocations(state.listLocations);
           showMapView();
         }
       });
@@ -1499,7 +1479,7 @@ const calculateLocationDistance = (address) => {
 };
 
 const updateLocationsDistance = () => {
-  listLocations = listLocations.map((location) => {
+  state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
@@ -1551,10 +1531,10 @@ const handleCPSync = (message) => {
         navigateTo('home');
         showMapView();
         drawer.reset(d.listViewPosition);
-        renderListingLocations(listLocations);
+        renderListingLocations(state.listLocations);
       } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
-        if (listLocations.length > 0) {
-          [state.selectedLocation] = listLocations;
+        if (state.listLocations.length > 0) {
+          [state.selectedLocation] = state.listLocations;
           showLocationDetail();
         }
       } else {
@@ -1594,7 +1574,7 @@ const handleCPSync = (message) => {
         const container = document.querySelector('#introLocationsList');
         container.innerHTML = '';
         fetchPinnedLocations(() => {
-          renderIntroductoryLocations(listLocations, true);
+          renderIntroductoryLocations(state.listLocations, true);
           refreshIntroductoryDescription();
           hideFilterOverlay();
           navigateTo('home');
@@ -1602,7 +1582,7 @@ const handleCPSync = (message) => {
           hideElement('section#listing');
           refreshIntroductoryCarousel();
           if (state.settings.introductoryListView.images.length === 0
-            && listLocations.length === 0
+            && state.listLocations.length === 0
             && !state.settings.introductoryListView.description) {
             showElement('#intro div.empty-page');
           }
@@ -1687,20 +1667,20 @@ const init = () => {
       }
       state.userPosition = position.coords;
       updateLocationsDistance();
-      if (mainMap) {
-        mainMap.addUserPosition(state.userPosition);
+      if (state.maps.main) {
+        state.maps.main.addUserPosition(state.userPosition);
       }
     });
 
     buildfire.history.onPop((breadcrumb) => {
       console.log('Breadcrumb popped', breadcrumb);
-      console.log('Breadcrumb popped', breadcrumbs);
-      breadcrumbs.pop();
-      if (!breadcrumbs.length) {
+      console.log('Breadcrumb popped', state.breadcrumbs);
+      state.breadcrumbs.pop();
+      if (!state.breadcrumbs.length) {
         hideFilterOverlay();
         navigateTo('home');
       } else {
-        const page = breadcrumbs[breadcrumbs.length - 1];
+        const page = state.breadcrumbs[state.breadcrumbs.length - 1];
         if (page.name === 'af') {
           showFilterOverlay();
         } else if (page.name === 'detail') {
@@ -1710,7 +1690,7 @@ const init = () => {
           hideFilterOverlay();
           navigateTo('home');
         }
-        breadcrumbs.pop();
+        state.breadcrumbs.pop();
       }
     });
 
