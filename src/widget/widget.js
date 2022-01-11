@@ -10,18 +10,7 @@ import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/d
 const filterElements = {};
 let pinnedLocations = [];
 let mainMap;
-const criteria = {
-  searchValue: '',
-  openingNow: false,
-  priceRange: null,
-  sort: {
-    sortBy: 'distance',
-    order: 1
-  },
-  page: 0,
-  page2: 0,
-  pageSize: 50,
-};
+
 let listLocations = [];
 let mapBounds = null;
 let firstSearchInit = false;
@@ -154,10 +143,10 @@ const fetchTemplate = (template, done) => {
 const searchLocations = (type) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
-  let pageIndex = criteria.page;
+  let pageIndex = state.searchCriteria.page;
   const query = {};
-  if (criteria.searchValue) {
-    query["_buildfire.index.text"] = { $regex: criteria.searchValue.toLowerCase(), $options: "-i" };
+  if (state.searchCriteria.searchValue) {
+    query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
   }
 
   // categories & subcategories filter
@@ -170,10 +159,10 @@ const searchLocations = (type) => {
       subcategoryIds.push(...filterElements[key].subcategories);
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || criteria.priceRange) {
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange) {
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
-    if (criteria.priceRange) {
-      array1Index.push(`pr_${criteria.priceRange}`);
+    if (state.searchCriteria.priceRange) {
+      array1Index.push(`pr_${state.searchCriteria.priceRange}`);
     }
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
@@ -209,7 +198,7 @@ const searchLocations = (type) => {
           }
         }
       };
-      pageIndex = criteria.page2;
+      pageIndex = state.searchCriteria.page2;
     }
 
     // if (Object.keys($match).length === 0) {
@@ -218,7 +207,7 @@ const searchLocations = (type) => {
     pipelines.push({ $match });
   }
 
-  if (criteria.openingNow) {
+  if (state.searchCriteria.openingNow) {
     const $match2 = {  };
     $match2[`openingHours.days.${getCurrentDayName()}.intervals`] = {
       $elemMatch: {
@@ -231,11 +220,11 @@ const searchLocations = (type) => {
   }
 
   const $sort = {};
-  if (criteria.sort) {
-    if (criteria.sort.sortBy === 'distance' && !$geoNear) {
+  if (state.searchCriteria.sort) {
+    if (state.searchCriteria.sort.sortBy === 'distance' && !$geoNear) {
       $sort["_buildfire.index.text"] = 1;
     } else {
-      $sort[criteria.sort.sortBy] = criteria.sort.order;
+      $sort[state.searchCriteria.sort.sortBy] = state.searchCriteria.sort.order;
     }
     pipelines.push({ $sort });
   }
@@ -243,14 +232,14 @@ const searchLocations = (type) => {
     WidgetController.searchLocationsV2(pipelines, pageIndex)
   ];
 
-  if (criteria.searchValue) {
-    promiseChain.push(WidgetController.getSearchEngineResults(criteria.searchValue, criteria.page));
+  if (state.searchCriteria.searchValue) {
+    promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue, state.searchCriteria.page));
   }
 
   return Promise.all(promiseChain).then(([result, result2]) => {
     console.log(result2);
     fetchingNextPage = false;
-    fetchingEndReached = result.length < criteria.pageSize;
+    fetchingEndReached = result.length < state.searchCriteria.pageSize;
     result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))
       .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
     listLocations = listLocations.concat(result);
@@ -792,7 +781,7 @@ const fetchMoreIntroductoryLocations = (e) => {
   if (activeTemplate === 'intro' && !fetchingNextPage && !fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
       fetchingNextPage = true;
-      criteria.page += 1;
+      state.searchCriteria.page += 1;
       searchLocations()
         .then((result) => {
           renderIntroductoryLocations(result);
@@ -807,9 +796,9 @@ const fetchMoreListLocations = (e) => {
     if (!fetchingNextPage && !fetchingEndReached) {
       fetchingNextPage = true;
       if (mapBounds) {
-        criteria.page2 += 1;
+        state.searchCriteria.page2 += 1;
       } else {
-        criteria.page += 1;
+        state.searchCriteria.page += 1;
       }
       searchLocations(mapBounds? "bound" : "point")
         .then((result) => {
@@ -826,24 +815,24 @@ const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
   if (showIntroductoryListView && introductoryListView.sorting) {
     if (introductoryListView.sorting === 'distance') {
-      criteria.sort = { sortBy: 'distance', order: 1 };
+      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
     } else if (introductoryListView.sorting === 'alphabetical') {
-      criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
     } else if (introductoryListView.sorting === 'newest') {
-      criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
     }
   } else if (sorting.defaultSorting === 'distance') {
-    criteria.sort = { sortBy: 'distance', order: 1 };
+    state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
   } else if (sorting.defaultSorting === 'alphabetical') {
-    criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+    state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
   }
 };
 
 const clearLocations = () => {
   listLocations = [];
   mapBounds = null;
-  criteria.page = 0;
-  criteria.page2 = 0;
+  state.searchCriteria.page = 0;
+  state.searchCriteria.page2 = 0;
   fetchingNextPage = false;
   fetchingEndReached = false;
   if (mainMap) mainMap.clearMarkers();
@@ -890,7 +879,7 @@ const onMapBoundsChange = (bounds) => {
       return;
     }
     mapBounds = bounds;
-    criteria.page2 = 0;
+    state.searchCriteria.page2 = 0;
     searchLocations('bound').then((result) => {
       renderListingLocations(result);
     });
@@ -930,7 +919,7 @@ const initEventListeners = () => {
     if (!e.target) return;
 
     if (e.target.id === 'searchLocationsBtn') {
-      criteria.searchValue = e.target.value;
+      state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
@@ -938,9 +927,9 @@ const initEventListeners = () => {
       const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
       if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
         if (sorting.defaultSorting === 'distance') {
-          criteria.sort = { sortBy: 'distance', order: 1 };
+          state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
         } else if (sorting.defaultSorting === 'alphabetical') {
-          criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+          state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
         }
         clearLocations();
         clearListingLocations();
@@ -962,26 +951,26 @@ const initEventListeners = () => {
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
-          criteria.priceRange = Number(value);
+          state.searchCriteria.priceRange = Number(value);
           priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         } else if (e.target.id === 'otherSortingBtn') {
           otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
           if (value === 'distance') {
-            criteria.sort = { sortBy: 'distance', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
           } else if (value === 'A-Z') {
-            criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
           } else if (value === 'Z-A') {
-            criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
           } else if (value === 'date') {
-            criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
           } else if (value === 'price-low-high') {
-            criteria.sort = { sortBy: 'price.range', order: -1 };
+            state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
           } else if (value === 'price-high-low') {
-            criteria.sort = { sortBy: 'price.range', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
           } else if (value === 'rating') {
-            criteria.sort = { sortBy: 'rating.average', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'rating.average', order: 1 };
           } else if (value === 'views') {
-            criteria.sort = { sortBy: 'views', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'views', order: 1 };
           }
         }
         clearAndSearchWithDelay();
@@ -1020,14 +1009,14 @@ const initEventListeners = () => {
     const { value } = e.target;
 
     if (e.target.id === 'searchTextField') {
-      criteria.searchValue = value;
+      state.searchCriteria.searchValue = value;
       clearAndSearchWithDelay();
     }
 
     // this is to refresh only
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
       console.log('value: ', value);
-      criteria.searchValue = value;
+      state.searchCriteria.searchValue = value;
       clearAndSearchWithDelay();
     }
   });
@@ -1063,8 +1052,8 @@ const initEventListeners = () => {
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
   openNowSortingBtn.onclick = () => {
-    criteria.openingNow = !criteria.openingNow;
-    if (criteria.openingNow) {
+    state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
+    if (state.searchCriteria.openingNow) {
       openNowSortingBtn.classList.add('selected');
     } else {
       openNowSortingBtn.classList.remove('selected');
