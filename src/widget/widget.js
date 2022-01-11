@@ -7,14 +7,8 @@ import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 
-let CATEGORIES;
 let userPosition;
-let introductoryLocations = [];
-let introductoryLocationsCount = 0;
-let introductoryLocationsPending = false;
-let currentIntroductoryPage = 0;
-let filterElements = {};
-let markerClusterer;
+const filterElements = {};
 let pinnedLocations = [];
 let selectedLocation;
 let mainMap;
@@ -316,7 +310,7 @@ const fetchCategories = (done) => {
     })
     .then((result) => {
       // todo make sure data is parsed correctly
-      CATEGORIES = result;
+      state.categories = result;
       done();
     })
     .catch((err) => {
@@ -466,7 +460,7 @@ const updateMapMarkers = (locations) => {
 };
 
 const refreshQuickFilter = () => {
-  const quickFilterItems = CATEGORIES.slice(0, 10);
+  const quickFilterItems = state.categories.slice(0, 10);
   const container = document.querySelector('.header-qf');
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
@@ -571,11 +565,11 @@ const transformCategories = (categories) => {
   if (!categories.main.length) {
     return '--';
   }
-  const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
+  const subCategories = state.categories.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
   const subCategoriesTitles = [];
   categories.main.forEach((c) => {
-    const item = CATEGORIES.find((p) => p.id === c);
+    const item = state.categories.find((p) => p.id === c);
     if (item) mainCategoriesTitles.push(item.title);
   });
   categories.subcategories.forEach((c) => {
@@ -1085,7 +1079,7 @@ const initEventListeners = () => {
 const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
-  CATEGORIES.forEach((category) => {
+  state.categories.forEach((category) => {
     filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
@@ -1191,7 +1185,7 @@ const initFilterOverlay = () => {
     const selected = chipCheckbox.getAttribute('aria-checked') === 'true';
     const categoryId = parent.dataset.cid;
     const subcategoryId = mdcChip.dataset.sid;
-    const category = CATEGORIES.find((c) => c.id === categoryId);
+    const category = state.categories.find((c) => c.id === categoryId);
 
     if (selected && !filterElements[categoryId].subcategories.includes(subcategoryId)) {
       filterElements[categoryId].subcategories.push(subcategoryId);
