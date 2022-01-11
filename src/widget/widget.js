@@ -4,7 +4,7 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
-import {openingNowDate, getCurrentDayName, convertDateToTime} from '../utils/datetime';
+import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 
 let settings;
 let CATEGORIES;
@@ -840,16 +840,20 @@ const viewFullImage = (url) => {
   buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
-const setIntroDefaultSorting = () => {
-  const { showIntroductoryListView, introductoryListView } = settings;
-  if (!showIntroductoryListView || !introductoryListView.sorting) return;
-
-  if (introductoryListView.sorting === 'distance') {
+const setDefaultSorting = () => {
+  const { showIntroductoryListView, introductoryListView, sorting } = settings;
+  if (showIntroductoryListView && introductoryListView.sorting) {
+    if (introductoryListView.sorting === 'distance') {
+      criteria.sort = { sortBy: 'distance', order: 1 };
+    } else if (introductoryListView.sorting === 'alphabetical') {
+      criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+    } else if (introductoryListView.sorting === 'newest') {
+      criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+    }
+  } else if (sorting.defaultSorting === 'distance') {
     criteria.sort = { sortBy: 'distance', order: 1 };
-  } else if (introductoryListView.sorting === 'alphabetical') {
+  } else if (sorting.defaultSorting === 'alphabetical') {
     criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
-  } else if (introductoryListView.sorting === 'newest') {
-    criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
   }
 };
 
@@ -948,7 +952,23 @@ const initEventListeners = () => {
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
-      showMapView();
+      const { showIntroductoryListView, introductoryListView, sorting } = settings;
+      if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
+        if (sorting.defaultSorting === 'distance') {
+          criteria.sort = { sortBy: 'distance', order: 1 };
+        } else if (sorting.defaultSorting === 'alphabetical') {
+          criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+        }
+        clearLocations();
+        clearListingLocations();
+        searchLocations()
+          .then(() => {
+            renderListingLocations(listLocations);
+            showMapView();
+          });
+      } else {
+        showMapView();
+      }
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       drawer.reset('expanded');
       setTimeout(() => { toggleDropdownMenu(e.target.nextElementSibling); }, 200);
@@ -1455,7 +1475,7 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     initMainMap();
     initAreaAutocompleteField();
-    setIntroDefaultSorting();
+    setDefaultSorting();
     searchLocations()
       .then(() => {
         drawer.initialize(settings);
