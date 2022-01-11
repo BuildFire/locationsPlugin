@@ -619,10 +619,8 @@ const isLocationOpen = (location) => {
   const now = openingNowDate();
 
   if (today.active) {
-    const interval = today.intervals.find((i) => (new Date(i.from) < now) && (new Date(i.to) > now));
-    if (interval) {
-      isOpen = true;
-    }
+    const interval = today.intervals.find((i) => (new Date(i.from) <= now) && (new Date(i.to) > now));
+    if (interval) isOpen = true;
   }
   return isOpen;
 };
@@ -883,6 +881,7 @@ const clearLocations = () => {
   criteria.page2 = 0;
   fetchingNextPage = false;
   fetchingEndReached = false;
+  if (mainMap) mainMap.clearMarkers();
 };
 
 let SEARCH_TIMOUT;

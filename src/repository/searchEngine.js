@@ -4,7 +4,6 @@
  * @class
  */
 export default class SearchEngine {
-
   /**
    * Insert a new data object
    * @param {string} tag
@@ -18,6 +17,7 @@ export default class SearchEngine {
       buildfire.services.searchEngine.save({
         tag,
         key,
+        data: { locationId: key },
         title: data.title,
         description: data.description ? data.description.replace(/(<([^>]+)>)/gi, "") : "",
         imageUrl: data.listImage,
@@ -60,6 +60,7 @@ export default class SearchEngine {
       buildfire.services.searchEngine.save({
         tag,
         key,
+        data: { locationId: key },
         title: data.title,
         description: data.description ? data.description.replace(/(<([^>]+)>)/gi, "") : "",
         imageUrl: data.listImage,

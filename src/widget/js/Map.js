@@ -126,5 +126,9 @@ export default class Map {
     ]);
   }
 
+  clearMarkers() {
+    this.markerClusterer.clearMarkers(true);
+  }
+
   onBoundsChange(mapBounds) {}
 }
