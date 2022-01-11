@@ -1008,35 +1008,30 @@ const initEventListeners = () => {
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   myCurrentLocationBtn.onclick = (e) => {
-    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-      if (err || !position) {
-        return console.error(err, position);
-      }
-      const { coords } = position;
-      const geoCoder = new google.maps.Geocoder();
-      const positionPoints = { lat: coords.latitude, lng: coords.longitude };
-      currentLocation = positionPoints;
-      if (mainMap) {
-        mainMap.addUserPosition(userPosition);
-        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
-      }
-      clearAndSearchWithDelay();
-      geoCoder.geocode(
-        { location: positionPoints },
-        (results, status) => {
-          console.log(results);
-          if (status === "OK") {
-            if (results[0]) {
-              areaSearchTextField.value = results[0].formatted_address;
-            } else {
-              console.log("No results found");
-            }
+    if (!userPosition) return;
+    const geoCoder = new google.maps.Geocoder();
+    const positionPoints = { lat: userPosition.latitude, lng: userPosition.longitude };
+    currentLocation = positionPoints;
+    if (mainMap) {
+      mainMap.addUserPosition(userPosition);
+      mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+    }
+    clearAndSearchWithDelay();
+    geoCoder.geocode(
+      { location: positionPoints },
+      (results, status) => {
+        console.log(results);
+        if (status === "OK") {
+          if (results[0]) {
+            areaSearchTextField.value = results[0].formatted_address;
           } else {
-            console.log("Geocoder failed due to: " + status);
+            console.log("No results found");
           }
+        } else {
+          console.log("Geocoder failed due to: " + status);
         }
-      );
-    });
+      }
+    );
   };
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
