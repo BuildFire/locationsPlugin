@@ -4,9 +4,9 @@ import Accordion from './js/Accordion';
 import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
+import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 
-let settings;
 let CATEGORIES;
 let userPosition;
 let introductoryLocations = [];
@@ -126,32 +126,6 @@ if (!buildfire.components.carousel.view.prototype.clear) {
     return this._removeAll();
   };
 }
-
-// todo to be removed
-const testingFn = () => {
-  settings.showIntroductoryListView = false;
-  settings.design.listViewStyle = 'image';
-  settings.design.detailsMapPosition = 'bottom'; // top or bottom
-  if (settings.introductoryListView.images.length === 0) {
-    settings.introductoryListView.images = [
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-    ];
-  }
-
-  if (!settings.introductoryListView.description) {
-    settings.introductoryListView.description = '<h2 style="text-align: center;">Introduction to TinyMCE!</h2>';
-  }
-};
-
-// testingFn();
 
 const templates = {};
 
@@ -325,8 +299,8 @@ const fetchSettings = (callback) => {
   WidgetController
     .getAppSettings()
     .then((response) => {
-      settings = response;
-      console.log('settings: ', settings);
+      state.settings = response;
+      console.log('settings: ', state.settings);
       callback();
     })
     .catch((err) => {
@@ -427,7 +401,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   let content;
-  if (settings.design.listViewStyle === 'backgroundImage') {
+  if (state.settings.design.listViewStyle === 'backgroundImage') {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].imageUrl : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
@@ -531,14 +505,14 @@ const refreshQuickFilter = () => {
 };
 
 const refreshIntroductoryDescription = () => {
-  if (settings.introductoryListView.description) {
+  if (state.settings.introductoryListView.description) {
     const container = document.querySelector('.intro-details');
-    container.innerHTML = settings.introductoryListView.description;
+    container.innerHTML = state.settings.introductoryListView.description;
   }
 };
 
 const refreshIntroductoryCarousel = () => {
-  const { introductoryListView } = settings;
+  const { introductoryListView } = state.settings;
   if (introCarousel) {
     introCarousel.clear();
     introCarousel.append(introductoryListView.images);
@@ -628,7 +602,7 @@ const isLocationOpen = (location) => {
 const showLocationDetail = () => {
   fetchTemplate('detail', () => {
     injectTemplate('detail');
-    const pageMapPosition = settings.design.detailsMapPosition;
+    const pageMapPosition = state.settings.design.detailsMapPosition;
     let selectors = {
       address: document.querySelector('.location-detail__address p:first-child'),
       distance: document.querySelector('.location-detail__address p:last-child'),
@@ -701,18 +675,18 @@ const showLocationDetail = () => {
     selectors.description.innerHTML = selectedLocation.description;
     selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
-    if (settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
+    if (state.settings.design?.showDetailsCategory && selectedLocation.state.settings.showCategory) {
       selectors.categories.textContent = transformCategories(selectedLocation.categories);
       selectors.categories.style.display = 'block';
     }
 
-    if (!selectedLocation.settings.showOpeningHours) {
+    if (!selectedLocation.state.settings.showOpeningHours) {
       selectors.workingHoursBtn.style.display = 'none';
     } else if (!isLocationOpen(selectedLocation)) {
       selectors.workingHoursBtnLabel.textContent = 'Closed';
     }
 
-    if (!selectedLocation.settings.showStarRating) {
+    if (!selectedLocation.state.settings.showStarRating) {
       document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
       selectors.ratingValue.style.display = 'none';
     } else {
@@ -858,7 +832,7 @@ const viewFullImage = (url) => {
 };
 
 const setDefaultSorting = () => {
-  const { showIntroductoryListView, introductoryListView, sorting } = settings;
+  const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
   if (showIntroductoryListView && introductoryListView.sorting) {
     if (introductoryListView.sorting === 'distance') {
       criteria.sort = { sortBy: 'distance', order: 1 };
@@ -901,7 +875,7 @@ const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
     .then(() => {
-      const { showIntroductoryListView } = settings;
+      const { showIntroductoryListView } = state.settings;
       if (showIntroductoryListView) {
         clearIntroductoryLocations();
         fetchPinnedLocations(() => {
@@ -955,7 +929,7 @@ const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchTextField' && settings.filter.allowFilterByArea) {
+    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea) {
       showElement('#areaSearchLabel');
       hideElement('.header-qf');
     }
@@ -970,7 +944,7 @@ const initEventListeners = () => {
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
-      const { showIntroductoryListView, introductoryListView, sorting } = settings;
+      const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
       if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
         if (sorting.defaultSorting === 'distance') {
           criteria.sort = { sortBy: 'distance', order: 1 };
@@ -1286,7 +1260,7 @@ const initAreaAutocompleteField = (template) => {
 };
 
 const initMainMap = () => {
-  const { map, design } = settings;
+  const { map, design } = state.settings;
   const selector = document.getElementById('mainMapContainer');
   const options = {
     styles: [],
@@ -1344,7 +1318,7 @@ const initMainMap = () => {
 
 const refreshMapOptions = () => {
   if (mainMap) {
-    const { map, design } = settings;
+    const { map, design } = state.settings;
     const options = {
       styles: [],
       mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -1422,7 +1396,7 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting } = settings;
+  const { sorting } = state.settings;
   const otherSortingMenu = document.querySelector('.other-sorting-menu');
   const otherSortingMenuList = otherSortingMenu.querySelector('ul');
   const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
@@ -1486,7 +1460,7 @@ const initDrawerFilterOptions = () => {
   otherSortingMenuList.innerHTML = list;
 };
 const initHomeView = () => {
-  const { showIntroductoryListView, introductoryListView } = settings;
+  const { showIntroductoryListView, introductoryListView } = state.settings;
   injectTemplate('home');
   fetchCategories(() => {
     initFilterOverlay();
@@ -1496,7 +1470,7 @@ const initHomeView = () => {
     setDefaultSorting();
     searchLocations()
       .then(() => {
-        drawer.initialize(settings);
+        drawer.initialize(state.settings);
         initDrawerFilterOptions();
         if (showIntroductoryListView) {
           fetchPinnedLocations(() => {
@@ -1535,7 +1509,7 @@ const calculateLocationDistance = (address) => {
   let result;
   if (distance < 0.2) {
     result = `${Math.round(distance * 5280).toLocaleString()} ft`;
-  } else if (settings.measurementUnit === 'metric') {
+  } else if (state.settings.measurementUnit === 'metric') {
     result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
   } else {
     result = `${Math.round(distance).toLocaleString()} mi`;
@@ -1581,13 +1555,13 @@ const initGoogleMapsSDK = () => {
 };
 
 const handleCPSync = (message) => {
-  const outdatedSettings = { ...settings };
+  const outdatedSettings = { ...state.settings };
   const { scope } = message;
 
   if (scope === 'design') {
     fetchSettings(() => {
       // current design
-      const d = settings.design;
+      const d = state.settings.design;
       // outdated design
       const o = outdatedSettings.design;
 
@@ -1611,9 +1585,9 @@ const handleCPSync = (message) => {
     });
   } else if (scope === 'settings') {
     fetchSettings(() => {
-      const f = settings.filter;
+      const f = state.settings.filter;
       const of = outdatedSettings.filter;
-      const ms = settings.map;
+      const ms = state.settings.map;
       const oms = outdatedSettings.map;
       if (f.allowFilterByArea !== of.allowFilterByArea) {
         const areaSearchInput = document.querySelector('#areaSearchLabel');
@@ -1621,7 +1595,7 @@ const handleCPSync = (message) => {
           showElement('.header-qf');
           hideElement('#areaSearchLabel');
         }
-      } else if (settings.measurementUnit !== outdatedSettings.measurementUnit) {
+      } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
         updateLocationsDistance();
       } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
         || ms.initialArea !== oms.initialArea
@@ -1635,7 +1609,7 @@ const handleCPSync = (message) => {
     });
   } else if (scope === 'intro') {
     fetchSettings(() => {
-      if (settings.showIntroductoryListView) {
+      if (state.settings.showIntroductoryListView) {
         const container = document.querySelector('#introLocationsList');
         container.innerHTML = '';
         fetchPinnedLocations(() => {
@@ -1646,9 +1620,9 @@ const handleCPSync = (message) => {
           showElement('section#intro');
           hideElement('section#listing');
           refreshIntroductoryCarousel();
-          if (settings.introductoryListView.images.length === 0
+          if (state.settings.introductoryListView.images.length === 0
             && listLocations.length === 0
-            && !settings.introductoryListView.description) {
+            && !state.settings.introductoryListView.description) {
             showElement('#intro div.empty-page');
           }
           // eslint-disable-next-line no-new
