@@ -840,6 +840,19 @@ const viewFullImage = (url) => {
   buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
 };
 
+const setIntroDefaultSorting = () => {
+  const { showIntroductoryListView, introductoryListView } = settings;
+  if (!showIntroductoryListView || !introductoryListView.sorting) return;
+
+  if (introductoryListView.sorting === 'distance') {
+    criteria.sort = { sortBy: 'distance', order: 1 };
+  } else if (introductoryListView.sorting === 'alphabetical') {
+    criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+  } else if (introductoryListView.sorting === 'newest') {
+    criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+  }
+};
+
 const clearLocations = () => {
   listLocations = [];
   mapBounds = null;
@@ -1442,6 +1455,7 @@ const initHomeView = () => {
     refreshQuickFilter(); // todo if quick filter enabled
     initMainMap();
     initAreaAutocompleteField();
+    setIntroDefaultSorting();
     searchLocations()
       .then(() => {
         drawer.initialize(settings);
