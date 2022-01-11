@@ -895,3 +895,6 @@ body section#home {
 #openNowSortingBtn.selected {
   opacity: 0.8;
 }
+.location-cover__rating-value {
+  font-size: 14px;
+}

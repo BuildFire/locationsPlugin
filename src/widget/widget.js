@@ -624,6 +624,7 @@ const showLocationDetail = () => {
       description: document.querySelector('.location-detail__description'),
       rating: document.querySelector('.location-detail__rating'),
       ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
+      ratingValue: document.querySelector('.location-cover__rating-value')
     };
 
     if (pageMapPosition === 'top') {
@@ -696,8 +697,10 @@ const showLocationDetail = () => {
 
     if (!selectedLocation.settings.showStarRating) {
       document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
+      selectors.ratingValue.style.display = 'none';
     } else {
       selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
+      selectors.ratingValue.textContent = Array(Math.round(selectedLocation.rating.average) + 1).join('★ ');
       buildfire.components.ratingSystem.injectRatings();
     }
     selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
