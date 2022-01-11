@@ -499,7 +499,7 @@ window.addEditLocation = (location) => {
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
-const saveLocation = (action, callback) => {
+const saveLocation = (action, callback = () => {}) => {
   state.locationObj.title = addLocationControls.locationTitle.value;
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
   state.locationObj.address = addLocationControls.locationAddress.value;
@@ -1096,7 +1096,7 @@ const deleteLocation = (item, row, callback = () => {}) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        LocationsController.deleteLocation(item.id, item.searchEngineRefId).then(() => {
+        LocationsController.deleteLocation(item.id).then(() => {
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
           callback(item);
@@ -1219,7 +1219,7 @@ window.importLocations = () =>  {
         title: 'Importing Locations',
         message: 'We’re importing your locations, please wait.'
       });
-      LocationsController.bulkCreateLocation(locations).then(() => {
+      LocationsController.bulkCreateLocation(locations).then((result) => {
         dialogRef.close();
         buildfire.dialog.toast({
           message: "Successfully imported locations",
@@ -1358,6 +1358,7 @@ const updateLocationImage = (obj, tr) => {
 
 const createLocation = (location) => {
   return LocationsController.createLocation(location).then((res) => {
+    console.log(res);
     refreshLocations();
     triggerWidgetOnLocationsUpdate();
     cancelAddLocation();

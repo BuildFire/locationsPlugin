@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable max-len */
 import Location from '../../../../repository/Locations';
 import SearchEngine from '../../../../repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
@@ -6,13 +8,21 @@ export default {
   createLocation(location) {
     location.createdOn = new Date();
     location.createdBy = authManager.currentUser;
-    return SearchEngine.add(Location.TAG, location.toJSON()).then((seResult) => {
-      location.searchEngineRefId = seResult.id;
-      return Location.add(location.toJSON());
-    });
+    return Location.add(location.toJSON()).then((result) => SearchEngine.add(Location.TAG, result.id, result)
+      .then(() => result));
   },
   bulkCreateLocation(locations) {
-    return Location.bulkAdd(locations);
+    return Location.bulkAdd(locations).then((insertedLocations) => {
+      const newDataCount = insertedLocations.length;
+      for (let skip = 0; skip < newDataCount; skip += 50) {
+        this.searchLocations({ skip, limit: 50, sort: { "_buildfire.index.date1": -1 } }).then(({ result, totalRecord }) => {
+          for (const location of result) {
+            SearchEngine.add(Location.TAG, location.id, location).catch(console.error);
+          }
+        }).catch(console.error);
+      }
+      return insertedLocations;
+    });
   },
   searchLocations(options = {}) {
     options.recordCount = true;
@@ -22,11 +32,9 @@ export default {
     location.lastUpdatedOn = new Date();
     location.lastUpdatedBy = authManager.currentUser;
     const promiseChain = [
-      Location.update(locationId, location.toJSON())
+      Location.update(locationId, location.toJSON()),
+      SearchEngine.update(Location.TAG, locationId, location.toJSON())
     ];
-    if (location.searchEngineRefId) {
-      promiseChain.push(SearchEngine.update(Location.TAG, location.searchEngineRefId, location.toJSON()));
-    }
     return Promise.all(promiseChain);
   },
   getPinnedLocation() {
@@ -38,14 +46,11 @@ export default {
     };
     return this.searchLocations(options);
   },
-  deleteLocation(locationId, searchEngineRefId) {
+  deleteLocation(locationId) {
     const promiseChain = [
-      Location.delete(locationId)
+      Location.delete(locationId),
+      SearchEngine.delete(Location.TAG, locationId)
     ];
-
-    if (searchEngineRefId) {
-      promiseChain.push(SearchEngine.delete(Location.TAG, searchEngineRefId));
-    }
     return Promise.all(promiseChain);
   }
 };

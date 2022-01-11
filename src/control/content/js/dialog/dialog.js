@@ -37,7 +37,11 @@ export default class DialogComponent {
     btnSave.onclick = saveCallback;
 
     const btnCancelButton = this.container.querySelector(".dialog-cancel-btn");
-    btnCancelButton.style.display = ''; //reset
+    btnCancelButton.style.display = ''; // reset
+    btnSave.style.display = ''; // reset
+    this.container.querySelector('.dialog-footer').style.display = ''; // reset
+    this.closeButton.style.display = '';
+
     btnCancelButton.onclick = (e) => {
       this.close(e);
     };

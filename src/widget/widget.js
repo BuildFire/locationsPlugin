@@ -274,8 +274,16 @@ const searchLocations = (type) => {
     }
     pipelines.push({ $sort });
   }
+  const promiseChain = [
+    WidgetController.searchLocationsV2(pipelines, pageIndex)
+  ];
 
-  return WidgetController.searchLocationsV2(pipelines, pageIndex).then((result) => {
+  if (criteria.searchValue) {
+    promiseChain.push(WidgetController.getSearchEngineResults(criteria.searchValue, criteria.page));
+  }
+
+  return Promise.all(promiseChain).then(([result, result2]) => {
+    console.log(result2);
     fetchingNextPage = false;
     fetchingEndReached = result.length < criteria.pageSize;
     result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))

@@ -9,7 +9,7 @@ export default class Locations {
    * Locations key in publicData
    * @static
    */
-  static TAG = 'locations';
+  static TAG = "locations";
 
   /**
    * retrieve a certain location data object
@@ -41,20 +41,25 @@ export default class Locations {
     });
   }
 
-    /**
+  /**
    * Insert bulk locations
    * @param {Location[]} locations
    * @static
    * @return {promise} query result
    */
-     static bulkAdd(locations) {
-      return new Promise((resolve, reject) => {
-        buildfire.publicData.bulkInsert(locations, Locations.TAG, (error, record) => {
+  static bulkAdd(locations) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.bulkInsert(
+        locations,
+        Locations.TAG,
+        (error, result) => {
           if (error) return reject(error);
-          resolve(record);
-        });
-      });
-    }
+          console.log("bulk result", result?.data);
+          resolve(result?.data);
+        }
+      );
+    });
+  }
 
   /**
    * Get and pull a matching subset of the locations.
@@ -66,7 +71,9 @@ export default class Locations {
     return new Promise((resolve, reject) => {
       buildfire.publicData.search(options, Locations.TAG, (error, response) => {
         if (error) return reject(error);
-        response.result = response.result.map((c) => new Location({ ...c.data, id: c.id }).toJSON());
+        response.result = response.result.map((c) =>
+          new Location({ ...c.data, id: c.id }).toJSON()
+        );
         resolve(response);
       });
     });
@@ -79,51 +86,66 @@ export default class Locations {
    * @param {number} limit
    * @static
    * @return {promise} query result
-  */
+   */
 
   static aggregate(pipelines = [], page = 0, pageSize = 50) {
     return new Promise((resolve, reject) => {
-      buildfire.publicData.aggregate({
-        pipelineStages: pipelines,
-        page,
-        pageSize
-      },  Locations.TAG, (err, result) => {
-        if (err) {
-          return reject(err);
-        }
+      buildfire.publicData.aggregate(
+        {
+          pipelineStages: pipelines,
+          page,
+          pageSize,
+        },
+        Locations.TAG,
+        (err, result) => {
+          if (err) {
+            return reject(err);
+          }
 
-        result = result.map((c) => new Location({ ...c.data, id: c._id }).toJSON());
-        resolve(result);
-      });
+          result = result.map((c) =>
+            new Location({ ...c.data, id: c._id }).toJSON()
+          );
+          resolve(result);
+        }
+      );
     });
   }
 
-   /**
+  /**
    * @param {string} locationId
    * @param {Location} location
    * @returns {promise}
    */
-     static update(locationId, location) {
-      return new Promise((resolve, reject) => {
-        buildfire.publicData.update(locationId, location, Locations.TAG, (error, result) => {
+  static update(locationId, location) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.update(
+        locationId,
+        location,
+        Locations.TAG,
+        (error, result) => {
           if (error) return reject(error);
           resolve(result);
-        });
-      });
-    }
+        }
+      );
+    });
+  }
 
-    /**
-     *
-     * @param {string} locationId
-     * @static
-     * @returns {promise}
-     */
-    static delete(locationId) {
-      return new Promise((resolve, reject) => {
-        buildfire.publicData.delete(locationId, Locations.TAG, (error, result) => {
+  /**
+   *
+   * @param {string} locationId
+   * @static
+   * @returns {promise}
+   */
+  static delete(locationId) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.delete(
+        locationId,
+        Locations.TAG,
+        (error, result) => {
           if (error) return reject(error);
           resolve(result);
-        });
-      });
-    }
+        }
+      );
+    });
+  }
 }
