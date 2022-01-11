@@ -1641,7 +1641,7 @@ const handleCPSync = (message) => {
       }
     });
   } else if (scope === 'locations') {
-    const { data, realtimeUpdate } = message;
+    const { data, realtimeUpdate, isCancel } = message;
     if (realtimeUpdate) {
       selectedLocation = {
         id: 'tmp-location',
@@ -1669,7 +1669,11 @@ const handleCPSync = (message) => {
           }
         }
       }
+      hideFilterOverlay();
       showLocationDetail();
+    }
+    else if (isCancel) {
+      buildfire.history.pop();
     } else {
       hideFilterOverlay();
       navigateTo('home');
