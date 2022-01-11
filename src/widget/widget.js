@@ -7,7 +7,6 @@ import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 
-let userPosition;
 const filterElements = {};
 let pinnedLocations = [];
 let selectedLocation;
@@ -1005,10 +1004,10 @@ const initEventListeners = () => {
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
-      if (mainMap && userPosition.latitude && userPosition.longitude) {
-        getFormattedAddress({ lat: userPosition.latitude, lng: userPosition.longitude }, (err, address) => {
-          mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
-          mainMap.addUserPosition(userPosition);
+      if (mainMap && state.userPosition.latitude && state.userPosition.longitude) {
+        getFormattedAddress({ lat: state.userPosition.latitude, lng: state.userPosition.longitude }, (err, address) => {
+          mainMap.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+          mainMap.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
@@ -1038,13 +1037,13 @@ const initEventListeners = () => {
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   myCurrentLocationBtn.onclick = (e) => {
-    if (!userPosition) return;
+    if (!state.userPosition) return;
     const geoCoder = new google.maps.Geocoder();
-    const positionPoints = { lat: userPosition.latitude, lng: userPosition.longitude };
+    const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
     currentLocation = positionPoints;
     if (mainMap) {
-      mainMap.addUserPosition(userPosition);
-      mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
+      mainMap.addUserPosition(state.userPosition);
+      mainMap.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
     }
     clearAndSearchWithDelay();
     geoCoder.geocode(
@@ -1283,12 +1282,12 @@ const initMainMap = () => {
     currentLocation = { ...map.initialAreaCoordinates };
     const areaSearchTextField = document.querySelector('#areaSearchTextField');
     areaSearchTextField.value = map.initialAreaString;
-  } else if (userPosition) {
+  } else if (state.userPosition) {
     options.center = {
-      lat: userPosition.latitude,
-      lng: userPosition.longitude
+      lat: state.userPosition.latitude,
+      lng: state.userPosition.longitude
     };
-    currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
+    currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
   } else {
     options.center = DEFAULT_LOCATION;
     currentLocation = DEFAULT_LOCATION;
@@ -1304,8 +1303,8 @@ const initMainMap = () => {
     });
   }
   mainMap = new MainMap(selector, options);
-  if (userPosition) {
-    mainMap.addUserPosition(userPosition);
+  if (state.userPosition) {
+    mainMap.addUserPosition(state.userPosition);
   }
   mainMap.onBoundsChange = onMapBoundsChange;
 };
@@ -1337,10 +1336,10 @@ const refreshMapOptions = () => {
       currentLocation = { ...map.initialAreaCoordinates };
       const areaSearchTextField = document.querySelector('#areaSearchTextField');
       areaSearchTextField.value = map.initialAreaString;
-    } else if (userPosition) {
+    } else if (state.userPosition) {
       options.center = {
-        lat: userPosition.latitude,
-        lng: userPosition.longitude
+        lat: state.userPosition.latitude,
+        lng: state.userPosition.longitude
       };
     } else {
       options.center = DEFAULT_LOCATION;
@@ -1490,10 +1489,10 @@ const initHomeView = () => {
 };
 
 const calculateLocationDistance = (address) => {
-  if (!userPosition) return null;
+  if (!state.userPosition) return null;
   const origin = {
-    latitude: userPosition.latitude,
-    longitude: userPosition.longitude,
+    latitude: state.userPosition.latitude,
+    longitude: state.userPosition.longitude,
   };
   const destination = {
     latitude: address.lat,
@@ -1698,10 +1697,10 @@ const init = () => {
       if (err) {
         return console.error(err);
       }
-      userPosition = position.coords;
+      state.userPosition = position.coords;
       updateLocationsDistance();
       if (mainMap) {
-        mainMap.addUserPosition(userPosition);
+        mainMap.addUserPosition(state.userPosition);
       }
     });
 
