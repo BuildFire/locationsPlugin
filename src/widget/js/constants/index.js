@@ -1,4 +1,4 @@
-import MAP_STYLES from './map-styles';
+import MAP_STYLES from './mapStyles';
 
 const getMapStyle = (name) => {
   let style;

@@ -7,6 +7,7 @@ import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import constants from './js/constants';
+import app from './app';
 
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 
@@ -175,18 +176,10 @@ const hideElement = (selector) => {
 };
 /** ui helpers end */
 
-const fetchSettings = (callback) => {
-  WidgetController
+const refreshSettings = () => {
+  return WidgetController
     .getAppSettings()
-    .then((response) => {
-      state.settings = response;
-      console.log('settings: ', state.settings);
-      callback();
-    })
-    .catch((err) => {
-      console.error('error fetching settings: ', err);
-      callback();
-    });
+    .then((response) => state.settings = response);
 };
 
 const fetchCategories = (done) => {
@@ -1440,79 +1433,82 @@ const handleCPSync = (message) => {
   const { scope } = message;
 
   if (scope === 'design') {
-    fetchSettings(() => {
-      // current design
-      const d = state.settings.design;
-      // outdated design
-      const o = outdatedSettings.design;
+    refreshSettings()
+      .then(() => {
+        // current design
+        const d = state.settings.design;
+        // outdated design
+        const o = outdatedSettings.design;
 
-      if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        drawer.reset(d.listViewPosition);
-        renderListingLocations(state.listLocations);
-      } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
-        if (state.listLocations.length > 0) {
-          [state.selectedLocation] = state.listLocations;
-          showLocationDetail();
-        }
-      } else {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        refreshMapOptions();
-      }
-    });
-  } else if (scope === 'settings') {
-    fetchSettings(() => {
-      const f = state.settings.filter;
-      const of = outdatedSettings.filter;
-      const ms = state.settings.map;
-      const oms = outdatedSettings.map;
-      if (f.allowFilterByArea !== of.allowFilterByArea) {
-        const areaSearchInput = document.querySelector('#areaSearchLabel');
-        if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
-          showElement('.header-qf');
-          hideElement('#areaSearchLabel');
-        }
-      } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
-        updateLocationsDistance();
-      } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
-        || ms.initialArea !== oms.initialArea
-        || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
-        || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        refreshMapOptions();
-      }
-    });
-  } else if (scope === 'intro') {
-    fetchSettings(() => {
-      if (state.settings.showIntroductoryListView) {
-        const container = document.querySelector('#introLocationsList');
-        container.innerHTML = '';
-        fetchPinnedLocations(() => {
-          renderIntroductoryLocations(state.listLocations, true);
-          refreshIntroductoryDescription();
+        if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
           hideFilterOverlay();
           navigateTo('home');
-          showElement('section#intro');
-          hideElement('section#listing');
-          refreshIntroductoryCarousel();
-          if (state.settings.introductoryListView.images.length === 0
-            && state.listLocations.length === 0
-            && !state.settings.introductoryListView.description) {
-            showElement('#intro div.empty-page');
+          showMapView();
+          drawer.reset(d.listViewPosition);
+          renderListingLocations(state.listLocations);
+        } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
+          if (state.listLocations.length > 0) {
+            [state.selectedLocation] = state.listLocations;
+            showLocationDetail();
           }
-          // eslint-disable-next-line no-new
-          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-        });
-      } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
-        showMapView();
-      }
-    });
+        } else {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          refreshMapOptions();
+        }
+      });
+  } else if (scope === 'settings') {
+    refreshSettings()
+      .then(() => {
+        const f = state.settings.filter;
+        const of = outdatedSettings.filter;
+        const ms = state.settings.map;
+        const oms = outdatedSettings.map;
+        if (f.allowFilterByArea !== of.allowFilterByArea) {
+          const areaSearchInput = document.querySelector('#areaSearchLabel');
+          if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
+            showElement('.header-qf');
+            hideElement('#areaSearchLabel');
+          }
+        } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
+          updateLocationsDistance();
+        } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
+          || ms.initialArea !== oms.initialArea
+          || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
+          || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          refreshMapOptions();
+        }
+      });
+  } else if (scope === 'intro') {
+    refreshSettings()
+      .then(() => {
+        if (state.settings.showIntroductoryListView) {
+          const container = document.querySelector('#introLocationsList');
+          container.innerHTML = '';
+          fetchPinnedLocations(() => {
+            renderIntroductoryLocations(state.listLocations, true);
+            refreshIntroductoryDescription();
+            hideFilterOverlay();
+            navigateTo('home');
+            showElement('section#intro');
+            hideElement('section#listing');
+            refreshIntroductoryCarousel();
+            if (state.settings.introductoryListView.images.length === 0
+              && state.listLocations.length === 0
+              && !state.settings.introductoryListView.description) {
+              showElement('#intro div.empty-page');
+            }
+            // eslint-disable-next-line no-new
+            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+          });
+        } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
+          showMapView();
+        }
+      });
   } else if (scope === 'locations') {
     const { data, realtimeUpdate, isCancel } = message;
     if (realtimeUpdate) {
@@ -1561,84 +1557,85 @@ const handleCPSync = (message) => {
 };
 
 const init = () => {
-  initGoogleMapsSDK();
-  fetchSettings(() => {
-    fetchTemplate('filter', injectTemplate);
-    fetchTemplate('home', initHomeView);
-    setTimeout(() => { initEventListeners(); }, 1000);
-    buildfire.deeplink.getData((deeplinkData) => {
-      console.log('getData deeplinkData: ', deeplinkData);
-      if (deeplinkData?.locationId) {
-        WidgetController
-          .getLocation(deeplinkData.locationId)
-          .then((response) => {
-            state.selectedLocation = response.data;
-            showLocationDetail();
-          })
-          .catch((err) => {
-            console.error('fetch location error: ', err);
-          });
-      }
-    });
+  refreshSettings()
+    .then(() => {
+      fetchTemplate('filter', injectTemplate);
+      fetchTemplate('home', initHomeView);
+      setTimeout(() => { initEventListeners(); }, 1000);
+      buildfire.deeplink.getData((deeplinkData) => {
+        console.log('getData deeplinkData: ', deeplinkData);
+        if (deeplinkData?.locationId) {
+          WidgetController
+            .getLocation(deeplinkData.locationId)
+            .then((response) => {
+              state.selectedLocation = response.data;
+              showLocationDetail();
+            })
+            .catch((err) => {
+              console.error('fetch location error: ', err);
+            });
+        }
+      });
 
-    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-      if (err) {
-        return console.error(err);
-      }
-      state.userPosition = position.coords;
-      updateLocationsDistance();
-      if (state.maps.main) {
-        state.maps.main.addUserPosition(state.userPosition);
-      }
-    });
+      buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
+        if (err) {
+          return console.error(err);
+        }
+        state.userPosition = position.coords;
+        updateLocationsDistance();
+        if (state.maps.main) {
+          state.maps.main.addUserPosition(state.userPosition);
+        }
+      });
 
-    buildfire.history.onPop((breadcrumb) => {
-      console.log('Breadcrumb popped', breadcrumb);
-      console.log('Breadcrumb popped', state.breadcrumbs);
-      state.breadcrumbs.pop();
-      if (!state.breadcrumbs.length) {
-        hideFilterOverlay();
-        navigateTo('home');
-      } else {
-        const page = state.breadcrumbs[state.breadcrumbs.length - 1];
-        if (page.name === 'af') {
-          showFilterOverlay();
-        } else if (page.name === 'detail') {
-          hideFilterOverlay();
-          showLocationDetail();
-        } else {
+      buildfire.history.onPop((breadcrumb) => {
+        console.log('Breadcrumb popped', breadcrumb);
+        console.log('Breadcrumb popped', state.breadcrumbs);
+        state.breadcrumbs.pop();
+        if (!state.breadcrumbs.length) {
           hideFilterOverlay();
           navigateTo('home');
+        } else {
+          const page = state.breadcrumbs[state.breadcrumbs.length - 1];
+          if (page.name === 'af') {
+            showFilterOverlay();
+          } else if (page.name === 'detail') {
+            hideFilterOverlay();
+            showLocationDetail();
+          } else {
+            hideFilterOverlay();
+            navigateTo('home');
+          }
+          state.breadcrumbs.pop();
         }
-        state.breadcrumbs.pop();
-      }
-    });
+      });
 
-    buildfire.appearance.getAppTheme((err, appTheme) => {
-      if (err) return console.error(err);
-      const root = document.documentElement;
-      const { colors } = appTheme;
-      root.style.setProperty('--body-theme', colors.bodyText);
-      root.style.setProperty('--header-theme', colors.headerText);
-      root.style.setProperty('--background-color', colors.backgroundColor);
-      root.style.setProperty('--primary-color', colors.primaryTheme);
-    });
+      buildfire.appearance.getAppTheme((err, appTheme) => {
+        if (err) return console.error(err);
+        const root = document.documentElement;
+        const { colors } = appTheme;
+        root.style.setProperty('--body-theme', colors.bodyText);
+        root.style.setProperty('--header-theme', colors.headerText);
+        root.style.setProperty('--background-color', colors.backgroundColor);
+        root.style.setProperty('--primary-color', colors.primaryTheme);
+      });
 
-    buildfire.messaging.onReceivedMessage = (message) => {
-      if (message.cmd === 'sync') {
-        handleCPSync(message);
-      }
-      console.log('widget message: ', message);
-    };
+      buildfire.messaging.onReceivedMessage = (message) => {
+        if (message.cmd === 'sync') {
+          handleCPSync(message);
+        }
+        console.log('widget message: ', message);
+      };
 
-    buildfire.components.ratingSystem.onRating = (e) => {
-      WidgetController
-        .updateLocationRating(state.selectedLocation.id, e.summary)
-        .catch((err) => {
-          console.error('err updating rating: ', err);
-        });
-    };
-  });
+      buildfire.components.ratingSystem.onRating = (e) => {
+        WidgetController
+          .updateLocationRating(state.selectedLocation.id, e.summary)
+          .catch((err) => {
+            console.error('err updating rating: ', err);
+          });
+      };
+    })
+  initGoogleMapsSDK();
 };
 
 // fetch settings instead
