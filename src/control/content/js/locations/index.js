@@ -937,12 +937,14 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
     }
 
     fromInput.onchange = (e) => {
+      console.log(new Date(e.target.valueAsDate));
       console.log(convertTimeToDate(e.target.value));
       interval.from = convertTimeToDate(e.target.value);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
-      console.log(new Date(e.target.value));
+      console.log(new Date(e.target.valueAsDate));
+      console.log(convertTimeToDate(e.target.value));
       interval.to = convertTimeToDate(e.target.value);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
@@ -1319,7 +1321,6 @@ const loadCategories = (callback) => {
 
 const copyLocationDeepling = (location, tr) => {
   generateDeeplinkUrl(location).then((result) => {
-    console.log(result);
     const copyElement = document.createElement("textarea");
     copyElement.style.position = 'fixed';
     copyElement.style.opacity = '0';
@@ -1329,7 +1330,14 @@ const copyLocationDeepling = (location, tr) => {
     copyElement.select();
     document.execCommand('copy');
     body.removeChild(copyElement);
+    const tooltip = document.getElementById(`tooltip-content-${location.id}`);
+    tooltip.innerHTML = 'Copied!';
   });
+};
+
+const onCopyMouseOut = (location, tr) => {
+  const tooltip = document.getElementById(`tooltip-content-${location.id}`);
+  tooltip.innerHTML = 'Copy Deeplink';
 };
 
 const updateLocationImage = (obj, tr) => {
@@ -1430,5 +1438,6 @@ window.initLocations = () => {
     refreshLocations();
   };
   locationsTable.onCopy = copyLocationDeepling;
+  locationsTable.onCopyMouseOut = onCopyMouseOut;
   locationsTable.onLoadMore = loadMoreLocations;
 };

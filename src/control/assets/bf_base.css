@@ -547,10 +547,10 @@ p.info-note.info-note-transparent {
 }
 /* Tooltips */
 
-.tooltip{
-  display: inline-flex;
-  position: relative;
-  cursor: default;
+.bf-tooltip{
+  display: inline-flex !important;
+  position: relative !important;
+  cursor: default !important;
 }
 .tooltip-icon{
   width: 1rem;
@@ -580,7 +580,11 @@ p.info-note.info-note-transparent {
   pointer-events: none;
   transition: ease-in-out .2s;
 }
-.tooltip:hover .tooltip-content{
+.tooltip-content.right{
+  right: calc(100% + .5rem) !important;
+  left: auto !important;
+}
+.bf-tooltip:hover .tooltip-content{
   opacity: 1;
 }
 

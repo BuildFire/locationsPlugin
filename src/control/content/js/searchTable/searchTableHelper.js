@@ -210,7 +210,7 @@ export default class SearchTableHelper {
         } catch (error) {
           console.log(error);
         }
-        td = this._create("td", tr, output, classes);
+        td = this._create("td", tr, output, [...classes, 'ellipsis']);
       }
       if (colConfig.width) td.style.width = colConfig.width;
     });
@@ -219,8 +219,9 @@ export default class SearchTableHelper {
     const actionsDiv = document.createElement("div");
     actionsDiv.className = "flex-row justify-content-end";
     const copyBtn = document.createElement("button");
-    copyBtn.className = "btn btn--icon";
-    copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>`;
+    copyBtn.className = "btn btn--icon bf-tooltip";
+    copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>
+    <span id="tooltip-content-${obj.id}" class="tooltip-content right">Copy Deeplink</span>`;
     actionsDiv.appendChild(copyBtn);
 
     const editBtn = document.createElement("span");
@@ -232,9 +233,13 @@ export default class SearchTableHelper {
     actionsDiv.appendChild(deleteBtn);
 
     copyBtn.onclick = () => {
-      console.log('Hello');
-      t.onCopy(obj, tr);
+      this.onCopy(obj, tr);
     };
+
+    copyBtn.onmouseleave = () => {
+      this.onCopyMouseOut(obj, tr);
+    };
+
     editBtn.onclick = () => {
       t.onEditRow(obj, tr);
     };
@@ -277,7 +282,9 @@ export default class SearchTableHelper {
 
   onSort(sort) {}
 
-  onCopy(obj) {}
+  onCopy(obj, tr) {}
+
+  onCopyMouseOut(obj, tr) {}
 
   onImageClick(obj, tr) {}
 
