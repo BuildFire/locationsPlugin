@@ -10,9 +10,6 @@ import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/d
 import constants from './js/constants';
 import views from './js/Views';
 
-
-const getCurrentPosition = buildfire.geo.getCurrentPosition;
-
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 
 if (!buildfire.components.carousel.view.prototype.clear) {
@@ -153,19 +150,12 @@ const refreshSettings = () => {
     .then((response) => state.settings = response);
 };
 
-const fetchCategories = (done) => {
-  WidgetController
+const refreshCategories = () => {
+  return WidgetController
     .searchCategories({
       sort: { title: -1 }
     })
-    .then((result) => {
-      // todo make sure data is parsed correctly
-      state.categories = result;
-      done();
-    })
-    .catch((err) => {
-      console.error('search error: ', err);
-    });
+    .then((result) => state.categories = result);
 };
 
 const clearIntroductoryLocations = () => {
@@ -1309,37 +1299,35 @@ const initDrawerFilterOptions = () => {
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = state.settings;
   views.inject('home');
-  fetchCategories(() => {
-    initFilterOverlay();
-    refreshQuickFilter(); // todo if quick filter enabled
-    initMainMap();
-    initAreaAutocompleteField();
-    setDefaultSorting();
-    searchLocations()
-      .then(() => {
-        drawer.initialize(state.settings);
-        initDrawerFilterOptions();
-        if (showIntroductoryListView) {
-          fetchPinnedLocations(() => {
-            renderIntroductoryLocations(state.listLocations, true);
-            refreshIntroductoryDescription();
-            showElement('section#intro');
-            refreshIntroductoryCarousel();
+  initFilterOverlay();
+  refreshQuickFilter(); // todo if quick filter enabled
+  initMainMap();
+  initAreaAutocompleteField();
+  setDefaultSorting();
+  searchLocations()
+    .then(() => {
+      drawer.initialize(state.settings);
+      initDrawerFilterOptions();
+      if (showIntroductoryListView) {
+        fetchPinnedLocations(() => {
+          renderIntroductoryLocations(state.listLocations, true);
+          refreshIntroductoryDescription();
+          showElement('section#intro');
+          refreshIntroductoryCarousel();
 
-            if (introductoryListView.images.length === 0
-              && !state.listLocations.length
-              && !introductoryListView.description) {
-              showElement('#intro div.empty-page');
-            }
-            // eslint-disable-next-line no-new
-            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-          });
-        } else {
-          renderListingLocations(state.listLocations);
-          showMapView();
-        }
-      });
-  });
+          if (introductoryListView.images.length === 0
+            && !state.listLocations.length
+            && !introductoryListView.description) {
+            showElement('#intro div.empty-page');
+          }
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        });
+      } else {
+        renderListingLocations(state.listLocations);
+        showMapView();
+      }
+    });
 };
 
 const calculateLocationDistance = (address) => {
@@ -1514,94 +1502,104 @@ const handleCPSync = (message) => {
       showMapView();
     }
   } else if (scope === 'category') {
-    fetchCategories(() => {
-      initFilterOverlay();
-      showFilterOverlay();
-    });
+    refreshCategories()
+      .then(() => {
+        initFilterOverlay();
+        showFilterOverlay();
+      });
   }
 };
 
+const getDataHandler = (deeplinkData) => {
+  console.log('getData deeplinkData: ', deeplinkData);
+  if (deeplinkData?.locationId) {
+    WidgetController
+      .getLocation(deeplinkData.locationId)
+      .then((response) => {
+        state.selectedLocation = response.data;
+        showLocationDetail();
+      })
+      .catch((err) => {
+        console.error('fetch location error: ', err);
+      });
+  }
+};
+
+const getCurrentPositionHandler = (err, position) => {
+  if (err) {
+    return console.error(`error getting current position ${err}`);
+  }
+  state.userPosition = position.coords;
+  setLocationsDistance();
+  const { map } = state.maps;
+  if (map) map.addUserPosition(state.userPosition);
+};
+const onPopHandler = (breadcrumb) => {
+  console.log('Breadcrumb popped', breadcrumb);
+  console.log('Breadcrumb popped', state.breadcrumbs);
+  state.breadcrumbs.pop();
+  if (!state.breadcrumbs.length) {
+    hideFilterOverlay();
+    navigateTo('home');
+  } else {
+    const page = state.breadcrumbs[state.breadcrumbs.length - 1];
+    if (page.name === 'af') {
+      showFilterOverlay();
+    } else if (page.name === 'detail') {
+      hideFilterOverlay();
+      showLocationDetail();
+    } else {
+      hideFilterOverlay();
+      navigateTo('home');
+    }
+    state.breadcrumbs.pop();
+  }
+};
+const getAppThemeHandler = (err, appTheme) => {
+  if (err) return console.error(err);
+  const root = document.documentElement;
+  const { colors } = appTheme;
+  root.style.setProperty('--body-theme', colors.bodyText);
+  root.style.setProperty('--header-theme', colors.headerText);
+  root.style.setProperty('--background-color', colors.backgroundColor);
+  root.style.setProperty('--primary-color', colors.primaryTheme);
+};
+const onReceivedMessageHandler = (message) => {
+  if (message.cmd === 'sync') {
+    handleCPSync(message);
+  }
+  console.log('widget message: ', message);
+};
+const onRatingHandler = (e) => {
+  WidgetController
+    .updateLocationRating(state.selectedLocation.id, e.summary)
+    .catch((err) => {
+      console.error('err updating rating: ', err);
+    });
+};
+
 const init = () => {
+  initGoogleMapsSDK();
+
   refreshSettings()
     .then(() => {
-      views.fetch('filter').then(() => { views.inject('filter'); });
-      views.fetch('home').then(initHomeView);
+      views
+        .fetch('filter')
+        .then(() => { views.inject('filter'); });
+
+      views
+        .fetch('home')
+        .then(refreshCategories)
+        .then(initHomeView);
+
+      buildfire.deeplink.getData(getDataHandler);
+      buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, getCurrentPositionHandler);
+      buildfire.history.onPop(onPopHandler);
+      buildfire.appearance.getAppTheme(getAppThemeHandler);
+      buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
+      buildfire.components.ratingSystem.onRating = onRatingHandler;
       setTimeout(() => { initEventListeners(); }, 1000);
-
-      buildfire.deeplink.getData((deeplinkData) => {
-        console.log('getData deeplinkData: ', deeplinkData);
-        if (deeplinkData?.locationId) {
-          WidgetController
-            .getLocation(deeplinkData.locationId)
-            .then((response) => {
-              state.selectedLocation = response.data;
-              showLocationDetail();
-            })
-            .catch((err) => {
-              console.error('fetch location error: ', err);
-            });
-        }
-      });
-
-      getCurrentPosition({ enableHighAccuracy: true })
-        .then((position) => {
-          const { map } = state.maps;
-          state.userPosition = position.coords;
-          setLocationsDistance();
-          if (map) map.addUserPosition(state.userPosition);
-        })
-        .catch((err) => {
-          console.error(`error getting current position ${err}`);
-        });
-
-      buildfire.history.onPop((breadcrumb) => {
-        console.log('Breadcrumb popped', breadcrumb);
-        console.log('Breadcrumb popped', state.breadcrumbs);
-        state.breadcrumbs.pop();
-        if (!state.breadcrumbs.length) {
-          hideFilterOverlay();
-          navigateTo('home');
-        } else {
-          const page = state.breadcrumbs[state.breadcrumbs.length - 1];
-          if (page.name === 'af') {
-            showFilterOverlay();
-          } else if (page.name === 'detail') {
-            hideFilterOverlay();
-            showLocationDetail();
-          } else {
-            hideFilterOverlay();
-            navigateTo('home');
-          }
-          state.breadcrumbs.pop();
-        }
-      });
-
-      buildfire.appearance.getAppTheme((err, appTheme) => {
-        if (err) return console.error(err);
-        const root = document.documentElement;
-        const { colors } = appTheme;
-        root.style.setProperty('--body-theme', colors.bodyText);
-        root.style.setProperty('--header-theme', colors.headerText);
-        root.style.setProperty('--background-color', colors.backgroundColor);
-        root.style.setProperty('--primary-color', colors.primaryTheme);
-      });
-
-      buildfire.messaging.onReceivedMessage = (message) => {
-        if (message.cmd === 'sync') {
-          handleCPSync(message);
-        }
-        console.log('widget message: ', message);
-      };
-
-      buildfire.components.ratingSystem.onRating = (e) => {
-        WidgetController
-          .updateLocationRating(state.selectedLocation.id, e.summary)
-          .catch((err) => {
-            console.error('err updating rating: ', err);
-          });
-      };
-    })
-  initGoogleMapsSDK();
+    });
 };
 
 // fetch settings instead
