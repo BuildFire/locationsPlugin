@@ -514,6 +514,7 @@ const saveLocation = (action, callback = () => {}) => {
 
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
+  addLocationControls.saveBtn.disabled = true;
   if (action === 'Add') {
     createLocation(state.locationObj).then(callback);
   } else {
@@ -1229,7 +1230,7 @@ window.importLocations = () =>  {
           type: "success",
         });
         refreshLocations();
-        triggerWidgetOnLocationsUpdate();
+        triggerWidgetOnLocationsUpdate({});
       }).catch((err) => {
         dialogRef.close();
         console.error(err);
@@ -1367,20 +1368,23 @@ const updateLocationImage = (obj, tr) => {
 
 const createLocation = (location) => {
   return LocationsController.createLocation(location).then((res) => {
-    console.log(res);
     refreshLocations();
-    triggerWidgetOnLocationsUpdate();
+    triggerWidgetOnLocationsUpdate({});
     cancelAddLocation();
     return true;
+  }).catch(() => {
+    addLocationControls.saveBtn.disabled = false;
   });
 };
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {
     refreshLocations();
-    triggerWidgetOnLocationsUpdate();
+    triggerWidgetOnLocationsUpdate({});
     cancelAddLocation();
     return true;
+  }).catch(() => {
+    addLocationControls.saveBtn.disabled = false;
   });
 };
 
@@ -1423,7 +1427,7 @@ window.initLocations = () => {
 
   handleLocationEmptyState(true);
   loadCategories(() => {
-    loadLocations();
+    refreshLocations();
   });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {

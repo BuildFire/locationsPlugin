@@ -51,6 +51,6 @@ export default {
       Location.delete(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
-    return Promise.all(promiseChain);
+    return Promise.allSettled(promiseChain);
   }
 };
