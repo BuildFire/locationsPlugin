@@ -14,7 +14,6 @@ class Views {
       xhr.onload = () => {
         const content = xhr.responseText;
         this.templates[view] = new DOMParser().parseFromString(content, 'text/html');
-        console.log(`this in fetch: ${view}, ${this}`)
         resolve(view);
       };
       xhr.onerror = () => {
@@ -26,7 +25,6 @@ class Views {
   }
 
   inject(view) {
-    console.log(`this -> : ${view}, ${this}`)
     if (!this.templates[view]) {
       console.warn(`template ${view} not found.`);
       return;
