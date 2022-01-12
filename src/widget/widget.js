@@ -810,10 +810,8 @@ const initEventListeners = () => {
   });
 
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
-  const areaSearchTextField = document.querySelector('#areaSearchTextField');
   myCurrentLocationBtn.onclick = (e) => {
     if (!state.userPosition) return;
-    const geoCoder = new google.maps.Geocoder();
     const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
     state.currentLocation = positionPoints;
     if (state.maps.map) {
@@ -821,21 +819,7 @@ const initEventListeners = () => {
       state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
     }
     clearAndSearchWithDelay();
-    geoCoder.geocode(
-      { location: positionPoints },
-      (results, status) => {
-        console.log(results);
-        if (status === "OK") {
-          if (results[0]) {
-            areaSearchTextField.value = results[0].formatted_address;
-          } else {
-            console.log("No results found");
-          }
-        } else {
-          console.log("Geocoder failed due to: " + status);
-        }
-      }
-    );
+    fillAreaSearchField(positionPoints);
   };
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
@@ -1075,13 +1059,29 @@ const generateMapOptions = () => {
   return options;
 };
 
+const fillAreaSearchField = (coords) => {
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  getFormattedAddress(coords, (err, address) => {
+    state.maps.map.center(coords);
+    areaSearchTextField.value = address;
+  });
+};
+
 const initMainMap = () => {
   const selector = document.getElementById('mainMapContainer');
   const options = generateMapOptions();
+  const { userPosition } = state;
 
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = onMapBoundsChange;
-  if (state.userPosition) state.maps.map.addUserPosition(state.userPosition);
+  if (userPosition) {
+    state.maps.map.addUserPosition(userPosition);
+    if (!state.settings.map.initialArea
+      || !state.settings.map.initialAreaCoordinates.lat
+      || !state.settings.map.initialAreaCoordinates.lng) {
+      fillAreaSearchField({ lat: userPosition.latitude, lng: userPosition.longitude });
+    }
+  }
 };
 
 const refreshMapOptions = () => {
