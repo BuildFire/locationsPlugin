@@ -300,3 +300,8 @@ p.info::before {
 .progress-dialog h4{
 	margin-top: 1rem;
 }
+
+.link-icon {
+	content:'\e60b';
+	font-family:"icomoon"
+}

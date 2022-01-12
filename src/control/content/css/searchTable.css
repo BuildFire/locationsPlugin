@@ -13,11 +13,11 @@ th > span {
     padding-left: 5px;
     cursor: pointer;
 }
-td{
+td.ellipsis{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 40px;
+    width: 150px;
 }
 tbody {
     display: block;
@@ -25,7 +25,7 @@ tbody {
 	overflow-y: auto;
 }
 table tbody tr {
-    background-color: #fff !important;
+    background-color: transparent !important;
 }
 table tbody tr td {
     border-top: none!important;
