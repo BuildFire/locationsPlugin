@@ -2,19 +2,20 @@ import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
-import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import {
   showElement,
-  hideElement
+  hideElement,
+  toggleDropdownMenu
 } from './js/util/ui';
 import constants from './js/constants';
 import views from './js/Views';
 
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
+let SEARCH_TIMOUT;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -139,6 +140,7 @@ const refreshCategories = () => {
 
 const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
 const clearMapViewList = () => { document.querySelector('#listingLocationsList').innerHTML = ''; };
+const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
 
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
@@ -327,13 +329,6 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
-const hideFilterOverlay = () => {
-  const filterOverlay = document.querySelector('section#filter');
-  if (filterOverlay.classList.contains('overlay')) {
-    filterOverlay.classList.remove('overlay');
-  }
-};
-
 const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === pageName) {
     return;
@@ -343,6 +338,7 @@ const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
     showLabelInTitlebar: showLabel
   });
 };
+
 const showFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
@@ -363,13 +359,6 @@ const toggleFilterOverlay = () => {
     homeView.classList.remove('active');
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
   }
-};
-const toggleDropdownMenu = (element) => {
-  if (typeof element === 'string') {
-    element = document.querySelector(element);
-  }
-  const menu = new mdc.menu.MDCMenu(element);
-  menu.open = true;
 };
 
 const transformCategories = (categories) => {
@@ -537,25 +526,6 @@ const showWorkingHoursDrawer = () => {
   );
 };
 
-const chatWithOwner = () => {
-  const { currentUser } = authManager;
-  const users = [];
-
-  if (!currentUser) {
-    return console.warn('undefined currentUser');
-  }
-  users.push(state.selectedLocation.owner.userId);
-  users.push(currentUser._id);
-  buildfire.navigation.navigateToSocialWall(
-    {
-      title: state.selectedLocation.title,
-      wallUserIds: users
-    },
-    (err, result) => {
-      if (err) console.error(err);
-    }
-  );
-};
 const shareLocation = () => {
   buildfire.deeplink.generateUrl(
     {
@@ -627,16 +597,15 @@ const fetchMoreListLocations = (e) => {
       } else {
         state.searchCriteria.page += 1;
       }
-      searchLocations(state.mapBounds? "bound" : "point")
+      searchLocations(state.mapBounds ? "bound" : "point")
         .then((result) => {
           renderListingLocations(result);
         });
     }
-  };
+  }
 };
-const viewFullImage = (url) => {
-  buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
-};
+
+const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) }); };
 
 const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
@@ -664,8 +633,6 @@ const clearLocations = () => {
   state.fetchingEndReached = false;
   if (state.maps.map) state.maps.map.clearMarkers();
 };
-
-let SEARCH_TIMOUT;
 
 const fetchPinnedLocations = (done) => {
   WidgetController
@@ -807,8 +774,6 @@ const initEventListeners = () => {
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
-    } else if (e.target.id === 'chatWithOwnerBtn') {
-      chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
     } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
@@ -1040,7 +1005,7 @@ const navigateTo = (template) => {
   }
 };
 
-const initAreaAutocompleteField = (template) => {
+const initAreaAutocompleteField = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   const autocomplete = new google.maps.places.Autocomplete(
     areaSearchTextField,
@@ -1110,7 +1075,6 @@ const generateMapOptions = () => {
     options.center = DEFAULT_LOCATION;
     state.currentLocation = DEFAULT_LOCATION;
   }
-
 
   return options;
 };
