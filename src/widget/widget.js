@@ -7,7 +7,7 @@ import drawer from './js/drawer';
 import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import constants from './js/constants';
-import app from './app';
+import views from './js/Views';
 
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 
@@ -17,39 +17,6 @@ if (!buildfire.components.carousel.view.prototype.clear) {
   };
 }
 
-const templates = {};
-
-/** template management start */
-const injectTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  const templateElement = document.querySelector(`#${template}`);
-  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  templateElement.innerHTML = '';
-  templateElement.appendChild(createTemplate);
-};
-
-const fetchTemplate = (template, done) => {
-  if (templates[template]) {
-    console.warn(`template ${template} already exist.`);
-    return done();
-  }
-
-  const xhr = new XMLHttpRequest();
-  xhr.onload = () => {
-    const content = xhr.responseText;
-    templates[template] = new DOMParser().parseFromString(content, 'text/html');
-    done(template);
-  };
-  xhr.onerror = () => {
-    console.error(`fetching template ${template} failed.`);
-  };
-  xhr.open('GET', `./templates/${template}.html`);
-  xhr.send(null);
-};
-/** template management end */
 const searchLocations = (type) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
@@ -473,101 +440,103 @@ const isLocationOpen = (location) => {
 };
 
 const showLocationDetail = () => {
-  fetchTemplate('detail', () => {
-    injectTemplate('detail');
-    const pageMapPosition = state.settings.design.detailsMapPosition;
-    let selectors = {
-      address: document.querySelector('.location-detail__address p:first-child'),
-      distance: document.querySelector('.location-detail__address p:last-child'),
-      carousel: document.querySelector('.location-detail__carousel'),
-      actionItems: document.querySelector('.location-detail__actions'),
-      description: document.querySelector('.location-detail__description'),
-      rating: document.querySelector('.location-detail__rating'),
-      ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
-      ratingValue: document.querySelector('.location-cover__rating-value')
-    };
-
-    if (pageMapPosition === 'top') {
-      selectors = {
-        ...selectors,
-        ...{
-          title: document.querySelector('.location-detail__top-header h1'),
-          subtitle: document.querySelector('.location-detail__top-header h5'),
-          categories: document.querySelector('.location-detail__top-subtitle p'),
-          cover: document.querySelector('.location-detail__bottom-cover'),
-          main: document.querySelector('.location-detail__top-view'),
-          map: document.querySelector('.location-detail__map--top-view'),
-          workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
-          workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label')
-        }
+  views
+    .fetch('detail')
+    .then(() => {
+      views.inject('detail');
+      const pageMapPosition = state.settings.design.detailsMapPosition;
+      let selectors = {
+        address: document.querySelector('.location-detail__address p:first-child'),
+        distance: document.querySelector('.location-detail__address p:last-child'),
+        carousel: document.querySelector('.location-detail__carousel'),
+        actionItems: document.querySelector('.location-detail__actions'),
+        description: document.querySelector('.location-detail__description'),
+        rating: document.querySelector('.location-detail__rating'),
+        ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
+        ratingValue: document.querySelector('.location-cover__rating-value')
       };
-      selectors.main.style.display = 'block';
-      selectors.rating.classList.add('location-detail__rating--single-shadow');
-    } else {
-      selectors = {
-        ...selectors,
-        ...{
-          title: document.querySelector('.location-detail__cover h2'),
-          subtitle: document.querySelector('.location-detail__cover h4'),
-          categories: document.querySelector('.location-detail__cover p:first-child'),
-          main: document.querySelector('.location-detail__cover'),
-          map: document.querySelector('.location-detail__map'),
-          workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
-          workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label')
-        }
-      };
-      selectors.main.style.display = 'flex';
-      selectors.rating.classList.add('location-detail__rating--dual-shadow');
-    }
 
-    if (state.selectedLocation.images.length > 0) {
       if (pageMapPosition === 'top') {
-        selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
-        selectors.cover.style.display = 'block';
+        selectors = {
+          ...selectors,
+          ...{
+            title: document.querySelector('.location-detail__top-header h1'),
+            subtitle: document.querySelector('.location-detail__top-header h5'),
+            categories: document.querySelector('.location-detail__top-subtitle p'),
+            cover: document.querySelector('.location-detail__bottom-cover'),
+            main: document.querySelector('.location-detail__top-view'),
+            map: document.querySelector('.location-detail__map--top-view'),
+            workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
+            workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label')
+          }
+        };
+        selectors.main.style.display = 'block';
+        selectors.rating.classList.add('location-detail__rating--single-shadow');
       } else {
-        selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+        selectors = {
+          ...selectors,
+          ...{
+            title: document.querySelector('.location-detail__cover h2'),
+            subtitle: document.querySelector('.location-detail__cover h4'),
+            categories: document.querySelector('.location-detail__cover p:first-child'),
+            main: document.querySelector('.location-detail__cover'),
+            map: document.querySelector('.location-detail__map'),
+            workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
+            workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label')
+          }
+        };
+        selectors.main.style.display = 'flex';
+        selectors.rating.classList.add('location-detail__rating--dual-shadow');
       }
-    }
 
-    selectors.map.style.display = 'block';
-    const detailMap = new google.maps.Map(selectors.map, {
-      mapTypeControl: true,
-      disableDefaultUI: true,
-      center: { lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng },
-      zoom: 14,
-    });
+      if (state.selectedLocation.images.length > 0) {
+        if (pageMapPosition === 'top') {
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+          selectors.cover.style.display = 'block';
+        } else {
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+        }
+      }
 
-    new google.maps.Marker({
-      position: new google.maps.LatLng({ lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng }),
-      map: detailMap,
-    });
+      selectors.map.style.display = 'block';
+      const detailMap = new google.maps.Map(selectors.map, {
+        mapTypeControl: true,
+        disableDefaultUI: true,
+        center: { lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng },
+        zoom: 14,
+      });
 
-    selectors.title.textContent = state.selectedLocation.title;
-    selectors.subtitle.textContent = state.selectedLocation.subtitle;
-    selectors.address.textContent = state.selectedLocation.formattedAddress;
-    selectors.description.innerHTML = state.selectedLocation.description;
-    selectors.distance.childNodes[0].nodeValue = state.selectedLocation.distance;
+      new google.maps.Marker({
+        position: new google.maps.LatLng({ lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng }),
+        map: detailMap,
+      });
 
-    if (state.settings.design?.showDetailsCategory && state.selectedLocation.settings.showCategory) {
-      selectors.categories.textContent = transformCategories(state.selectedLocation.categories);
-      selectors.categories.style.display = 'block';
-    }
+      selectors.title.textContent = state.selectedLocation.title;
+      selectors.subtitle.textContent = state.selectedLocation.subtitle;
+      selectors.address.textContent = state.selectedLocation.formattedAddress;
+      selectors.description.innerHTML = state.selectedLocation.description;
+      selectors.distance.childNodes[0].nodeValue = state.selectedLocation.distance;
 
-    if (!state.selectedLocation.settings.showOpeningHours) {
-      selectors.workingHoursBtn.style.display = 'none';
-    } else if (!isLocationOpen(state.selectedLocation)) {
-      selectors.workingHoursBtnLabel.textContent = 'Closed';
-    }
+      if (state.settings.design?.showDetailsCategory && state.selectedLocation.settings.showCategory) {
+        selectors.categories.textContent = transformCategories(state.selectedLocation.categories);
+        selectors.categories.style.display = 'block';
+      }
 
-    if (!state.selectedLocation.settings.showStarRating) {
-      document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
-      selectors.ratingValue.style.display = 'none';
-    } else {
-      selectors.ratingSystem.dataset.ratingId = state.selectedLocation.id;
-      selectors.ratingValue.textContent = Array(Math.round(state.selectedLocation.rating.average) + 1).join('★ ');
-      buildfire.components.ratingSystem.injectRatings();
-    }
-    selectors.actionItems.innerHTML = state.selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+      if (!state.selectedLocation.settings.showOpeningHours) {
+        selectors.workingHoursBtn.style.display = 'none';
+      } else if (!isLocationOpen(state.selectedLocation)) {
+        selectors.workingHoursBtnLabel.textContent = 'Closed';
+      }
+
+      if (!state.selectedLocation.settings.showStarRating) {
+        document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
+        selectors.ratingValue.style.display = 'none';
+      } else {
+        selectors.ratingSystem.dataset.ratingId = state.selectedLocation.id;
+        selectors.ratingValue.textContent = Array(Math.round(state.selectedLocation.rating.average) + 1).join('★ ');
+        buildfire.components.ratingSystem.injectRatings();
+      }
+      selectors.actionItems.innerHTML = state.selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
       ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
         <div class="mdc-chip" role="row">
@@ -579,10 +548,10 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-    selectors.carousel.innerHTML = state.selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
-    addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
-    navigateTo('detail');
-  });
+      selectors.carousel.innerHTML = state.selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+      addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
+      navigateTo('detail');
+    });
 };
 const showWorkingHoursDrawer = () => {
   const { days } = state.selectedLocation.openingHours;
@@ -1335,7 +1304,7 @@ const initDrawerFilterOptions = () => {
 };
 const initHomeView = () => {
   const { showIntroductoryListView, introductoryListView } = state.settings;
-  injectTemplate('home');
+  views.inject('home');
   fetchCategories(() => {
     initFilterOverlay();
     refreshQuickFilter(); // todo if quick filter enabled
@@ -1408,13 +1377,6 @@ const updateLocationsDistance = () => {
       locationDetailSelector.childNodes[0].nodeValue = state.selectedLocation.distance;
     }
   }
-};
-const clearTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  document.querySelector(`section#${template}`).innerHTML = '';
 };
 const initGoogleMapsSDK = () => {
   const { apiKeys } = buildfire.getContext();
@@ -1540,8 +1502,7 @@ const handleCPSync = (message) => {
       }
       hideFilterOverlay();
       showLocationDetail();
-    }
-    else if (isCancel) {
+    } else if (isCancel) {
       buildfire.history.pop();
     } else {
       hideFilterOverlay();
@@ -1559,8 +1520,8 @@ const handleCPSync = (message) => {
 const init = () => {
   refreshSettings()
     .then(() => {
-      fetchTemplate('filter', injectTemplate);
-      fetchTemplate('home', initHomeView);
+      views.fetch('filter').then(() => { views.inject('filter'); });
+      views.fetch('home').then(initHomeView);
       setTimeout(() => { initEventListeners(); }, 1000);
       buildfire.deeplink.getData((deeplinkData) => {
         console.log('getData deeplinkData: ', deeplinkData);
