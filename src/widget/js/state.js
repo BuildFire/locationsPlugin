@@ -1,6 +1,6 @@
 export default {
   maps: {
-    main: null,
+    map: null,
     detail: null
   },
   breadcrumbs: [],

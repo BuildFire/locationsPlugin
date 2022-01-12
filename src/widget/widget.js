@@ -1,3 +1,4 @@
+import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
@@ -8,6 +9,9 @@ import state from './js/state';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import constants from './js/constants';
 import views from './js/Views';
+
+
+const getCurrentPosition = buildfire.geo.getCurrentPosition;
 
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 
@@ -302,7 +306,7 @@ const renderListingLocations = (list) => {
   container.insertAdjacentHTML('beforeend', content);
 };
 const updateMapMarkers = (locations) => {
-  locations.forEach((location) => state.maps.main.addMarker(location, handleMarkerClick));
+  locations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 };
 
 const refreshQuickFilter = () => {
@@ -697,7 +701,7 @@ const clearLocations = () => {
   state.searchCriteria.page2 = 0;
   state.fetchingNextPage = false;
   state.fetchingEndReached = false;
-  if (state.maps.main) state.maps.main.clearMarkers();
+  if (state.maps.map) state.maps.map.clearMarkers();
 };
 
 let SEARCH_TIMOUT;
@@ -853,10 +857,10 @@ const initEventListeners = () => {
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
-      if (state.maps.main && state.userPosition.latitude && state.userPosition.longitude) {
+      if (state.maps.map && state.userPosition.latitude && state.userPosition.longitude) {
         getFormattedAddress({ lat: state.userPosition.latitude, lng: state.userPosition.longitude }, (err, address) => {
-          state.maps.main.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
-          state.maps.main.addUserPosition(state.userPosition);
+          state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+          state.maps.map.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
@@ -890,9 +894,9 @@ const initEventListeners = () => {
     const geoCoder = new google.maps.Geocoder();
     const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
     state.currentLocation = positionPoints;
-    if (state.maps.main) {
-      state.maps.main.addUserPosition(state.userPosition);
-      state.maps.main.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+    if (state.maps.map) {
+      state.maps.map.addUserPosition(state.userPosition);
+      state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
     }
     clearAndSearchWithDelay();
     geoCoder.geocode(
@@ -1095,7 +1099,7 @@ const initAreaAutocompleteField = (template) => {
       lng: place.geometry.location.lng()
     };
     state.currentLocation = point;
-    state.maps.main.center(point);
+    state.maps.map.center(point);
     clearAndSearchWithDelay();
     console.log(place);
   });
@@ -1151,15 +1155,15 @@ const initMainMap = () => {
       ]
     });
   }
-  state.maps.main = new MainMap(selector, options);
+  state.maps.map = new MainMap(selector, options);
   if (state.userPosition) {
-    state.maps.main.addUserPosition(state.userPosition);
+    state.maps.map.addUserPosition(state.userPosition);
   }
-  state.maps.main.onBoundsChange = onMapBoundsChange;
+  state.maps.map.onBoundsChange = onMapBoundsChange;
 };
 
 const refreshMapOptions = () => {
-  if (state.maps.main) {
+  if (state.maps.map) {
     const { map, design } = state.settings;
     const options = {
       styles: [],
@@ -1206,7 +1210,7 @@ const refreshMapOptions = () => {
       });
     }
 
-    state.maps.main.updateOptions(options);
+    state.maps.map.updateOptions(options);
   }
 };
 const handleMarkerClick = (location) => {
@@ -1360,7 +1364,7 @@ const calculateLocationDistance = (address) => {
   return result;
 };
 
-const updateLocationsDistance = () => {
+const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
@@ -1434,7 +1438,7 @@ const handleCPSync = (message) => {
             hideElement('#areaSearchLabel');
           }
         } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
-          updateLocationsDistance();
+          setLocationsDistance();
         } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
           || ms.initialArea !== oms.initialArea
           || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
@@ -1523,6 +1527,7 @@ const init = () => {
       views.fetch('filter').then(() => { views.inject('filter'); });
       views.fetch('home').then(initHomeView);
       setTimeout(() => { initEventListeners(); }, 1000);
+
       buildfire.deeplink.getData((deeplinkData) => {
         console.log('getData deeplinkData: ', deeplinkData);
         if (deeplinkData?.locationId) {
@@ -1538,16 +1543,16 @@ const init = () => {
         }
       });
 
-      buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-        if (err) {
-          return console.error(err);
-        }
-        state.userPosition = position.coords;
-        updateLocationsDistance();
-        if (state.maps.main) {
-          state.maps.main.addUserPosition(state.userPosition);
-        }
-      });
+      getCurrentPosition({ enableHighAccuracy: true })
+        .then((position) => {
+          const { map } = state.maps;
+          state.userPosition = position.coords;
+          setLocationsDistance();
+          if (map) map.addUserPosition(state.userPosition);
+        })
+        .catch((err) => {
+          console.error(`error getting current position ${err}`);
+        });
 
       buildfire.history.onPop((breadcrumb) => {
         console.log('Breadcrumb popped', breadcrumb);
