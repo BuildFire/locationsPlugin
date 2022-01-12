@@ -1388,7 +1388,7 @@ const updateLocation = (locationId, location) => {
   });
 };
 
-const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = false }) => {
+const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = false } = {}) => {
   if (syncTimeOut) clearTimeout(syncTimeOut);
   syncTimeOut = setTimeout(() => {
     let data = null;

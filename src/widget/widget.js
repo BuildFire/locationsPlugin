@@ -5,14 +5,10 @@ import Accordion from './js/Accordion';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
 import state from './js/state';
-import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
-import {
-  showElement,
-  hideElement,
-  toggleDropdownMenu
-} from './js/util/ui';
 import constants from './js/constants';
 import views from './js/Views';
+import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
+import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
 
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
 let SEARCH_TIMOUT;
@@ -443,7 +439,7 @@ const showLocationDetail = () => {
         selectors.rating.classList.add('location-detail__rating--dual-shadow');
       }
 
-      if (state.selectedLocation.images.length > 0) {
+      if (state.selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
           selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
           selectors.cover.style.display = 'block';
@@ -1193,6 +1189,7 @@ const initHomeView = () => {
   initMainMap();
   initAreaAutocompleteField();
   setDefaultSorting();
+  initEventListeners();
   searchLocations()
     .then(() => {
       drawer.initialize(state.settings);
@@ -1395,8 +1392,8 @@ const handleCPSync = (message) => {
 const getDataHandler = (deeplinkData) => {
   console.log('getData deeplinkData: ', deeplinkData);
   if (deeplinkData?.locationId) {
-    WidgetController
-      .getLocation(deeplinkData.locationId)
+    refreshCategories()
+      .then(() => WidgetController.getLocation(deeplinkData.locationId))
       .then((response) => {
         state.selectedLocation = response.data;
         showLocationDetail();
@@ -1465,14 +1462,8 @@ const init = () => {
 
   refreshSettings()
     .then(() => {
-      views
-        .fetch('filter')
-        .then(() => { views.inject('filter'); });
-
-      views
-        .fetch('home')
-        .then(refreshCategories)
-        .then(initHomeView);
+      views.fetch('filter').then(() => { views.inject('filter'); });
+      views.fetch('home').then(refreshCategories).then(initHomeView);
 
       buildfire.deeplink.getData(getDataHandler);
       buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, getCurrentPositionHandler);
@@ -1480,9 +1471,7 @@ const init = () => {
       buildfire.appearance.getAppTheme(getAppThemeHandler);
       buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
       buildfire.components.ratingSystem.onRating = onRatingHandler;
-      setTimeout(() => { initEventListeners(); }, 1000);
     });
 };
 
-// fetch settings instead
 init();
