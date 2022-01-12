@@ -5,6 +5,8 @@
     "airbnb-base"
   ],
   "rules": {
+    "consistent-return": 0,
+    "no-return-assign": 0,
     "comma-dangle": 0,
     "no-restricted-globals": 0,
     "quotes": 0,

@@ -1,125 +1,21 @@
+import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
-import authManager from '../UserAccessControl/authManager';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
-import {openingNowDate, getCurrentDayName, convertDateToTime} from '../utils/datetime';
+import state from './js/state';
+import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
+import {
+  showElement,
+  hideElement,
+  toggleDropdownMenu
+} from './js/util/ui';
+import constants from './js/constants';
+import views from './js/Views';
 
-let settings;
-let CATEGORIES;
-let userPosition;
-let introductoryLocations = [];
-let introductoryLocationsCount = 0;
-let introductoryLocationsPending = false;
-let currentIntroductoryPage = 0;
-let filterElements = {};
-let markerClusterer;
-let pinnedLocations = [];
-let selectedLocation;
-let mainMap;
-let currentLocation;
-const criteria = {
-  searchValue: '',
-  openingNow: false,
-  priceRange: null,
-  sort: {
-    sortBy: 'distance',
-    order: 1
-  },
-  page: 0,
-  page2: 0,
-  pageSize: 50,
-};
-let listLocations = [];
-let mapBounds = null;
-let firstSearchInit = false;
-let fetchingNextPage = false;
-let fetchingEndReached = false;
 const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
-let introCarousel;
-let breadcrumbs = [];
-
-const darkMapStyle = [
-  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-  {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }],
-  },
-  {
-    featureType: "poi",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "geometry",
-    stylers: [{ color: "#263c3f" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#6b9a76" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#38414e" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#212a37" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#9ca5b3" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#746855" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#1f2835" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#f3d19c" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#2f3948" }],
-  },
-  {
-    featureType: "transit.station",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#17263c" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#515c6d" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#17263c" }],
-  },
-];
+let SEARCH_TIMOUT;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -127,96 +23,37 @@ if (!buildfire.components.carousel.view.prototype.clear) {
   };
 }
 
-// todo to be removed
-const testingFn = () => {
-  settings.showIntroductoryListView = false;
-  settings.design.listViewStyle = 'image';
-  settings.design.detailsMapPosition = 'bottom'; // top or bottom
-  if (settings.introductoryListView.images.length === 0) {
-    settings.introductoryListView.images = [
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-      {
-        iconUrl: "https://placeimg.com/800/400",
-      },
-    ];
-  }
-
-  if (!settings.introductoryListView.description) {
-    settings.introductoryListView.description = '<h2 style="text-align: center;">Introduction to TinyMCE!</h2>';
-  }
-};
-
-// testingFn();
-
-const templates = {};
-
-/** template management start */
-const injectTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  const templateElement = document.querySelector(`#${template}`);
-  const createTemplate = document.importNode(templates[template].querySelector('template').content, true);
-  templateElement.innerHTML = '';
-  templateElement.appendChild(createTemplate);
-};
-
-const fetchTemplate = (template, done) => {
-  if (templates[template]) {
-    console.warn(`template ${template} already exist.`);
-    return done();
-  }
-
-  const xhr = new XMLHttpRequest();
-  xhr.onload = () => {
-    const content = xhr.responseText;
-    templates[template] = new DOMParser().parseFromString(content, 'text/html');
-    done(template);
-  };
-  xhr.onerror = () => {
-    console.error(`fetching template ${template} failed.`);
-  };
-  xhr.open('GET', `./templates/${template}.html`);
-  xhr.send(null);
-};
-/** template management end */
 const searchLocations = (type) => {
   // add geo stage when search user location , area, open Now
   const pipelines = [];
-  let pageIndex = criteria.page;
+  let pageIndex = state.searchCriteria.page;
   const query = {};
-  if (criteria.searchValue) {
-    query["_buildfire.index.text"] = { $regex: criteria.searchValue.toLowerCase(), $options: "-i" };
+  if (state.searchCriteria.searchValue) {
+    query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
   }
 
   // categories & subcategories filter
   const categoryIds = [];
   const subcategoryIds = [];
   // eslint-disable-next-line no-restricted-syntax
-  for (const key in filterElements) {
-    if (filterElements[key].checked) {
+  for (const key in state.filterElements) {
+    if (state.filterElements[key].checked) {
       categoryIds.push(key);
-      subcategoryIds.push(...filterElements[key].subcategories);
+      subcategoryIds.push(...state.filterElements[key].subcategories);
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || criteria.priceRange) {
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange) {
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
-    if (criteria.priceRange) {
-      array1Index.push(`pr_${criteria.priceRange}`);
+    if (state.searchCriteria.priceRange) {
+      array1Index.push(`pr_${state.searchCriteria.priceRange}`);
     }
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
 
   let $geoNear = null;
-  if (type !== 'bound' && currentLocation) {
+  if (type !== 'bound' && state.currentLocation) {
     $geoNear = {
-      near: { type: "Point", coordinates: [currentLocation.lng, currentLocation.lat] },
+      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
       key: "_buildfire.geo",
       maxDistance: 10000,
       distanceField: "distance",
@@ -226,25 +63,16 @@ const searchLocations = (type) => {
     pipelines.push({ $geoNear });
   } else {
     const $match = { ...query };
-    /*
-      mapBounds = [
-        [west, north],
-        [east, north],
-        [east, south],
-        [west, south],
-        [west, north]
-      ]
-    */
-    if (type === 'bound' && Array.isArray(mapBounds)) {
+    if (type === 'bound' && Array.isArray(state.mapBounds)) {
       $match["_buildfire.geo"] =  {
         $geoWithin: {
           $geometry: {
             type : "Polygon",
-            coordinates: [mapBounds]
+            coordinates: [state.mapBounds]
           }
         }
       };
-      pageIndex = criteria.page2;
+      pageIndex = state.searchCriteria.page2;
     }
 
     // if (Object.keys($match).length === 0) {
@@ -253,7 +81,7 @@ const searchLocations = (type) => {
     pipelines.push({ $match });
   }
 
-  if (criteria.openingNow) {
+  if (state.searchCriteria.openingNow) {
     const $match2 = {  };
     $match2[`openingHours.days.${getCurrentDayName()}.intervals`] = {
       $elemMatch: {
@@ -266,11 +94,11 @@ const searchLocations = (type) => {
   }
 
   const $sort = {};
-  if (criteria.sort) {
-    if (criteria.sort.sortBy === 'distance' && !$geoNear) {
+  if (state.searchCriteria.sort) {
+    if (state.searchCriteria.sort.sortBy === 'distance' && !$geoNear) {
       $sort["_buildfire.index.text"] = 1;
     } else {
-      $sort[criteria.sort.sortBy] = criteria.sort.order;
+      $sort[state.searchCriteria.sort.sortBy] = state.searchCriteria.sort.order;
     }
     pipelines.push({ $sort });
   }
@@ -278,90 +106,46 @@ const searchLocations = (type) => {
     WidgetController.searchLocationsV2(pipelines, pageIndex)
   ];
 
-  if (criteria.searchValue) {
-    promiseChain.push(WidgetController.getSearchEngineResults(criteria.searchValue, criteria.page));
+  if (state.searchCriteria.searchValue) {
+    promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue, state.searchCriteria.page));
   }
 
-  return Promise.all(promiseChain).then(([result, result2]) => {
-    console.log(result2);
-    fetchingNextPage = false;
-    fetchingEndReached = result.length < criteria.pageSize;
-    result = result.filter((elem1) => !listLocations.find((elem) => elem?.id === elem1?.id))
-      .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
-    listLocations = listLocations.concat(result);
-    updateMapMarkers(result);
-    return result;
-  }).catch(console.error);
-};
-
-/** ui helpers start */
-const showElement = (selector) => {
-  let element = selector;
-  if (typeof element === 'string') {
-    element = document.querySelector(element);
-  }
-
-  if (!element || !(element instanceof Element) || !element.style) {
-    console.warn(`invalid selector ${selector}.`);
-  } else {
-    element.style.display = 'block';
-  }
-};
-const hideElement = (selector) => {
-  let element = selector;
-  if (typeof element === 'string') {
-    element = document.querySelector(element);
-  }
-
-  if (!element || !(element instanceof Element) || !element.style) {
-    console.warn(`invalid selector ${selector}.`);
-  } else {
-    element.style.display = 'none';
-  }
-};
-/** ui helpers end */
-
-const fetchSettings = (callback) => {
-  WidgetController
-    .getAppSettings()
-    .then((response) => {
-      settings = response;
-      console.log('settings: ', settings);
-      callback();
+  return Promise.all(promiseChain)
+    .then(([result, result2]) => {
+      console.log(result2);
+      state.fetchingNextPage = false;
+      state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
+      result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
+        .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
+      state.listLocations = state.listLocations.concat(result);
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+      return result;
     })
-    .catch((err) => {
-      console.error('error fetching settings: ', err);
-      callback();
-    });
+    .catch(console.error);
 };
 
-const fetchCategories = (done) => {
-  WidgetController
+const refreshSettings = () => {
+  return WidgetController
+    .getAppSettings()
+    .then((response) => state.settings = response);
+};
+
+const refreshCategories = () => {
+  return WidgetController
     .searchCategories({
       sort: { title: -1 }
     })
-    .then((result) => {
-      // todo make sure data is parsed correctly
-      CATEGORIES = result;
-      done();
-    })
-    .catch((err) => {
-      console.error('search error: ', err);
-    });
+    .then((result) => state.categories = result);
 };
 
-const clearIntroductoryLocations = () => {
-  const container = document.querySelector('#introLocationsList');
-  container.innerHTML = '';
-};
-const clearListingLocations = () => {
-  const container = document.querySelector('#listingLocationsList');
-  container.innerHTML = '';
-};
+const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
+const clearMapViewList = () => { document.querySelector('#listingLocationsList').innerHTML = ''; };
+const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
+
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
   let reducedLocations = list.reduce((filtered, n) => {
-    const index = pinnedLocations.findIndex((pinned) => pinned.id === n.id);
+    const index = state.pinnedLocations.findIndex((pinned) => pinned.id === n.id);
     if (index === -1) {
       filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
@@ -394,7 +178,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   }, []);
 
   if (includePinned) {
-    reducedLocations = pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+    reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
@@ -427,7 +211,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   let content;
-  if (settings.design.listViewStyle === 'backgroundImage') {
+  if (state.settings.design.listViewStyle === 'backgroundImage') {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].imageUrl : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
@@ -440,7 +224,7 @@ const renderListingLocations = (list) => {
                 <span>${n.subtitle}</span>
                 <span>
                   <span>${n.price.currency?.repeat(n.price?.range)}</span>
-                  <span style="margin-left: 10px;color: #91dba6;">Open Now</span>
+                  <span class="location-image__open-status">${isLocationOpen(n) ? 'Open Now' : 'Closed'}</span>
                 </span>
               </p>
             </div>
@@ -487,16 +271,13 @@ const renderListingLocations = (list) => {
   }
   container.insertAdjacentHTML('beforeend', content);
 };
-const updateMapMarkers = (locations) => {
-  locations.forEach((location) => mainMap.addMarker(location, handleMarkerClick));
-};
 
 const refreshQuickFilter = () => {
-  const quickFilterItems = CATEGORIES.slice(0, 10);
   const container = document.querySelector('.header-qf');
+  const quickFilterItems = state.categories.slice(0, 10);
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
-  if (quickFilterItems.length === 0) {
+  if (!quickFilterItems.length) {
     container.innerHTML = '<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">No Categories Added</small>';
     advancedFilterBtn.classList.add('disabled');
     return;
@@ -520,10 +301,10 @@ const refreshQuickFilter = () => {
     chip.listen('MDCChip:interaction', (event) => {
       const categoryId = event.detail.chipId;
       console.log(categoryId);
-      if (filterElements[categoryId]) {
-        filterElements[categoryId].checked = !filterElements[categoryId].checked;
+      if (state.filterElements[categoryId]) {
+        state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
       } else {
-        filterElements[categoryId] = { checked: true, subcategories: [] };
+        state.filterElements[categoryId] = { checked: true, subcategories: [] };
       }
       clearAndSearchWithDelay();
     });
@@ -531,39 +312,33 @@ const refreshQuickFilter = () => {
 };
 
 const refreshIntroductoryDescription = () => {
-  if (settings.introductoryListView.description) {
+  if (state.settings.introductoryListView.description) {
     const container = document.querySelector('.intro-details');
-    container.innerHTML = settings.introductoryListView.description;
+    container.innerHTML = state.settings.introductoryListView.description;
   }
 };
 
 const refreshIntroductoryCarousel = () => {
-  const { introductoryListView } = settings;
-  if (introCarousel) {
-    introCarousel.clear();
-    introCarousel.append(introductoryListView.images);
+  const { introductoryListView } = state.settings;
+  if (state.introCarousel) {
+    state.introCarousel.clear();
+    state.introCarousel.append(introductoryListView.images);
   } else if (introductoryListView.images.length > 0) {
-    introCarousel = new buildfire.components.carousel.view('.carousel');
-    introCarousel.loadItems(introductoryListView.images);
-  }
-};
-
-const hideFilterOverlay = () => {
-  const filterOverlay = document.querySelector('section#filter');
-  if (filterOverlay.classList.contains('overlay')) {
-    filterOverlay.classList.remove('overlay');
+    state.introCarousel = new buildfire.components.carousel.view('.carousel');
+    state.introCarousel.loadItems(introductoryListView.images);
   }
 };
 
 const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
-  if (breadcrumbs.length && breadcrumbs[breadcrumbs.length - 1].name === pageName) {
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === pageName) {
     return;
   }
-  breadcrumbs.push({ name: pageName });
+  state.breadcrumbs.push({ name: pageName });
   buildfire.history.push(label, {
     showLabelInTitlebar: showLabel
   });
 };
+
 const showFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
@@ -585,23 +360,16 @@ const toggleFilterOverlay = () => {
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
   }
 };
-const toggleDropdownMenu = (element) => {
-  if (typeof element === 'string') {
-    element = document.querySelector(element);
-  }
-  const menu = new mdc.menu.MDCMenu(element);
-  menu.open = true;
-};
 
 const transformCategories = (categories) => {
   if (!categories.main.length) {
     return '--';
   }
-  const subCategories = CATEGORIES.map((cat) => cat.subcategories).flat();
+  const subCategories = state.categories.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
   const subCategoriesTitles = [];
   categories.main.forEach((c) => {
-    const item = CATEGORIES.find((p) => p.id === c);
+    const item = state.categories.find((p) => p.id === c);
     if (item) mainCategoriesTitles.push(item.title);
   });
   categories.subcategories.forEach((c) => {
@@ -612,95 +380,117 @@ const transformCategories = (categories) => {
     ? categories.main.join(', ')
     : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
 };
+
+const isLocationOpen = (location) => {
+  let isOpen = false;
+  const today = location.openingHours.days[getCurrentDayName()];
+  const now = openingNowDate();
+
+  if (today.active) {
+    const interval = today.intervals.find((i) => (new Date(i.from) <= now) && (new Date(i.to) > now));
+    if (interval) isOpen = true;
+  }
+  return isOpen;
+};
+
 const showLocationDetail = () => {
-  fetchTemplate('detail', () => {
-    injectTemplate('detail');
-    const pageMapPosition = settings.design.detailsMapPosition;
-    let selectors = {
-      address: document.querySelector('.location-detail__address p:first-child'),
-      distance: document.querySelector('.location-detail__address p:last-child'),
-      carousel: document.querySelector('.location-detail__carousel'),
-      actionItems: document.querySelector('.location-detail__actions'),
-      description: document.querySelector('.location-detail__description'),
-      rating: document.querySelector('.location-detail__rating'),
-      ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
-    };
-
-    if (pageMapPosition === 'top') {
-      selectors = {
-        ...selectors,
-        ...{
-          title: document.querySelector('.location-detail__top-header h1'),
-          subtitle: document.querySelector('.location-detail__top-header h5'),
-          categories: document.querySelector('.location-detail__top-subtitle p'),
-          cover: document.querySelector('.location-detail__bottom-cover'),
-          main: document.querySelector('.location-detail__top-view'),
-          map: document.querySelector('.location-detail__map--top-view'),
-          workingHoursBtn: document.querySelector('#topWorkingHoursBtn')
-        }
+  views
+    .fetch('detail')
+    .then(() => {
+      views.inject('detail');
+      const pageMapPosition = state.settings.design.detailsMapPosition;
+      let selectors = {
+        address: document.querySelector('.location-detail__address p:first-child'),
+        distance: document.querySelector('.location-detail__address p:last-child'),
+        carousel: document.querySelector('.location-detail__carousel'),
+        actionItems: document.querySelector('.location-detail__actions'),
+        description: document.querySelector('.location-detail__description'),
+        rating: document.querySelector('.location-detail__rating'),
+        ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
+        ratingValue: document.querySelector('.location-cover__rating-value')
       };
-      selectors.main.style.display = 'block';
-      selectors.rating.classList.add('location-detail__rating--single-shadow');
-    } else {
-      selectors = {
-        ...selectors,
-        ...{
-          title: document.querySelector('.location-detail__cover h2'),
-          subtitle: document.querySelector('.location-detail__cover h4'),
-          categories: document.querySelector('.location-detail__cover p:first-child'),
-          main: document.querySelector('.location-detail__cover'),
-          map: document.querySelector('.location-detail__map'),
-          workingHoursBtn: document.querySelector('#coverWorkingHoursBtn')
-        }
-      };
-      selectors.main.style.display = 'flex';
-      selectors.rating.classList.add('location-detail__rating--dual-shadow');
-    }
 
-    if (selectedLocation.images.length > 0) {
       if (pageMapPosition === 'top') {
-        selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
-        selectors.cover.style.display = 'block';
+        selectors = {
+          ...selectors,
+          ...{
+            title: document.querySelector('.location-detail__top-header h1'),
+            subtitle: document.querySelector('.location-detail__top-header h5'),
+            categories: document.querySelector('.location-detail__top-subtitle p'),
+            cover: document.querySelector('.location-detail__bottom-cover'),
+            main: document.querySelector('.location-detail__top-view'),
+            map: document.querySelector('.location-detail__map--top-view'),
+            workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
+            workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label')
+          }
+        };
+        selectors.main.style.display = 'block';
+        selectors.rating.classList.add('location-detail__rating--single-shadow');
       } else {
-        selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+        selectors = {
+          ...selectors,
+          ...{
+            title: document.querySelector('.location-detail__cover h2'),
+            subtitle: document.querySelector('.location-detail__cover h4'),
+            categories: document.querySelector('.location-detail__cover p:first-child'),
+            main: document.querySelector('.location-detail__cover'),
+            map: document.querySelector('.location-detail__map'),
+            workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
+            workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label')
+          }
+        };
+        selectors.main.style.display = 'flex';
+        selectors.rating.classList.add('location-detail__rating--dual-shadow');
       }
-    }
 
-    selectors.map.style.display = 'block';
-    const detailMap = new google.maps.Map(selectors.map, {
-      mapTypeControl: true,
-      disableDefaultUI: true,
-      center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
-      zoom: 14,
-    });
+      if (state.selectedLocation.images.length > 0) {
+        if (pageMapPosition === 'top') {
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+          selectors.cover.style.display = 'block';
+        } else {
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+        }
+      }
 
-    new google.maps.Marker({
-      position: new google.maps.LatLng({ lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng }),
-      map: detailMap,
-    });
+      selectors.map.style.display = 'block';
+      const detailMap = new google.maps.Map(selectors.map, {
+        mapTypeControl: true,
+        disableDefaultUI: true,
+        center: { lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng },
+        zoom: 14,
+      });
 
-    selectors.title.textContent = selectedLocation.title;
-    selectors.subtitle.textContent = selectedLocation.subtitle;
-    selectors.address.textContent = selectedLocation.formattedAddress;
-    selectors.description.innerHTML = selectedLocation.description;
-    selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
+      new google.maps.Marker({
+        position: new google.maps.LatLng({ lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng }),
+        map: detailMap,
+      });
 
-    if (settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
-      selectors.categories.textContent = transformCategories(selectedLocation.categories);
-      selectors.categories.style.display = 'block';
-    }
+      selectors.title.textContent = state.selectedLocation.title;
+      selectors.subtitle.textContent = state.selectedLocation.subtitle;
+      selectors.address.textContent = state.selectedLocation.formattedAddress;
+      selectors.description.innerHTML = state.selectedLocation.description;
+      selectors.distance.childNodes[0].nodeValue = state.selectedLocation.distance;
 
-    if (!selectedLocation.settings.showOpeningHours) {
-      selectors.workingHoursBtn.style.display = 'none';
-    }
+      if (state.settings.design?.showDetailsCategory && state.selectedLocation.settings.showCategory) {
+        selectors.categories.textContent = transformCategories(state.selectedLocation.categories);
+        selectors.categories.style.display = 'block';
+      }
 
-    if (!selectedLocation.settings.showStarRating) {
-      document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
-    } else {
-      selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
-      buildfire.components.ratingSystem.injectRatings();
-    }
-    selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+      if (!state.selectedLocation.settings.showOpeningHours) {
+        selectors.workingHoursBtn.style.display = 'none';
+      } else if (!isLocationOpen(state.selectedLocation)) {
+        selectors.workingHoursBtnLabel.textContent = 'Closed';
+      }
+
+      if (!state.selectedLocation.settings.showStarRating) {
+        document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
+        selectors.ratingValue.style.display = 'none';
+      } else {
+        selectors.ratingSystem.dataset.ratingId = state.selectedLocation.id;
+        selectors.ratingValue.textContent = Array(Math.round(state.selectedLocation.rating.average) + 1).join('★ ');
+        buildfire.components.ratingSystem.injectRatings();
+      }
+      selectors.actionItems.innerHTML = state.selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
       ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
         <div class="mdc-chip" role="row">
@@ -712,13 +502,13 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-    selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
-    addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
-    navigateTo('detail');
-  });
+      selectors.carousel.innerHTML = state.selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+      addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
+      navigateTo('detail');
+    });
 };
 const showWorkingHoursDrawer = () => {
-  const { days } = selectedLocation.openingHours;
+  const { days } = state.selectedLocation.openingHours;
   buildfire.components.drawer.open(
     {
       header: 'Open Hours',
@@ -736,35 +526,16 @@ const showWorkingHoursDrawer = () => {
   );
 };
 
-const chatWithOwner = () => {
-  const { currentUser } = authManager;
-  const users = [];
-
-  if (!currentUser) {
-    return console.warn('undefined currentUser');
-  }
-  users.push(selectedLocation.owner.userId);
-  users.push(currentUser._id);
-  buildfire.navigation.navigateToSocialWall(
-    {
-      title: selectedLocation.title,
-      wallUserIds: users
-    },
-    (err, result) => {
-      if (err) console.error(err);
-    }
-  );
-};
 const shareLocation = () => {
   buildfire.deeplink.generateUrl(
     {
-      data: { locationId: selectedLocation.id },
+      data: { locationId: state.selectedLocation.id },
     },
     (err, result) => {
       if (err) return console.error(err);
       buildfire.device.share({
-        subject: selectedLocation.title,
-        text: selectedLocation.title,
+        subject: state.selectedLocation.title,
+        text: state.selectedLocation.title,
         link: result.url
       }, (err, result) => {
         if (err) console.error(err);
@@ -776,7 +547,7 @@ const shareLocation = () => {
 
 const handleDetailActionItem = (e) => {
   const actionId = e.target.parentNode.dataset.id;
-  const actionItem = selectedLocation.actionItems.find((a) => a.id === actionId);
+  const actionItem = state.selectedLocation.actionItems.find((a) => a.id === actionId);
   buildfire.actionItems.execute(
     actionItem,
     (err) => {
@@ -788,7 +559,7 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  const actionItem = listLocations
+  const actionItem = state.listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
   buildfire.actionItems.execute(
@@ -804,10 +575,10 @@ const fetchMoreIntroductoryLocations = (e) => {
   const listContainer = document.querySelector('section#intro');
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
 
-  if (activeTemplate === 'intro' && !fetchingNextPage && !fetchingEndReached) {
+  if (activeTemplate === 'intro' && !state.fetchingNextPage && !state.fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-      fetchingNextPage = true;
-      criteria.page += 1;
+      state.fetchingNextPage = true;
+      state.searchCriteria.page += 1;
       searchLocations()
         .then((result) => {
           renderIntroductoryLocations(result);
@@ -819,40 +590,55 @@ const fetchMoreIntroductoryLocations = (e) => {
 const fetchMoreListLocations = (e) => {
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    if (!fetchingNextPage && !fetchingEndReached) {
-      fetchingNextPage = true;
-      if (mapBounds) {
-        criteria.page2 += 1;
+    if (!state.fetchingNextPage && !state.fetchingEndReached) {
+      state.fetchingNextPage = true;
+      if (state.mapBounds) {
+        state.searchCriteria.page2 += 1;
       } else {
-        criteria.page += 1;
+        state.searchCriteria.page += 1;
       }
-      searchLocations(mapBounds? "bound" : "point")
+      searchLocations(state.mapBounds ? "bound" : "point")
         .then((result) => {
           renderListingLocations(result);
         });
     }
-  };
+  }
 };
-const viewFullImage = (url) => {
-  buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) });
+
+const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) }); };
+
+const setDefaultSorting = () => {
+  const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
+  if (showIntroductoryListView && introductoryListView.sorting) {
+    if (introductoryListView.sorting === 'distance') {
+      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+    } else if (introductoryListView.sorting === 'alphabetical') {
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+    } else if (introductoryListView.sorting === 'newest') {
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+    }
+  } else if (sorting.defaultSorting === 'distance') {
+    state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+  } else if (sorting.defaultSorting === 'alphabetical') {
+    state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+  }
 };
 
 const clearLocations = () => {
-  listLocations = [];
-  mapBounds = null;
-  criteria.page = 0;
-  criteria.page2 = 0;
-  fetchingNextPage = false;
-  fetchingEndReached = false;
+  state.listLocations = [];
+  state.mapBounds = null;
+  state.searchCriteria.page = 0;
+  state.searchCriteria.page2 = 0;
+  state.fetchingNextPage = false;
+  state.fetchingEndReached = false;
+  if (state.maps.map) state.maps.map.clearMarkers();
 };
-
-let SEARCH_TIMOUT;
 
 const fetchPinnedLocations = (done) => {
   WidgetController
     .getPinnedLocations()
     .then((locations) => {
-      pinnedLocations = locations.result;
+      state.pinnedLocations = locations.result;
       done(null, locations.result);
     })
     .catch((err) => {
@@ -863,15 +649,15 @@ const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
     .then(() => {
-      const { showIntroductoryListView } = settings;
+      const { showIntroductoryListView } = state.settings;
       if (showIntroductoryListView) {
-        clearIntroductoryLocations();
+        clearIntroViewList();
         fetchPinnedLocations(() => {
-          renderIntroductoryLocations(listLocations, true);
+          renderIntroductoryLocations(state.listLocations, true);
         });
       }
-      clearListingLocations();
-      renderListingLocations(listLocations);
+      clearMapViewList();
+      renderListingLocations(state.listLocations);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -880,14 +666,14 @@ const clearAndSearchWithDelay = () => {
 };
 
 const onMapBoundsChange = (bounds) => {
-  console.log(mapBounds);
+  console.log(state.mapBounds);
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    if (!firstSearchInit) {
+    if (!state.firstSearchInit) {
       return;
     }
-    mapBounds = bounds;
-    criteria.page2 = 0;
+    state.mapBounds = bounds;
+    state.searchCriteria.page2 = 0;
     searchLocations('bound').then((result) => {
       renderListingLocations(result);
     });
@@ -917,7 +703,7 @@ const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchTextField' && settings.filter.allowFilterByArea) {
+    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea) {
       showElement('#areaSearchLabel');
       hideElement('.header-qf');
     }
@@ -927,12 +713,28 @@ const initEventListeners = () => {
     if (!e.target) return;
 
     if (e.target.id === 'searchLocationsBtn') {
-      criteria.searchValue = e.target.value;
+      state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
-      showMapView();
+      const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
+      if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
+        if (sorting.defaultSorting === 'distance') {
+          state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+        } else if (sorting.defaultSorting === 'alphabetical') {
+          state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+        }
+        clearLocations();
+        clearMapViewList();
+        searchLocations()
+          .then(() => {
+            renderListingLocations(state.listLocations);
+            showMapView();
+          });
+      } else {
+        showMapView();
+      }
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       drawer.reset('expanded');
       setTimeout(() => { toggleDropdownMenu(e.target.nextElementSibling); }, 200);
@@ -943,50 +745,48 @@ const initEventListeners = () => {
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
-          criteria.priceRange = Number(value);
+          state.searchCriteria.priceRange = Number(value);
           priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         } else if (e.target.id === 'otherSortingBtn') {
           otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
           if (value === 'distance') {
-            criteria.sort = { sortBy: 'distance', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
           } else if (value === 'A-Z') {
-            criteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
           } else if (value === 'Z-A') {
-            criteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
           } else if (value === 'date') {
-            criteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+            state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
           } else if (value === 'price-low-high') {
-            criteria.sort = { sortBy: 'price.range', order: -1 };
+            state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
           } else if (value === 'price-high-low') {
-            criteria.sort = { sortBy: 'price.range', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
           } else if (value === 'rating') {
-            criteria.sort = { sortBy: 'rating.average', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'rating.average', order: 1 };
           } else if (value === 'views') {
-            criteria.sort = { sortBy: 'views', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'views', order: 1 };
           }
         }
         clearAndSearchWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
-      selectedLocation = listLocations.find((i) => i.id === e.target.dataset.id);
+      state.selectedLocation = state.listLocations.find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
-    } else if (e.target.id === 'chatWithOwnerBtn') {
-      chatWithOwner();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
     } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
-      viewFullImage(selectedLocation.images);
+      viewFullImage(state.selectedLocation.images);
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
-      if (mainMap && userPosition.latitude && userPosition.longitude) {
-        getFormattedAddress({ lat: userPosition.latitude, lng: userPosition.longitude }, (err, address) => {
-          mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
-          mainMap.addUserPosition(userPosition);
+      if (state.maps.map && state.userPosition.latitude && state.userPosition.longitude) {
+        getFormattedAddress({ lat: state.userPosition.latitude, lng: state.userPosition.longitude }, (err, address) => {
+          state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+          state.maps.map.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
@@ -1001,14 +801,14 @@ const initEventListeners = () => {
     const { value } = e.target;
 
     if (e.target.id === 'searchTextField') {
-      criteria.searchValue = value;
+      state.searchCriteria.searchValue = value;
       clearAndSearchWithDelay();
     }
 
     // this is to refresh only
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
       console.log('value: ', value);
-      criteria.searchValue = value;
+      state.searchCriteria.searchValue = value;
       clearAndSearchWithDelay();
     }
   });
@@ -1016,41 +816,36 @@ const initEventListeners = () => {
   const myCurrentLocationBtn = document.querySelector('#myCurrentLocationBtn');
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   myCurrentLocationBtn.onclick = (e) => {
-    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-      if (err || !position) {
-        return console.error(err, position);
-      }
-      const { coords } = position;
-      const geoCoder = new google.maps.Geocoder();
-      const positionPoints = { lat: coords.latitude, lng: coords.longitude };
-      currentLocation = positionPoints;
-      if (mainMap) {
-        mainMap.addUserPosition(userPosition);
-        mainMap.center({ lat: userPosition.latitude, lng: userPosition.longitude });
-      }
-      clearAndSearchWithDelay();
-      geoCoder.geocode(
-        { location: positionPoints },
-        (results, status) => {
-          console.log(results);
-          if (status === "OK") {
-            if (results[0]) {
-              areaSearchTextField.value = results[0].formatted_address;
-            } else {
-              console.log("No results found");
-            }
+    if (!state.userPosition) return;
+    const geoCoder = new google.maps.Geocoder();
+    const positionPoints = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
+    state.currentLocation = positionPoints;
+    if (state.maps.map) {
+      state.maps.map.addUserPosition(state.userPosition);
+      state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
+    }
+    clearAndSearchWithDelay();
+    geoCoder.geocode(
+      { location: positionPoints },
+      (results, status) => {
+        console.log(results);
+        if (status === "OK") {
+          if (results[0]) {
+            areaSearchTextField.value = results[0].formatted_address;
           } else {
-            console.log("Geocoder failed due to: " + status);
+            console.log("No results found");
           }
+        } else {
+          console.log("Geocoder failed due to: " + status);
         }
-      );
-    });
+      }
+    );
   };
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
   openNowSortingBtn.onclick = () => {
-    criteria.openingNow = !criteria.openingNow;
-    if (criteria.openingNow) {
+    state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
+    if (state.searchCriteria.openingNow) {
       openNowSortingBtn.classList.add('selected');
     } else {
       openNowSortingBtn.classList.remove('selected');
@@ -1062,8 +857,8 @@ const initEventListeners = () => {
 const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
-  CATEGORIES.forEach((category) => {
-    filterElements[category.id] = { checked: false, subcategories: [] };
+  state.categories.forEach((category) => {
+    state.filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
@@ -1133,15 +928,15 @@ const initFilterOverlay = () => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     if (!target.checked) {
-      filterElements[categoryId] = { checked: false, subcategories: [] };
+      state.filterElements[categoryId] = { checked: false, subcategories: [] };
     } else {
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     }
 
     chipSets[categoryId].chips.forEach((c) => {
       const { sid } = c.root_.dataset;
-      if (target.checked && !filterElements[categoryId]?.subcategories.includes(sid)) {
-        filterElements[categoryId].subcategories.push(sid);
+      if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
+        state.filterElements[categoryId].subcategories.push(sid);
       }
       c.selected = target.checked;
     });
@@ -1168,24 +963,24 @@ const initFilterOverlay = () => {
     const selected = chipCheckbox.getAttribute('aria-checked') === 'true';
     const categoryId = parent.dataset.cid;
     const subcategoryId = mdcChip.dataset.sid;
-    const category = CATEGORIES.find((c) => c.id === categoryId);
+    const category = state.categories.find((c) => c.id === categoryId);
 
-    if (selected && !filterElements[categoryId].subcategories.includes(subcategoryId)) {
-      filterElements[categoryId].subcategories.push(subcategoryId);
+    if (selected && !state.filterElements[categoryId].subcategories.includes(subcategoryId)) {
+      state.filterElements[categoryId].subcategories.push(subcategoryId);
     } else {
-      filterElements[categoryId].subcategories = filterElements[categoryId].subcategories.filter((item) => item !== subcategoryId);
+      state.filterElements[categoryId].subcategories = state.filterElements[categoryId].subcategories.filter((item) => item !== subcategoryId);
     }
 
     input.indeterminate = false;
-    if (filterElements[categoryId].subcategories.length === 0) {
+    if (state.filterElements[categoryId].subcategories.length === 0) {
       input.checked = false;
-      filterElements[categoryId].checked = false;
-    } else if (filterElements[categoryId].subcategories.length === category.subcategories.length) {
+      state.filterElements[categoryId].checked = false;
+    } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     } else {
       input.indeterminate = true;
-      filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].checked = true;
     }
 
     mdcChip.classList.add('disabled');
@@ -1197,7 +992,7 @@ const showMapView = () => {
   const introLocationsList = document.querySelector('#introLocationsList');
   hideElement('section#intro');
   showElement('section#listing');
-  firstSearchInit = true;
+  state.firstSearchInit = true;
   introLocationsList.innerHTML = '';
 };
 
@@ -1205,12 +1000,12 @@ const navigateTo = (template) => {
   const currentActive = document.querySelector('section.active');
   currentActive?.classList.remove('active');
   document.querySelector(`section#${template}`).classList.add('active');
-  if (template === 'home' && breadcrumbs.length) {
+  if (template === 'home' && state.breadcrumbs.length) {
     addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
   }
 };
 
-const initAreaAutocompleteField = (template) => {
+const initAreaAutocompleteField = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   const autocomplete = new google.maps.places.Autocomplete(
     areaSearchTextField,
@@ -1229,23 +1024,22 @@ const initAreaAutocompleteField = (template) => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng()
     };
-    currentLocation = point;
+    state.currentLocation = point;
+    state.maps.map.center(point);
     clearAndSearchWithDelay();
     console.log(place);
   });
 };
 
-const initMainMap = () => {
-  const { map, design } = settings;
-  const selector = document.getElementById('mainMapContainer');
+const generateMapOptions = () => {
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  const { map, design } = state.settings;
+  const { userPosition } = state;
   const options = {
     styles: [],
-    mapTypeId: google.maps.MapTypeId.ROADMAP
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    mapTypeControl: design.allowStyleSelection,
   };
-
-  if (design.allowStyleSelection) {
-    options.mapTypeControl = true;
-  }
 
   if (design.enableMapTerrainView) {
     options.mapTypeId = google.maps.MapTypeId.TERRAIN;
@@ -1254,26 +1048,7 @@ const initMainMap = () => {
   }
 
   if (design.defaultMapStyle === 'dark') {
-    options.styles = options.styles.concat(darkMapStyle);
-  }
-
-  if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
-    options.center = {
-      lat: map.initialAreaCoordinates.lat,
-      lng: map.initialAreaCoordinates.lng
-    };
-    currentLocation = { ...map.initialAreaCoordinates };
-    const areaSearchTextField = document.querySelector('#areaSearchTextField');
-    areaSearchTextField.value = map.initialAreaString;
-  } else if (userPosition) {
-    options.center = {
-      lat: userPosition.latitude,
-      lng: userPosition.longitude
-    };
-    currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
-  } else {
-    options.center = DEFAULT_LOCATION;
-    currentLocation = DEFAULT_LOCATION;
+    options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
   }
 
   if (!map.showPointsOfInterest) {
@@ -1285,63 +1060,42 @@ const initMainMap = () => {
       ]
     });
   }
-  mainMap = new MainMap(selector, options);
-  if (userPosition) {
-    mainMap.addUserPosition(userPosition);
+
+  if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
+    options.center = { ...map.initialAreaCoordinates };
+    state.currentLocation = { ...map.initialAreaCoordinates };
+    areaSearchTextField.value = map.initialAreaString;
+  } else if (userPosition) {
+    options.center = {
+      lat: userPosition.latitude,
+      lng: userPosition.longitude
+    };
+    state.currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
+  } else {
+    options.center = DEFAULT_LOCATION;
+    state.currentLocation = DEFAULT_LOCATION;
   }
-  mainMap.onBoundsChange = onMapBoundsChange;
+
+  return options;
+};
+
+const initMainMap = () => {
+  const selector = document.getElementById('mainMapContainer');
+  const options = generateMapOptions();
+
+  state.maps.map = new MainMap(selector, options);
+  state.maps.map.onBoundsChange = onMapBoundsChange;
+  if (state.userPosition) state.maps.map.addUserPosition(state.userPosition);
 };
 
 const refreshMapOptions = () => {
-  if (mainMap) {
-    const { map, design } = settings;
-    const options = {
-      styles: [],
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
-
-    if (design.allowStyleSelection) {
-      options.mapTypeControl = true;
-    }
-
-    if (design.enableMapTerrainView) {
-      options.mapTypeId = google.maps.MapTypeId.TERRAIN;
-    } else if (design.defaultMapType === 'satellite') {
-      options.mapTypeId = google.maps.MapTypeId.SATELLITE;
-    }
-
-    if (design.defaultMapStyle === 'dark') {
-      options.styles = options.styles.concat(darkMapStyle);
-    }
-
-    if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
-      options.center = { ...map.initialAreaCoordinates };
-      currentLocation = { ...map.initialAreaCoordinates };
-      const areaSearchTextField = document.querySelector('#areaSearchTextField');
-      areaSearchTextField.value = map.initialAreaString;
-    } else if (userPosition) {
-      options.center = {
-        lat: userPosition.latitude,
-        lng: userPosition.longitude
-      };
-    } else {
-      options.center = DEFAULT_LOCATION;
-      currentLocation = DEFAULT_LOCATION;
-    }
-
-    if (!map.showPointsOfInterest) {
-      options.styles.push({
-        featureType: 'poi',
-        elementType: 'labels',
-        stylers: [
-          { visibility: 'off' }
-        ]
-      });
-    }
-
-    mainMap.updateOptions(options);
+  const { map } = state.maps;
+  if (map) {
+    const options = generateMapOptions();
+    map.updateOptions(options);
   }
 };
+
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
@@ -1372,119 +1126,109 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting } = settings;
-  const otherSortingMenu = document.querySelector('.other-sorting-menu');
-  const otherSortingMenuList = otherSortingMenu.querySelector('ul');
-  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+  const { sorting } = state.settings;
+  const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const sortingOptions = [
+    {
+      key: 'allowSortByReverseAlphabetical',
+      value: 'Z-A',
+      textContent: 'Title (Z-A)'
+    },
+    {
+      key: 'allowSortByNearest',
+      value: 'distance',
+      textContent: 'Distance'
+    },
+    {
+      key: 'allowSortByRating',
+      value: 'rating',
+      textContent: 'Recommended'
+    },
+    {
+      key: 'allowSortByPriceHighToLow',
+      value: 'price-high-low',
+      textContent: 'Price (High > Low)'
+    },
+    {
+      key: 'allowSortByPriceLowToHigh',
+      value: 'price-low-high',
+      textContent: 'Price (Low > High)'
+    },
+    {
+      key: 'allowSortByDate',
+      value: 'date',
+      textContent: 'Newest (New to old)'
+    },
+    {
+      key: 'allowSortByViews',
+      value: 'views',
+      textContent: 'Most Viewed'
+    }
+  ];
 
   let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">Title (A-Z)</span>
             </li>`;
 
-  if (sorting.defaultSorting === 'distance') {
-    otherSortingMenuBtnLabel.textContent = 'Distance';
-  } else {
-    otherSortingMenuBtnLabel.textContent = 'A-Z';
-  }
-
-  if (sorting.allowSortByReverseAlphabetical) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="Z-A">
+  for (let i = 0; i < sortingOptions.length; i++) {
+    const option = sortingOptions[i];
+    if (sorting[option.key]) {
+      list += `<li class="mdc-list-item" role="menuitem" data-value="${option.value}">
               <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Title (Z-A)</span>
+              <span class="mdc-list-item__text">${option.textContent}</span>
             </li>`;
-  }
-  if (sorting.allowSortByNearest) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="distance">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Distance</span>
-            </li>`;
-    otherSortingMenuBtnLabel.textContent = 'Distance';
-  }
-  if (sorting.allowSortByRating) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="rating">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Recommended</span>
-            </li>`;
-  }
-  if (sorting.allowSortByPriceHighToLow) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="price-high-low">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Price (High > Low)</span>
-            </li>`;
-  }
-  if (sorting.allowSortByPriceLowToHigh) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="price-low-high">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Price (Low > High)</span>
-            </li>`;
-  }
-  if (sorting.allowSortByDate) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="date">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Newest (New to old)</span>
-            </li>`;
-  }
-  if (sorting.allowSortByViews) {
-    list += `<li class="mdc-list-item" role="menuitem" data-value="views">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Most Viewed</span>
-            </li>`;
+    }
   }
 
   otherSortingMenuList.innerHTML = list;
+  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
 };
 const initHomeView = () => {
-  const { showIntroductoryListView, introductoryListView } = settings;
-  injectTemplate('home');
-  fetchCategories(() => {
-    initFilterOverlay();
-    refreshQuickFilter(); // todo if quick filter enabled
-    initMainMap();
-    initAreaAutocompleteField();
-    searchLocations()
-      .then(() => {
-        drawer.initialize(settings);
-        initDrawerFilterOptions();
-        if (showIntroductoryListView) {
-          fetchPinnedLocations(() => {
-            renderIntroductoryLocations(listLocations, true);
-            refreshIntroductoryDescription();
-            showElement('section#intro');
-            refreshIntroductoryCarousel();
+  const { showIntroductoryListView, introductoryListView } = state.settings;
+  views.inject('home');
+  initFilterOverlay();
+  refreshQuickFilter();
+  initMainMap();
+  initAreaAutocompleteField();
+  setDefaultSorting();
+  searchLocations()
+    .then(() => {
+      drawer.initialize(state.settings);
+      initDrawerFilterOptions();
+      if (showIntroductoryListView) {
+        fetchPinnedLocations(() => {
+          renderIntroductoryLocations(state.listLocations, true);
+          refreshIntroductoryDescription();
+          showElement('section#intro');
+          refreshIntroductoryCarousel();
 
-            if (introductoryListView.images.length === 0
-              && !listLocations.length
-              && !introductoryListView.description) {
-              showElement('div.empty-page');
-            }
-            // eslint-disable-next-line no-new
-            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-          });
-        } else {
-          renderListingLocations(listLocations);
-          showMapView();
-        }
-      });
-  });
+          if (introductoryListView.images.length === 0
+            && !state.listLocations.length
+            && !introductoryListView.description) {
+            showElement('#intro div.empty-page');
+          }
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+        });
+      } else {
+        renderListingLocations(state.listLocations);
+        showMapView();
+      }
+    });
 };
 
 const calculateLocationDistance = (address) => {
+  const { userPosition } = state;
   if (!userPosition) return null;
-  const origin = {
-    latitude: userPosition.latitude,
-    longitude: userPosition.longitude,
-  };
-  const destination = {
-    latitude: address.lat,
-    longitude: address.lng
-  };
-  const distance = buildfire.geo.calculateDistance(origin, destination, { decimalPlaces: 5 });
+
+  const destination = { latitude: address.lat, longitude: address.lng };
+  const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
   let result;
   if (distance < 0.2) {
     result = `${Math.round(distance * 5280).toLocaleString()} ft`;
-  } else if (settings.measurementUnit === 'metric') {
+  } else if (state.settings.measurementUnit === 'metric') {
     result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
   } else {
     result = `${Math.round(distance).toLocaleString()} mi`;
@@ -1492,8 +1236,8 @@ const calculateLocationDistance = (address) => {
   return result;
 };
 
-const updateLocationsDistance = () => {
-  listLocations = listLocations.map((location) => {
+const setLocationsDistance = () => {
+  state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
@@ -1502,20 +1246,11 @@ const updateLocationsDistance = () => {
     if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
     return { ...location, ...{ distance } };
   });
-  if (selectedLocation) {
+  if (state.selectedLocation) {
+    state.selectedLocation.distance = calculateLocationDistance(state.selectedLocation.coordinates);
     const locationDetailSelector = document.querySelector('.location-detail__address p:last-child');
-    selectedLocation.distance = calculateLocationDistance(selectedLocation.coordinates);
-    if (locationDetailSelector) {
-      locationDetailSelector.childNodes[0].nodeValue = selectedLocation.distance;
-    }
+    locationDetailSelector.childNodes[0].nodeValue = state.selectedLocation.distance;
   }
-};
-const clearTemplate = (template) => {
-  if (!templates[template]) {
-    console.warn(`template ${template} not found.`);
-    return;
-  }
-  document.querySelector(`section#${template}`).innerHTML = '';
 };
 const initGoogleMapsSDK = () => {
   const { apiKeys } = buildfire.getContext();
@@ -1530,87 +1265,90 @@ const initGoogleMapsSDK = () => {
 };
 
 const handleCPSync = (message) => {
-  const outdatedSettings = { ...settings };
+  const outdatedSettings = { ...state.settings };
   const { scope } = message;
 
   if (scope === 'design') {
-    fetchSettings(() => {
-      // current design
-      const d = settings.design;
-      // outdated design
-      const o = outdatedSettings.design;
+    refreshSettings()
+      .then(() => {
+        // current design
+        const d = state.settings.design;
+        // outdated design
+        const o = outdatedSettings.design;
 
-      if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        drawer.reset(d.listViewPosition);
-        renderListingLocations(listLocations);
-      } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
-        if (listLocations.length > 0) {
-          [selectedLocation] = listLocations;
-          showLocationDetail();
-        }
-      } else {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        refreshMapOptions();
-      }
-    });
-  } else if (scope === 'settings') {
-    fetchSettings(() => {
-      const f = settings.filter;
-      const of = outdatedSettings.filter;
-      const ms = settings.map;
-      const oms = outdatedSettings.map;
-      if (f.allowFilterByArea !== of.allowFilterByArea) {
-        const areaSearchInput = document.querySelector('#areaSearchLabel');
-        if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
-          showElement('.header-qf');
-          hideElement('#areaSearchLabel');
-        }
-      } else if (settings.measurementUnit !== outdatedSettings.measurementUnit) {
-        updateLocationsDistance();
-      } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
-        || ms.initialArea !== oms.initialArea
-        || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
-        || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
-        hideFilterOverlay();
-        navigateTo('home');
-        showMapView();
-        refreshMapOptions();
-      }
-    });
-  } else if (scope === 'intro') {
-    fetchSettings(() => {
-      if (settings.showIntroductoryListView) {
-        const container = document.querySelector('#introLocationsList');
-        container.innerHTML = '';
-        fetchPinnedLocations(() => {
-          renderIntroductoryLocations(listLocations, true);
-          refreshIntroductoryDescription();
+        if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
           hideFilterOverlay();
           navigateTo('home');
-          showElement('section#intro');
-          hideElement('section#listing');
-          refreshIntroductoryCarousel();
-          if (settings.introductoryListView.images.length === 0
-            && listLocations.length === 0
-            && !settings.introductoryListView.description) {
-            showElement('div.empty-page');
+          showMapView();
+          drawer.reset(d.listViewPosition);
+          renderListingLocations(state.listLocations);
+        } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
+          if (state.listLocations.length > 0) {
+            [state.selectedLocation] = state.listLocations;
+            showLocationDetail();
           }
-          // eslint-disable-next-line no-new
-          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-        });
-      } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
-        showMapView();
-      }
-    });
+        } else {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          refreshMapOptions();
+        }
+      });
+  } else if (scope === 'settings') {
+    refreshSettings()
+      .then(() => {
+        const f = state.settings.filter;
+        const of = outdatedSettings.filter;
+        const ms = state.settings.map;
+        const oms = outdatedSettings.map;
+        if (f.allowFilterByArea !== of.allowFilterByArea) {
+          const areaSearchInput = document.querySelector('#areaSearchLabel');
+          if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
+            showElement('.header-qf');
+            hideElement('#areaSearchLabel');
+          }
+        } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
+          setLocationsDistance();
+        } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
+          || ms.initialArea !== oms.initialArea
+          || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
+          || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          refreshMapOptions();
+        }
+      });
+  } else if (scope === 'intro') {
+    refreshSettings()
+      .then(() => {
+        if (state.settings.showIntroductoryListView) {
+          const container = document.querySelector('#introLocationsList');
+          container.innerHTML = '';
+          fetchPinnedLocations(() => {
+            renderIntroductoryLocations(state.listLocations, true);
+            refreshIntroductoryDescription();
+            hideFilterOverlay();
+            navigateTo('home');
+            showElement('section#intro');
+            hideElement('section#listing');
+            refreshIntroductoryCarousel();
+            if (state.settings.introductoryListView.images.length === 0
+              && state.listLocations.length === 0
+              && !state.settings.introductoryListView.description) {
+              showElement('#intro div.empty-page');
+            }
+            // eslint-disable-next-line no-new
+            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+          });
+        } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
+          showMapView();
+        }
+      });
   } else if (scope === 'locations') {
-    const { data, realtimeUpdate } = message;
+    const { data, realtimeUpdate, isCancel } = message;
     if (realtimeUpdate) {
-      selectedLocation = {
+      state.selectedLocation = {
         id: 'tmp-location',
         title: 'Location Title',
         subtitle: 'Location Subtitle',
@@ -1632,103 +1370,118 @@ const handleCPSync = (message) => {
       if (data && Object.keys(data).length > 0) {
         for (const [key, value] of Object.entries(data)) {
           if (value) {
-            selectedLocation[key] = value;
+            state.selectedLocation[key] = value;
           }
         }
       }
+      hideFilterOverlay();
       showLocationDetail();
+    } else if (isCancel) {
+      buildfire.history.pop();
     } else {
       hideFilterOverlay();
       navigateTo('home');
       showMapView();
     }
   } else if (scope === 'category') {
-    fetchCategories(() => {
-      initFilterOverlay();
-      showFilterOverlay();
-    });
+    refreshCategories()
+      .then(() => {
+        initFilterOverlay();
+        showFilterOverlay();
+      });
   }
+};
+
+const getDataHandler = (deeplinkData) => {
+  console.log('getData deeplinkData: ', deeplinkData);
+  if (deeplinkData?.locationId) {
+    WidgetController
+      .getLocation(deeplinkData.locationId)
+      .then((response) => {
+        state.selectedLocation = response.data;
+        showLocationDetail();
+      })
+      .catch((err) => {
+        console.error('fetch location error: ', err);
+      });
+  }
+};
+
+const getCurrentPositionHandler = (err, position) => {
+  if (err) {
+    return console.error(`error getting current position ${err}`);
+  }
+  state.userPosition = position.coords;
+  setLocationsDistance();
+  const { map } = state.maps;
+  if (map) map.addUserPosition(state.userPosition);
+};
+const onPopHandler = (breadcrumb) => {
+  console.log('Breadcrumb popped', breadcrumb);
+  console.log('Breadcrumb popped', state.breadcrumbs);
+  state.breadcrumbs.pop();
+  if (!state.breadcrumbs.length) {
+    hideFilterOverlay();
+    navigateTo('home');
+  } else {
+    const page = state.breadcrumbs[state.breadcrumbs.length - 1];
+    if (page.name === 'af') {
+      showFilterOverlay();
+    } else if (page.name === 'detail') {
+      hideFilterOverlay();
+      showLocationDetail();
+    } else {
+      hideFilterOverlay();
+      navigateTo('home');
+    }
+    state.breadcrumbs.pop();
+  }
+};
+const getAppThemeHandler = (err, appTheme) => {
+  if (err) return console.error(err);
+  const root = document.documentElement;
+  const { colors } = appTheme;
+  root.style.setProperty('--body-theme', colors.bodyText);
+  root.style.setProperty('--header-theme', colors.headerText);
+  root.style.setProperty('--background-color', colors.backgroundColor);
+  root.style.setProperty('--primary-color', colors.primaryTheme);
+};
+const onReceivedMessageHandler = (message) => {
+  if (message.cmd === 'sync') {
+    handleCPSync(message);
+  }
+  console.log('widget message: ', message);
+};
+const onRatingHandler = (e) => {
+  WidgetController
+    .updateLocationRating(state.selectedLocation.id, e.summary)
+    .catch((err) => {
+      console.error('err updating rating: ', err);
+    });
 };
 
 const init = () => {
   initGoogleMapsSDK();
-  fetchSettings(() => {
-    fetchTemplate('filter', injectTemplate);
-    fetchTemplate('home', initHomeView);
-    setTimeout(() => { initEventListeners(); }, 1000);
-    buildfire.deeplink.getData((deeplinkData) => {
-      console.log('getData deeplinkData: ', deeplinkData);
-      if (deeplinkData?.locationId) {
-        WidgetController
-          .getLocation(deeplinkData.locationId)
-          .then((response) => {
-            selectedLocation = response.data;
-            showLocationDetail();
-          })
-          .catch((err) => {
-            console.error('fetch location error: ', err);
-          });
-      }
+
+  refreshSettings()
+    .then(() => {
+      views
+        .fetch('filter')
+        .then(() => { views.inject('filter'); });
+
+      views
+        .fetch('home')
+        .then(refreshCategories)
+        .then(initHomeView);
+
+      buildfire.deeplink.getData(getDataHandler);
+      buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, getCurrentPositionHandler);
+      buildfire.history.onPop(onPopHandler);
+      buildfire.appearance.getAppTheme(getAppThemeHandler);
+      buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
+      buildfire.components.ratingSystem.onRating = onRatingHandler;
+      setTimeout(() => { initEventListeners(); }, 1000);
     });
-
-    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, (err, position) => {
-      if (err) {
-        return console.error(err);
-      }
-      userPosition = position.coords;
-      updateLocationsDistance();
-      if (mainMap) {
-        mainMap.addUserPosition(userPosition);
-      }
-    });
-
-    buildfire.history.onPop((breadcrumb) => {
-      console.log('Breadcrumb popped', breadcrumb);
-      console.log('Breadcrumb popped', breadcrumbs);
-      breadcrumbs.pop();
-      if (!breadcrumbs.length) {
-        hideFilterOverlay();
-        navigateTo('home');
-      } else {
-        const page = breadcrumbs[breadcrumbs.length - 1];
-        if (page.name === 'af') {
-          showFilterOverlay();
-        } else if (page.name === 'detail') {
-          hideFilterOverlay();
-          showLocationDetail();
-        } else {
-          hideFilterOverlay();
-          navigateTo('home');
-        }
-        breadcrumbs.pop();
-      }
-    });
-
-    buildfire.appearance.getAppTheme((err, appTheme) => {
-      if (err) return console.error(err);
-      const root = document.documentElement;
-      const { colors } = appTheme;
-      root.style.setProperty('--body-theme', colors.bodyText);
-      root.style.setProperty('--header-theme', colors.headerText);
-      root.style.setProperty('--background-color', colors.backgroundColor);
-      root.style.setProperty('--primary-color', colors.primaryTheme);
-    });
-
-    buildfire.messaging.onReceivedMessage = (message) => {
-      if (message.cmd === 'sync') {
-        handleCPSync(message);
-      }
-      console.log('widget message: ', message);
-    };
-
-    buildfire.components.ratingSystem.onRating = (e) => {
-      WidgetController
-        .updateLocationRating(selectedLocation.id, e.summary)
-        .catch((err) => {
-          console.error('err updating rating: ', err);
-        });
-    };
-  });
 };
 
 // fetch settings instead

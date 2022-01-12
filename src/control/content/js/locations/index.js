@@ -147,6 +147,7 @@ const cancelAddLocation = () => {
   ];
   breadcrumbsSelector.innerHTML = "";
   getPinnedLocation();
+  triggerWidgetOnLocationsUpdate({ isCancel: true });
 };
 
 const renderBreadcrumbs = () => {
@@ -176,7 +177,7 @@ window.addEditLocation = (location) => {
   if (!location) {
     state.breadcrumbs.push({ title: "Add Location" });
     state.locationObj = new Location();
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   } else {
     state.breadcrumbs.push({ title: "Edit Location" });
     state.locationObj = new Location(location);
@@ -190,7 +191,7 @@ window.addEditLocation = (location) => {
     addLocationControls.showPriceRangeBtn.checked = state.locationObj.settings.showPriceRange;
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
     setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
 
     if (state.locationObj.owner && Object.keys(state.locationObj.owner).length > 0) {
       addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
@@ -212,7 +213,7 @@ window.addEditLocation = (location) => {
     setup: (ed) => {
       ed.on('keyup change', () => {
         state.locationObj.description = tinymce.activeEditor.getContent();
-        triggerWidgetOnLocationsUpdate(true);
+        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       });
     }
   });
@@ -316,12 +317,12 @@ window.addEditLocation = (location) => {
   addLocationControls.editCategoriesBtn.onclick = openSelectCategoriesDialog;
   addLocationControls.showCategoriesBtn.onchange = (e) => {
     state.locationObj.settings.showCategory = e.target.checked;
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   addLocationControls.showOpeningHoursBtn.onchange = (e) => {
     state.locationObj.settings.showOpeningHours = e.target.checked;
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   addLocationControls.showPriceRangeBtn.onchange = (e) => {
@@ -330,15 +331,15 @@ window.addEditLocation = (location) => {
 
   addLocationControls.showStarRatingBtn.onchange = (e) => {
     state.locationObj.settings.showStarRating = e.target.checked;
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   addLocationControls.locationTitle.onkeydown = () => {
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   addLocationControls.locationSubtitle.onkeydown = () => {
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   addLocationControls.listImageBtn.onclick = () => {
@@ -381,7 +382,7 @@ window.addEditLocation = (location) => {
         state.locationObj.images.push(...locationImages.map((imageUrl) => ({ id: generateUUID(), imageUrl })));
 
         locationImagesUI.init(state.locationObj.images);
-        triggerWidgetOnLocationsUpdate(true);
+        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       }
     );
   };
@@ -397,7 +398,7 @@ window.addEditLocation = (location) => {
       actionItem.id = generateUUID();
       state.locationObj.actionItems.push(actionItem);
       actionItemsUI.addItem(actionItem);
-      triggerWidgetOnLocationsUpdate(true);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     });
   };
 
@@ -728,7 +729,7 @@ const openSelectCategoriesDialog = (action) => {
       e.preventDefault();
       state.locationObj.categories = { ...state.selectedLocationCategories };
       renderSelectedCategoriesList(state.locationObj.categories);
-      triggerWidgetOnLocationsUpdate(true);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       selectCategoryDialog.close(e);
     }
   );
@@ -900,12 +901,12 @@ const renderOpeningHours = (openingHours) => {
       enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
-        triggerWidgetOnLocationsUpdate(true);
+        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       addHoursBtn.onclick = (e) => {
         days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
-        triggerWidgetOnLocationsUpdate(true);
+        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       renderDayIntervals(days[day], dayIntervals);
 
@@ -939,18 +940,18 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       console.log(new Date(e.target.valueAsDate));
       console.log(convertTimeToDate(e.target.value));
       interval.from = convertTimeToDate(e.target.value);
-      triggerWidgetOnLocationsUpdate(true);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
       console.log(new Date(e.target.valueAsDate));
       console.log(convertTimeToDate(e.target.value));
       interval.to = convertTimeToDate(e.target.value);
-      triggerWidgetOnLocationsUpdate(true);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
       dayInterval.remove();
-      triggerWidgetOnLocationsUpdate(true);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
 
     dayIntervalsContainer.appendChild(dayInterval);
@@ -1034,7 +1035,7 @@ window.intiMap = () => {
     state.locationObj.coordinates.lng = place.geometry.location.lng();
     state.locationObj.formattedAddress = place.formatted_address;
 
-    triggerWidgetOnLocationsUpdate(true);
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     console.log(place);
   });
 
@@ -1050,7 +1051,7 @@ window.intiMap = () => {
             state.locationObj.coordinates.lat = e.latLng.lat();
             state.locationObj.coordinates.lng = e.latLng.lng();
             addLocationControls.locationAddress.value = results[0].formatted_address;
-            triggerWidgetOnLocationsUpdate(true);
+            triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
           } else {
             console.log("No results found");
           }
@@ -1383,7 +1384,7 @@ const updateLocation = (locationId, location) => {
   });
 };
 
-const triggerWidgetOnLocationsUpdate = (realtimeUpdate = false) => {
+const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = false }) => {
   if (syncTimeOut) clearTimeout(syncTimeOut);
   syncTimeOut = setTimeout(() => {
     let data = null;
@@ -1407,6 +1408,7 @@ const triggerWidgetOnLocationsUpdate = (realtimeUpdate = false) => {
       cmd: 'sync',
       scope: 'locations',
       realtimeUpdate,
+      isCancel,
       data
     });
   }, 500);
