@@ -10,7 +10,7 @@ import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
 
-const DEFAULT_LOCATION = { lat: 38.70290288229097, lng: 35.52352225602528 };
+const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
 let SEARCH_TIMOUT;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
@@ -1457,16 +1457,35 @@ const onRatingHandler = (e) => {
     });
 };
 
+const getCurrentUserPosition = () => new Promise((resolve) => {
+  let retries = 5;
+  const attempt = () => {
+    console.info(`attempting to get user position ${retries}`);
+    buildfire.geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 1000 }, (err, position) => {
+      if (!err) {
+        state.userPosition = position.coords;
+        resolve();
+      } else if (retries > 0) {
+        retries -= 1;
+        attempt();
+      } else {
+        console.warn(`failed to get current user position ${err}`);
+        resolve();
+      }
+    });
+  };
+  attempt();
+});
+
 const init = () => {
   initGoogleMapsSDK();
 
-  refreshSettings()
+  getCurrentUserPosition()
+    .then(refreshSettings)
     .then(() => {
       views.fetch('filter').then(() => { views.inject('filter'); });
       views.fetch('home').then(refreshCategories).then(initHomeView);
-
       buildfire.deeplink.getData(getDataHandler);
-      buildfire.geo.getCurrentPosition({ enableHighAccuracy: true }, getCurrentPositionHandler);
       buildfire.history.onPop(onPopHandler);
       buildfire.appearance.getAppTheme(getAppThemeHandler);
       buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
