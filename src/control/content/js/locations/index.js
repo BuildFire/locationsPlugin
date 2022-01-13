@@ -506,13 +506,12 @@ const saveLocation = (action, callback = () => {}) => {
   state.locationObj.address = addLocationControls.locationAddress.value;
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
+  state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
   if (!locationInputValidation()) {
     callback(false);
     return;
   }
-
-  state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
 
   addLocationControls.saveBtn.disabled = true;
   if (action === 'Add') {
@@ -523,7 +522,7 @@ const saveLocation = (action, callback = () => {}) => {
 };
 
 const locationInputValidation = () => {
-  const { title, address, description, coordinates, listImage, categories } = state.locationObj;
+  const { title, address, description, coordinates, listImage, categories, openingHours } = state.locationObj;
   let isValid = true;
 
   if (!title) {
@@ -568,11 +567,29 @@ const locationInputValidation = () => {
     handleInputError(addLocationControls.locationDescriptionError, false);
   }
 
+  if (!validateOpeningHours(openingHours)) {
+    isValid = false;
+  }
+
   const invalidInput = document.querySelector(".has-error");
   if (invalidInput) {
     invalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  return isValid;
+};
+
+const validateOpeningHours = (openingHours) => {
+  const { days } = openingHours;
+  let isValid = true;
+  for (const day in days) {
+    if (days[day]) {
+      isValid = days[day].intervals?.every((elem) => validateTimeInterval(elem.from, elem.to));
+      if (!isValid) {
+        return false;
+      }
+    }
+  }
   return isValid;
 };
 
@@ -924,12 +941,14 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     const fromInput = dayInterval.querySelector(".from");
     const toInput = dayInterval.querySelector(".to");
+    const intervalError = dayInterval.querySelector(".interval-error");
     const deleteBtn = dayInterval.querySelector(".delete-interval-btn");
 
     const dayIntervalId = generateUUID();
     dayInterval.id = dayIntervalId;
     fromInput.value = convertDateToTime(interval.from);
     toInput.value = convertDateToTime(interval.to);
+    validateTimeInterval(interval.from, interval.to, intervalError);
 
     if (intervalIndex === 0) {
       deleteBtn.classList.add('hidden');
@@ -938,15 +957,19 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
     }
 
     fromInput.onchange = (e) => {
-      console.log(new Date(e.target.valueAsDate));
-      console.log(convertTimeToDate(e.target.value));
-      interval.from = convertTimeToDate(e.target.value);
+      const start = convertTimeToDate(e.target.value);
+      interval.from = start;
+      if (!validateTimeInterval(start, interval.to, intervalError)) {
+        return;
+      }
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
-      console.log(new Date(e.target.valueAsDate));
-      console.log(convertTimeToDate(e.target.value));
-      interval.to = convertTimeToDate(e.target.value);
+      const end = convertTimeToDate(e.target.value);
+      interval.to = end;
+      if (!validateTimeInterval(interval.from, end, intervalError)) {
+        return;
+      }
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
@@ -957,6 +980,19 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
 
     dayIntervalsContainer.appendChild(dayInterval);
   });
+};
+
+const validateTimeInterval = (start, end, errorElem) => {
+  start = new Date(start).getTime();
+  end = new Date(end).getTime();
+  let isValid = true;
+  if (start > end) {
+    isValid = false;
+  }
+  if (errorElem) {
+    handleInputError(errorElem, !isValid, 'Choose an end time later than the start time');
+  }
+  return isValid;
 };
 
 const creatCheckboxElem = () => {

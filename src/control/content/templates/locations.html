@@ -434,15 +434,20 @@
     </div>
   </template>
   <template id="dayIntervalTemplate">
-    <div class="day-intervals-item">
-      <div>
-        <input type="time" class="form-control from" value="08:00">
+    <div>
+      <div class="day-intervals-item">
+        <div>
+          <input type="time" class="form-control from" value="08:00">
+        </div>
+        <div class="margin-left-ten">
+          <input type="time" class="form-control to" value="20:00">
+        </div>
+        <div class="margin-left-ten">
+          <span class="btn--icon btn-small icon icon-cross2 delete-interval-btn"></span>
+        </div>
       </div>
-      <div class="margin-left-ten">
-        <input type="time" class="form-control to" value="20:00">
-      </div>
-      <div class="margin-left-ten">
-        <span class="btn--icon btn-small icon icon-cross2 delete-interval-btn"></span>
+      <div class="interval-error text-danger padding-bottom-five hidden">
+        Choose an end time later than the start time.
       </div>
     </div>
   </template>
