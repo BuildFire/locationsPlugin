@@ -1385,6 +1385,7 @@ const handleCPSync = (message) => {
       .then(() => {
         initFilterOverlay();
         showFilterOverlay();
+        refreshQuickFilter();
       });
   }
 };
