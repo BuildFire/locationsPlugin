@@ -58,6 +58,10 @@
 	flex-direction: row;
 }
 
+.day-intervals-item input {
+	width: 7.3rem;
+}
+
 .btn--icon.btn-small {
 	width : 2rem !important;
 	height: 2rem !important;
