@@ -148,7 +148,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
@@ -179,7 +179,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.subtitle}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
@@ -217,7 +217,7 @@ const renderListingLocations = (list) => {
               <p class="margin-bottom-five">${n.title}</p>
               <p class="margin-top-zero">${transformCategories(n.categories)}</p>
               <p>
-                <span>${n.subtitle}</span>
+                <span>${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.price.currency?.repeat(n.price?.range)}</span>
                   <span class="location-image__open-status">${isLocationOpen(n) ? 'Open Now' : 'Closed'}</span>
@@ -243,7 +243,7 @@ const renderListingLocations = (list) => {
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
-            <p class="mdc-theme--text-body">${n.subtitle}</p>
+            <p class="mdc-theme--text-body">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body">${n.address}</p>
           </div>
           <div class="location-item__actions">
@@ -462,7 +462,7 @@ const showLocationDetail = () => {
       });
 
       selectors.title.textContent = state.selectedLocation.title;
-      selectors.subtitle.textContent = state.selectedLocation.subtitle;
+      selectors.subtitle.textContent = state.selectedLocation.subtitle ?? '';
       selectors.address.textContent = state.selectedLocation.formattedAddress;
       selectors.description.innerHTML = state.selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = state.selectedLocation.distance;
@@ -1103,7 +1103,7 @@ const handleMarkerClick = (location) => {
               <p class="margin-bottom-five">${location.title}</p>
               <p class="margin-top-zero">${transformCategories(location.categories)}</p>
               <p>
-                <span>${location.subtitle}</span>
+                <span>${location.subtitle ?? ''}</span>
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
