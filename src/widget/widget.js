@@ -1280,12 +1280,17 @@ const handleCPSync = (message) => {
         // outdated design
         const o = outdatedSettings.design;
 
-        if (d.listViewPosition !== o.listViewPosition || d.listViewStyle !== o.listViewStyle) {
+        if (d.listViewStyle !== o.listViewStyle) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          clearMapViewList();
+          renderListingLocations(state.listLocations);
+        } else if (d.listViewPosition !== o.listViewPosition) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
           drawer.reset(d.listViewPosition);
-          renderListingLocations(state.listLocations);
         } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
           if (state.listLocations.length > 0) {
             [state.selectedLocation] = state.listLocations;
