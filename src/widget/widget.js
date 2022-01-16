@@ -392,6 +392,8 @@ const isLocationOpen = (location) => {
 };
 
 const showLocationDetail = () => {
+  const { selectedLocation } = state;
+
   views
     .fetch('detail')
     .then(() => {
@@ -441,54 +443,57 @@ const showLocationDetail = () => {
         selectors.rating.classList.add('location-detail__rating--dual-shadow');
       }
 
-      if (state.selectedLocation.images?.length > 0) {
+      if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${state.selectedLocation.images[0].imageUrl})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
         }
       }
 
+      if (!selectedLocation.coordinates.lat || !selectedLocation.coordinates.lng) {
+        selectedLocation.coordinates = DEFAULT_LOCATION;
+      }
       selectors.map.style.display = 'block';
       const detailMap = new google.maps.Map(selectors.map, {
         mapTypeControl: true,
         disableDefaultUI: true,
-        center: { lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng },
+        center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
         zoom: 14,
       });
 
       new google.maps.Marker({
-        position: new google.maps.LatLng({ lat: state.selectedLocation.coordinates.lat, lng: state.selectedLocation.coordinates.lng }),
+        position: new google.maps.LatLng({ lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng }),
         map: detailMap,
       });
 
-      selectors.title.textContent = state.selectedLocation.title;
-      selectors.subtitle.textContent = state.selectedLocation.subtitle ?? '';
-      selectors.address.textContent = state.selectedLocation.formattedAddress;
-      selectors.description.innerHTML = state.selectedLocation.description;
-      selectors.distance.childNodes[0].nodeValue = state.selectedLocation.distance;
+      selectors.title.textContent = selectedLocation.title;
+      selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+      selectors.address.textContent = selectedLocation.formattedAddress;
+      selectors.description.innerHTML = selectedLocation.description;
+      selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
-      if (state.settings.design?.showDetailsCategory && state.selectedLocation.settings.showCategory) {
-        selectors.categories.textContent = transformCategories(state.selectedLocation.categories);
+      if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
+        selectors.categories.textContent = transformCategories(selectedLocation.categories);
         selectors.categories.style.display = 'block';
       }
 
-      if (!state.selectedLocation.settings.showOpeningHours) {
+      if (!selectedLocation.settings.showOpeningHours) {
         selectors.workingHoursBtn.style.display = 'none';
-      } else if (!isLocationOpen(state.selectedLocation)) {
+      } else if (!isLocationOpen(selectedLocation)) {
         selectors.workingHoursBtnLabel.textContent = 'Closed';
       }
 
-      if (!state.selectedLocation.settings.showStarRating) {
+      if (!selectedLocation.settings.showStarRating) {
         document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
         selectors.ratingValue.style.display = 'none';
       } else {
-        selectors.ratingSystem.dataset.ratingId = state.selectedLocation.id;
-        selectors.ratingValue.textContent = Array(Math.round(state.selectedLocation.rating.average) + 1).join('★ ');
+        selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
+        selectors.ratingValue.textContent = Array(Math.round(selectedLocation.rating.average) + 1).join('★ ');
         buildfire.components.ratingSystem.injectRatings();
       }
-      selectors.actionItems.innerHTML = state.selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
+      selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
       ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
         <div class="mdc-chip" role="row">
@@ -500,7 +505,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = state.selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       navigateTo('detail');
     });
@@ -1105,7 +1110,7 @@ const handleMarkerClick = (location) => {
               <p class="margin-bottom-five">${location.title}</p>
               <p class="margin-top-zero">${transformCategories(location.categories)}</p>
               <p>
-                <span>${location.subtitle ?? ''}</span>
+                <span>${location.addressAlias ?? location.subtitle ?? ''}</span>
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
