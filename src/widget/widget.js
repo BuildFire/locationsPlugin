@@ -150,7 +150,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.subtitle ?? ''}</p>
+            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
@@ -181,7 +181,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.subtitle ?? ''}</p>
+            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
@@ -245,7 +245,7 @@ const renderListingLocations = (list) => {
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
             <p>${n.title}</p>
-            <p class="mdc-theme--text-body">${n.subtitle ?? ''}</p>
+            <p class="mdc-theme--text-body" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
             <p class="mdc-theme--text-body">${n.address}</p>
           </div>
           <div class="location-item__actions">
