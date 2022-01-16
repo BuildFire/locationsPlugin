@@ -37,7 +37,7 @@ export default class Location {
     this.description = data.description || null;
     this.owner = data.owner || null;
     this.views = data.views || 0;
-    this.price = data.price || { range: 0, currency: '$' };
+    this.price = data.price || { range: 1, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };
     this.bookmarksCount = data.bookmarksCount || 0;
     this.actionItems = data.actionItems || [];

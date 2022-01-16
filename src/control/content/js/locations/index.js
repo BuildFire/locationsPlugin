@@ -658,18 +658,17 @@ const onPriceRangeChanged = (price) => {
   }
   const radios = addLocationControls.priceRangeRadioBtns;
   for (const radio of radios) {
-    if (radio.value === price?.range) {
+    if (Number(radio.value) === price?.range) {
       radio.checked = true;
     }
     radio.onchange = (e) => {
       const { value } = e.target;
-      state.locationObj.price.range = value;
+      state.locationObj.price.range = Number(value);
     };
   }
 
   addLocationControls.selectPriceCurrency.onchange = (e) => {
     const { value } = e.target;
-    console.log(value);
     state.locationObj.price.currency = value;
   };
 };
