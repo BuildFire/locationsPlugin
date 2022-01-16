@@ -9,7 +9,9 @@ import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
+import { deepObjectDiff } from './js/util/helpers';
 
+// following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
 let SEARCH_TIMOUT;
 
@@ -1298,7 +1300,13 @@ const handleCPSync = (message) => {
         const of = outdatedSettings.filter;
         const ms = state.settings.map;
         const oms = outdatedSettings.map;
-        if (f.allowFilterByArea !== of.allowFilterByArea) {
+
+        if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          initDrawerFilterOptions();
+        } else if (f.allowFilterByArea !== of.allowFilterByArea) {
           const areaSearchInput = document.querySelector('#areaSearchLabel');
           if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
             showElement('.header-qf');
