@@ -1011,8 +1011,8 @@ const createEmptyHolder = (message) => {
 window.intiMap = () => {
   console.log("Map Ready");
   const map = new google.maps.Map(document.getElementById("location-map"), {
-    center: { lat: -34.397, lng: 150.644 },
-    zoom: 10,
+    center: { lat: 32.7182625, lng: -117.1601157 },
+    zoom: 1,
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,

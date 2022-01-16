@@ -8,6 +8,9 @@ import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
 
 
+const sidenavContainer = document.getElementById('sidenav-container');
+const emptyState = document.getElementById('empty-state');
+
 const templates = {};
 const state = {
   settings: new Settings(),
@@ -405,10 +408,22 @@ const saveSettings = () => {
 };
 
 const getSettings = () => {
+  showLoading();
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     onSidenavChange('sorting');
+    hideLoading();
   }).catch(console.error);
+};
+
+const showLoading = () => {
+  sidenavContainer.classList.add('hidden');
+  emptyState.classList.remove('hidden');
+};
+
+const hideLoading = () => {
+  emptyState.classList.add('hidden');
+  sidenavContainer.classList.remove('hidden');
 };
 
 const triggerWidgetOnDesignUpdate = () => {

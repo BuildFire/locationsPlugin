@@ -8,6 +8,8 @@ import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import DesignController from "./design.controller";
 
+const mainContainer = document.getElementById('main-container');
+const emptyState = document.getElementById('empty-state');
 const state = {
   settings: new Settings()
 };
@@ -28,7 +30,7 @@ const render = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.design.listViewPosition = value;
       saveSettings();
     };
@@ -40,7 +42,7 @@ const render = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.design.listViewStyle = value;
       saveSettings();
     };
@@ -52,7 +54,7 @@ const render = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.design.defaultMapStyle = value;
       saveSettings();
     };
@@ -76,7 +78,7 @@ const render = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.design.detailsMapPosition = value;
       saveSettings();
     };
@@ -107,10 +109,22 @@ const saveSettings = () => {
 };
 
 const getSettings = () => {
+  showLoading();
   DesignController.getSettings().then((settings) => {
     state.settings = settings;
     render();
+    hideLoading();
   }).catch(console.error);
+};
+
+const showLoading = () => {
+  mainContainer.classList.add('hidden');
+  emptyState.classList.remove('hidden');
+};
+
+const hideLoading = () => {
+  emptyState.classList.add('hidden');
+  mainContainer.classList.remove('hidden');
 };
 
 const triggerWidgetOnDesignUpdate = () => {
