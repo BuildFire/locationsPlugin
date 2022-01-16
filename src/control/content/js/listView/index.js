@@ -181,6 +181,19 @@ window.initListView = () => {
     saveSettings();
   };
   pinnedLocationsList.onDeleteItem = deletePinnedLocation;
+  pinnedLocationsList.onOrderChange = (item, oldIndex, newIndex) => {
+    state.pinnedLocations = pinnedLocationsList.items;
+    const promiseChain = [];
+
+    state.pinnedLocations.forEach((item, index) => {
+      item.pinIndex = index + 1;
+      promiseChain.push(LocationsController.updateLocation(item.id, new Location(item)));
+    });
+
+    Promise.all(promiseChain).then(() => {
+      console.log('Successfully reordered pinned locations');
+    }).catch(console.error);
+  };
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();

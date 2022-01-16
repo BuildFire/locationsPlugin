@@ -394,7 +394,6 @@ window.addEditLocation = (location) => {
       if (!actionItem) {
         return false;
       }
-      console.log("Action item created", actionItem);
       actionItem.id = generateUUID();
       state.locationObj.actionItems.push(actionItem);
       actionItemsUI.addItem(actionItem);
@@ -663,13 +662,13 @@ const onPriceRangeChanged = (price) => {
       radio.checked = true;
     }
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.locationObj.price.range = value;
-    }
+    };
   }
 
   addLocationControls.selectPriceCurrency.onchange = (e) => {
-    const value = e.target.value;
+    const { value } = e.target;
     console.log(value);
     state.locationObj.price.currency = value;
   };

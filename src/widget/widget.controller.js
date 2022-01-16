@@ -44,7 +44,7 @@ export default {
     options.sort = { "_buildfire.index.number1": 1 };
 
     options.filter = {
-      "_buildfire.index.number1": { $in: [0, 1, 2] }
+      "_buildfire.index.number1": { $in: [1, 2, 3] }
     };
     return this.searchLocations(options);
   },
