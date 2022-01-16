@@ -192,6 +192,7 @@ window.initListView = () => {
 
     Promise.all(promiseChain).then(() => {
       console.log('Successfully reordered pinned locations');
+      triggerWidgetOnListViewUpdate();
     }).catch(console.error);
   };
   initListViewWysiwyg();
