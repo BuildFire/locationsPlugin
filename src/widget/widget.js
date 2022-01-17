@@ -1509,6 +1509,7 @@ const init = () => {
       buildfire.appearance.getAppTheme(getAppThemeHandler);
       buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
       buildfire.components.ratingSystem.onRating = onRatingHandler;
+      buildfire.appearance.titlebar.show();
     });
 };
 
