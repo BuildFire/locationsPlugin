@@ -17,12 +17,6 @@ body > section {
   padding: 15px;
 }
 
-
-html[safe-area="true"] body > section {
-  padding-top: calc(15px + constant(safe-area-inset-bottom)) !important;
-  padding-top: calc(15px + env(safe-area-inset-bottom)) !important;
-}
-
 section#intro,
 section#listing {
   display: none;
