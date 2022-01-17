@@ -224,12 +224,18 @@ export default class SearchTableHelper {
     <span id="tooltip-content-${obj.id}" class="tooltip-content right">Copy Deeplink</span>`;
     actionsDiv.appendChild(copyBtn);
 
-    const editBtn = document.createElement("span");
-    editBtn.className = "btn--icon icon icon-pencil3";
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn--icon";
+    const editBtnIcon = document.createElement("span");
+    editBtnIcon.className = "icon icon-pencil3";
+    editBtn.appendChild(editBtnIcon);
     actionsDiv.appendChild(editBtn);
 
-    const deleteBtn = document.createElement("span");
-    deleteBtn.className = "btn--icon icon icon-cross2";
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn btn--icon";
+    const deleteBtnIcon = document.createElement("span");
+    deleteBtnIcon.className = "icon icon-cross2";
+    deleteBtn.appendChild(deleteBtnIcon);
     actionsDiv.appendChild(deleteBtn);
 
     copyBtn.onclick = () => {

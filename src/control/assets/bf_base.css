@@ -278,9 +278,9 @@ button{
 .btn--icon {
     width: 2.5rem;
     height: 2.5rem; 
-    border-radius: .25rem;
-    font-size: 1.125rem;
-    display: flex;
+    border-radius: .25rem !important;
+    font-size: 1.125rem !important;
+    display: flex !important;
     justify-content: center;
     align-items: center;
     min-width: unset;
