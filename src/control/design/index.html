@@ -19,7 +19,10 @@
 </head>
 
 <body>
-  <div class="main-content clearfix">
+  <div id="empty-state" class="empty-state">
+    <h4>Loading...</h4>
+  </div>
+  <div id="main-container" class="main-content clearfix hidden">
     <div class="section-title">Location View</div>
     <div class="clearfix">
       <p class="info-note">Change the display options for the locations and map. Any changes made on this page require publishing to reflect on devices.</p>
@@ -147,6 +150,7 @@
       </div>
     </div>
   </div>
+  
   <!--
     Do not include the 'design.js' script tag!
     Webpack will inject it automatically to this html's body
