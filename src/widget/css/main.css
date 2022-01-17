@@ -46,8 +46,7 @@ section#filter {
   font-size: 13px;
   border: 0 ;
   border-radius: .25rem;
-  padding: .75rem 1rem;
-  padding-left: 48px;
+  padding: .75rem 48px;
   background-color: rgba(255,255,255,.05);
   box-shadow: 0 .125rem .25rem .125rem rgba(150,150,150,.2);
   opacity: 1;
