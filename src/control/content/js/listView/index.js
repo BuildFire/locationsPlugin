@@ -24,27 +24,21 @@ const initListViewWysiwyg = () => {
   tinymce.init({
     selector: "#listview-description-wysiwyg",
     init_instance_callback: (editor) => {
-      editor.on('keydown', onDescriptionChanged);
+      tinymce.activeEditor.setContent(state.settings.introductoryListView.description);
+    },
+    setup: (editor) => {
+      console.log(editor.getContent());
+      editor.on('keyup change', () => {
+        state.settings.introductoryListView.description = tinymce.activeEditor?.getContent();
+        saveSettingsWithDelay();
+      });
     }
   });
-
-  let timeoutId;
-  function onDescriptionChanged(e) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      state.settings.introductoryListView.description = tinymce.activeEditor.getContent();
-      saveSettings();
-    }, 300);
-  }
-};
-
-window.onDescriptionChanged = () => {
-  console.log('Hello');
 };
 
 window.onShowListViewChanged = (e) => {
   state.settings.showIntroductoryListView = e.target.checked;
-  saveSettings();
+  saveSettingsWithDelay();
 };
 
 window.onSortLocationsChanged = (sorting) => {
@@ -52,7 +46,7 @@ window.onSortLocationsChanged = (sorting) => {
     return;
   }
   state.settings.introductoryListView.sorting = sorting;
-  saveSettings();
+  saveSettingsWithDelay();
 };
 
 const patchListViewValues = () => {
@@ -60,7 +54,6 @@ const patchListViewValues = () => {
   const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
   showBtn.checked = state.settings.showIntroductoryListView;
   listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
-  tinymce.activeEditor.setContent(state.settings.introductoryListView.description);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
     if (radio.value === state.settings.introductoryListView.sorting) {
@@ -80,6 +73,14 @@ const handlePinnedLocationEmptyState = (isLoading) => {
   } else {
     emptyState.classList.add('hidden');
   }
+};
+
+let timeoutId;
+const saveSettingsWithDelay = () => {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    saveSettings();
+  }, 300);
 };
 
 const saveSettings = () => {
@@ -148,18 +149,18 @@ window.initListView = () => {
 
   listViewImagesCarousel.onAddItems = (items) => {
     state.settings.introductoryListView.images.push(...items.map((item) => ({ ...item, id: generateUUID() })));
-    saveSettings();
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onItemChange = (item, index) => {
     const imageId = state.settings.introductoryListView.images[index]?.id;
     state.settings.introductoryListView.images[index] = { ...item, id: imageId };
-    saveSettings();
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onDeleteItem = (item, index,) => {
     state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
       (elem) => elem.id !== item.id
     );
-    saveSettings();
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onOrderChange = (item, oldIndex, newIndex) => {
     const items = state.settings.introductoryListView.images;
@@ -178,7 +179,7 @@ window.initListView = () => {
     items[newIndex] = tmp;
 
     state.settings.introductoryListView.images = items;
-    saveSettings();
+    saveSettingsWithDelay();
   };
   pinnedLocationsList.onDeleteItem = deletePinnedLocation;
   pinnedLocationsList.onOrderChange = (item, oldIndex, newIndex) => {
