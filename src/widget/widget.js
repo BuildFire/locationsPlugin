@@ -26,7 +26,7 @@ const searchLocations = (type) => {
   const pipelines = [];
   let pageIndex = state.searchCriteria.page;
   const query = {};
-  if (state.searchCriteria.searchValue) {
+  if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
     query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
   }
 
@@ -40,10 +40,15 @@ const searchLocations = (type) => {
       subcategoryIds.push(...state.filterElements[key].subcategories);
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange) {
+  // eslint-disable-next-line max-len
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0) {
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
       array1Index.push(`pr_${state.searchCriteria.priceRange}`);
+    }
+
+    if (state.searchableTitles.length > 0) {
+      array1Index.push(...state.searchableTitles.map((title) => `title_${title.toLowerCase()}`));
     }
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
@@ -105,7 +110,7 @@ const searchLocations = (type) => {
   ];
 
   if (state.searchCriteria.searchValue) {
-    promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue, state.searchCriteria.page));
+    promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
   }
 
   return Promise.all(promiseChain)
@@ -117,6 +122,15 @@ const searchLocations = (type) => {
         .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       state.listLocations = state.listLocations.concat(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+
+      // eslint-disable-next-line max-len
+      if (state.searchCriteria.searchValue && state.listLocations.length === 0 && state.searchableTitles.length === 0) {
+        const searchableTitles =  result2?.hits?.hits?.map((elem) => elem._source.searchable.title);
+        if (searchableTitles && searchableTitles.length > 0) {
+          state.searchableTitles = searchableTitles;
+          return searchLocations();
+        }
+      }
       return result;
     })
     .catch(console.error);
@@ -634,6 +648,7 @@ const clearLocations = () => {
   state.searchCriteria.page2 = 0;
   state.fetchingNextPage = false;
   state.fetchingEndReached = false;
+  state.searchableTitles = [];
   if (state.maps.map) state.maps.map.clearMarkers();
 };
 

@@ -28,5 +28,6 @@ export default {
   firstSearchInit: false,
   fetchingNextPage: false,
   fetchingEndReached: false,
-  filterElements: {}
+  filterElements: {},
+  searchableTitles: [],
 };
