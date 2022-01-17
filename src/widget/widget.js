@@ -681,6 +681,13 @@ const onMapBoundsChange = (bounds) => {
       renderListingLocations(result);
     });
   }, 500);
+
+  // handle hiding opened location
+  const locationSummary = document.querySelector('#locationSummary');
+  if (locationSummary && locationSummary.classList.contains('slide-in')) {
+    locationSummary.classList.add('slide-out');
+    locationSummary.classList.remove('slide-in');
+  }
 };
 
 const getFormattedAddress = (coords, cb) => {
