@@ -2,15 +2,8 @@
 @import "../../../../styles/helper.css";
 @import "./glyphicons.css";
 
-:root {
-  --body-theme: unset;
-  --background-color: unset;
-  --primary-color: unset;
-  --header-theme: unset;
-}
-
 body {
-  background: var(--background-color);
+  background: var(--bf-theme-background);
 }
 
 body > section {
@@ -25,7 +18,7 @@ section#listing {
 section#filter {
   padding: 15px 0;
   overflow-y: auto;
-  background-color: var(--background-color);
+  background-color: var(--bf-theme-background);
 }
 
 #home:not(.active),
@@ -69,10 +62,10 @@ section#filter {
 }
 
 .mdc-theme--text-body {
-  color: var(--body-theme);
+  color: var(--bf-theme-body-text);
 }
 .mdc-theme--text-header {
-  color: var(--header-theme);
+  color: var(--bf-theme-header-text);
 }
 .mdc-fab {
   position: fixed;
@@ -87,7 +80,6 @@ section#filter {
 }
 
 #home header {
-  background-color: #ffffff;
   margin-left: -15px;
   margin-right: -15px;
   padding: 0 15px 15px;
@@ -312,12 +304,12 @@ div.empty-page {
 }
 
 .mdc-checkbox__native-control:enabled:checked~.mdc-checkbox__background, .mdc-checkbox__native-control:enabled:indeterminate~.mdc-checkbox__background {
-  border-color: var(--primary-color);
-  background-color: var(--primary-color);
+  border-color: var(--bf-theme-primary);
+  background-color: var(--bf-theme-primary);
 }
 
 .mdc-checkbox .mdc-checkbox__native-control:checked~.mdc-checkbox__background::before, .mdc-checkbox .mdc-checkbox__native-control:indeterminate~.mdc-checkbox__background::before {
-  background-color: var(--primary-color);
+  background-color: var(--bf-theme-primary);
 }
 .mdc-chip.disabled {
   pointer-events: none;
@@ -353,7 +345,6 @@ div.empty-page {
   padding: 10px 20px 15px;
   position: sticky;
   top: 0;
-  background-color: #ffffff;
   z-index: 1;
 }
 .drawer-header .bookmark-result p {
@@ -892,7 +883,7 @@ body section#home {
 }
 
 #openNowSortingBtn.selected {
-  opacity: 0.8;
+  background-color: var(--mdc-theme-primary) !important;
 }
 .location-cover__rating-value {
   font-size: 14px;
@@ -900,4 +891,8 @@ body section#home {
 .location-image__open-status {
   margin-left: 10px;
   color: #91dba6;
+}
+
+.filter-options button {
+  background-color: rgb(150, 150, 150) !important;
 }

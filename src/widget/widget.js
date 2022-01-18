@@ -244,9 +244,9 @@ const renderListingLocations = (list) => {
         <div class="d-flex">
           <img src="${n.listImage}" alt="Location image">
           <div class="location-item__description">
-            <p>${n.title}</p>
-            <p class="mdc-theme--text-body" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body">${n.address}</p>
+            <p class="mdc-theme--text-header">${n.title}</p>
+            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -376,7 +376,7 @@ const transformCategories = (categories) => {
   });
   return mainCategoriesTitles.length > 1
     ? categories.main.join(', ')
-    : `${mainCategoriesTitles[0]} | ${subCategoriesTitles.join(', ')}`;
+    : `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
 };
 
 const isLocationOpen = (location) => {
@@ -751,14 +751,18 @@ const initEventListeners = () => {
 
       const menu = new mdc.menu.MDCMenu(e.target.nextElementSibling);
       const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+      const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
       const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
+      const priceSortingBtn = document.querySelector('#priceSortingBtn');
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
           state.searchCriteria.priceRange = Number(value);
           priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+          priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
         } else if (e.target.id === 'otherSortingBtn') {
           otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+          otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
           if (value === 'distance') {
             state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
           } else if (value === 'A-Z') {
@@ -856,7 +860,7 @@ const initFilterOverlay = () => {
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
-            <span class="expansion-panel-title">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
             <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
               ${category.title}
             </span>
@@ -1460,15 +1464,7 @@ const onPopHandler = (breadcrumb) => {
     state.breadcrumbs.pop();
   }
 };
-const getAppThemeHandler = (err, appTheme) => {
-  if (err) return console.error(err);
-  const root = document.documentElement;
-  const { colors } = appTheme;
-  root.style.setProperty('--body-theme', colors.bodyText);
-  root.style.setProperty('--header-theme', colors.headerText);
-  root.style.setProperty('--background-color', colors.backgroundColor);
-  root.style.setProperty('--primary-color', colors.primaryTheme);
-};
+
 const onReceivedMessageHandler = (message) => {
   if (message.cmd === 'sync') {
     handleCPSync(message);
@@ -1513,7 +1509,6 @@ const init = () => {
       views.fetch('home').then(refreshCategories).then(initHomeView);
       buildfire.deeplink.getData(getDataHandler);
       buildfire.history.onPop(onPopHandler);
-      buildfire.appearance.getAppTheme(getAppThemeHandler);
       buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
       buildfire.components.ratingSystem.onRating = onRatingHandler;
       buildfire.appearance.titlebar.show();
