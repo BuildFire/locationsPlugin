@@ -656,8 +656,9 @@ const fetchPinnedLocations = (done) => {
   WidgetController
     .getPinnedLocations()
     .then((locations) => {
-      state.pinnedLocations = locations.result;
-      done(null, locations.result);
+      state.pinnedLocations = locations.result.filter((elem1) => !state.pinnedLocations.find((elem) => elem?.id === elem1?.id))
+        .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
+      done(null, state.pinnedLocations);
     })
     .catch((err) => {
       console.error('error fetching pinned locations: ', err);
@@ -1449,15 +1450,6 @@ const getDataHandler = (deeplinkData) => {
   }
 };
 
-const getCurrentPositionHandler = (err, position) => {
-  if (err) {
-    return console.error(`error getting current position ${err}`);
-  }
-  state.userPosition = position.coords;
-  setLocationsDistance();
-  const { map } = state.maps;
-  if (map) map.addUserPosition(state.userPosition);
-};
 const onPopHandler = (breadcrumb) => {
   console.log('Breadcrumb popped', breadcrumb);
   console.log('Breadcrumb popped', state.breadcrumbs);
