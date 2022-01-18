@@ -217,6 +217,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         </div>
       </div>`)).concat(reducedLocations);
   }
+
   const content = reducedLocations.join('\n');
   container.insertAdjacentHTML('beforeend', content);
 };
@@ -632,7 +633,7 @@ const setDefaultSorting = () => {
     } else if (introductoryListView.sorting === 'alphabetical') {
       state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
     } else if (introductoryListView.sorting === 'newest') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: -1 };
     }
   } else if (sorting.defaultSorting === 'distance') {
     state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
@@ -656,8 +657,7 @@ const fetchPinnedLocations = (done) => {
   WidgetController
     .getPinnedLocations()
     .then((locations) => {
-      state.pinnedLocations = locations.result.filter((elem1) => !state.pinnedLocations.find((elem) => elem?.id === elem1?.id))
-        .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
+      state.pinnedLocations = locations.result.map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       done(null, state.pinnedLocations);
     })
     .catch((err) => {
@@ -1367,22 +1367,21 @@ const handleCPSync = (message) => {
         if (state.settings.showIntroductoryListView) {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
-          fetchPinnedLocations(() => {
-            renderIntroductoryLocations(state.listLocations, true);
-            refreshIntroductoryDescription();
-            hideFilterOverlay();
-            navigateTo('home');
-            showElement('section#intro');
-            hideElement('section#listing');
-            refreshIntroductoryCarousel();
-            if (state.settings.introductoryListView.images.length === 0
-              && state.listLocations.length === 0
-              && !state.settings.introductoryListView.description) {
-              showElement('#intro div.empty-page');
-            }
-            // eslint-disable-next-line no-new
-            new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
-          });
+          setDefaultSorting();
+          clearAndSearchWithDelay();
+          refreshIntroductoryDescription();
+          hideFilterOverlay();
+          navigateTo('home');
+          showElement('section#intro');
+          hideElement('section#listing');
+          refreshIntroductoryCarousel();
+          if (state.settings.introductoryListView.images.length === 0
+            && state.listLocations.length === 0
+            && !state.settings.introductoryListView.description) {
+            showElement('#intro div.empty-page');
+          }
+          // eslint-disable-next-line no-new
+          new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
         } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
           showMapView();
         }
