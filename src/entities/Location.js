@@ -93,7 +93,7 @@ export default class Location {
             ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),
             { string1: 'v_' + this.views },
             { string1: 'pr_' + this.price.range },
-            { string1: 'title_' + this.title },
+            { string1: 'title_' + this.title.toLowerCase()},
           ],
           number1: this.pinIndex
         },

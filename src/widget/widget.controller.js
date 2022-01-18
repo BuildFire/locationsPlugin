@@ -29,7 +29,7 @@ export default {
     };
     return Locations.search(defaultOptions);
   },
-  getSearchEngineResults(searchValue, page = 0, pageSize = 50) {
+  getSearchEngineResults(searchValue, page = 0, pageSize = 10) {
     return searchEngine.search(Locations.TAG, {
       searchText: searchValue,
       pageIndex: page,
