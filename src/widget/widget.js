@@ -335,7 +335,7 @@ const refreshIntroductoryCarousel = () => {
   const { introductoryListView } = state.settings;
   if (state.introCarousel) {
     state.introCarousel.clear();
-    state.introCarousel.append(introductoryListView.images);
+    state.introCarousel.loadItems(introductoryListView.images);
   } else if (introductoryListView.images.length > 0) {
     state.introCarousel = new buildfire.components.carousel.view('.carousel');
     state.introCarousel.loadItems(introductoryListView.images);
@@ -1318,11 +1318,9 @@ const handleCPSync = (message) => {
           navigateTo('home');
           showMapView();
           drawer.reset(d.listViewPosition);
-        } else if (d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) {
-          if (state.listLocations.length > 0) {
-            [state.selectedLocation] = state.listLocations;
-            showLocationDetail();
-          }
+        } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
+          [state.selectedLocation] = state.listLocations;
+          showLocationDetail();
         } else {
           hideFilterOverlay();
           navigateTo('home');
