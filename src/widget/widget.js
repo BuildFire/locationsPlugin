@@ -115,7 +115,6 @@ const searchLocations = (type) => {
 
   return Promise.all(promiseChain)
     .then(([result, result2]) => {
-      console.log(result2);
       state.fetchingNextPage = false;
       state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
       result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
@@ -685,7 +684,6 @@ const clearAndSearchWithDelay = () => {
 };
 
 const onMapBoundsChange = (bounds) => {
-  console.log(state.mapBounds);
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
     if (!state.firstSearchInit) {
@@ -759,6 +757,7 @@ const initEventListeners = () => {
             showMapView();
           });
       } else {
+        renderListingLocations(state.listLocations);
         showMapView();
       }
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
@@ -1028,7 +1027,7 @@ const initAreaAutocompleteField = () => {
     }
   );
 
-  autocomplete.addListener("place_changed", () => {
+  autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
     if (!place || !place.geometry || !place.geometry) {
       return;
@@ -1040,7 +1039,6 @@ const initAreaAutocompleteField = () => {
     };
     state.currentLocation = point;
     state.maps.map.center(point);
-    clearAndSearchWithDelay();
     console.log(place);
   });
 };
@@ -1105,7 +1103,6 @@ const initMainMap = () => {
   const selector = document.getElementById('mainMapContainer');
   const options = generateMapOptions();
   const { userPosition } = state;
-
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = onMapBoundsChange;
   if (userPosition) {

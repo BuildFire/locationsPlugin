@@ -47,7 +47,7 @@ export default class Settings {
       allowForFilters: true
     };
     this.design = data.design ||  {
-      listViewPosition: 'expanded',
+      listViewPosition: 'collapsed',
       listViewStyle: 'backgroundImage',
       defaultMapStyle: 'light',
       defaultMapType: 'streets',

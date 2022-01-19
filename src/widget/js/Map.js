@@ -72,7 +72,7 @@ export default class Map {
       marker = new google.maps.Marker({
         position: new google.maps.LatLng(lat, lng),
         markerData: location,
-        map: this.map,
+        map: this.map
       });
       marker.addListener("click", () => {
         onClick(location, marker);
