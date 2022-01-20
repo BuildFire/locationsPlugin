@@ -837,7 +837,7 @@ body section#home {
   object-fit: cover;
 }
 .custom-marker__circle svg {
-  width: 50px;
+  width: 100px;
   height: 50px;
   margin: 2px;
 }

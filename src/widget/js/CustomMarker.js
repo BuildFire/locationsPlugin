@@ -34,15 +34,26 @@ export default (function () {
         const svgns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgns, 'svg');
         const circle = document.createElementNS(svgns, 'circle');
-        svg.setAttributeNS(null, 'height', 25);
-        svg.setAttributeNS(null, 'width', 25);
-        circle.setAttributeNS(null, 'cx', 12.5);
+        const label = document.createElementNS(svgns, 'text');
+        let labelText = this.location.addressAlias ?? this.location.title;
+        if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
+
+        circle.setAttributeNS(null, 'cx', '50%');
         circle.setAttributeNS(null, 'cy', 12.5);
         circle.setAttributeNS(null, 'r', 10);
         circle.setAttributeNS(null, 'stroke', '#FFFFFF');
         circle.setAttributeNS(null, 'stroke-width', 4);
         circle.setAttributeNS(null, 'fill', this.location.marker.color);
+        label.setAttributeNS(null, 'text-anchor', 'middle');
+        label.setAttributeNS(null, 'x', '50%');
+        label.setAttributeNS(null, 'y', '40');
+        label.setAttributeNS(null, 'fill', this.location.marker.color);
+        label.setAttributeNS(null, 'text-anchor', 'middle');
+        label.setAttributeNS(null, 'font-size', '14');
+        label.textContent = labelText;
+
         svg.appendChild(circle);
+        svg.appendChild(label);
         div.appendChild(svg);
         div.classList.add('custom-marker__circle');
       }
