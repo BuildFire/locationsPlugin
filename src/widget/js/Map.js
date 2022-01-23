@@ -29,8 +29,8 @@ export default class Map {
 
   attachMapListeners() {
     this.boundsChangedHandler = this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
-    this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
-    this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    // this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
+    // this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
     this.centerChangedHandler = this.map.addListener('idle', this._onMapIdle.bind(this));
   }
 

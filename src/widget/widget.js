@@ -25,27 +25,27 @@ if (!buildfire.components.carousel.view.prototype.clear) {
 
 /*
   # Intro Search
-  [ ] $geo stage with
-  [ ] consider its own sort
+  [X] $geo stage with
+  [X] consider its own sort
   [ ] handle pinned location
 
   # Map view
   # use match stage with geoWithin stage
   ## initial state
-  [ ] center the map based on current location
-  [ ] fetch location based on current location view port
-  [ ] consider the search criteria
-  [ ] No results found correct search value by search engine
+  [X] center the map based on current location
+  [X] fetch location based on current location view port
+  [X] consider the search criteria
+  [X] No results found correct search value by search engine
   [ ] no result found add empty state in drawer "Start your search!"
 
   ## Idle state
-  [ ] fetch location based on current location view port
-  [ ] no data found get get nearest location
-  [ ] center the map based on nearest location if exist
-  [ ] Zoom level is city "12"
-  [ ] fetch locations based on nearest location view port
-  [ ] if no results found correct search value by search engine
-  [ ] recall search function
+  [X] fetch location based on current location view port
+  [X] no data found get get nearest location
+  [X] center the map based on nearest location if exist
+  [X] Zoom level is city "10"
+  [X] fetch locations based on nearest location view port
+  [X] if no results found correct search value by search engine
+  [X] recall search function
   [ ] if no result found add empty state in drawer "Start your search!"
 
   [ ] show  find location button when map view port is changed
@@ -149,7 +149,7 @@ const searchIntroLocations = () => {
     .catch(console.error);
 };
 
-const searchLocations = (type) => {
+const searchLocations = () => {
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
   if (activeTemplate === 'intro') {
     return searchIntroLocations();
@@ -205,7 +205,9 @@ const searchLocations = (type) => {
       result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
         .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       state.listLocations = state.listLocations.concat(result);
-      state.listLocations.sort((a, b) => a.distance - b.distance);
+      if (state.searchCriteria.sort.sortBy === 'distance') {
+        state.listLocations.sort((a, b) => a.distance - b.distance);
+      }
 
       if (state.maps.map) state.maps.map.clearMarkers();
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
@@ -222,6 +224,15 @@ const searchLocations = (type) => {
           state.searchableTitles = searchableTitles;
           return searchLocations();
         }
+      }
+
+
+      // Render Map listLocations
+      renderListingLocations(result);
+
+      if (!state.fetchingEndReached && state.listLocations.length <= 150) {
+        state.searchCriteria.page += 1;
+        return searchLocations();
       }
 
       return result;
@@ -732,10 +743,7 @@ const fetchMoreListLocations = (e) => {
     if (!state.fetchingNextPage && !state.fetchingEndReached) {
       state.fetchingNextPage = true;
       state.searchCriteria.page += 1;
-      searchLocations()
-        .then((result) => {
-          renderListingLocations(result);
-        });
+      searchLocations();
     }
   }
 };
@@ -746,13 +754,15 @@ const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
   if (showIntroductoryListView && introductoryListView.sorting) {
     if (introductoryListView.sorting === 'distance') {
-      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+      state.introSort = { sortBy: 'distance', order: 1 };
     } else if (introductoryListView.sorting === 'alphabetical') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+      state.introSort = { sortBy: '_buildfire.index.text', order: 1 };
     } else if (introductoryListView.sorting === 'newest') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: -1 };
+      state.introSort = { sortBy: '_buildfire.index.date1', order: -1 };
     }
-  } else if (sorting.defaultSorting === 'distance') {
+  }
+
+  if (sorting.defaultSorting === 'distance') {
     state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
   } else if (sorting.defaultSorting === 'alphabetical') {
     state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
@@ -784,7 +794,6 @@ const fetchPinnedLocations = (done) => {
 const clearAndSearchLocations = () => {
   clearLocations();
   const { showIntroductoryListView } = state.settings;
-
   searchLocations()
     .then(() => {
       if (showIntroductoryListView) {
@@ -793,8 +802,6 @@ const clearAndSearchLocations = () => {
           renderIntroductoryLocations(state.listLocations, true);
         });
       }
-      clearMapViewList();
-      renderListingLocations(state.listLocations);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -803,14 +810,13 @@ const clearAndSearchWithDelay = () => {
 };
 
 const onMapBoundsChange = (bounds) => {
-  clearLocations();
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
     if (!state.firstSearchInit) {
       return;
     }
+    clearLocations();
     state.mapBounds = bounds;
-    state.searchCriteria.page2 = 0;
     searchLocations('bound').then((result) => {
       clearMapViewList();
       renderListingLocations(result);
@@ -863,24 +869,14 @@ const initEventListeners = () => {
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
     } else if (e.target.id === 'showMapView') {
-      const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
-      if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
-        if (sorting.defaultSorting === 'distance') {
-          state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
-        } else if (sorting.defaultSorting === 'alphabetical') {
-          state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
-        }
-        clearLocations();
-        clearMapViewList();
-        searchLocations()
-          .then(() => {
-            renderListingLocations(state.listLocations);
-            showMapView();
-          });
-      } else {
-        renderListingLocations(state.listLocations);
-        showMapView();
-      }
+      clearLocations();
+      clearMapViewList();
+      showMapView();
+      state.firstSearchInit = true;
+      searchLocations()
+        .then(() => {
+          clearIntroViewList();
+        });
     } else if (['priceSortingBtn', 'otherSortingBtn'].includes(e.target.id)) {
       drawer.reset('expanded');
       setTimeout(() => { toggleDropdownMenu(e.target.nextElementSibling); }, 200);
@@ -1127,11 +1123,8 @@ const initFilterOverlay = () => {
 };
 
 const showMapView = () => {
-  const introLocationsList = document.querySelector('#introLocationsList');
   hideElement('section#intro');
   showElement('section#listing');
-  state.firstSearchInit = true;
-  introLocationsList.innerHTML = '';
 };
 
 const navigateTo = (template) => {
@@ -1229,7 +1222,9 @@ const initMainMap = () => {
   const options = generateMapOptions();
   const { userPosition } = state;
   state.maps.map = new MainMap(selector, options);
-  state.maps.map.onBoundsChange = () => {};
+  state.maps.map.onBoundsChange = () => {
+    console.log('Bounds changed');
+  };
   state.maps.map.onMapIdle = onMapBoundsChange;
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
