@@ -173,7 +173,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         </div>
         <div class="mdc-chip-set" role="grid">
 
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                   <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -204,7 +204,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         </div>
         <div class="mdc-chip-set" role="grid">
 
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                   <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -241,7 +241,7 @@ const renderListingLocations = (list) => {
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
                     <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -269,7 +269,7 @@ const renderListingLocations = (list) => {
         </div>
         <div class="mdc-chip-set" role="grid">
         
-          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                 <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -295,11 +295,11 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row" id="${n.id}">
+  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
-        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
-          <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+          <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
         </span>
         <span role="gridcell">
           <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -489,7 +489,7 @@ const showLocationDetail = () => {
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
       ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
-        <div class="mdc-chip" role="row">
+        <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
             <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -879,18 +879,18 @@ const initFilterOverlay = () => {
                   <div class="mdc-checkbox__ripple"></div>
                 </div>
               </div>
-              <div class="expansion-panel-indicator"></div>
+              <div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
             </div>
           </div>
         </button>
         <div class="expansion-panel-body">
           <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-          ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row" data-sid="${subcategory.id}">
+          ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
-              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
               <span class="mdc-chip__checkmark">
                 <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
-                  <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+                  <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
               </span>
               <span role="gridcell">
                 <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -1124,7 +1124,7 @@ const handleMarkerClick = (location) => {
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              ${location.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+              ${location.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
                     <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">

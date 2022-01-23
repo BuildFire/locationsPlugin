@@ -936,3 +936,10 @@ body section#home {
   transform: translateY(200%) !important;
   white-space: pre-line;
 }
+.mdc-chip__checkmark-path {
+  stroke: var(--mdc-theme-text-primary-on-background, rgba(0, 0, 0, 0.87)) !important;
+}
+
+.expansion-panel .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
+  border-color: var(--mdc-theme-text-primary-on-background, rgba(0, 0, 0, 0.87)) !important;
+}
