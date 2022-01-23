@@ -9,7 +9,7 @@ import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
-import { deepObjectDiff, transformCategoriesToText } from './js/util/helpers';
+import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -160,7 +160,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
     if (index === -1) {
       filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${n.listImage} alt="Location image">
+          <img src=${cdnImage(n.listImage)} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -191,7 +191,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   if (includePinned) {
     reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${n.listImage} alt="Location image">
+          <img src=${cdnImage(n.listImage)} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -224,7 +224,7 @@ const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
-    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].imageUrl : './images/default-location-cover.png'});">
+    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -256,7 +256,7 @@ const renderListingLocations = (list) => {
   } else {
     content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
-          <img src="${n.listImage}" alt="Location image">
+          <img src="${cdnImage(n.listImage)}" alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -438,10 +438,10 @@ const showLocationDetail = () => {
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
         }
       }
 
@@ -488,7 +488,7 @@ const showLocationDetail = () => {
       }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
-      ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
+      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : ''}
         <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
@@ -498,7 +498,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${cdnImage(n.imageUrl)});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       navigateTo('detail');
     });
@@ -601,7 +601,7 @@ const fetchMoreListLocations = (e) => {
   }
 };
 
-const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) }); };
+const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => cdnImage(u.imageUrl)) }); };
 
 const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
@@ -1111,7 +1111,7 @@ const refreshMapOptions = () => {
 
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
-  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>

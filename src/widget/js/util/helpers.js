@@ -18,7 +18,6 @@ const _deepDiff = (a, b, r, reversible) => {
   });
 };
 
-
 export const transformCategoriesToText = (categories) => {
   if (!categories.main.length) {
     return '--';
@@ -37,4 +36,8 @@ export const transformCategoriesToText = (categories) => {
   return mainCategoriesTitles.length > 1
     ? categories.main.join(', ')
     : `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
+};
+
+export const cdnImage = (imageUrl) => {
+  return `https://czi3m2qn.cloudimg.io/cdn/n/n/${imageUrl}`;
 };
