@@ -39,5 +39,6 @@ export const transformCategoriesToText = (categories) => {
 };
 
 export const cdnImage = (imageUrl) => {
-  return `https://czi3m2qn.cloudimg.io/cdn/n/n/${imageUrl}`;
+  const { cloudImageHost } = buildfire.getContext().endPoints;
+  return `${cloudImageHost}/${imageUrl}`;
 };
