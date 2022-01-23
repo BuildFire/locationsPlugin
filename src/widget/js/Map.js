@@ -13,7 +13,7 @@ export default class Map {
     const options = {
       minZoom: 3,
       maxZoom: 19,
-      zoom: 15,
+      zoom: 10,
       streetViewControl: false,
       fullscreenControl: false,
       mapTypeControl: false,
@@ -31,6 +31,7 @@ export default class Map {
     this.boundsChangedHandler = this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
     this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
     this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    this.centerChangedHandler = this.map.addListener('idle', this._onMapIdle.bind(this));
   }
 
   detachMapListeners () {
@@ -114,10 +115,28 @@ export default class Map {
     this.map.setCenter(position);
   }
 
+  setZoom(zoom) {
+    if (!zoom) {
+      return;
+    }
+    this.map.setZoom(zoom);
+  }
+
   _mapViewPortChanged() {
-    console.log("mapViewPortChanged");
+    // console.log("mapViewPortChanged");
     const boundsFields = this.map.getBounds().toJSON();
     this.onBoundsChange([
+      [boundsFields.west, boundsFields.north],
+      [boundsFields.east, boundsFields.north],
+      [boundsFields.east, boundsFields.south],
+      [boundsFields.west, boundsFields.south],
+      [boundsFields.west, boundsFields.north],
+    ]);
+  }
+
+  _onMapIdle() {
+    const boundsFields = this.map.getBounds().toJSON();
+    this.onMapIdle([
       [boundsFields.west, boundsFields.north],
       [boundsFields.east, boundsFields.north],
       [boundsFields.east, boundsFields.south],
@@ -131,4 +150,8 @@ export default class Map {
   }
 
   onBoundsChange(mapBounds) {}
+
+  onMapIdle(mapBounds) {
+
+  }
 }
