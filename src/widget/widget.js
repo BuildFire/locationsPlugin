@@ -11,7 +11,7 @@ import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
-import { deepObjectDiff } from './js/util/helpers';
+import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -293,7 +293,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
     if (index === -1) {
       filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${n.listImage} alt="Location image">
+          <img src=${cdnImage(n.listImage)} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -306,7 +306,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         </div>
         <div class="mdc-chip-set" role="grid">
 
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                   <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -324,7 +324,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   if (includePinned) {
     reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${n.listImage} alt="Location image">
+          <img src=${cdnImage(n.listImage)} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -337,7 +337,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         </div>
         <div class="mdc-chip-set" role="grid">
 
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip list-action-item" role="row" data-action-id="${a.id}">
+         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                   <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -357,14 +357,14 @@ const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
-    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? n.images[0].imageUrl : './images/default-location-cover.png'});">
+    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
-              <p class="margin-top-zero">${transformCategories(n.categories)}</p>
+              <p class="margin-top-zero">${transformCategoriesToText(n.categories)}</p>
               <p>
                 <span>${n.subtitle ?? ''}</span>
                 <span>
@@ -374,7 +374,7 @@ const renderListingLocations = (list) => {
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
                     <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -389,7 +389,7 @@ const renderListingLocations = (list) => {
   } else {
     content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
         <div class="d-flex">
-          <img src="${n.listImage}" alt="Location image">
+          <img src="${cdnImage(n.listImage)}" alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -402,7 +402,7 @@ const renderListingLocations = (list) => {
         </div>
         <div class="mdc-chip-set" role="grid">
         
-          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
               <span role="gridcell">
                 <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -428,11 +428,11 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip" role="row" id="${n.id}">
+  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
-        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
-          <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+          <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
         </span>
         <span role="gridcell">
           <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -505,27 +505,6 @@ const toggleFilterOverlay = () => {
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
   }
 };
-
-const transformCategories = (categories) => {
-  if (!categories.main.length) {
-    return '--';
-  }
-  const subCategories = state.categories.map((cat) => cat.subcategories).flat();
-  const mainCategoriesTitles = [];
-  const subCategoriesTitles = [];
-  categories.main.forEach((c) => {
-    const item = state.categories.find((p) => p.id === c);
-    if (item) mainCategoriesTitles.push(item.title);
-  });
-  categories.subcategories.forEach((c) => {
-    const item = subCategories.find((p) => p.id === c);
-    if (item) subCategoriesTitles.push(item.title);
-  });
-  return mainCategoriesTitles.length > 1
-    ? categories.main.join(', ')
-    : `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
-};
-
 const isLocationOpen = (location) => {
   let isOpen = false;
   const today = location.openingHours.days[getCurrentDayName()];
@@ -592,10 +571,10 @@ const showLocationDetail = () => {
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${selectedLocation.images[0].imageUrl})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
         }
       }
 
@@ -622,7 +601,7 @@ const showLocationDetail = () => {
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
       if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
-        selectors.categories.textContent = transformCategories(selectedLocation.categories);
+        selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories);
         selectors.categories.style.display = 'block';
       }
 
@@ -642,8 +621,8 @@ const showLocationDetail = () => {
       }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
 <!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
-      ${a.iconUrl ? `<img src="${a.iconUrl}" alt="action-image">` : ''}
-        <div class="mdc-chip" role="row">
+      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : ''}
+        <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
             <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -652,7 +631,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${n.imageUrl});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${cdnImage(n.imageUrl)});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       navigateTo('detail');
     });
@@ -748,7 +727,7 @@ const fetchMoreListLocations = (e) => {
   }
 };
 
-const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => u.imageUrl) }); };
+const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => cdnImage(u.imageUrl)) }); };
 
 const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
@@ -868,6 +847,9 @@ const initEventListeners = () => {
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
+    } else if (e.target.id === 'hideQFBtn') {
+      hideElement('#areaSearchLabel');
+      showElement('.header-qf');
     } else if (e.target.id === 'showMapView') {
       clearLocations();
       clearMapViewList();
@@ -1018,18 +1000,18 @@ const initFilterOverlay = () => {
                   <div class="mdc-checkbox__ripple"></div>
                 </div>
               </div>
-              <div class="expansion-panel-indicator"></div>
+              <div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
             </div>
           </div>
         </button>
         <div class="expansion-panel-body">
           <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-          ${category.subcategories.map((subcategory) => `<div class="mdc-chip" role="row" data-sid="${subcategory.id}">
+          ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
-              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading">fmd_good</i>
+              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
               <span class="mdc-chip__checkmark">
                 <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
-                  <path class="mdc-chip__checkmark-path" fill="none" stroke="black" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+                  <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
               </span>
               <span role="gridcell">
                 <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -1163,6 +1145,7 @@ const initAreaAutocompleteField = () => {
 
 const generateMapOptions = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  const selector = document.getElementById('mainMapContainer');
   const { map, design } = state.settings;
   const { userPosition } = state;
   const options = {
@@ -1178,7 +1161,10 @@ const generateMapOptions = () => {
   }
 
   if (design.defaultMapStyle === 'dark') {
+    selector.classList.add('dark');
     options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
+  } else {
+    selector.classList.remove('dark');
   }
 
   if (!map.showPointsOfInterest) {
@@ -1246,20 +1232,20 @@ const refreshMapOptions = () => {
 
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
-  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${location.listImage});">
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
-              <p class="margin-top-zero">${transformCategories(location.categories)}</p>
+              <p class="margin-top-zero">${transformCategoriesToText(location.categories)}</p>
               <p>
                 <span>${location.addressAlias ?? location.subtitle ?? ''}</span>
               </p>
             </div>
             <div class="mdc-chip-set" role="grid">
-              ${location.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip" role="row" data-action-id="${a.id}">
+              ${location.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
                     <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">

@@ -7,7 +7,7 @@
     </label>
 
     <label id="areaSearchLabel" class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body margin-top-ten">
-      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">fmd_good</i>
+      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="hideQFBtn">expand_less</i>
       <input class="mdc-text-field__input mdc-theme--primary" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
       <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="myCurrentLocationBtn">gps_fixed</i>
     </label>
@@ -18,9 +18,9 @@
   </header>
 
   <section id="intro" class="margin-top-twenty">
-    <button id="showMapView" class="mdc-fab mdc-theme--background mdc-theme--text-icon-on-background" aria-label="Map">
+    <button id="showMapView" class="mdc-fab mdc-theme--secondary" aria-label="Map">
       <div class="mdc-fab__ripple"></div>
-      <span class="mdc-fab__icon material-icons">map</span>
+      <span class="mdc-fab__icon material-icons mdc-theme--on-secondary">map</span>
     </button>
 
     <div class="carousel-wrapper">
@@ -37,7 +37,7 @@
 
   <section id="listing">
     <div id="locationSummary"></div>
-    <div id="mainMapContainer" style="height: calc(100vh - 195px); margin-left: -15px; margin-right: -15px; /* z-index: -1; */"></div>
+    <div id="mainMapContainer" style="height: calc(100vh - 195px); margin-left: -15px; margin-right: -15px;"></div>
     <div class="map-center-btn" id="mapCenterBtn">
       <div class="button-container">
         <div style="display: inline-block;">

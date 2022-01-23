@@ -6,7 +6,6 @@ export default (function () {
     this.draggable = false;
     this.map = map;
     this.onClick = onClick;
-
     this.setMap(map);
   }
 
@@ -15,6 +14,9 @@ export default (function () {
   CustomMarker.prototype.draw = function () {
     let div = this.div_;
     const panes = this.getPanes();
+    let labelText = this.location.addressAlias ?? this.location.title;
+    if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
+
     if (!div) {
       this.div_ = document.createElement('div');
 
@@ -25,24 +27,34 @@ export default (function () {
       if (this.location.marker.type === 'image') {
         const imageContainer = document.createElement('div');
         const img = document.createElement('img');
+        const label = document.createElement('label');
         img.src = this.location.marker.image;
         imageContainer.appendChild(img);
+        label.textContent = labelText;
         div.appendChild(imageContainer);
+        div.appendChild(label);
         imageContainer.classList.add('custom-marker__image');
         div.classList.add('custom-marker__container');
       } else {
         const svgns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgns, 'svg');
         const circle = document.createElementNS(svgns, 'circle');
-        svg.setAttributeNS(null, 'height', 25);
-        svg.setAttributeNS(null, 'width', 25);
-        circle.setAttributeNS(null, 'cx', 12.5);
+        const label = document.createElementNS(svgns, 'text');
+
+        circle.setAttributeNS(null, 'cx', '50%');
         circle.setAttributeNS(null, 'cy', 12.5);
         circle.setAttributeNS(null, 'r', 10);
-        circle.setAttributeNS(null, 'stroke', '#FFFFFF');
-        circle.setAttributeNS(null, 'stroke-width', 4);
+        circle.setAttributeNS(null, 'stroke-width', 3);
+        circle.setAttributeNS(null, 'stroke', '#efefef');
         circle.setAttributeNS(null, 'fill', this.location.marker.color);
+        label.setAttributeNS(null, 'text-anchor', 'middle');
+        label.setAttributeNS(null, 'x', '50%');
+        label.setAttributeNS(null, 'y', '40');
+        label.setAttributeNS(null, 'text-anchor', 'middle');
+        label.setAttributeNS(null, 'font-size', '14');
+        label.textContent = labelText;
         svg.appendChild(circle);
+        svg.appendChild(label);
         div.appendChild(svg);
         div.classList.add('custom-marker__circle');
       }
