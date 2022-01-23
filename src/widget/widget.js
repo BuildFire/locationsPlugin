@@ -9,7 +9,7 @@ import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
-import { deepObjectDiff } from './js/util/helpers';
+import { deepObjectDiff, transformCategoriesToText } from './js/util/helpers';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -231,7 +231,7 @@ const renderListingLocations = (list) => {
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
-              <p class="margin-top-zero">${transformCategories(n.categories)}</p>
+              <p class="margin-top-zero">${transformCategoriesToText(n.categories)}</p>
               <p>
                 <span>${n.subtitle ?? ''}</span>
                 <span>
@@ -372,27 +372,6 @@ const toggleFilterOverlay = () => {
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
   }
 };
-
-const transformCategories = (categories) => {
-  if (!categories.main.length) {
-    return '--';
-  }
-  const subCategories = state.categories.map((cat) => cat.subcategories).flat();
-  const mainCategoriesTitles = [];
-  const subCategoriesTitles = [];
-  categories.main.forEach((c) => {
-    const item = state.categories.find((p) => p.id === c);
-    if (item) mainCategoriesTitles.push(item.title);
-  });
-  categories.subcategories.forEach((c) => {
-    const item = subCategories.find((p) => p.id === c);
-    if (item) subCategoriesTitles.push(item.title);
-  });
-  return mainCategoriesTitles.length > 1
-    ? categories.main.join(', ')
-    : `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
-};
-
 const isLocationOpen = (location) => {
   let isOpen = false;
   const today = location.openingHours.days[getCurrentDayName()];
@@ -489,7 +468,7 @@ const showLocationDetail = () => {
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
       if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
-        selectors.categories.textContent = transformCategories(selectedLocation.categories);
+        selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories);
         selectors.categories.style.display = 'block';
       }
 
@@ -741,6 +720,9 @@ const initEventListeners = () => {
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
+    } else if (e.target.id === 'hideQFBtn') {
+      hideElement('#areaSearchLabel');
+      showElement('.header-qf');
     } else if (e.target.id === 'showMapView') {
       const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
       if (showIntroductoryListView && introductoryListView.sorting !== sorting.defaultSorting) {
@@ -1045,6 +1027,7 @@ const initAreaAutocompleteField = () => {
 
 const generateMapOptions = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  const selector = document.getElementById('mainMapContainer');
   const { map, design } = state.settings;
   const { userPosition } = state;
   const options = {
@@ -1060,7 +1043,10 @@ const generateMapOptions = () => {
   }
 
   if (design.defaultMapStyle === 'dark') {
+    selector.classList.add('dark');
     options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
+  } else {
+    selector.classList.remove('dark');
   }
 
   if (!map.showPointsOfInterest) {
@@ -1132,7 +1118,7 @@ const handleMarkerClick = (location) => {
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
-              <p class="margin-top-zero">${transformCategories(location.categories)}</p>
+              <p class="margin-top-zero">${transformCategoriesToText(location.categories)}</p>
               <p>
                 <span>${location.addressAlias ?? location.subtitle ?? ''}</span>
               </p>

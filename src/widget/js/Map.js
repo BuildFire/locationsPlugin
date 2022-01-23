@@ -33,7 +33,7 @@ export default class Map {
     this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
   }
 
-  detachMapListeners () {
+  detachMapListeners() {
     google.maps.event.removeListener(this.boundsChangedHandler);
 
     google.maps.event.removeListener(this.zoomChangedHandler);
@@ -62,6 +62,8 @@ export default class Map {
     if (!this.map) return;
     const { lat, lng } = location.coordinates;
     let marker;
+    let labelText = location.addressAlias ?? location.title;
+    if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (
       (location.marker.type === "circle" && location.marker.color) ||
@@ -72,7 +74,12 @@ export default class Map {
       marker = new google.maps.Marker({
         position: new google.maps.LatLng(lat, lng),
         markerData: location,
-        map: this.map
+        map: this.map,
+        label: {
+          text: labelText,
+          fontSize: '14px',
+          className: 'marker-label'
+        },
       });
       marker.addListener("click", () => {
         onClick(location, marker);
