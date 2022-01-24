@@ -943,3 +943,8 @@ body section#home {
 .expansion-panel .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate)~.mdc-checkbox__background {
   border-color: var(--mdc-theme-text-primary-on-background, rgba(0, 0, 0, 0.87)) !important;
 }
+
+#custom-top-center {
+  top: 6rem !important;
+  left: calc(50% - 74px) !important;
+}

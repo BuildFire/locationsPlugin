@@ -140,17 +140,21 @@ export default class Map {
   onBoundsChange() {}
 
   initSearchAreaBtn(onClick) {
-    // Set CSS for the control border.
+  // Set CSS for the control border.
     const controlUI = document.createElement('div');
     const controlDiv = document.createElement('div');
-
-    controlUI.style.backgroundColor = '#ffffffcc';
-    controlUI.style.borderRadius = '3px';
-    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlDiv.style.top = '6rem;';
+    controlDiv.id = 'custom-top-center';
+    controlUI.style.backgroundColor = 'rgb(0 0 0 / 60%)';
+    controlUI.style.borderRadius = '20px';
+    // controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.boxShadow = 'rgb(0 0 0 / 30%) 0px 1px 4px -1px';
     controlUI.style.cursor = 'pointer';
-    controlUI.style.marginTop = '5rem';
-    controlUI.style.marginBottom = '22px';
+    controlUI.style.margin = '0 0 10px';
+    controlUI.style.padding = '0px 17px';
+    controlUI.style.height = 'auto';
     controlUI.style.textAlign = 'center';
+    controlUI.style.textTransform = 'capitalize';
     controlUI.title = 'Click to find locations';
     controlUI.id = 'findLocationsBtn';
     controlDiv.appendChild(controlUI);
@@ -158,19 +162,17 @@ export default class Map {
     // Set CSS for the control interior.
     const controlText = document.createElement('div');
 
-    controlText.style.color = 'rgb(25,25,25)';
+    controlText.style.color = '#e3e3e3';
     controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-    controlText.style.fontSize = '16px';
-    controlText.style.lineHeight = '38px';
-    controlText.style.paddingLeft = '15px';
-    controlText.style.paddingRight = '15px';
-    controlText.innerHTML = 'Find locations within this area';
+    controlText.style.fontSize = '12px';
+    controlText.style.fontWeight = 'bold';
+    controlText.style.lineHeight = '30px';
+    controlText.innerHTML = 'Find within this area';
     controlUI.appendChild(controlText);
     // Setup the click event listeners: simply set the map to Chicago.
     controlUI.addEventListener('click', onClick);
-
-    this.map.controls[google.maps.ControlPosition.LEFT_TOP].push(controlDiv);
     controlUI.style.display = 'none';
+    this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv);
   }
 
   get mapBounds() {
@@ -184,15 +186,5 @@ export default class Map {
     ];
   }
 
-  _onMapIdle() {}
-
-  clearMarkers() {
-    this.markerClusterer.clearMarkers(true);
-  }
-
-  onBoundsChange(mapBounds) {}
-
-  onMapIdle() {
-
-  }
+  onMapIdle() {}
 }
