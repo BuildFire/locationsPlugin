@@ -129,12 +129,20 @@ export default class Map {
     this.map.setZoom(zoom);
   }
 
-  _mapViewPortChanged() {
-    this.onBoundsChange();
+  getCenter() {
+    return this.map.getCenter();
   }
 
-  clearMarkers() {
-    this.markerClusterer.clearMarkers(true);
+  _mapViewPortChanged() {
+    // console.log("mapViewPortChanged");
+    const boundsFields = this.map.getBounds().toJSON();
+    this.onBoundsChange([
+      [boundsFields.west, boundsFields.north],
+      [boundsFields.east, boundsFields.north],
+      [boundsFields.east, boundsFields.south],
+      [boundsFields.west, boundsFields.south],
+      [boundsFields.west, boundsFields.north],
+    ]);
   }
 
   onBoundsChange() {}
