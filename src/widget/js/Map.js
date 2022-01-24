@@ -1,6 +1,5 @@
 import MarkerClusterer from "./lib/markercluster";
 import CustomMarker from "./CustomMarker";
-import state from './state';
 
 export default class Map {
   constructor(selector, options) {
@@ -14,7 +13,7 @@ export default class Map {
     const options = {
       minZoom: 3,
       maxZoom: 19,
-      zoom: 15,
+      zoom: 10,
       streetViewControl: false,
       fullscreenControl: false,
       mapTypeControl: false,
@@ -30,8 +29,9 @@ export default class Map {
 
   attachMapListeners() {
     this.boundsChangedHandler = this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
-    this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
-    this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    // this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
+    // this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    this.centerChangedHandler = this.map.addListener('idle', this.onMapIdle.bind(this));
   }
 
   detachMapListeners() {
@@ -122,6 +122,13 @@ export default class Map {
     this.map.setCenter(position);
   }
 
+  setZoom(zoom) {
+    if (!zoom) {
+      return;
+    }
+    this.map.setZoom(zoom);
+  }
+
   _mapViewPortChanged() {
     this.onBoundsChange();
   }
@@ -175,5 +182,17 @@ export default class Map {
       [boundsFields.west, boundsFields.south],
       [boundsFields.west, boundsFields.north],
     ];
+  }
+
+  _onMapIdle() {}
+
+  clearMarkers() {
+    this.markerClusterer.clearMarkers(true);
+  }
+
+  onBoundsChange(mapBounds) {}
+
+  onMapIdle() {
+
   }
 }

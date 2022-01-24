@@ -24,10 +24,16 @@ export default {
   },
   pinnedLocations: [],
   listLocations: [],
+  introSort: {
+    sortBy: 'distance',
+    order: 1
+  },
   mapBounds: null,
   firstSearchInit: false,
   fetchingNextPage: false,
   fetchingEndReached: false,
   filterElements: {},
   searchableTitles: [],
+  nearestLocation: null,
+  checkNearLocation: true,
 };
