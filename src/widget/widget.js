@@ -662,27 +662,6 @@ const clearAndSearchWithDelay = () => {
   SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
 };
 
-const onMapBoundsChange = (bounds) => {
-  if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
-  SEARCH_TIMOUT = setTimeout(() => {
-    if (!state.firstSearchInit) {
-      return;
-    }
-    state.mapBounds = bounds;
-    state.searchCriteria.page2 = 0;
-    searchLocations('bound').then((result) => {
-      renderListingLocations(result);
-    });
-  }, 500);
-
-  // handle hiding opened location
-  const locationSummary = document.querySelector('#locationSummary');
-  if (locationSummary && locationSummary.classList.contains('slide-in')) {
-    locationSummary.classList.add('slide-out');
-    locationSummary.classList.remove('slide-in');
-  }
-};
-
 const getFormattedAddress = (coords, cb) => {
   const geoCoder = new google.maps.Geocoder();
   geoCoder.geocode(
@@ -1085,12 +1064,36 @@ const fillAreaSearchField = (coords) => {
   });
 };
 
+const findViewPortLocations = () => {
+  console.log('findViewPortLocations triggered');
+  if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
+  SEARCH_TIMOUT = setTimeout(() => {
+    if (!state.firstSearchInit) {
+      return;
+    }
+    state.mapBounds = state.maps.map.mapBounds;
+    state.searchCriteria.page2 = 0;
+    searchLocations('bound').then((result) => {
+      renderListingLocations(result);
+    });
+  }, 500);
+
+  // handle hiding opened location
+  const locationSummary = document.querySelector('#locationSummary');
+  if (locationSummary && locationSummary.classList.contains('slide-in')) {
+    locationSummary.classList.add('slide-out');
+    locationSummary.classList.remove('slide-in');
+  }
+  hideElement('#findLocationsBtn');
+};
+
 const initMainMap = () => {
   const selector = document.getElementById('mainMapContainer');
   const options = generateMapOptions();
   const { userPosition } = state;
   state.maps.map = new MainMap(selector, options);
-  state.maps.map.onBoundsChange = onMapBoundsChange;
+  state.maps.map.initSearchAreaBtn(findViewPortLocations);
+  state.maps.map.onBoundsChange = () => { showElement('#findLocationsBtn'); };
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea
