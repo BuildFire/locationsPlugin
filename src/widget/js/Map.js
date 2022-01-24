@@ -28,9 +28,7 @@ export default class Map {
   }
 
   attachMapListeners() {
-    this.boundsChangedHandler = this.map.addListener("bounds_changed", this._mapViewPortChanged.bind(this));
-    // this.zoomChangedHandler = this.map.addListener('zoom_changed', this._mapViewPortChanged.bind(this));
-    // this.centerChangedHandler = this.map.addListener('center_changed', this._mapViewPortChanged.bind(this));
+    this.boundsChangedHandler = this.map.addListener("bounds_changed", this.onBoundsChange.bind(this));
     this.centerChangedHandler = this.map.addListener('idle', this.onMapIdle.bind(this));
   }
 
@@ -133,16 +131,8 @@ export default class Map {
     return this.map.getCenter();
   }
 
-  _mapViewPortChanged() {
-    // console.log("mapViewPortChanged");
-    const boundsFields = this.map.getBounds().toJSON();
-    this.onBoundsChange([
-      [boundsFields.west, boundsFields.north],
-      [boundsFields.east, boundsFields.north],
-      [boundsFields.east, boundsFields.south],
-      [boundsFields.west, boundsFields.south],
-      [boundsFields.west, boundsFields.north],
-    ]);
+  clearMarkers() {
+    this.markerClusterer.clearMarkers(true);
   }
 
   onBoundsChange() {}

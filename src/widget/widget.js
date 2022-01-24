@@ -272,23 +272,6 @@ const getNearestLocation = () => {
   });
 };
 
-const triggerSearchOnMapIdle = () => {
-  if (state.isMapIdle) {
-    setTimeout(() => {
-      triggerSearchOnMapIdle();
-    }, 300);
-    return;
-  }
-
-  clearLocations();
-  state.mapBounds = state.maps.map.getMapBounds();
-  console.log('Idle Map', state.mapBounds);
-  searchLocations().then((result) => {
-    clearMapViewList();
-    renderListingLocations(state.listLocations);
-  });
-};
-
 const refreshSettings = () => {
   return WidgetController
     .getAppSettings()
@@ -1206,27 +1189,33 @@ const fillAreaSearchField = (coords) => {
   });
 };
 
+const triggerSearchOnMapIdle = () => {
+  if (state.isMapIdle) {
+    setTimeout(() => {
+      triggerSearchOnMapIdle();
+    }, 300);
+    return;
+  }
+
+  clearLocations();
+  state.mapBounds = state.maps.map.mapBounds;
+  console.log('Idle Map', state.mapBounds);
+  searchLocations().then((result) => {
+    clearMapViewList();
+    renderListingLocations(state.listLocations);
+  });
+};
+
 const findViewPortLocations = () => {
-  console.log('findViewPortLocations triggered');
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    if (!state.firstSearchInit) {
-      return;
-    }
     clearLocations();
     state.mapBounds = state.maps.map.mapBounds;
-    searchLocations('bound').then((result) => {
+    searchLocations().then((result) => {
       clearMapViewList();
       renderListingLocations(result);
     });
-  }, 500);
-
-  // handle hiding opened location
-  const locationSummary = document.querySelector('#locationSummary');
-  if (locationSummary && locationSummary.classList.contains('slide-in')) {
-    locationSummary.classList.add('slide-out');
-    locationSummary.classList.remove('slide-in');
-  }
+  }, 300);
 
   hideElement('#findLocationsBtn');
 };
@@ -1236,21 +1225,23 @@ const initMainMap = () => {
   const options = generateMapOptions();
   const { userPosition } = state;
   state.maps.map = new MainMap(selector, options);
-  state.maps.map.onBoundsChange = (mapBounds) => {
-    console.log('Bounds changed');
-    state.mapBounds = mapBounds;
+  state.maps.map.onBoundsChange = () => {
+    // handle hiding opened location
+    const locationSummary = document.querySelector('#locationSummary');
+    if (locationSummary && locationSummary.classList.contains('slide-in')) {
+      locationSummary.classList.add('slide-out');
+      locationSummary.classList.remove('slide-in');
+    }
     state.isMapIdle = false;
   };
 
-  state.maps.map.onMapIdle = (mapBounds) => {
-    console.log('Map is Idle');
-    state.mapBounds = mapBounds;
+  state.maps.map.onMapIdle = () => {
     state.isMapIdle = true;
+    showElement('#findLocationsBtn');
   };
 
   state.maps.map.initSearchAreaBtn(findViewPortLocations);
   // state.maps.map.onBoundsChange = () => { showElement('#findLocationsBtn'); };
-  state.maps.map.onMapIdle = () => { showElement('#findLocationsBtn'); };
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea
