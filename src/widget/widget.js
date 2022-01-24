@@ -69,7 +69,6 @@ const buildSearchCriteria = () => {
       subcategoryIds.push(...state.filterElements[key].subcategories);
     }
   }
-  // eslint-disable-next-line max-len
   if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0) {
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
@@ -106,8 +105,8 @@ const searchIntroLocations = () => {
     key: "_buildfire.geo",
     maxDistance: 10000,
     distanceField: "distance",
-    query: { ...query },
-    num: 5000
+    num: 10000,
+    query: { ...query }
   };
 
   pipelines.push({ $geoNear });
@@ -154,22 +153,33 @@ const searchLocations = () => {
   if (activeTemplate === 'intro') {
     return searchIntroLocations();
   }
+  
 
   const pipelines = [];
   const query = buildSearchCriteria();
 
-  const $match = { ...query };
-  if (Array.isArray(state.mapBounds)) {
-    $match["_buildfire.geo"] =  {
-      $geoWithin: {
-        $geometry: {
-          type : "Polygon",
-          coordinates: [state.mapBounds]
-        }
-      }
-    };
+  if (!Array.isArray(state.mapBounds)) {
+    return;
   }
-  $match["_buildfire.index.string1"] = buildfire.getContext().instanceId;
+
+  const  $geoNear = {
+    near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+    key: "_buildfire.geo",
+    distanceField: "distance",
+    num: 10000,
+    query: {  ...query }
+  };
+  pipelines.push({ $geoNear });
+
+  const $match = { };
+  $match["_buildfire.geo"] =  {
+    $geoWithin: {
+      $geometry: {
+        type : "Polygon",
+        coordinates: [state.mapBounds]
+      }
+    }
+  };
   pipelines.push({ $match });
 
   if (state.searchCriteria.openingNow) {
@@ -205,12 +215,6 @@ const searchLocations = () => {
       result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
         .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       state.listLocations = state.listLocations.concat(result);
-      if (state.searchCriteria.sort.sortBy === 'distance') {
-        state.listLocations.sort((a, b) => a.distance - b.distance);
-      }
-
-      if (state.maps.map) state.maps.map.clearMarkers();
-      state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
       if (state.searchCriteria.searchValue && !state.listLocations.length && !state.nearestLocation && nearestLocation && state.checkNearLocation) {
         state.nearestLocation = nearestLocation;
@@ -218,6 +222,7 @@ const searchLocations = () => {
         const latLng  = new google.maps.LatLng(state.nearestLocation.coordinates.lat, state.nearestLocation.coordinates.lng);
         state.maps.map.center(latLng);
         state.maps.map.setZoom(10);
+        triggerSearchOnMapIdle();
       } else if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
         const searchableTitles =  result2?.hits?.hits?.map((elem) => elem._source.searchable.title);
         if (searchableTitles && searchableTitles.length > 0) {
@@ -229,6 +234,7 @@ const searchLocations = () => {
 
       // Render Map listLocations
       renderListingLocations(result);
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
       if (!state.fetchingEndReached && state.listLocations.length <= 150) {
         state.searchCriteria.page += 1;
@@ -267,6 +273,22 @@ const getNearestLocation = () => {
   });
 };
 
+const triggerSearchOnMapIdle = () => {
+  if (state.isMapIdle) {
+    setTimeout(() => {
+      triggerSearchOnMapIdle();
+    }, 300);
+    return;
+  }
+
+  clearLocations();
+  state.mapBounds = state.maps.map.getMapBounds();
+  console.log('Idle Map', state.mapBounds);
+  searchLocations().then((result) => {
+    clearMapViewList();
+    renderListingLocations(state.listLocations);
+  });
+};
 
 const refreshSettings = () => {
   return WidgetController
@@ -757,6 +779,7 @@ const clearLocations = () => {
   state.fetchingEndReached = false;
   state.searchableTitles = [];
   state.nearestLocation = null;
+  if (state.maps.map) state.maps.map.clearMarkers();
 };
 
 const fetchPinnedLocations = (done) => {
@@ -781,6 +804,8 @@ const clearAndSearchLocations = () => {
           renderIntroductoryLocations(state.listLocations, true);
         });
       }
+      clearMapViewList();
+      renderListingLocations(state.listLocations);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -796,9 +821,9 @@ const onMapBoundsChange = (bounds) => {
     }
     clearLocations();
     state.mapBounds = bounds;
-    searchLocations('bound').then((result) => {
+    searchLocations().then((result) => {
       clearMapViewList();
-      renderListingLocations(result);
+      renderListingLocations(state.listLocations);
     });
   }, 500);
 
@@ -918,6 +943,7 @@ const initEventListeners = () => {
           state.maps.map.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
+          triggerSearchOnMapIdle();
         });
       }
     }
@@ -953,7 +979,7 @@ const initEventListeners = () => {
       state.maps.map.addUserPosition(state.userPosition);
       state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
     }
-    // clearAndSearchWithDelay();
+    triggerSearchOnMapIdle();
     fillAreaSearchField(positionPoints);
   };
 
@@ -1139,7 +1165,7 @@ const initAreaAutocompleteField = () => {
     };
     state.currentLocation = point;
     state.maps.map.center(point);
-    console.log(place);
+    triggerSearchOnMapIdle();
   });
 };
 
@@ -1208,10 +1234,18 @@ const initMainMap = () => {
   const options = generateMapOptions();
   const { userPosition } = state;
   state.maps.map = new MainMap(selector, options);
-  state.maps.map.onBoundsChange = () => {
+  state.maps.map.onBoundsChange = (mapBounds) => {
     console.log('Bounds changed');
+    state.mapBounds = mapBounds;
+    state.isMapIdle = false;
   };
-  state.maps.map.onMapIdle = onMapBoundsChange;
+
+  state.maps.map.onMapIdle = (mapBounds) => {
+    console.log('Map is Idle');
+    state.mapBounds = mapBounds;
+    state.isMapIdle = true;
+  };
+
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea

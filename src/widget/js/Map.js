@@ -129,6 +129,10 @@ export default class Map {
     this.map.setZoom(zoom);
   }
 
+  getCenter() {
+    return this.map.getCenter();
+  }
+
   _mapViewPortChanged() {
     // console.log("mapViewPortChanged");
     const boundsFields = this.map.getBounds().toJSON();
@@ -152,13 +156,22 @@ export default class Map {
     ]);
   }
 
+  getMapBounds() {
+    const boundsFields = this.map.getBounds().toJSON();
+    return [
+      [boundsFields.west, boundsFields.north],
+      [boundsFields.east, boundsFields.north],
+      [boundsFields.east, boundsFields.south],
+      [boundsFields.west, boundsFields.south],
+      [boundsFields.west, boundsFields.north],
+    ];
+  }
+
   clearMarkers() {
     this.markerClusterer.clearMarkers(true);
   }
 
   onBoundsChange(mapBounds) {}
 
-  onMapIdle(mapBounds) {
-
-  }
+  onMapIdle(mapBounds) {}
 }

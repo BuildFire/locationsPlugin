@@ -36,4 +36,5 @@ export default {
   searchableTitles: [],
   nearestLocation: null,
   checkNearLocation: true,
+  isMapIdle: false,
 };
