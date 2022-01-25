@@ -381,6 +381,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 };
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
+  const emptyStateContainer = document.querySelector('.drawer-empty-state');
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
@@ -440,6 +441,15 @@ const renderListingLocations = (list) => {
         </div>
       </div>`)).join('\n');
   }
+
+  if (!state.listLocations.length) {
+    emptyStateContainer.textContent = state.firstRender ? 'Start your search.' : 'No locations found within this area.';
+    showElement(emptyStateContainer);
+  } else {
+    hideElement(emptyStateContainer);
+  }
+
+  state.firstRender = false;
   container.insertAdjacentHTML('beforeend', content);
 };
 
@@ -920,7 +930,7 @@ const initEventListeners = () => {
           state.maps.map.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
-          triggerSearchOnMapIdle();
+          // triggerSearchOnMapIdle();
         });
       }
     }
@@ -958,7 +968,7 @@ const initEventListeners = () => {
       state.maps.map.setZoom(10);
     }
     fillAreaSearchField(positionPoints);
-    triggerSearchOnMapIdle();
+    // triggerSearchOnMapIdle();
   };
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');

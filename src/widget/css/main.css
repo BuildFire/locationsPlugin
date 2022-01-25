@@ -948,3 +948,12 @@ body section#home {
   top: 6rem !important;
   left: calc(50% - 74px) !important;
 }
+.drawer-empty-state {
+  background-image: url("../images/empty_page.svg");
+  height: 300px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto;
+  text-align: center;
+  display: none;
+}
