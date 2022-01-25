@@ -845,6 +845,7 @@ const getFormattedAddress = (coords, cb) => {
   );
 };
 const initEventListeners = () => {
+  window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
