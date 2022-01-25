@@ -150,8 +150,8 @@ export default class SearchTableHelper {
     if (obj.listImage) {
       const img = document.createElement("img");
       img.src = this._cropImage(obj.listImage, {
-        width: 16,
-        height: 16,
+        width: 40,
+        height: 40,
       });
 
       div.appendChild(img);

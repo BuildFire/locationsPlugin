@@ -35,8 +35,8 @@ class PinnedLocationsList extends SortableListUI {
     if (item.listImage) {
       const img = document.createElement("img");
       img.src = this._cropImage(item.listImage, {
-        width: 16,
-        height: 16,
+        width: 40,
+        height: 40,
       });
       mediaHolder.appendChild(img);
     }  else {
