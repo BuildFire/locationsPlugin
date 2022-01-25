@@ -174,14 +174,18 @@ export default class Map {
   }
 
   get mapBounds() {
-    const boundsFields = this.map.getBounds().toJSON();
-    return [
-      [boundsFields.west, boundsFields.north],
-      [boundsFields.east, boundsFields.north],
-      [boundsFields.east, boundsFields.south],
-      [boundsFields.west, boundsFields.south],
-      [boundsFields.west, boundsFields.north],
-    ];
+    let boundsFields;
+    const mapBounds = this.map.getBounds()?.toJSON();
+    if (mapBounds) {
+      boundsFields = [
+        [mapBounds.west, mapBounds.north],
+        [mapBounds.east, mapBounds.north],
+        [mapBounds.east, mapBounds.south],
+        [mapBounds.west, mapBounds.south],
+        [mapBounds.west, mapBounds.north],
+      ];
+    }
+    return boundsFields;
   }
 
   onMapIdle() {}

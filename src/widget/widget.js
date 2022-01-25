@@ -157,18 +157,18 @@ const searchLocations = () => {
 
   const pipelines = [];
   const query = buildSearchCriteria();
+  const { mapBounds } = state.maps.map;
 
-  if (!Array.isArray(state.mapBounds) && !state.maps.map.mapBounds) {
+  if (!mapBounds || !Array.isArray(mapBounds)) {
     return Promise.resolve([]);
   }
-  state.mapBounds = state.maps.map.mapBounds;
 
   const $match = { ...query };
   $match["_buildfire.geo"] = {
     $geoWithin: {
       $geometry: {
         type : "Polygon",
-        coordinates: [state.mapBounds]
+        coordinates: [mapBounds]
       }
     }
   };
@@ -178,7 +178,7 @@ const searchLocations = () => {
    [_buidfire.geo.corrdentes.0 ]: -1 1
    [ ] compare the current location & centre map location
    [ ] consider the lat if the Math.abs(|lat1| - |lat2|) > Math.abs(|lng1| - |lng2|), otherwise lng
-   [ ] then check if ASC or DESC  if 
+   [ ] then check if ASC or DESC  if
   */
 
   if (state.searchCriteria.openingNow) {
@@ -776,14 +776,13 @@ const setDefaultSorting = () => {
 
 const clearLocations = () => {
   state.listLocations = [];
-  // state.mapBounds = null;
   state.searchCriteria.page = 0;
   state.searchCriteria.page2 = 0;
   state.fetchingNextPage = false;
   state.fetchingEndReached = false;
   state.searchableTitles = [];
   state.nearestLocation = null;
-  state.isMapIdle = false
+  state.isMapIdle = false;
   if (state.maps.map) state.maps.map.clearMarkers();
 };
 
@@ -1218,7 +1217,6 @@ const triggerSearchOnMapIdle = () => {
   }
 
   clearLocations();
-  state.mapBounds = state.maps.map.mapBounds;
   searchLocations().then((result) => {
     clearMapViewList();
     renderListingLocations(state.listLocations);
@@ -1229,7 +1227,6 @@ const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
     clearLocations();
-    state.mapBounds = state.maps.map.mapBounds;
     searchLocations().then((result) => {
       clearMapViewList();
       renderListingLocations(state.listLocations);
@@ -1258,7 +1255,6 @@ const initMainMap = () => {
   state.maps.map.onMapIdle = () => {
     console.log('Map is idle');
     state.isMapIdle = true;
-    state.mapBounds = state.maps.map.mapBounds;
     showElement('#findLocationsBtn');
   };
 
@@ -1380,6 +1376,7 @@ const initHomeView = () => {
   initAreaAutocompleteField();
   setDefaultSorting();
   initEventListeners();
+  drawer.initialize(state.settings);
   initDrawerFilterOptions();
   console.log('Us Map idle', state.isMapIdle);
   if (showIntroductoryListView) {
@@ -1412,7 +1409,7 @@ const initIntroLocations = () => {
 };
 
 const initMapLocations = () => {
-  if (!state.isMapIdle) {
+  if ((!state.isMapIdle && !state.firstRender) || !state.maps.map.mapBounds) {
     setTimeout(() => {
       initMapLocations();
     }, 200);
@@ -1422,7 +1419,6 @@ const initMapLocations = () => {
   clearMapViewList();
   searchLocations()
     .then(() => {
-      drawer.initialize(state.settings);
       clearIntroViewList();
       // renderListingLocations(state.listLocations);
     });
