@@ -7,7 +7,7 @@ export default {
   introCarousel: null,
   settings: null,
   categories: null,
-  userPosition: null,
+  userPosition: {},
   selectedLocation: null,
   currentLocation: null,
   searchCriteria: {

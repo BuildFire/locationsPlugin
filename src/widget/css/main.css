@@ -869,7 +869,7 @@ body section#home {
   position: absolute;
   bottom: -30px;
   left: -10px;
-  color: #487685;
+  color: #505254;
   text-shadow: 0 0 2px white;
   font-weight: bold;
 }
@@ -956,4 +956,10 @@ body section#home {
   background-size: auto;
   text-align: center;
   display: none;
+}
+#showMapView {
+  background-color: var(--bf-theme-default, #018786);
+}
+#showMapView .mdc-fab__icon {
+  color: var(--mdc-theme-on-primary) !important;
 }
