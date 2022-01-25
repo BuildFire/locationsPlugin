@@ -957,3 +957,9 @@ body section#home {
   text-align: center;
   display: none;
 }
+#showMapView {
+  background-color: var(--bf-theme-default, #018786);
+}
+#showMapView .mdc-fab__icon {
+  color: var(--mdc-theme-on-primary) !important;
+}
