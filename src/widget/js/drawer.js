@@ -98,5 +98,4 @@ const initialize = (settings) => {
   });
 };
 
-
 export default { initialize, reset };
