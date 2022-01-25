@@ -60,5 +60,8 @@ export default {
       }
     };
     return Location.update(locationId, payload);
-  }
+  },
+  updateLocation(id, payload) {
+    return Location.update(id, payload);
+  },
 };

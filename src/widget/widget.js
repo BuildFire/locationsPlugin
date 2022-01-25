@@ -656,7 +656,6 @@ const showLocationDetail = () => {
         buildfire.components.ratingSystem.injectRatings();
       }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-<!--        <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">call</i>-->
       ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : ''}
         <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
@@ -670,6 +669,9 @@ const showLocationDetail = () => {
       selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${cdnImage(n.imageUrl)});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       navigateTo('detail');
+      if (selectedLocation.id) {
+        WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
+      }
     });
 };
 const showWorkingHoursDrawer = () => {
@@ -903,7 +905,7 @@ const initEventListeners = () => {
           } else if (value === 'price-high-low') {
             state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
           } else if (value === 'rating') {
-            state.searchCriteria.sort = { sortBy: 'rating.average', order: 1 };
+            state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
           } else if (value === 'views') {
             state.searchCriteria.sort = { sortBy: 'views', order: 1 };
           }
@@ -1577,7 +1579,6 @@ const handleCPSync = (message) => {
     const { data, realtimeUpdate, isCancel } = message;
     if (realtimeUpdate) {
       state.selectedLocation = {
-        id: 'tmp-location',
         title: 'Location Title',
         subtitle: 'Location Subtitle',
         formattedAddress: 'Location Address',

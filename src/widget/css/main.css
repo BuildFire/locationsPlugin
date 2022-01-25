@@ -842,7 +842,7 @@ body section#home {
   margin: 2px;
 }
 #mainMapContainer .custom-marker__circle text {
-  fill: #487685;
+  fill: #505254;
   stroke: white;
   paint-order: stroke;
   stroke-width: 2px;
@@ -855,7 +855,7 @@ body section#home {
   stroke: #242f3e;
 }
 #mainMapContainer .marker-label {
-  color: #487685 !important;
+  color: #505254 !important;
   text-shadow: 0 0 2px white;
   font-weight: bold;
 }
