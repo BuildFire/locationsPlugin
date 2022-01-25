@@ -46,8 +46,8 @@ class CategoriesListUI extends SortableListUI {
     if (item.iconUrl) {
       const img = document.createElement("img");
       img.src = this._cropImage(item.iconUrl, {
-        width: 16,
-        height: 16,
+        width: 40,
+        height: 40,
       });
       mediaHolder.appendChild(img);
     } else if (item.iconClassName) {

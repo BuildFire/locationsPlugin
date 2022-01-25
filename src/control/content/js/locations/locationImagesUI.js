@@ -38,8 +38,8 @@ class LocationImagesUI extends SortableListUI {
     if (item.imageUrl) {
       const img = document.createElement("img");
       img.src = this._cropImage(item.imageUrl, {
-        width: 16,
-        height: 16,
+        width: 40,
+        height: 40,
       });
       mediaHolder.appendChild(img);
     }
