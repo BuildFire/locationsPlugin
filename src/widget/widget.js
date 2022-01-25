@@ -396,7 +396,7 @@ const renderListingLocations = (list) => {
                 <span>${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.price.currency?.repeat(n.price?.range)}</span>
-                  <span class="location-image__open-status">${isLocationOpen(n) ? 'Open Now' : 'Closed'}</span>
+                  <span class="location-image__open-status">${isLocationOpen(n) ? 'Open' : 'Closed'}</span>
                 </span>
               </p>
             </div>
@@ -1343,17 +1343,17 @@ const initDrawerFilterOptions = () => {
     {
       key: 'allowSortByPriceHighToLow',
       value: 'price-high-low',
-      textContent: 'Price (High > Low)'
+      textContent: '$$$ - $'
     },
     {
       key: 'allowSortByPriceLowToHigh',
       value: 'price-low-high',
-      textContent: 'Price (Low > High)'
+      textContent: '$ - $$$'
     },
     {
       key: 'allowSortByDate',
       value: 'date',
-      textContent: 'Newest (New to old)'
+      textContent: 'Recent'
     },
     {
       key: 'allowSortByViews',
@@ -1412,6 +1412,7 @@ const initIntroLocations = () => {
 
       if (introductoryListView.images.length === 0
         && !state.listLocations.length
+        && !state.pinnedLocations.length
         && !introductoryListView.description) {
         showElement('#intro div.empty-page');
       }

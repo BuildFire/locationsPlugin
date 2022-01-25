@@ -150,6 +150,7 @@ section#filter {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  white-space: nowrap;
 }
 .location-item__actions p {
   font-size: 12px;
@@ -356,7 +357,7 @@ div.empty-page {
   display: flex;
 }
 .drawer-header .filter-options .mdc-button {
-  font-size: 13px;
+  font-size: 12px;
   text-transform: unset;
   letter-spacing: normal;
 }

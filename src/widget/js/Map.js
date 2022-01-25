@@ -147,7 +147,7 @@ export default class Map {
     controlUI.style.boxShadow = 'rgb(0 0 0 / 30%) 0px 1px 4px -1px';
     controlUI.style.cursor = 'pointer';
     controlUI.style.margin = '0 0 10px';
-    controlUI.style.padding = '0px 17px';
+    controlUI.style.padding = '10px 17px';
     controlUI.style.height = 'auto';
     controlUI.style.textAlign = 'center';
     controlUI.style.textTransform = 'capitalize';
@@ -162,7 +162,6 @@ export default class Map {
     controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
     controlText.style.fontSize = '12px';
     controlText.style.fontWeight = 'bold';
-    controlText.style.lineHeight = '30px';
     controlText.innerHTML = 'Find within this area';
     controlUI.appendChild(controlText);
     // Setup the click event listeners: simply set the map to Chicago.
