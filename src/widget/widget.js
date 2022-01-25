@@ -253,7 +253,6 @@ const searchLocations = () => {
         }
       }
 
-
       // Render Map listLocations
       renderListingLocations(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));

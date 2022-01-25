@@ -141,7 +141,7 @@ export default class Map {
   // Set CSS for the control border.
     const controlUI = document.createElement('div');
     const controlDiv = document.createElement('div');
-    controlDiv.style.top = '6rem;';
+    controlDiv.style.top = '5rem;';
     controlDiv.id = 'custom-top-center';
     controlUI.style.backgroundColor = 'rgb(0 0 0 / 60%)';
     controlUI.style.borderRadius = '20px';
