@@ -35,8 +35,6 @@ export default class Map {
   detachMapListeners() {
     google.maps.event.removeListener(this.boundsChangedHandler);
 
-    google.maps.event.removeListener(this.zoomChangedHandler);
-
     google.maps.event.removeListener(this.centerChangedHandler);
     console.log("DETACH LISTENERS");
   }

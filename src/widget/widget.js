@@ -1419,13 +1419,17 @@ const initIntroLocations = () => {
   });
 };
 
+let attempts = 0;
 const initMapLocations = () => {
-  if ((!state.isMapIdle && !state.firstRender) || !state.maps.map.mapBounds) {
+  console.log('Is map idle', state.isMapIdle);
+  if (!state.isMapIdle && attempts <= 3) {
     setTimeout(() => {
       initMapLocations();
     }, 200);
+    attempts += 1;
     return;
   }
+  attempts = 0;
   clearLocations();
   clearMapViewList();
   searchLocations()
