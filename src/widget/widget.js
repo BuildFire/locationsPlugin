@@ -991,12 +991,16 @@ const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
   state.categories.forEach((category) => {
+    let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
+    if (category.iconUrl) {
+      categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
+    }
     state.filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title mdc-theme--text-primary-on-background">
-            <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
+              ${categoryIcon}
               ${category.title}
             </span>
             <div class="expansion-panel-actions margin-right-ten">
