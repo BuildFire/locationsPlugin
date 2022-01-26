@@ -259,7 +259,6 @@ div.empty-page {
 }
 .expansion-panel-title {
   white-space: nowrap;
-  overflow: hidden;
   font-size: 18px;
   font-weight: bolder;
   color: #000000;
