@@ -278,6 +278,7 @@ div.empty-page {
   border-radius: 100%;
   margin-right: 12px;
   border: 2px solid rgba(150,150,150,.1);
+  object-fit: cover;
 }
 .expansion-panel-actions {
   display: flex;
