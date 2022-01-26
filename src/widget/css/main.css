@@ -838,9 +838,8 @@ body section#home {
   object-fit: cover;
 }
 .custom-marker__circle svg {
-  width: 110px;
-  height: 110px;
-  margin: 2px;
+  width: 100%;
+  height: 100%;
 }
 #mainMapContainer .custom-marker__circle text {
   fill: #505254;
