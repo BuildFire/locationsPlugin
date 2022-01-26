@@ -844,9 +844,13 @@ body section#home {
   height: 100%;
   object-fit: cover;
 }
+.custom-marker__circle {
+  overflow: visible;
+}
 .custom-marker__circle svg {
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 #mainMapContainer .custom-marker__circle text {
   fill: #505254;

@@ -84,9 +84,8 @@ export default (function () {
         let width = ne.x - sw.x;
         let height = sw.y - ne.y;
         // factor depends on the marker size, circle has its own width
-        const ratioFactor = div.classList.contains('custom-marker__circle') ? 85 : 45;
-        const ratio1 = ratioFactor / width;
-        const ratio2 = ratioFactor / height;
+        const ratio1 = 45 / width;
+        const ratio2 = 45 / height;
         height *= ratio2;    // Reset height to match scaled image
         width *= ratio1;
         div.style.width = `${width}px`;
