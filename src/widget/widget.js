@@ -309,7 +309,10 @@ const refreshCategories = () => {
 };
 
 const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
-const clearMapViewList = () => { document.querySelector('#listingLocationsList').innerHTML = ''; };
+const clearMapViewList = () => {
+  document.querySelector('.drawer').scrollTop = 0;
+  document.querySelector('#listingLocationsList').innerHTML = '';
+};
 const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
 
 const renderIntroductoryLocations = (list, includePinned = false) => {
@@ -1484,17 +1487,25 @@ const setLocationsDistance = () => {
     locationDetailSelector.childNodes[0].nodeValue = state.selectedLocation.distance;
   }
 };
-const initGoogleMapsSDK = () => {
+
+const initGoogleMapsSDK = () => new Promise((resolve) => {
   const { apiKeys } = buildfire.getContext();
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
   script.type = 'text/javascript';
-  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&`;
+  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
+    resolve();
+  };
+  script.onerror = () => {
+    buildfire.dialog.alert({
+      title: "Error",
+      message: "Failed to load map.",
+    });
   };
   document.head.appendChild(script);
-};
+});
 
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
@@ -1708,19 +1719,23 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
 });
 
 const init = () => {
+  const initialRequests = [
+    getCurrentUserPosition(),
+    refreshSettings(),
+  ];
   initGoogleMapsSDK();
-
-  getCurrentUserPosition()
-    .then(refreshSettings)
-    .then(() => {
-      views.fetch('filter').then(() => { views.inject('filter'); });
-      views.fetch('home').then(refreshCategories).then(initHomeView);
-      buildfire.deeplink.getData(getDataHandler);
-      buildfire.history.onPop(onPopHandler);
-      buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
-      buildfire.components.ratingSystem.onRating = onRatingHandler;
-      buildfire.appearance.titlebar.show();
+  window.googleMapOnLoad = () => {
+    Promise.all(initialRequests)
+      .then(() => {
+        views.fetch('filter').then(() => { views.inject('filter'); });
+        views.fetch('home').then(refreshCategories).then(initHomeView);
+        buildfire.deeplink.getData(getDataHandler);
+        buildfire.history.onPop(onPopHandler);
+        buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
+        buildfire.components.ratingSystem.onRating = onRatingHandler;
+        buildfire.appearance.titlebar.show();
     });
+  };
 };
 
 init();
