@@ -20,6 +20,17 @@ const createLoadingState = () => {
   return div;
 };
 
+const validateGoogleApiKey = () => {
+  const googleApiKeyMessage = document.getElementById('google-api-key-message');
+  buildfire.getContext((error, context) => {
+    if (!context.apiKeys.googleMapKey) {
+      googleApiKeyMessage.classList.remove('hidden');
+    } else {
+      googleApiKeyMessage.classList.add('hidden');
+    }
+  });
+}
+
 /** template management start */
 const fetchTemplate = (template, callback) => {
   if (templates[template]) {
@@ -104,6 +115,7 @@ window.onSidenavChange = (section) => {
 
 const init = () => {
   onSidenavChange('categories');
+  validateGoogleApiKey();
 };
 
 authManager.enforceLogin(init);

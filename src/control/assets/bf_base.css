@@ -20,6 +20,7 @@
   --c-primary: #05acf0;
   --c-success: #14cb5d;
   --c-danger: #ed4b4b;
+  --c-warning: #F69606;
   --c-info: #000;
   --c-white: #fff;
   --c-gray1: #f2f2f2;
@@ -861,3 +862,14 @@ color: var(--c-info);
 }
 
 /* Social Item */
+
+
+/* Border */
+
+.warning-note {
+  border: 1px solid var(--c-warning);
+  border-radius: 4px;
+  background: #FFFDF9;
+  color: var(--c-warning);
+  padding: 1rem;
+}
