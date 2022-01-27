@@ -391,7 +391,12 @@ window.addEditLocation = (location) => {
   };
 
   addLocationControls.addActionItemsBtn.onclick = () => {
-    buildfire.actionItems.showDialog(null, { showIcon: true }, (err, actionItem) => {
+    buildfire.actionItems.showDialog(null, { 
+      showIcon: true,
+      imgLibOptions: {
+        showIcons: true
+      }
+     }, (err, actionItem) => {
       if (err) return console.error(err);
 
       if (!actionItem) {
@@ -482,7 +487,12 @@ window.addEditLocation = (location) => {
   };
 
   actionItemsUI.onUpdateItem = (item, index, divRow) => {
-    buildfire.actionItems.showDialog(item, null, (err, actionItem) => {
+    buildfire.actionItems.showDialog(item, {
+      showIcon: true,
+      imgLibOptions: {
+        showIcons: true
+      }
+    }, (err, actionItem) => {
       if (err) return console.error(err);
 
       if (actionItem) {
