@@ -473,6 +473,7 @@ button span {
 .location-detail__bottom-cover {
   display: none;
   background-repeat: no-repeat;
+  background-position: center;
   background-size: cover;
   height: 200px;
   margin: 10px -15px 20px;
@@ -579,6 +580,9 @@ button span {
   font-size: 26px;
   font-weight: bold;
   color: #000000;
+}
+.location-detail .action-item .glyphicon {
+  font-size: 32px;
 }
 
 .mdc-chip span[role="gridcell"] {

@@ -363,7 +363,7 @@ const renderListingLocations = (list) => {
               <p>
                 <span>${n.subtitle ?? ''}</span>
                 <span>
-                  <span>${n.price.currency?.repeat(n.price?.range)}</span>
+                  <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
                   <span class="location-image__open-status">${isLocationOpen(n) ? 'Open' : 'Closed'}</span>
                 </span>
               </p>
@@ -439,7 +439,6 @@ const refreshQuickFilter = () => {
 
   container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
-        <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
           <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
         </span>
@@ -633,7 +632,7 @@ const showLocationDetail = () => {
         buildfire.components.ratingSystem.injectRatings();
       }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : ''}
+      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="${a.iconClassName}"></i>` : ''}
         <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
