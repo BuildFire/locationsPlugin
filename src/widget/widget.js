@@ -456,7 +456,12 @@ const renderListingLocations = (list) => {
   container.insertAdjacentHTML('beforeend', content);
 };
 
+let chipSet;
 const refreshQuickFilter = () => {
+  if (chipSet) {
+    chipSet.destroy();
+    chipSet = null;
+  }
   const container = document.querySelector('.header-qf');
   const quickFilterItems = state.categories.slice(0, 10);
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
@@ -480,7 +485,7 @@ const refreshQuickFilter = () => {
         </span>
       </div>`).join('\n');
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
-  const chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
+  chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
   chipSet.listen('MDCChip:interaction', (event) => {
     const categoryId = event.detail.chipId;
     console.log(categoryId);
