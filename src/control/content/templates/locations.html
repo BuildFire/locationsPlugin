@@ -135,7 +135,7 @@
         <hr class="none" />
         <div class="form-group main clearfix hidden" id="select-marker-image-container">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="" for="select-marker-image-btn">Marker Image</label>
+            <label class="required-label" for="select-marker-image-btn">Marker Image</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
             <div class="icon-holder" id="select-marker-image-btn">
@@ -143,14 +143,17 @@
               <img class="image-icon hidden" />
               <i class="glyph-icon hidden"></i>
             </div>
+            <div id="location-marker-image-error" class="text-danger hidden margin-top-five">
+              Required
+            </div>
           </div>
         </div>
         <div class="form-group main clearfix" id="select-marker-color-container">
           <div class="col-md-3 pull-left padding-left-zero">
-            <label class="" for="marker-image-btn">Marker Color</label>
+            <label class="required-label" for="marker-image-btn">Marker Color</label>
           </div>
           <div class="col-md-9 pull-right padding-right-zero">
-            <div class="colorgrid pull-left" id="select-marker-color-btn">
+            <div class="colorgrid" id="select-marker-color-btn">
               <div class="gradient-results">
                   <div  class="coloritem">
                       <a class="img-thumbnail">
@@ -160,6 +163,9 @@
                       </a>
                   </div>
               </div>
+            </div>
+            <div id="location-marker-color-error" class="text-danger hidden margin-top-five">
+              Required
             </div>
           </div>
         </div>
@@ -354,7 +360,7 @@
             </div>
           </div>
         </div>
-        <div class="form-group main clearfix">
+        <div class="form-group main clearfix hidden">
           <div class="col-md-3 pull-left padding-left-zero">
             <label class="">Location Owner</label>
           </div>

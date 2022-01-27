@@ -87,7 +87,7 @@ export default class Location {
       _buildfire: {
         index: {
           text: `${this.title.toLowerCase()} ${this.subtitle ? this.subtitle : ''} ${this.address} ${this.formattedAddress} ${this.addressAlias ? this.addressAlias : ''}`,
-          string1: this.instanceId,
+          string1: this.title.toLowerCase(),
           date1: this.createdOn,
           array1: [...this.categories.main.map(elemId => ({ string1: 'c_' + elemId })),
             ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),

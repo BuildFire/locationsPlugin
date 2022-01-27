@@ -309,7 +309,10 @@ const refreshCategories = () => {
 };
 
 const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
-const clearMapViewList = () => { document.querySelector('#listingLocationsList').innerHTML = ''; };
+const clearMapViewList = () => {
+  document.querySelector('.drawer').scrollTop = 0;
+  document.querySelector('#listingLocationsList').innerHTML = '';
+};
 const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
 
 const renderIntroductoryLocations = (list, includePinned = false) => {

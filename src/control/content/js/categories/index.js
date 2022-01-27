@@ -69,6 +69,7 @@ const renderAddCategoryPage = () => {
       importBtn: inputCategoryForm.querySelector("#subcategory-import-btn"),
       exportBtn: inputCategoryForm.querySelector("#subcategory-export-btn"),
       downloadBtn: inputCategoryForm.querySelector("#subcategory-template-btn"),
+      emptyState: inputCategoryForm.querySelector("#subcategory-empty-list"),
     },
   };
 };
@@ -121,8 +122,8 @@ const setCategoryIcon = (icon, type) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: 16,
-      height: 16,
+      width: 40,
+      height: 40,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -217,9 +218,15 @@ window.addEditCategory = (category, callback = () => {}) => {
 
     if (!search) {
       subcategoriesListUI.init(newCategory.subcategories);
+      handleSubcategoriesEmptyState(newCategory, false);
       return;
     }
     const data = newCategory.subcategories.filter((elem) => elem.title.toLowerCase().includes(search.toLowerCase()));
+    if (data.length === 0) {
+      handleSubcategoriesEmptyState(newCategory, true);
+    } else {
+      handleSubcategoriesEmptyState(newCategory, false);
+    }
     subcategoriesListUI.init(data);
   };
 
@@ -237,6 +244,7 @@ window.addEditCategory = (category, callback = () => {}) => {
     inputCategoryControls.subcategory.fileInput.onchange = function () {
       importSubcategories(newCategory, this.files[0], (subcategories) => {
         newCategory.subcategories.push(...subcategories);
+        handleSubcategoriesEmptyState(newCategory);
         for (const subcategory of subcategories) {
           subcategoriesListUI.addItem(subcategory);
         }
@@ -276,6 +284,7 @@ window.addEditCategory = (category, callback = () => {}) => {
         if (e) console.error(e);
         if (data && data.selectedButton.key === "y") {
           newCategory.subcategories = newCategory.subcategories.filter((elem) => elem.id !== item.id);
+          handleSubcategoriesEmptyState(newCategory);
           callback(item);
         }
       }
@@ -333,6 +342,7 @@ window.addEditCategory = (category, callback = () => {}) => {
   inputCategoryControls.cancelButton.onclick  = cancelAddCategory;
 
   subcategoriesListUI.init(newCategory.subcategories);
+  handleSubcategoriesEmptyState(newCategory);
 };
 
 const categoryInputValidation = (category) => {
@@ -400,6 +410,7 @@ const addEditSubcategory = (
       }
       subcategoryInput.value = "";
       inputSubcategoryDialog.close();
+      handleSubcategoriesEmptyState(category);
       callback(subcategory);
     }
   );
@@ -457,11 +468,16 @@ window.searchCategories = () => {
   const searchElem = categories.querySelector('#category-search-input');
   if (!searchElem.value) {
     categoriesListUI.init(state.categories);
+    handleCategoriesEmptyState(false, false);
     return;
   }
 
   const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchElem.value.toLowerCase()));
-
+  if (data.length === 0) {
+    handleCategoriesEmptyState(false, true);
+  } else {
+    handleCategoriesEmptyState(false, false);
+  }
   categoriesListUI.init(data);
 };
 
@@ -551,13 +567,23 @@ window.downloadCategoryTemplate = () => {
   downloadCsvTemplate(templateData, categoriesTemplateHeader);
 };
 
-const handleCategoriesEmptyState = (isLoading) => {
+const handleCategoriesEmptyState = (isLoading, showEmptyState) => {
   const emptyState = categories.querySelector('#category-empty-list');
   if (isLoading) {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
-  } else if (state.categories.length === 0) {
-    emptyState.innerHTML = `<h4>No Categories Added.</h4>`;
+  } else if (state.categories.length === 0 || showEmptyState) {
+    emptyState.innerHTML = `<h4>No Categories Found.</h4>`;
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+};
+
+const handleSubcategoriesEmptyState = (category, showEmptyState) => {
+  const emptyState = inputCategoryControls.subcategory.emptyState;
+  if (category.subcategories.length === 0 || showEmptyState) {
+    emptyState.innerHTML = `<h4>No Subcategories Found.</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');

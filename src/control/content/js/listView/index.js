@@ -24,7 +24,7 @@ const initListViewWysiwyg = () => {
   tinymce.init({
     selector: "#listview-description-wysiwyg",
     init_instance_callback: (editor) => {
-      tinymce.activeEditor.setContent(state.settings.introductoryListView.description);
+      tinymce.activeEditor?.setContent(state.settings.introductoryListView?.description);
     },
     setup: (editor) => {
       console.log(editor.getContent());
