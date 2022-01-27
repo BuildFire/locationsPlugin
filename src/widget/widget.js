@@ -476,20 +476,25 @@ const refreshQuickFilter = () => {
           </span>
         </span>
       </div>`).join('\n');
-  const chipSets = document.querySelectorAll('#home .mdc-chip-set');
-  Array.from(chipSets).forEach((c) => {
-    const chip = new mdc.chips.MDCChipSet(c);
-    chip.listen('MDCChip:interaction', (event) => {
-      const categoryId = event.detail.chipId;
-      console.log(categoryId);
-      if (state.filterElements[categoryId]) {
-        state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
-      } else {
-        state.filterElements[categoryId] = { checked: true, subcategories: [] };
-      }
-      clearAndSearchWithDelay();
-    });
+  const chipSetSelector = document.querySelector('#home .mdc-chip-set');
+  const chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
+  chipSet.listen('MDCChip:interaction', (event) => {
+    const categoryId = event.detail.chipId;
+    console.log(categoryId);
+    if (state.filterElements[categoryId]) {
+      state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
+    } else {
+      state.filterElements[categoryId] = { checked: true, subcategories: [] };
+    }
+    clearAndSearchWithDelay();
   });
+  setTimeout(() => {
+    chipSet.chips.forEach((a) => {
+      if (state.filterElements[a.id]?.checked) {
+        a.selected = true;
+      }
+    });
+  }, 200);
 };
 
 const refreshIntroductoryDescription = () => {
@@ -991,12 +996,16 @@ const initFilterOverlay = () => {
   let html = '';
   const container = document.querySelector('.expansion-panel__container .accordion');
   state.categories.forEach((category) => {
+    let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
+    if (category.iconUrl) {
+      categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
+    }
     state.filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title mdc-theme--text-primary-on-background">
-            <i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>
+              ${categoryIcon}
               ${category.title}
             </span>
             <div class="expansion-panel-actions margin-right-ten">
@@ -1641,6 +1650,10 @@ const getDataHandler = (deeplinkData) => {
 const onPopHandler = (breadcrumb) => {
   console.log('Breadcrumb popped', breadcrumb);
   console.log('Breadcrumb popped', state.breadcrumbs);
+  // handle going back from advanced filter
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
+    refreshQuickFilter();
+  }
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
     hideFilterOverlay();
