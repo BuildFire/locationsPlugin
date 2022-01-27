@@ -265,6 +265,12 @@ div.empty-page {
   display: flex;
   align-items: center;
 }
+.expansion-panel-title span {
+  max-width: calc(100vw - 120px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
 .expansion-panel-title .glyphicon {
   margin-right: 12px;
   background-color: rgba(150,150,150,.1);

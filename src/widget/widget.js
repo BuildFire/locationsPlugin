@@ -1009,7 +1009,7 @@ const initFilterOverlay = () => {
           <div class="expansion-panel-header-content">
             <span class="expansion-panel-title mdc-theme--text-primary-on-background">
               ${categoryIcon}
-              ${category.title}
+              <span>${category.title}</span>
             </span>
             <div class="expansion-panel-actions margin-right-ten">
               <div class="mdc-touch-target-wrapper">
