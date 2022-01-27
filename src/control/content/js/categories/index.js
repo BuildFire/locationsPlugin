@@ -218,9 +218,15 @@ window.addEditCategory = (category, callback = () => {}) => {
 
     if (!search) {
       subcategoriesListUI.init(newCategory.subcategories);
+      handleSubcategoriesEmptyState(newCategory, false);
       return;
     }
     const data = newCategory.subcategories.filter((elem) => elem.title.toLowerCase().includes(search.toLowerCase()));
+    if (data.length === 0) {
+      handleSubcategoriesEmptyState(newCategory, true);
+    } else {
+      handleSubcategoriesEmptyState(newCategory, false);
+    }
     subcategoriesListUI.init(data);
   };
 
@@ -567,7 +573,7 @@ const handleCategoriesEmptyState = (isLoading, showEmptyState) => {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.categories.length === 0 || showEmptyState) {
-    emptyState.innerHTML = `<h4>No Categories Added.</h4>`;
+    emptyState.innerHTML = `<h4>No Categories Found.</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
@@ -577,7 +583,7 @@ const handleCategoriesEmptyState = (isLoading, showEmptyState) => {
 const handleSubcategoriesEmptyState = (category, showEmptyState) => {
   const emptyState = inputCategoryControls.subcategory.emptyState;
   if (category.subcategories.length === 0 || showEmptyState) {
-    emptyState.innerHTML = `<h4>No Subcategories Added.</h4>`;
+    emptyState.innerHTML = `<h4>No Subcategories Found.</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');

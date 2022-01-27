@@ -1167,7 +1167,7 @@ const handleLocationEmptyState = (isLoading) => {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    emptyState.innerHTML = `<h4>No Locations Added</h4>`;
+    emptyState.innerHTML = `<h4>No Locations Found</h4>`;
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
