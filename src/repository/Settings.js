@@ -9,16 +9,16 @@ export default class Settings {
   }
 
   /**
-   * @param {Function} callback Callback function
+   * @param {Boolean} autosave if settings is not initialized
    */
-  static get() {
+  static get(autosave = false) {
     return new Promise((resolve, reject) => {
       buildfire.datastore.get(Settings.TAG, (err, res) => {
         if (err) return reject(err);
 
         if (!res || !res.data || Object.keys(res.data).length === 0) {
           const settings = new Setting();
-          Settings.save(settings.toJSON());
+          if (autosave) Settings.save(settings.toJSON());
           resolve(settings);
           return;
         }
