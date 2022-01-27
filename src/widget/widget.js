@@ -23,36 +23,6 @@ if (!buildfire.components.carousel.view.prototype.clear) {
   };
 }
 
-/*
-  # Intro Search
-  [X] $geo stage with
-  [X] consider its own sort
-  [ ] handle pinned location
-
-  # Map view
-  # use match stage with geoWithin stage
-  ## initial state
-  [X] center the map based on current location
-  [X] fetch location based on current location view port
-  [X] consider the search criteria
-  [X] No results found correct search value by search engine
-  [ ] no result found add empty state in drawer "Start your search!"
-
-  ## Idle state
-  [X] fetch location based on current location view port
-  [X] no data found get get nearest location
-  [X] center the map based on nearest location if exist
-  [X] Zoom level is city "10"
-  [X] fetch locations based on nearest location view port
-  [X] if no results found correct search value by search engine
-  [X] recall search function
-  [ ] if no result found add empty state in drawer "Start your search!"
-
-  [ ] show  find location button when map view port is changed
-  [ ] call search function;
-
-*/
-
 const buildSearchCriteria = () => {
   const query = {};
   if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
@@ -193,9 +163,6 @@ const searchLocations = () => {
       const lng1 = Math.abs(state.currentLocation.lng);
       const lat2 = Math.abs(centerMapPoint.lat());
       const lng2 = Math.abs(centerMapPoint.lng());
-      console.log(Math.abs(lat1 - lat2), Math.abs(lng1 - lng2));
-      console.log(lat2, lat1);
-      console.log(lng2, lng1);
       if (Math.abs(lat1 - lat2) >= Math.abs(lng1 - lng2)) {
         const order = lat2 > lat1 ? 1 : -1;
         $sort['coordinates.lat'] = order;
@@ -288,9 +255,7 @@ const getNearestLocation = () => {
   pipelines.push({ $sort });
 
   return WidgetController.searchLocationsV2(pipelines, 0, 1).then((results) => {
-    console.log('Nearest location', results);
-    const location = results[0];
-    return location;
+    return results[0];
   });
 };
 
@@ -488,7 +453,6 @@ const refreshQuickFilter = () => {
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
   chipSet.listen('MDCChip:interaction', (event) => {
     const categoryId = event.detail.chipId;
-    console.log(categoryId);
     if (state.filterElements[categoryId]) {
       state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
     } else {
@@ -946,7 +910,6 @@ const initEventListeners = () => {
           state.maps.map.addUserPosition(state.userPosition);
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
-          // triggerSearchOnMapIdle();
         });
       }
     }
@@ -966,7 +929,6 @@ const initEventListeners = () => {
 
     // this is to refresh only
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
-      console.log('value: ', value);
       state.searchCriteria.searchValue = value;
       state.checkNearLocation  = true;
       clearAndSearchWithDelay();
@@ -984,7 +946,6 @@ const initEventListeners = () => {
       state.maps.map.setZoom(10);
     }
     fillAreaSearchField(positionPoints);
-    // triggerSearchOnMapIdle();
   };
 
   const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
@@ -1233,7 +1194,6 @@ const generateMapOptions = () => {
 const fillAreaSearchField = (coords) => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
   getFormattedAddress(coords, (err, address) => {
-    // state.maps.map.center(coords);
     areaSearchTextField.value = address;
   });
 };
@@ -1272,7 +1232,6 @@ const initMainMap = () => {
   const { userPosition } = state;
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = () => {
-    console.log('onBoundsChange');
     state.isMapIdle = false;
     // handle hiding opened location
     const locationSummary = document.querySelector('#locationSummary');
@@ -1283,13 +1242,11 @@ const initMainMap = () => {
   };
 
   state.maps.map.onMapIdle = () => {
-    console.log('Map is idle');
     state.isMapIdle = true;
     showElement('#findLocationsBtn');
   };
 
   state.maps.map.initSearchAreaBtn(findViewPortLocations);
-  // state.maps.map.onBoundsChange = () => { showElement('#findLocationsBtn'); };
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea
@@ -1408,7 +1365,6 @@ const initHomeView = () => {
   initEventListeners();
   drawer.initialize(state.settings);
   initDrawerFilterOptions();
-  console.log('Us Map idle', state.isMapIdle);
   if (showIntroductoryListView) {
     initIntroLocations();
   } else {
@@ -1441,7 +1397,6 @@ const initIntroLocations = () => {
 
 let attempts = 0;
 const initMapLocations = () => {
-  console.log('Is map idle', state.isMapIdle);
   if (!state.isMapIdle && attempts <= 3) {
     setTimeout(() => {
       initMapLocations();
@@ -1455,7 +1410,6 @@ const initMapLocations = () => {
   searchLocations()
     .then(() => {
       clearIntroViewList();
-      // renderListingLocations(state.listLocations);
     });
 };
 
@@ -1649,7 +1603,6 @@ const handleCPSync = (message) => {
 };
 
 const getDataHandler = (deeplinkData) => {
-  console.log('getData deeplinkData: ', deeplinkData);
   if (deeplinkData?.locationId) {
     refreshCategories()
       .then(() => WidgetController.getLocation(deeplinkData.locationId))
@@ -1664,8 +1617,6 @@ const getDataHandler = (deeplinkData) => {
 };
 
 const onPopHandler = (breadcrumb) => {
-  console.log('Breadcrumb popped', breadcrumb);
-  console.log('Breadcrumb popped', state.breadcrumbs);
   // handle going back from advanced filter
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
@@ -1693,7 +1644,6 @@ const onReceivedMessageHandler = (message) => {
   if (message.cmd === 'sync') {
     handleCPSync(message);
   }
-  console.log('widget message: ', message);
 };
 const onRatingHandler = (e) => {
   WidgetController
@@ -1739,7 +1689,7 @@ const init = () => {
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
-    });
+      });
   };
 };
 
