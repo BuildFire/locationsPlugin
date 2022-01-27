@@ -487,7 +487,14 @@ window.addEditLocation = (location) => {
 
       if (actionItem) {
         actionItem.id = item.id;
+        state.locationObj.actionItems.forEach((action, index) => {
+          if (action.id === item.id) {
+            state.locationObj.actionItems[index] = actionItem;
+          }
+        });
         actionItemsUI.updateItem(actionItem, index, divRow);
+        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+
       }
     });
   };
