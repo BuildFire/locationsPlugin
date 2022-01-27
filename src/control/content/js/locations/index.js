@@ -74,7 +74,7 @@ const locationTemplateHeader = {
   categories: "categories",
   markerType: "markerType",
   markerImage: "markerImage",
-  markerColor: "markerColor",
+  markerColorRGBA: "markerColorRGBA",
   showCategory: "showCategory",
   showOpeningHours: "showOpeningHours",
   showPriceRange: "showPriceRange",
@@ -105,8 +105,10 @@ const renderAddLocationsPage = () => {
     markerTypeRadioBtns: inputLocationForm.querySelectorAll('input[name="markerType"]'),
     selectMarkerImageContainer: inputLocationForm.querySelector("#select-marker-image-container"),
     selectMarkerImageBtn: inputLocationForm.querySelector("#select-marker-image-btn"),
+    markerImageError: inputLocationForm.querySelector("#location-marker-image-error"),
     selectMarkerColorContainer: inputLocationForm.querySelector("#select-marker-color-container"),
     selectMarkerColorBtn: inputLocationForm.querySelector("#select-marker-color-btn"),
+    markerColorError: inputLocationForm.querySelector("#location-marker-color-error"),
     editCategoriesBtn: inputLocationForm.querySelector("#location-edit-categories-btn"),
     showCategoriesBtn: inputLocationForm.querySelector("#location-show-category-toggle"),
     categoriesContainer: inputLocationForm.querySelector("#location-categories-container"),
@@ -295,12 +297,13 @@ window.addEditLocation = (location) => {
 
   addLocationControls.selectMarkerColorBtn.onclick = () => {
     buildfire.colorLib.showDialog(
-      { colorType: "solid", solid: { color: state.locationObj.marker.color } },
+      { colorType: "solid", solid: state.locationObj.marker.color },
       { hideGradient: true },
       null,
       (err, result) => {
         if (result.colorType === "solid") {
-          state.locationObj.marker.color = result.solid.color;
+          state.locationObj.marker.color = result.solid;
+          state.locationObj.marker.color = result.solid;
           state.locationObj.marker.icon = null;
           addLocationControls.selectMarkerColorBtn.querySelector(
             ".color"
@@ -521,7 +524,7 @@ const saveLocation = (action, callback = () => {}) => {
 };
 
 const locationInputValidation = () => {
-  const { title, address, description, coordinates, listImage, categories, openingHours } = state.locationObj;
+  const { title, address, description, coordinates, listImage, categories, openingHours, marker } = state.locationObj;
   let isValid = true;
 
   if (!title) {
@@ -536,6 +539,20 @@ const locationInputValidation = () => {
     isValid = false;
   } else {
     handleInputError(addLocationControls.locationAddressError, false);
+  }
+
+  if (marker.type === 'image' && !marker.image) {
+    handleInputError(addLocationControls.markerImageError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.markerImageError, false);
+  }
+
+  if (marker.type === 'circle' && !marker.color) {
+    handleInputError(addLocationControls.markerColorError, true);
+    isValid = false;
+  } else {
+    handleInputError(addLocationControls.markerColorError, false);
   }
 
   // if (!coordinates.lat || !coordinates.lng) {
@@ -624,7 +641,7 @@ const onMarkerTypeChanged = (marker) => {
   } else if (marker.color) {
     addLocationControls.selectMarkerColorBtn.querySelector(
       ".color"
-    ).style.background = marker.color;
+    ).style.background = marker?.color?.color;
   }
   const radios = addLocationControls.markerTypeRadioBtns;
   for (const radio of radios) {
@@ -701,8 +718,8 @@ const setIcon = (icon, type, selector, options = {}) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: options.width? options.width : 16,
-      height: options.height? options.height : 16,
+      width: options.width? options.width : 40,
+      height: options.height? options.height : 40,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -1162,7 +1179,6 @@ window.searchLocations = (e) => {
   const searchValue = e.target.value;
   clearTimeout(timeoutId);
   timeoutId = setTimeout(() => {
-    const filter = {};
     if (searchValue) {
       state.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
     } else {
@@ -1234,7 +1250,7 @@ window.importLocations = () =>  {
       const locations = result.map((elem) => {
         delete elem.id;
         elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl }));
-        elem.marker = { type: elem.markerType || 'pin', color: elem.markerColor || null, image: elem.markerImage || null };
+        elem.marker = { type: elem.markerType || 'pin', color: { color: elem.markerColorRGBA} || null, image: elem.markerImage || null };
         elem.settings = {
           showCategory: elem.showCategory || true,
           showOpeningHours: elem.showOpeningHours || false,
@@ -1278,7 +1294,7 @@ window.exportLocations = () => {
     ...elem, ...elem.coordinates, ...elem.settings,
     markerType: elem.marker.type,
     markerImage: elem.marker.image,
-    markerColor: elem.marker.color,
+    markerColorRGBA: elem.marker.color?.color,
     priceRange: elem.price.range,
     priceCurrency: elem.price.currency,
     categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
@@ -1458,8 +1474,8 @@ window.initLocations = () => {
     "locations-items",
     searchTableConfig
   );
-
   handleLocationEmptyState(true);
+  state.filter = {};
   loadCategories(() => {
     refreshLocations();
   });

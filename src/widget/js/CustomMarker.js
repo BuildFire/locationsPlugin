@@ -46,7 +46,7 @@ export default (function () {
         circle.setAttributeNS(null, 'r', 10);
         circle.setAttributeNS(null, 'stroke-width', 3);
         circle.setAttributeNS(null, 'stroke', '#efefef');
-        circle.setAttributeNS(null, 'fill', this.location.marker.color);
+        circle.setAttributeNS(null, 'fill', this.location.marker.color?.color);
         label.setAttributeNS(null, 'text-anchor', 'middle');
         label.setAttributeNS(null, 'x', '50%');
         label.setAttributeNS(null, 'y', '40');

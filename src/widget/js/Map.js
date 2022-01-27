@@ -63,7 +63,7 @@ export default class Map {
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (
-      (location.marker.type === "circle" && location.marker.color) ||
+      (location.marker.type === "circle" && location.marker.color?.color) ||
       (location.marker.type === "image" && location.marker.image)
     ) {
       marker = new this.Marker(location, this.map, onClick);
