@@ -128,7 +128,7 @@ section#filter {
   object-fit: cover;
 }
 .location-item__description {
-  max-width: calc(100% - 105px);
+  min-width: 0;
   flex: 1;
 }
 .location-item__description > p {
