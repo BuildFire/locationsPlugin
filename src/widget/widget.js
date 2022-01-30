@@ -278,6 +278,7 @@ const clearMapViewList = () => {
   document.querySelector('.drawer').scrollTop = 0;
   document.querySelector('#listingLocationsList').innerHTML = '';
 };
+const resetBodyScroll = () => { document.querySelector('body').scrollTop = 0; };
 const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
 
 const renderIntroductoryLocations = (list, includePinned = false) => {
@@ -644,6 +645,7 @@ const showLocationDetail = () => {
       </div>`).join('\n');
       selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${cdnImage(n.imageUrl)});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
+      resetBodyScroll();
       navigateTo('detail');
       if (selectedLocation.id) {
         WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
@@ -889,7 +891,7 @@ const initEventListeners = () => {
         clearAndSearchWithDelay();
       });
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
-      state.selectedLocation = state.listLocations.find((i) => i.id === e.target.dataset.id);
+      state.selectedLocation = state.pinnedLocations.concat(state.listLocations).find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
