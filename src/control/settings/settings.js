@@ -222,8 +222,8 @@ window.intiGoogleMap = () => {
     lng: state.settings.map.initialAreaCoordinates.lng
   };
 
-  if (state.settings.map.initialAreaString) {
-    searchBoxElem.value = state.settings.map.initialAreaString;
+  if (state.settings.map.initialAreaDisplayAddress) {
+    searchBoxElem.value = state.settings.map.initialAreaDisplayAddress;
   }
 
   if (currentPosition.lat && currentPosition.lng) {
@@ -255,7 +255,7 @@ window.intiGoogleMap = () => {
 
     state.settings.map.initialAreaCoordinates.lat = place.geometry.location.lat();
     state.settings.map.initialAreaCoordinates.lng = place.geometry.location.lng();
-    state.settings.map.initialAreaString = place.formatted_address;
+    state.settings.map.initialAreaDisplayAddress = place.formatted_address;
     saveSettings();
   });
 
@@ -267,7 +267,7 @@ window.intiGoogleMap = () => {
         console.log(results);
         if (status === "OK") {
           if (results[0]) {
-            state.settings.map.initialAreaString = results[0].formatted_address;
+            state.settings.map.initialAreaDisplayAddress = results[0].formatted_address;
             state.settings.map.initialAreaCoordinates.lat = e.latLng.lat();
             state.settings.map.initialAreaCoordinates.lng = e.latLng.lng();
             searchBoxElem.value = results[0].formatted_address;

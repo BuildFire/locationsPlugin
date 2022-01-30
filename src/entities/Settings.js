@@ -38,7 +38,7 @@ export default class Settings {
       initialArea: true,
       offlineAreaSelection: true, // pending
       initialAreaCoordinates: { lat: null, lng: null },
-      initialAreaString: null
+      initialAreaDisplayAddress: null
     };
     this.bookmarks = data.bookmarks || {
       enabled: true,

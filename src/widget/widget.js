@@ -1177,7 +1177,7 @@ const generateMapOptions = () => {
   if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
     options.center = { ...map.initialAreaCoordinates };
     state.currentLocation = { ...map.initialAreaCoordinates };
-    areaSearchTextField.value = map.initialAreaString || 'N/A';
+    areaSearchTextField.value = map.initialAreaDisplayAddress || 'N/A';
   } else if (userPosition) {
     options.center = {
       lat: userPosition.latitude,
