@@ -897,7 +897,7 @@ const initEventListeners = () => {
       showWorkingHoursDrawer();
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
-    } else if (e.target.classList.contains('list-action-item') || e.target.dataset.actionId) {
+    } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
       viewFullImage(state.selectedLocation.images);
