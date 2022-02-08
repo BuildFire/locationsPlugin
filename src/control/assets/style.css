@@ -3,10 +3,10 @@
 }
 
 .breadcrumb-container {
-	/* padding: 0 1rem; */
+	padding: 0 1rem;
 }
 .main-content {
-	/* padding: 0 1rem; */
+	padding: 0 1rem;
 }
 
 /* Sidenav Style */
@@ -49,7 +49,7 @@
 	overflow-y: auto;
 	/* min-height:  calc(100vh - 70px); */
 	max-height: calc(100vh - 45px);
-	padding-left: 1rem;
+	padding: 0 1rem;
 	flex: auto;
 }
 
