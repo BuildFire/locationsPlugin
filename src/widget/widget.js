@@ -504,6 +504,7 @@ const showFilterOverlay = () => {
   currentActive?.classList.remove('active');
   filterOverlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
+  state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
 };
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
@@ -516,6 +517,7 @@ const toggleFilterOverlay = () => {
     filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
+    state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
   }
 };
 const isLocationOpen = (location) => {
@@ -1129,16 +1131,18 @@ const initAreaAutocompleteField = () => {
     }
   );
 
-  const observer = new MutationObserver(() => {
-    // fix fast click is preventing touch on places list
-    document.querySelectorAll('.pac-item span, .pac-item')
-      .forEach((n) => n.classList.add('needsclick'));
-  });
+  // fix fast click is preventing touch on places list
   setTimeout(() => {
     const target = document.querySelector('.pac-container');
+    if (target) {
+      const observer = new MutationObserver(() => {
+        document.querySelectorAll('.pac-item span, .pac-item')
+          .forEach((n) => n.classList.add('needsclick'));
+      });
+      observer.observe(target, { childList: true });
+    }
     console.log('observer target :', target);
-    observer.observe(target, { childList: true });
-  }, 500);
+  }, 1000);
 
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
@@ -1638,6 +1642,12 @@ const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
+    for (const key in state.currentFilterElements) {
+      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
+        clearAndSearchWithDelay();
+        break;
+      }
+    }
   }
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
