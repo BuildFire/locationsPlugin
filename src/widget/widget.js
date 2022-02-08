@@ -1123,6 +1123,17 @@ const initAreaAutocompleteField = () => {
     }
   );
 
+  const observer = new MutationObserver(() => {
+    // fix fast click is preventing touch on places list
+    document.querySelectorAll('.pac-item span, .pac-item')
+      .forEach((n) => n.classList.add('needsclick'));
+  });
+  setTimeout(() => {
+    const target = document.querySelector('.pac-container');
+    console.log('observer target :', target);
+    observer.observe(target, { childList: true });
+  }, 500);
+
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
     if (!place || !place.geometry || !place.geometry) {
