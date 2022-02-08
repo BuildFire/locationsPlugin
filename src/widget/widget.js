@@ -863,10 +863,16 @@ const initEventListeners = () => {
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
-          state.searchCriteria.priceRange = Number(value);
-          state.checkNearLocation  = true;
-          priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-          priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+          if (value === '0') {
+            state.searchCriteria.priceRange = null;
+            priceSortingBtnLabel.textContent = 'Price';
+            priceSortingBtn.style.removeProperty('background-color');
+          } else {
+            state.searchCriteria.priceRange = Number(value);
+            state.checkNearLocation  = true;
+            priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+            priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+          }
         } else if (e.target.id === 'otherSortingBtn') {
           otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
           otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
