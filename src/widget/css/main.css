@@ -582,7 +582,8 @@ button span {
   color: #000000;
 }
 .location-detail .action-item .glyphicon {
-  font-size: 50px;
+  font-size: 35px;
+  margin: 8px 0 7px;
 }
 
 .mdc-chip span[role="gridcell"] {
