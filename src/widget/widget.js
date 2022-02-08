@@ -1364,7 +1364,7 @@ const initDrawerFilterOptions = () => {
   }
 
   otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
+  otherSortingMenuBtnLabel.textContent = 'Sort';
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
