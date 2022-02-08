@@ -22,8 +22,8 @@ const state = {
 };
 
 const subcategoryTemplateHeader = {
-  id: 'ID (optional)',
-  title: "Title",
+  id: 'id',
+  title: "title",
 };
 
 const categoriesTemplateHeader = {
@@ -32,7 +32,7 @@ const categoriesTemplateHeader = {
   iconUrl: "iconUrl",
   iconClassName: "iconClassName",
   subcategories: "subcategories",
-  quickAccess: "quickAccess",
+  // quickAccess: "quickAccess",
   createdOn: "createdOn"
 };
 
@@ -420,7 +420,7 @@ const validateCsv = (items) => {
   if (!Array.isArray(items) || !items.length) {
     return false;
   }
-  return items.every((item, index, array) =>  item.Title);
+  return items.every((item, index, array) =>  item.title);
 };
 
 const importSubcategories = (category, file, callback) => {
@@ -439,7 +439,7 @@ const importSubcategories = (category, file, callback) => {
       return;
     }
 
-    const subcategories = rows.map((elem) =>  ({ id: generateUUID(), title: elem.Title }));
+    const subcategories = rows.map((elem) =>  ({ id: generateUUID(), title: elem.title.trim() }));
     callback(subcategories);
   };
 
@@ -487,6 +487,9 @@ window.openCategorySort = (e) => {
   const categoryDropdown = categories.querySelector('#category-bulk-dropdown');
   toggleDropdown(sortDropdown);
   toggleDropdown(categoryDropdown, true);
+  document.body.onclick = () => {
+    toggleDropdown(sortDropdown, true);
+  };
 };
 
 window.sortCategories = (sort) => {
@@ -509,6 +512,9 @@ window.openCategoryBulkAction = (e) => {
   const sortDropdown = categories.querySelector('#category-sort-dropdown');
   toggleDropdown(categoryDropdown);
   toggleDropdown(sortDropdown, true);
+  document.body.onclick = () => {
+    toggleDropdown(categoryDropdown, true);
+  };
 };
 
 window.importCategories = () => {
@@ -524,7 +530,10 @@ window.importCategories = () => {
 
       const categories = result.map((elem) => {
         delete elem.id;
-        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle }));
+        elem.title = elem?.title?.trim();
+        elem.iconUrl = elem?.iconUrl?.trim();
+        elem.iconClassName = elem?.iconClassName?.trim();
+        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() }));
         elem.createdOn = new Date();
         elem.createdBy = authManager.currentUser;
         return new Category(elem).toJSON();
@@ -561,7 +570,6 @@ window.downloadCategoryTemplate = () => {
     iconUrl: "",
     iconClassName: "",
     subcategories: "",
-    quickAccess: "",
     createdOn: "",
   }];
   downloadCsvTemplate(templateData, categoriesTemplateHeader);
@@ -661,11 +669,6 @@ const updateCategoryImage = (item, index, divRow) => {
       });
     }
   );
-};
-
-document.body.onclick = () => {
-  toggleDropdown(categories.querySelector('#category-sort-dropdown'), true);
-  toggleDropdown(categories.querySelector('#category-bulk-dropdown'), true);
 };
 
 const createCategory = (category) => {

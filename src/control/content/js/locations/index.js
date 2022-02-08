@@ -1266,8 +1266,15 @@ window.importLocations = () =>  {
       }
       const locations = result.map((elem) => {
         delete elem.id;
-        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl }));
-        elem.marker = { type: elem.markerType || 'pin', color: { color: elem.markerColorRGBA} || null, image: elem.markerImage || null };
+        elem.title = elem.title.trim();
+        elem.subtitle = elem.subtitle.trim();
+        elem.address = elem.address.trim();
+        elem.formattedAddress = elem.formattedAddress.trim();
+        elem.addressAlias = elem.addressAlias.trim();
+        elem.listImage = elem.listImage.trim();
+        elem.description = elem.description.trim();
+        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
+        elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
         elem.settings = {
           showCategory: elem.showCategory || true,
           showOpeningHours: elem.showOpeningHours || false,
@@ -1277,8 +1284,8 @@ window.importLocations = () =>  {
         elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
         elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
         let categories = elem.categories ? elem.categories : "";
-        categories = elem.categories?.split(',').filter((elem) => elem);
-        const mainCategories = state.categories.filter((elem) => categories?.includes((elem).title)).map((elem) => elem.id);
+        categories = elem.categories?.split(',').filter((elem) => elem).map(((elem) => elem.toLowerCase()));
+        const mainCategories = state.categories.filter((elem) => categories?.includes(elem.title.toLowerCase())).map((elem) => elem.id);
         elem.categories = { main: mainCategories, subcategories: [] };
         elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
         elem.createdOn = new Date();

@@ -94,14 +94,20 @@ export const jsonToCsv = (objArray, options) => {
     header = options.header;
     for (const key in header) {
       if (header.hasOwnProperty(key)) {
-        csvStr += `"${(header[String(key)] || "").replace(/"/g, '""')}",`;
+        let value = (header[String(key)] || "").replace(/"/g, '""');
+        // remove �
+        value = value.replace(/\uFFFD/g, '');
+        csvStr += `"${value.trim()}",`;
       }
     }
   } else {
     header = array[0];
     for (const key in header) {
       if (header.hasOwnProperty(key)) {
-        csvStr += `"${key.toString().replace(/"/g, '""')}",`;
+        let value = key.toString().replace(/"/g, '""');
+        // remove �
+        value = value.replace(/\uFFFD/g, '');
+        csvStr += `"${value.trim()}",`;
       }
     }
   }
@@ -112,14 +118,14 @@ export const jsonToCsv = (objArray, options) => {
     for (const index in header) {
       if (!array[rowNo][index] || typeof array[rowNo][index] !== "object") {
         const value = (array[rowNo][index] || "").toString();
-        line += '"' + value.replace(/"/g, '""') + '",';
+        line += '"' + value.replace(/"/g, '""').replace(/\uFFFD/g, '') + '",';
       } else {
         const value1 = JSON.parse(JSON.stringify(array[rowNo][index]));
         let line1 = "";
         value1.forEach((val) => {
           line1 += (val.title || val.imageUrl) + ",";
         });
-        line += '"' + line1.replace(/"/g, '""') + '",';
+        line += '"' + line1.replace(/"/g, '""').replace(/\uFFFD/g, '') + '",';
       }
     }
     line = line.slice(0, -1);
@@ -147,11 +153,11 @@ export const csvToJson = (csv, options) => {
     let item = {};
     for (let col = 0; col < header.length && col < rows[row].length; col++) {
       let key = header[col];
-      item[key] = rows[row][col]
+      item[key] = rows[row][col];
     }
     items.push(item);
   }
-  return JSON.stringify(items).replace(/},/g, "},\r\n");
+  return JSON.stringify(items).replace(/},/g, "},\r\n").replace(/\uFFFD/g, '');
 };
 
 export const readCSVFile = (file, callback) => {
