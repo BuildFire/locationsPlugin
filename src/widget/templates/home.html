@@ -8,7 +8,7 @@
 
     <label id="areaSearchLabel" class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body margin-top-ten">
       <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="hideQFBtn">expand_less</i>
-      <input class="mdc-text-field__input mdc-theme--primary" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
+      <input class="mdc-text-field__input mdc-theme--primary needsclick" spellcheck="false" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
       <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="myCurrentLocationBtn">gps_fixed</i>
     </label>
 
@@ -76,6 +76,10 @@
                 <li class="mdc-list-item" role="menuitem" data-value="4">
                   <span class="mdc-list-item__ripple"></span>
                   <span class="mdc-list-item__text">$$$$</span>
+                </li>
+                <li class="mdc-list-item" role="menuitem" data-value="0">
+                  <span class="mdc-list-item__ripple"></span>
+                  <span class="mdc-list-item__text">Reset</span>
                 </li>
               </ul>
             </div>

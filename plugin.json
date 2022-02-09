@@ -23,5 +23,6 @@
   "widget":{},
   "features" : [],
   "webpack": "8080",
+  "keywords": "Location, Map, Mapping, Places, Area, Site, Spot, Pin, Things to do, Satellite, Street",
   "languages" : ["en"]
 }

@@ -504,6 +504,7 @@ const showFilterOverlay = () => {
   currentActive?.classList.remove('active');
   filterOverlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
+  state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
 };
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
@@ -516,6 +517,7 @@ const toggleFilterOverlay = () => {
     filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
     addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
+    state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
   }
 };
 const isLocationOpen = (location) => {
@@ -595,17 +597,14 @@ const showLocationDetail = () => {
         selectedLocation.coordinates = DEFAULT_LOCATION;
       }
       selectors.map.style.display = 'block';
-      const detailMap = new google.maps.Map(selectors.map, {
+      const detailMap = new MainMap(selectors.map, {
         mapTypeControl: true,
         disableDefaultUI: true,
         center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
         zoom: 14,
       });
 
-      new google.maps.Marker({
-        position: new google.maps.LatLng({ lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng }),
-        map: detailMap,
-      });
+      detailMap.addMarker(selectedLocation, () => {});
 
       selectors.title.textContent = selectedLocation.title;
       selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
@@ -863,10 +862,16 @@ const initEventListeners = () => {
       menu.listen('MDCMenu:selected', (event) => {
         const value = event.detail.item.getAttribute('data-value');
         if (e.target.id === 'priceSortingBtn') {
-          state.searchCriteria.priceRange = Number(value);
-          state.checkNearLocation  = true;
-          priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-          priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+          if (value === '0') {
+            state.searchCriteria.priceRange = null;
+            priceSortingBtnLabel.textContent = 'Price';
+            priceSortingBtn.style.removeProperty('background-color');
+          } else {
+            state.searchCriteria.priceRange = Number(value);
+            state.checkNearLocation  = true;
+            priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+            priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+          }
         } else if (e.target.id === 'otherSortingBtn') {
           otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
           otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
@@ -899,7 +904,7 @@ const initEventListeners = () => {
       shareLocation();
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
-    } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
+    } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
       viewFullImage(state.selectedLocation.images);
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
@@ -1116,16 +1121,31 @@ const navigateTo = (template) => {
 
 const initAreaAutocompleteField = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
-  const autocomplete = new google.maps.places.Autocomplete(
+  const autocomplete = new google.maps.places.SearchBox(
     areaSearchTextField,
     {
       types: ["address"],
     }
   );
 
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    if (!place || !place.geometry || !place.geometry) {
+  // fix fast click is preventing touch on places list
+  setTimeout(() => {
+    const target = document.querySelector('.pac-container');
+    if (target) {
+      const observer = new MutationObserver(() => {
+        document.querySelectorAll('.pac-item span, .pac-item')
+          .forEach((n) => n.classList.add('needsclick'));
+      });
+      observer.observe(target, { childList: true });
+    }
+    console.log('observer target :', target);
+  }, 1000);
+
+  autocomplete.addListener('places_changed', () => {
+    const places = autocomplete.getPlaces();
+    const place = places[0];
+
+    if (!place || !place.geometry) {
       return;
     }
 
@@ -1133,6 +1153,7 @@ const initAreaAutocompleteField = () => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng()
     };
+
     state.currentLocation = point;
     state.maps.map.center(point);
     state.maps.map.setZoom(10);
@@ -1353,7 +1374,7 @@ const initDrawerFilterOptions = () => {
   }
 
   otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
+  otherSortingMenuBtnLabel.textContent = 'Sort';
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
@@ -1621,6 +1642,12 @@ const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
+    for (const key in state.currentFilterElements) {
+      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
+        clearAndSearchWithDelay();
+        break;
+      }
+    }
   }
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {

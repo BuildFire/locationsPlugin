@@ -1,5 +1,6 @@
 import MarkerClusterer from "./lib/markercluster";
 import CustomMarker from "./CustomMarker";
+import { cdnImage } from './util/helpers';
 
 export default class Map {
   constructor(selector, options) {
@@ -44,8 +45,8 @@ export default class Map {
       gridSize: 53,
       styles: [
         {
-          textColor: "white",
-          url: "https://app.buildfire.com/app/media/google_marker_blue_icon2.png",
+          textColor: 'white',
+          url: cdnImage('https://app.buildfire.com/app/media/google_marker_blue_icon2.png'),
           height: 53,
           width: 53,
         },
@@ -92,7 +93,7 @@ export default class Map {
     if (!this.map) return;
     const { latitude, longitude } = coordinates;
     const iconOptions = {
-      url: "https://app.buildfire.com/app/media/google_marker_blue_icon.png",
+      url: cdnImage('https://app.buildfire.com/app/media/google_marker_blue_icon.png'),
       scaledSize: new google.maps.Size(20, 20),
       origin: new google.maps.Point(0, 0),
       anchor: new google.maps.Point(10, 10),

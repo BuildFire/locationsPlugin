@@ -33,6 +33,7 @@ export default {
   fetchingNextPage: false,
   fetchingEndReached: false,
   filterElements: {},
+  currentFilterElements: {},
   searchableTitles: [],
   nearestLocation: null,
   checkNearLocation: true,
