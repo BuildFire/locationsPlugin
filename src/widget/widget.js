@@ -904,7 +904,7 @@ const initEventListeners = () => {
       shareLocation();
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
-    } else if (e.target.parentNode?.classList.contains('location-detail__carousel')) {
+    } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
       viewFullImage(state.selectedLocation.images);
     } else if (e.target.parentNode?.classList.contains('action-item')) {
       handleDetailActionItem(e);
@@ -1121,7 +1121,7 @@ const navigateTo = (template) => {
 
 const initAreaAutocompleteField = () => {
   const areaSearchTextField = document.querySelector('#areaSearchTextField');
-  const autocomplete = new google.maps.places.Autocomplete(
+  const autocomplete = new google.maps.places.SearchBox(
     areaSearchTextField,
     {
       types: ["address"],
@@ -1141,9 +1141,11 @@ const initAreaAutocompleteField = () => {
     console.log('observer target :', target);
   }, 1000);
 
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    if (!place || !place.geometry || !place.geometry) {
+  autocomplete.addListener('places_changed', () => {
+    const places = autocomplete.getPlaces();
+    const place = places[0];
+
+    if (!place || !place.geometry) {
       return;
     }
 
@@ -1151,6 +1153,7 @@ const initAreaAutocompleteField = () => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng()
     };
+
     state.currentLocation = point;
     state.maps.map.center(point);
     state.maps.map.setZoom(10);
