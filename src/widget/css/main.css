@@ -863,7 +863,7 @@ body section#home {
   height: 100%;
   overflow: visible;
 }
-#mainMapContainer .custom-marker__circle text {
+.custom-marker__circle text {
   fill: #505254;
   stroke: white;
   paint-order: stroke;
@@ -872,20 +872,20 @@ body section#home {
   stroke-linejoin: miter;
   font-weight: bold;
 }
-#mainMapContainer.dark .custom-marker svg text {
+.dark .custom-marker svg text {
   fill: #d59563;
   stroke: #242f3e;
 }
-#mainMapContainer .marker-label {
+.marker-label {
   color: #505254 !important;
   text-shadow: 0 0 2px white;
   font-weight: bold;
 }
-#mainMapContainer.dark .marker-label {
+.dark .marker-label {
   color: #d59563 !important;
   text-shadow: 0 0 2px #242f3e;
 }
-#mainMapContainer .custom-marker__container label {
+.custom-marker__container label {
   font-size: 14px;
   white-space: nowrap;
   position: absolute;
@@ -895,7 +895,7 @@ body section#home {
   text-shadow: 0 0 2px white;
   font-weight: bold;
 }
-#mainMapContainer.dark .custom-marker__container label {
+.dark .custom-marker__container label {
   color: #d59563;
   text-shadow: 0 0 2px #242f3e;
 }

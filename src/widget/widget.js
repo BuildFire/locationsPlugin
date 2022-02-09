@@ -597,17 +597,14 @@ const showLocationDetail = () => {
         selectedLocation.coordinates = DEFAULT_LOCATION;
       }
       selectors.map.style.display = 'block';
-      const detailMap = new google.maps.Map(selectors.map, {
+      const detailMap = new MainMap(selectors.map, {
         mapTypeControl: true,
         disableDefaultUI: true,
         center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
         zoom: 14,
       });
 
-      new google.maps.Marker({
-        position: new google.maps.LatLng({ lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng }),
-        map: detailMap,
-      });
+      detailMap.addMarker(selectedLocation, () => {});
 
       selectors.title.textContent = selectedLocation.title;
       selectors.subtitle.textContent = selectedLocation.subtitle ?? '';

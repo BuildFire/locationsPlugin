@@ -290,6 +290,7 @@ window.addEditLocation = (location) => {
           setIcon(iconUrl, "url", addLocationControls.selectMarkerImageBtn);
           state.locationObj.marker.image = iconUrl;
           state.locationObj.marker.color = null;
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
         }
       }
     );
@@ -308,6 +309,7 @@ window.addEditLocation = (location) => {
           addLocationControls.selectMarkerColorBtn.querySelector(
             ".color"
           ).style.background = result.solid.color;
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
         } else {
           addLocationControls.selectMarkerColorBtn.querySelector(
             ".color"
@@ -391,7 +393,7 @@ window.addEditLocation = (location) => {
   };
 
   addLocationControls.addActionItemsBtn.onclick = () => {
-    buildfire.actionItems.showDialog(null, { 
+    buildfire.actionItems.showDialog(null, {
       showIcon: true,
       imgLibOptions: {
         showIcons: true
@@ -669,6 +671,7 @@ const onMarkerTypeChanged = (marker) => {
       const value = e.target.value;
       state.locationObj.marker.type = value;
       handleMarkerType(value);
+      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
   }
 
@@ -1465,6 +1468,7 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
         subtitle: addLocationControls.locationSubtitle.value,
         formattedAddress: addLocationControls.locationAddress.value,
         coordinates: state.locationObj.coordinates,
+        marker: state.locationObj.marker,
         categories: state.locationObj.categories,
         settings: state.locationObj.settings,
         images: state.locationObj.images,
