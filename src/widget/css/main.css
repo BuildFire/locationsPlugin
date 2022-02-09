@@ -985,3 +985,6 @@ body section#home {
 #showMapView .mdc-fab__icon {
   color: var(--mdc-theme-on-primary) !important;
 }
+#locationDirectionsBtn {
+  cursor: pointer;
+}
