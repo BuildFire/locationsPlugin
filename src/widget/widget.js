@@ -923,7 +923,7 @@ const initEventListeners = () => {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
       viewFullImage(state.selectedLocation.images);
-    } else if (e.target.parentNode?.classList.contains('action-item')) {
+    } else if (e.target.parentNode?.classList?.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
       if (state.maps.map && state.userPosition.latitude && state.userPosition.longitude) {

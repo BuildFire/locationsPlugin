@@ -33,21 +33,25 @@ const initialize = (settings) => {
     let targetTop;
     let targetHeight;
     const pageY = e.pageY || e.changedTouches[0].pageY;
+    const pointsToExpanded = Math.abs(positions.expanded - (screenHeight - pageY));
+    const pointsToHalfExpanded = Math.abs(positions.halfExpanded - (screenHeight - pageY));
+    const pointsToCollapsed = Math.abs(positions.collapsed - (screenHeight - pageY));
+
     if (pageY > originalMouseY) {
-      if (originalHeight > positions.halfExpanded) {
-        targetTop = screenHeight - positions.halfExpanded;
-        targetHeight = positions.halfExpanded;
-      } else {
+      if (pointsToHalfExpanded > pointsToCollapsed) {
         targetHeight = positions.collapsed;
         targetTop = screenHeight - positions.collapsed;
-      }
-    } else if (pageY < originalMouseY) {
-      if (originalHeight >= positions.halfExpanded) {
-        targetHeight = positions.expanded;
-        targetTop = screenHeight - positions.expanded;
       } else {
         targetHeight = positions.halfExpanded;
         targetTop = screenHeight - positions.halfExpanded;
+      }
+    } else if (pageY < originalMouseY) {
+      if (pointsToExpanded > pointsToHalfExpanded) {
+        targetHeight = positions.halfExpanded;
+        targetTop = screenHeight - positions.halfExpanded;
+      } else {
+        targetHeight = positions.expanded;
+        targetTop = screenHeight - positions.expanded;
       }
       if (locationSummary.classList.contains('slide-in')) {
         locationSummary.classList.add('slide-out');
