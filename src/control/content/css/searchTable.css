@@ -4,7 +4,7 @@ thead, tbody tr {
     table-layout:fixed;/* even columns width , fix width of table too*/
 }
 th{
-    padding: 15px 8px 13px !important;
+    padding: 12px 8px 12px !important;
     line-height: 26px;
     vertical-align: top;
     border-bottom: 1px solid #d8d8d8;
@@ -21,7 +21,7 @@ td.ellipsis{
 }
 tbody {
     display: block;
-    max-height: calc(100vh - 350px) !important;
+    max-height: 300px !important;
 	overflow-y: auto;
 }
 table tbody tr {

@@ -58,9 +58,9 @@ export const handleInputError = (elem, hasError, message) => {
   }
 };
 
-export const isLatitude = (num) => isFinite(num) && Math.abs(num) <= 90;
+export const isLatitude = (num) => Number(num) && isFinite(num) && Math.abs(num) <= 90;
 
-export const isLongitude = (num) => isFinite(num) && Math.abs(num) <= 180;
+export const isLongitude = (num) => Number(num) && isFinite(num) && Math.abs(num) <= 180;
 
 export const showProgressDialog = ({ title, message }) => {
   const progressDialog = new DialogComponent("dialogComponent", 'progressDialogTemplate');

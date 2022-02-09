@@ -19,7 +19,7 @@
 .sidenav {
 	width: 170px;
 	flex-shrink: 0;
-	padding: 0 1rem;
+	padding-right: 1rem;
 }
 
 .sidenav li a {

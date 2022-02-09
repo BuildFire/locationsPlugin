@@ -19,7 +19,7 @@
 .sub-page .sub-page-body {
     max-height: calc(100vh - 120px);
     min-height: calc(100vh - 120px);
-    overflow: auto;
+    overflow-y: auto;
 	padding: 0 1rem;
 }
 
