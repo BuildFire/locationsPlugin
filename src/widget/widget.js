@@ -1391,7 +1391,7 @@ const initDrawerFilterOptions = () => {
   }
 
   otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = 'Sort';
+  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
