@@ -492,8 +492,9 @@ const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
     return;
   }
   state.breadcrumbs.push({ name: pageName });
+  // todo show title bar when adding the language
   buildfire.history.push(label, {
-    showLabelInTitlebar: showLabel
+    showLabelInTitlebar: false
   });
 };
 
@@ -823,6 +824,20 @@ const getFormattedAddress = (coords, cb) => {
     }
   );
 };
+
+const getDirections = () => {
+  const { selectedLocation } = state;
+  if (selectedLocation.coordinates?.lat && selectedLocation.coordinates?.lng) {
+    buildfire.getContext((err, context) => {
+      if (context && context.device && context.device.platform.toLowerCase() === 'ios') {
+        buildfire.navigation.openWindow(`https://maps.apple.com/?q=${selectedLocation.title}&t=m&daddr=${selectedLocation.coordinates?.lat},${selectedLocation.coordinates?.lng}`, '_system');
+      } else {
+        buildfire.navigation.openWindow(`http://maps.google.com/maps?daddr=${selectedLocation.coordinates?.lat},${selectedLocation.coordinates?.lng}`, '_system');
+      }
+    });
+  }
+};
+
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -839,7 +854,9 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchLocationsBtn') {
+    if (e.target.id === 'locationDirectionsBtn') {
+      getDirections();
+    } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
