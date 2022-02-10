@@ -35,7 +35,7 @@ const initChat = () => {
   allowChat.checked = state.settings.chat.allowChat;
   allowChat.onchange = (e) => {
     state.settings.chat.allowChat = e.target.checked;
-    saveSettings();
+    saveSettingsWithDelay();
   };
 };
 
@@ -43,6 +43,7 @@ const initSorting = () => {
   const sortingSettings = new Settings().sorting;
   const sortingOptionsContainer = document.querySelector('#sorting-settings-container');
   const defaultLocationsSortRadios = document.querySelectorAll('input[name="defaultLocationSort"]');
+  
   sortingOptionsContainer.innerHTML = '';
 
   for (const radio of defaultLocationsSortRadios) {
@@ -51,10 +52,10 @@ const initSorting = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.sorting.defaultSorting = value;
-      saveSettings();
-    }
+      saveSettingsWithDelay();
+    };
   }
 
   for (const key of Object.keys(sortingSettings)) {
@@ -72,13 +73,34 @@ const initSorting = () => {
     btnLabel.htmlFor = key;
 
     btn.checked = state.settings.sorting[key];
+
+    if (key === 'allowSortByNearest') {
+      handleDisableSortByNearest(state.settings.sorting[key]);
+    }
+
     btn.onchange = (e) => {
       console.log(e.target.checked);
       state.settings.sorting[key] = e.target.checked;
-      saveSettings();
+      if (key === 'allowSortByNearest') {
+        handleDisableSortByNearest(e.target.checked);
+      }
+      saveSettingsWithDelay();
     };
 
     sortingOptionsContainer.appendChild(switchBtn);
+  }
+};
+
+const handleDisableSortByNearest = (allowSortByNearest) => {
+  const distanceSortRadio = document.querySelector('#sorting-dist');
+  const alphaSortRadio = document.querySelector('#sorting-alpha');
+
+  if (!allowSortByNearest) {
+    state.settings.sorting.defaultSorting = 'alphabetical';
+    alphaSortRadio.checked = true;
+    distanceSortRadio.disabled = true;
+  } else {
+    distanceSortRadio.disabled = false;
   }
 };
 
@@ -104,7 +126,7 @@ const initFiltering = () => {
     btn.checked = state.settings.filter[key];
     btn.onchange = (e) => {
       state.settings.filter[key] = e.target.checked;
-      saveSettings();
+      saveSettingsWithDelay();
     };
 
     filterOptionsContainer.appendChild(switchBtn);
@@ -120,7 +142,7 @@ const iniBookmarks = () => {
   enableBookmarksBtn.checked = state.settings.bookmarks.enabled;
   enableBookmarksBtn.onchange = (e) => {
     state.settings.bookmarks.enabled = e.target.checked;
-    saveSettings();
+    saveSettingsWithDelay();
   };
 
   for (const key of Object.keys(bookmarkSettings)) {
@@ -139,7 +161,7 @@ const iniBookmarks = () => {
     btn.checked = state.settings.bookmarks[key];
     btn.onchange = (e) => {
       state.settings.bookmarks[key] = e.target.checked;
-      saveSettings();
+      saveSettingsWithDelay();
     };
 
     bookmarkOptionsContainer.appendChild(switchBtn);
@@ -155,19 +177,19 @@ const initMap = () => {
   showPointsOfInterestBtn.checked = state.settings.map?.showPointsOfInterest;
   showPointsOfInterestBtn.onchange = (e) => {
     state.settings.map.showPointsOfInterest = e.target.checked;
-    saveSettings();
+    saveSettingsWithDelay();
   };
 
   enableMapInitialAreaBtn.checked = state.settings.map?.initialArea;
   enableMapInitialAreaBtn.onchange = (e) => {
     state.settings.map.initialArea = e.target.checked;
-    saveSettings();
+    saveSettingsWithDelay();
   };
 
   // enableOfflineAreaSelectionBtn.checked = state.settings.map?.offlineAreaSelection;
   // enableOfflineAreaSelectionBtn.onchange = (e) => {
   //   state.settings.map.offlineAreaSelection = e.target.checked;
-  //   saveSettings();
+  //   saveSettingsWithDelay();
   // };
 
   // Distance Units Selection
@@ -177,9 +199,9 @@ const initMap = () => {
     }
 
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.settings.measurementUnit = value;
-      saveSettings();
+      saveSettingsWithDelay();
     };
   }
 
@@ -256,7 +278,7 @@ window.intiGoogleMap = () => {
     state.settings.map.initialAreaCoordinates.lat = place.geometry.location.lat();
     state.settings.map.initialAreaCoordinates.lng = place.geometry.location.lng();
     state.settings.map.initialAreaDisplayAddress = place.formatted_address;
-    saveSettings();
+    saveSettingsWithDelay();
   });
 
   marker.addListener("dragend", (e) => {
@@ -271,7 +293,7 @@ window.intiGoogleMap = () => {
             state.settings.map.initialAreaCoordinates.lat = e.latLng.lat();
             state.settings.map.initialAreaCoordinates.lng = e.latLng.lng();
             searchBoxElem.value = results[0].formatted_address;
-            saveSettings();
+            saveSettingsWithDelay();
           } else {
             console.log("No results found");
           }
@@ -400,6 +422,14 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('sorting');
       navigate('sorting');
   }
+};
+
+let timeoutId;
+const saveSettingsWithDelay = () => {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    saveSettings();
+  }, 300);
 };
 
 const saveSettings = () => {
