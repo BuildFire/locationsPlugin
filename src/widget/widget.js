@@ -958,10 +958,10 @@ const initEventListeners = () => {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
       viewFullImage(state.selectedLocation.images);
-    } else if (e.target.parentNode?.classList.contains('action-item')) {
+    } else if (e.target.parentNode?.classList?.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
-      if (state.maps.map && state.userPosition.latitude && state.userPosition.longitude) {
+      if (state.maps.map && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
         getFormattedAddress({ lat: state.userPosition.latitude, lng: state.userPosition.longitude }, (err, address) => {
           state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
           state.maps.map.setZoom(10);
@@ -1427,7 +1427,7 @@ const initDrawerFilterOptions = () => {
   }
 
   otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = 'Sort';
+  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
@@ -1747,7 +1747,7 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
         retries -= 1;
         attempt();
       } else {
-        console.warn(`failed to get current user position ${err}`);
+        console.warn(`failed to get current user position ${JSON.stringify(err)}`);
         resolve();
       }
     });

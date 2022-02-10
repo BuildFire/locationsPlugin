@@ -336,10 +336,9 @@ div.empty-page {
   width: 100%;
   overflow: hidden;
   background-color: #ffffff;
-  transition: all 0.25s;
+  transition: all 0.125s;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  overflow-y: scroll;
   z-index: 100;
 /* todo rethink below approach */
   margin-left: -15px;
@@ -356,10 +355,11 @@ div.empty-page {
 
 .drawer-header {
   width: 100%;
-  padding: 10px 20px 15px;
+  padding: 15px 20px;
   position: sticky;
   top: 0;
   z-index: 1;
+  /*max-height: 100%;*/
 }
 .drawer-header .bookmark-result p {
   font-size: 14px;
@@ -373,6 +373,11 @@ div.empty-page {
   font-size: 12px;
   text-transform: unset;
   letter-spacing: normal;
+}
+.drawer-content {
+  overflow: hidden;
+  overflow-y: scroll;
+  max-height: 100%;
 }
 .mdc-button.mdc-button--triangle .mdc-button__label {
   margin-right: 16px;
