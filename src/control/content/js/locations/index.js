@@ -1269,13 +1269,13 @@ window.importLocations = () =>  {
       }
       const locations = result.map((elem) => {
         delete elem.id;
-        elem.title = elem.title.trim();
-        elem.subtitle = elem.subtitle.trim();
-        elem.address = elem.address.trim();
-        elem.formattedAddress = elem.formattedAddress.trim();
-        elem.addressAlias = elem.addressAlias.trim();
-        elem.listImage = elem.listImage.trim();
-        elem.description = elem.description.trim();
+        elem.title = elem.title?.trim();
+        elem.subtitle = elem.subtitle?.trim();
+        elem.address = elem.address?.trim();
+        elem.formattedAddress = elem.formattedAddress?.trim();
+        elem.addressAlias = elem.addressAlias?.trim();
+        elem.listImage = elem.listImage?.trim();
+        elem.description = elem.description?.trim();
         elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
         elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
         elem.settings = {

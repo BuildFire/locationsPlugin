@@ -5,6 +5,7 @@ import buildfire from 'buildfire';
 import ContentController from './content.controller';
 import DataMocks from '../../DataMocks';
 import authManager from '../../UserAccessControl/authManager';
+import Analytics from '../../utils/analytics';
 
 import './js/categories';
 import './js/locations';
@@ -116,6 +117,7 @@ window.onSidenavChange = (section) => {
 const init = () => {
   onSidenavChange('categories');
   validateGoogleApiKey();
+  Analytics.init();
 };
 
 authManager.enforceLogin(init);

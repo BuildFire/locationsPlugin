@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
 import * as Promise from 'bluebird';
@@ -12,6 +13,7 @@ import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
 import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
 import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
+import  Analytics  from '../utils/analytics';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -23,10 +25,35 @@ if (!buildfire.components.carousel.view.prototype.clear) {
   };
 }
 
+const getCategoriesAndSubCategoriesByName = (name) => {
+  name = name.toLowerCase();
+  const subcategoryIds = [];
+  const categoryIds = [];
+
+  for (const category of state.categories) {
+    if (name === category.title.toLowerCase()) {
+      categoryIds.push(category.id);
+    }
+    for (const subcategory of category.subcategories) {
+      if (name === subcategory.title.toLowerCase()) {
+        subcategoryIds.push(subcategory.id);
+      }
+    }
+  }
+  return { subcategoryIds, categoryIds };
+};
+
 const buildSearchCriteria = () => {
   const query = {};
   if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
-    query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
+    // query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
+
+    const { subcategoryIds, categoryIds }  = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue);
+    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    query.$or = [
+      { "_buildfire.index.text": { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" } },
+      { "_buildfire.index.array1.string1": { $in: array1Index } }
+    ];
   }
 
   // categories & subcategories filter
@@ -36,7 +63,14 @@ const buildSearchCriteria = () => {
   for (const key in state.filterElements) {
     if (state.filterElements[key].checked) {
       categoryIds.push(key);
-      subcategoryIds.push(...state.filterElements[key].subcategories);
+      const selectedSubcategories = state.filterElements[key].subcategories;
+      subcategoryIds.push(...selectedSubcategories);
+      const category = state.categories.find((elem) => elem.id === key);
+      Analytics.categorySelected(category.title);
+      const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
+      subcategories.forEach((subcategory) => {
+        Analytics.subcategorySelected(subcategory.title);
+      });
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0) {
@@ -650,6 +684,7 @@ const showLocationDetail = () => {
       if (selectedLocation.id) {
         WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
       }
+      Analytics.viewed(selectedLocation.title, {});
     });
 };
 const showWorkingHoursDrawer = () => {
@@ -1125,6 +1160,7 @@ const initFilterOverlay = () => {
 const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
+  Analytics.mapListUsed();
 };
 
 const navigateTo = (template) => {
@@ -1405,6 +1441,7 @@ const initHomeView = () => {
   drawer.initialize(state.settings);
   initDrawerFilterOptions();
   if (showIntroductoryListView) {
+    Analytics.listViewUsed();
     initIntroLocations();
   } else {
     showMapView();
