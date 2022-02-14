@@ -4,16 +4,16 @@ import buildfire from "buildfire";
 class Analytics {
 
   static get LIST_VIEW() {
-    return "listView";
+    return "listViewUsed";
   }
 
   static get MAP_LIST() {
-    return "mapList";
+    return "mapListUsed";
   }
 
   static init() {
-    this.registerEvent(this.LIST_VIEW, 'List View', '');
-    this.registerEvent(this.MAP_LIST, 'Map List', '');
+    this.registerEvent('List View - used', this.LIST_VIEW, '');
+    this.registerEvent('Map List - used', this.MAP_LIST, '');
   }
 
   static registerEvent(title, key, description) {
@@ -22,17 +22,23 @@ class Analytics {
 
   static viewed(title, metadata = {}) {
     title = `${title} - viewed`;
-    buildfire.analytics.trackAction(title);
+    buildfire.analytics.trackView(title, {
+      _buildfire: { aggregationValue: 10 },
+    });
   }
 
   static categorySelected(category) {
     category = `${category} - category selected`;
-    buildfire.analytics.trackAction(category);
+    buildfire.analytics.trackView(category, {
+      _buildfire: { aggregationValue: 10 },
+    });
   }
 
   static subcategorySelected(subcategory, metadata = {}) {
     subcategory = `${subcategory} - subcategory selected`;
-    buildfire.analytics.trackAction(subcategory);
+    buildfire.analytics.trackView(subcategory, {
+      _buildfire: { aggregationValue: 10 },
+    });
   }
 
   static listViewUsed() {
