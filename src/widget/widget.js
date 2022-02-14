@@ -69,10 +69,10 @@ const buildSearchCriteria = () => {
       const selectedSubcategories = state.filterElements[key].subcategories;
       subcategoryIds.push(...selectedSubcategories);
       const category = state.categories.find((elem) => elem.id === key);
-      Analytics.categorySelected(category.title);
+      Analytics.categorySelected(category.id);
       const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
       subcategories.forEach((subcategory) => {
-        Analytics.subcategorySelected(subcategory.title);
+        Analytics.subcategorySelected(subcategory.id);
       });
     }
   }
@@ -687,7 +687,7 @@ const showLocationDetail = () => {
       if (selectedLocation.id) {
         WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
       }
-      Analytics.viewed(selectedLocation.title, {});
+      Analytics.viewed(selectedLocation.id, {});
     });
 };
 const showWorkingHoursDrawer = () => {
