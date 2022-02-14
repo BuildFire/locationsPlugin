@@ -873,3 +873,7 @@ color: var(--c-info);
   color: var(--c-warning);
   padding: 1rem;
 }
+
+.icon-analytics:before {
+  content: "\e917";
+}

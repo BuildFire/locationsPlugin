@@ -218,6 +218,14 @@ export default class SearchTableHelper {
     const t = this;
     const actionsDiv = document.createElement("div");
     actionsDiv.className = "flex-row justify-content-end";
+
+    const anaBtn = document.createElement("button");
+    anaBtn.className = "btn btn--icon";
+    const anaBtnIcon = document.createElement("span");
+    anaBtnIcon.className = "icon icon-analytics";
+    anaBtn.appendChild(anaBtnIcon);
+    actionsDiv.appendChild(anaBtn);
+
     const copyBtn = document.createElement("button");
     copyBtn.className = "btn btn--icon bf-tooltip";
     copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>
@@ -237,6 +245,10 @@ export default class SearchTableHelper {
     deleteBtnIcon.className = "icon icon-cross2";
     deleteBtn.appendChild(deleteBtnIcon);
     actionsDiv.appendChild(deleteBtn);
+
+    anaBtn.onclick = () => {
+      this.onShowReport(obj, tr);
+    };
 
     copyBtn.onclick = () => {
       this.onCopy(obj, tr);
@@ -296,6 +308,7 @@ export default class SearchTableHelper {
 
   onLoadMore() {}
 
+  onShowReport() {}
 
   onCommand(command, cb) {
     this.commands[command] = cb;

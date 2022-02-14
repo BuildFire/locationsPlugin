@@ -1418,6 +1418,10 @@ const onCopyMouseOut = (location, tr) => {
   tooltip.innerHTML = 'Copy Deeplink';
 };
 
+const showAnalyticsReport = (obj) => {
+  buildfire.analytics.showReports({ eventKey: `locations_${obj.id}_viewed` });
+};
+
 const updateLocationImage = (obj, tr) => {
   buildfire.imageLib.showDialog(
     { showIcons: false, multiSelection: false }, (err, result) => {
@@ -1520,6 +1524,7 @@ window.initLocations = () => {
     refreshLocations();
   };
   locationsTable.onCopy = copyLocationDeepling;
+  locationsTable.onShowReport = showAnalyticsReport;
   locationsTable.onCopyMouseOut = onCopyMouseOut;
   locationsTable.onLoadMore = loadMoreLocations;
 };

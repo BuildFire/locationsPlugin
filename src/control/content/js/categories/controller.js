@@ -1,11 +1,19 @@
+/* eslint-disable no-restricted-syntax */
 import Categories from '../../../../repository/Categories';
 import authManager from '../../../../UserAccessControl/authManager';
+import Analytics from '../../../../utils/analytics';
 
 export default {
   createCategory(category) {
     category.createdOn = new Date();
     category.createdBy = authManager.currentUser;
-    return Categories.create(category.toJSON());
+    return Categories.create(category.toJSON()).then((result) => {
+      Analytics.registerEvent(`${result.title} - category selected`, `categories_${result.id}_selected`, '');
+      for (const sub of result.subcategories) {
+        Analytics.registerEvent(`${sub.title} - subcategory selected`, `subcategories_${sub.id}_selected`, '');
+      }
+      return result;
+    });
   },
   bulkCreateCategories(categories) {
     return Categories.bulkCreate(categories);

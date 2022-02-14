@@ -20,23 +20,23 @@ class Analytics {
     buildfire.analytics.registerEvent({ title, key, description });
   }
 
-  static viewed(title, metadata = {}) {
-    title = `${title} - viewed`;
-    buildfire.analytics.trackView(title, {
+  static viewed(locationId, metadata = {}) {
+    const key = `locations_${locationId}_viewed`;
+    buildfire.analytics.trackAction(key, {
       _buildfire: { aggregationValue: 10 },
     });
   }
 
-  static categorySelected(category) {
-    category = `${category} - category selected`;
-    buildfire.analytics.trackView(category, {
+  static categorySelected(categoryId) {
+    const key = `categories_${categoryId}_selected`;
+    buildfire.analytics.trackView(key, {
       _buildfire: { aggregationValue: 10 },
     });
   }
 
-  static subcategorySelected(subcategory, metadata = {}) {
-    subcategory = `${subcategory} - subcategory selected`;
-    buildfire.analytics.trackView(subcategory, {
+  static subcategorySelected(subcategoryId, metadata = {}) {
+    const key = `subcategories_${subcategoryId}_selected`;
+    buildfire.analytics.trackView(key, {
       _buildfire: { aggregationValue: 10 },
     });
   }
