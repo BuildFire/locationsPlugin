@@ -10,7 +10,7 @@ export default {
     location.createdOn = new Date();
     location.createdBy = authManager.currentUser;
     return Location.add(location.toJSON()).then((result) => {
-      Analytics.registerEvent(`${result.title} - viewed`, `locations_${result.id}_viewed`, '');
+      Analytics.registerEvent(`${result.title} (Viewed)`, `locations_${result.id}_viewed`, '');
       return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
     });
   },
@@ -20,7 +20,7 @@ export default {
       for (let skip = 0; skip < newDataCount; skip += 50) {
         this.searchLocations({ skip, limit: 50, sort: { "_buildfire.index.date1": -1 } }).then(({ result, totalRecord }) => {
           for (const location of result) {
-            Analytics.registerEvent(`${location.title} - viewed`, `locations_${location.id}_viewed`, '');
+            Analytics.registerEvent(`${location.title} (Viewed)`, `locations_${location.id}_viewed`, '');
             SearchEngine.add(Location.TAG, location.id, location).catch(console.error);
           }
         }).catch(console.error);

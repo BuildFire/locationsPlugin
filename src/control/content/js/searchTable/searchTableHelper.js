@@ -222,7 +222,7 @@ export default class SearchTableHelper {
     const anaBtn = document.createElement("button");
     anaBtn.className = "btn btn--icon";
     const anaBtnIcon = document.createElement("span");
-    anaBtnIcon.className = "icon icon-analytics";
+    anaBtnIcon.className = "glyphicon glyphicon-stats";
     anaBtn.appendChild(anaBtnIcon);
     actionsDiv.appendChild(anaBtn);
 

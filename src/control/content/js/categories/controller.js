@@ -8,9 +8,9 @@ export default {
     category.createdOn = new Date();
     category.createdBy = authManager.currentUser;
     return Categories.create(category.toJSON()).then((result) => {
-      Analytics.registerEvent(`${result.title} - category selected`, `categories_${result.id}_selected`, '');
+      Analytics.registerEvent(`${result.title} (Category Selected)`, `categories_${result.id}_selected`, '');
       for (const sub of result.subcategories) {
-        Analytics.registerEvent(`${sub.title} - subcategory selected`, `subcategories_${sub.id}_selected`, '');
+        Analytics.registerEvent(`${sub.title} (Subcategory Selected)`, `subcategories_${sub.id}_selected`, '');
       }
       return result;
     });

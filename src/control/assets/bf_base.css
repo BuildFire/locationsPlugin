@@ -874,6 +874,3 @@ color: var(--c-info);
   padding: 1rem;
 }
 
-.icon-analytics:before {
-  content: "\e917";
-}

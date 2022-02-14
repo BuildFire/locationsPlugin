@@ -12,12 +12,12 @@ class Analytics {
   }
 
   static init() {
-    this.registerEvent('List View - used', this.LIST_VIEW, '');
-    this.registerEvent('Map List - used', this.MAP_LIST, '');
+    this.registerEvent('List View (Used)', this.LIST_VIEW, '');
+    this.registerEvent('Map List (Used)', this.MAP_LIST, '');
   }
 
   static registerEvent(title, key, description) {
-    buildfire.analytics.registerEvent({ title, key, description });
+    buildfire.analytics.registerEvent({ title, key, description },  { silentNotification: true });
   }
 
   static viewed(locationId, metadata = {}) {
@@ -29,14 +29,14 @@ class Analytics {
 
   static categorySelected(categoryId) {
     const key = `categories_${categoryId}_selected`;
-    buildfire.analytics.trackView(key, {
+    buildfire.analytics.trackAction(key, {
       _buildfire: { aggregationValue: 10 },
     });
   }
 
   static subcategorySelected(subcategoryId, metadata = {}) {
     const key = `subcategories_${subcategoryId}_selected`;
-    buildfire.analytics.trackView(key, {
+    buildfire.analytics.trackAction(key, {
       _buildfire: { aggregationValue: 10 },
     });
   }
