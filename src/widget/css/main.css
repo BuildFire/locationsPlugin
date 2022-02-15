@@ -979,3 +979,7 @@ body section#home {
 #locationDirectionsBtn {
   cursor: pointer;
 }
+
+.drawer #listingLocationsList > div:last-child {
+  margin-bottom: 90px;
+}
