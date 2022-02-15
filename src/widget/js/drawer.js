@@ -1,18 +1,23 @@
-const reset = (position) => {
-  const element = document.querySelector('.drawer');
+const _calcPositions = () => {
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  const positions = {
-    expanded: screenHeight - 150,
+  return {
+    expanded: screenHeight - 135,
     halfExpanded: (screenHeight / 2),
     collapsed: 75
   };
+};
+
+const reset = (position) => {
+  const element = document.querySelector('.drawer');
+  const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  const positions = _calcPositions();
   element.style.height = `${position ? positions[position] : positions.halfExpanded}px`;
   element.style.top = `${screenHeight - (position ? positions[position] : positions.halfExpanded)}px`;
 };
 
 const initialize = (settings) => {
   const element = document.querySelector('.drawer');
-  const resizer = document.querySelector('.drawer .resizer');
+  const drawerHeader = document.querySelector('.drawer .drawer-header');
   const locationSummary = document.querySelector('#locationSummary');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   const lowerMargin = 75;
@@ -23,16 +28,12 @@ const initialize = (settings) => {
 
   reset(settings.design?.listViewPosition);
 
-  const positions = {
-    expanded: screenHeight - 135,
-    halfExpanded: (screenHeight / 2),
-    collapsed: 75
-  };
+  const positions = _calcPositions();
 
   const adjustDrawer = (e) => {
     let targetTop;
     let targetHeight;
-    const pageY = e.pageY || e.changedTouches[0].pageY;
+    const pageY = e.pageY || e.changedTouches[0]?.pageY;
     const pointsToExpanded = Math.abs(positions.expanded - (screenHeight - pageY));
     const pointsToHalfExpanded = Math.abs(positions.halfExpanded - (screenHeight - pageY));
     const pointsToCollapsed = Math.abs(positions.collapsed - (screenHeight - pageY));
@@ -64,7 +65,7 @@ const initialize = (settings) => {
   };
 
   const resize = (e) => {
-    const pageY = e.pageY || e.changedTouches[0].pageY;
+    const pageY = e.pageY || e.changedTouches[0]?.pageY;
     const height = originalHeight - (pageY - originalMouseY);
     if (height > lowerMargin && height < (screenHeight - upperMargin)) {
       element.style.height = `${height}px`;
@@ -84,19 +85,19 @@ const initialize = (settings) => {
     adjustDrawer(e);
   };
 
-  resizer.addEventListener('mousedown', (e) => {
+  drawerHeader.addEventListener('mousedown', (e) => {
     // e.preventDefault();
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
-    originalMouseY = e.pageY || e.changedTouches[0].pageY;
+    originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
   });
 
-  resizer.addEventListener('touchstart', (e) => {
+  drawerHeader.addEventListener('touchstart', (e) => {
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
-    originalMouseY = e.pageY || e.changedTouches[0].pageY;
+    originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
     document.addEventListener('touchmove', resize);
     document.addEventListener('touchend', stopTouchResize);
   });
