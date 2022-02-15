@@ -1261,8 +1261,9 @@ const validateLocationCsv = (items) => {
 };
 
 window.importLocations = () =>  {
-  locationsSection.querySelector("#location-file-input").click();
-  locationsSection.querySelector("#location-file-input").onchange = function (e) {
+  const fileInput = locationsSection.querySelector("#location-file-input");
+  fileInput.click();
+  fileInput.onchange = function (e) {
     readCSVFile(this.files[0], (err, result) => {
       if (!validateLocationCsv(result)) {
         return;
@@ -1302,6 +1303,7 @@ window.importLocations = () =>  {
       });
       LocationsController.bulkCreateLocation(locations).then((result) => {
         dialogRef.close();
+        fileInput.value = '';
         buildfire.dialog.toast({
           message: "Successfully imported locations",
           type: "success",
@@ -1309,6 +1311,7 @@ window.importLocations = () =>  {
         refreshLocations();
         triggerWidgetOnLocationsUpdate({});
       }).catch((err) => {
+        fileInput.value = '';
         dialogRef.close();
         console.error(err);
       });
