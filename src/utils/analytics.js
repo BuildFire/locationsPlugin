@@ -20,6 +20,18 @@ class Analytics {
     buildfire.analytics.registerEvent({ title, key, description },  { silentNotification: true });
   }
 
+  static registerCategoryEvent(categoryId, title) {
+    this.registerEvent(`${title} (Category Selected)`, `categories_${categoryId}_selected`, '');
+  }
+
+  static registerSubcategoryEvent(subcategoryId, title) {
+    this.registerEvent(`${title} (Subcategory Selected)`, `subcategories_${subcategoryId}_selected`, '');
+  }
+
+  static registerLocationViewedEvent(locationId, title) {
+    this.registerEvent(`${title} (Viewed)`, `locations_${locationId}_viewed`, '');
+  }
+
   static viewed(locationId, metadata = {}) {
     const key = `locations_${locationId}_viewed`;
     buildfire.analytics.trackAction(key, {

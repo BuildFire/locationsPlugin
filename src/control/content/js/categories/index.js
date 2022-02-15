@@ -248,6 +248,7 @@ window.addEditCategory = (category, callback = () => {}) => {
         for (const subcategory of subcategories) {
           subcategoriesListUI.addItem(subcategory);
         }
+        inputCategoryControls.subcategory.fileInput.value = '';
       });
     };
   };
@@ -518,8 +519,9 @@ window.openCategoryBulkAction = (e) => {
 };
 
 window.importCategories = () => {
-  categories.querySelector("#category-file-input").click();
-  categories.querySelector("#category-file-input").onchange = function (e) {
+  const fileInput = categories.querySelector("#category-file-input");
+  fileInput.click();
+  fileInput.onchange = function (e) {
     readCSVFile(this.files[0], (err, result) => {
       if (!Array.isArray(result) || !result.length || !result.every((item) =>  item.title)) {
         buildfire.dialog.alert({
@@ -545,6 +547,7 @@ window.importCategories = () => {
       });
       CategoriesController.bulkCreateCategories(categories).then((result) => {
         dialogRef.close();
+        fileInput.value = '';
         buildfire.dialog.toast({
           message: "Successfully imported categories",
           type: "success",
@@ -553,6 +556,7 @@ window.importCategories = () => {
         triggerWidgetOnCategoriesUpdate();
       }).catch((err) => {
         dialogRef.close();
+        fileInput.value = '';
         console.error(err);
       });
     });
