@@ -344,7 +344,6 @@ div.empty-page {
   margin-left: -15px;
 }
 .resizer {
-  cursor: ns-resize;
   width: 50px;
   height: 4px;
   border-radius: 4px;
@@ -359,7 +358,7 @@ div.empty-page {
   position: sticky;
   top: 0;
   z-index: 1;
-  /*max-height: 100%;*/
+  cursor: grab;
 }
 .drawer-header .bookmark-result p {
   font-size: 14px;
@@ -401,19 +400,6 @@ div.empty-page {
 
 button span {
   pointer-events: none;
-}
-
-.resizer {
-  position: relative;
-}
-
-.resizer:before {
-  position: absolute;
-  content: '';
-  top: -10px;
-  right: -80px;
-  left: -80px;
-  bottom: -40px;
 }
 
 .location-image-item {
