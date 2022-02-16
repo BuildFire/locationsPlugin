@@ -402,7 +402,7 @@ const renderListingLocations = (list) => {
                 <span>${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
-                  <span class="location-image__open-status">${isLocationOpen(n) ? 'Open' : 'Closed'}</span>
+                  <span class="location-image__open-status">${ n.settings.showOpeningHours ? (isLocationOpen(n) ? 'Open' : 'Closed') : ''}</span>
                 </span>
               </p>
             </div>
@@ -1399,7 +1399,6 @@ const initDrawerFilterOptions = () => {
   const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
   const priceSortingBtn = document.querySelector('#priceSortingBtn');
   mdcPriceMenu.listen('MDCMenu:selected', (event) => {
-    console.log('mdcPriceMenu Triggered: ')
     const value = event.detail.item.getAttribute('data-value');
     if (value === '0') {
       state.searchCriteria.priceRange = null;
@@ -1415,7 +1414,6 @@ const initDrawerFilterOptions = () => {
   });
 
   mdcSortingMenu.listen('MDCMenu:selected', (event) => {
-    console.log('mdcSortingMenu Triggered: ')
     const value = event.detail.item.getAttribute('data-value');
     otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
     otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');

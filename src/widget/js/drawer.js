@@ -86,7 +86,6 @@ const initialize = (settings) => {
   };
 
   drawerHeader.addEventListener('mousedown', (e) => {
-    // e.preventDefault();
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
@@ -94,7 +93,11 @@ const initialize = (settings) => {
     document.addEventListener('mouseup', stopResize);
   });
 
-  drawerHeader.addEventListener('touchstart', (e) => {
+
+
+  document.addEventListener('touchstart', (e) => {
+    const draggableTargets = ['filter-options', 'drawer-header', 'resizer'];
+    if (!draggableTargets.some((c) => e.target.classList?.contains(c))) return;
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;
     originalMouseY = e.pageY || e.changedTouches[0]?.pageY;

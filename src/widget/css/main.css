@@ -427,6 +427,10 @@ button span {
 .location-image-item__body p:nth-child(2) {
   font-size: 13px;
 }
+.location-image-item__body p:last-child span:last-child {
+  min-width: 80px;
+  text-align: right;
+}
 .location-image-item__body p:last-child {
   display: flex;
   justify-content: space-between;
@@ -982,4 +986,7 @@ body section#home {
 
 .drawer #listingLocationsList > div:last-child {
   margin-bottom: 90px;
+}
+#locationDirectionsBtn i {
+  pointer-events: none;
 }
