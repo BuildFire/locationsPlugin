@@ -686,8 +686,8 @@ const showLocationDetail = () => {
       navigateTo('detail');
       if (selectedLocation.id) {
         WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
+        Analytics.viewed(selectedLocation.id, {});
       }
-      Analytics.viewed(selectedLocation.id, {});
     });
 };
 const showWorkingHoursDrawer = () => {
