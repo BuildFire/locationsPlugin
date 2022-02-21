@@ -3,7 +3,6 @@ import buildfire from "buildfire";
 const generateDeeplinkUrl = (location, type) => {
   const link = {};
   link.title = location.title;
-  link.type = "website";
   link.description = location.description;
   link.imageUrl = location.listImage;
 

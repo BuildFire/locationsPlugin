@@ -711,9 +711,12 @@ const showWorkingHoursDrawer = () => {
 
 const shareLocation = () => {
   buildfire.deeplink.generateUrl(
-    {
-      data: { locationId: state.selectedLocation.id },
-    },
+      {
+        title: state.selectedLocation.title,
+        description: state.selectedLocation.description,
+        imageUrl: state.selectedLocation.listImage,
+        data: {locationId: state.selectedLocation.id},
+      },
     (err, result) => {
       if (err) return console.error(err);
       buildfire.device.share({
