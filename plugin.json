@@ -2,6 +2,7 @@
   "author":"BuildFire",
   "pluginName": "Locations",
   "pluginDescription": "Create locations on the map and categorize them; add details, open hours, price range, custom actions, and other settings.",
+  "pluginKeywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "requireLogin": false,
   "supportEmail":"support@buildfire.com",
   "control": {
@@ -23,7 +24,7 @@
   "widget":{},
   "features" : [],
   "webpack": "8080",
-  "keywords": "Location, Map, Mapping, Places, Area, Site, Spot, Pin, Things to do, Satellite, Street",
+  "keywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "supportSite": "https://learn.appdocumentation.com/en/articles/5979361-locations-feature",
   "languages" : ["en"]
 }
