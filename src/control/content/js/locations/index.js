@@ -289,7 +289,7 @@ window.addEditLocation = (location) => {
         if (iconUrl) {
           setIcon(iconUrl, "url", addLocationControls.selectMarkerImageBtn);
           state.locationObj.marker.image = iconUrl;
-          state.locationObj.marker.color = null;
+          // state.locationObj.marker.color = null;
           triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
         }
       }
@@ -304,8 +304,7 @@ window.addEditLocation = (location) => {
       (err, result) => {
         if (result.colorType === "solid") {
           state.locationObj.marker.color = result.solid;
-          state.locationObj.marker.color = result.solid;
-          state.locationObj.marker.icon = null;
+          // state.locationObj.marker.icon = null;
           addLocationControls.selectMarkerColorBtn.querySelector(
             ".color"
           ).style.background = result.solid.color;
@@ -668,7 +667,7 @@ const onMarkerTypeChanged = (marker) => {
       radio.checked = true;
     }
     radio.onchange = (e) => {
-      const value = e.target.value;
+      const { value } = e.target;
       state.locationObj.marker.type = value;
       handleMarkerType(value);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
@@ -765,7 +764,6 @@ const openSelectCategoriesDialog = (action) => {
 
   searchInput.onkeyup = (e) => {
     const searchValue = e.target.value;
-    console.log(searchValue);
     const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchValue.toLowerCase()));
     createDialogCategoriesList(data, categoriesListContainer, state.locationObj.categories);
   };
@@ -839,7 +837,10 @@ const createDialogCategoriesList = (categories, categoriesContainer, selected) =
         if (!isAdded) {
           state.selectedLocationCategories.main.push(_category.id);
         }
-        subcategoriesContainer.style.display = "flex";
+
+        if (_category.subcategories.length > 0) {
+          subcategoriesContainer.style.display = "flex";
+        }
       } else {
         state.selectedLocationCategories.main = state.selectedLocationCategories.main.filter((categoryId) => categoryId !== _category.id);
         state.selectedLocationCategories.subcategories = state.selectedLocationCategories.subcategories.filter(
