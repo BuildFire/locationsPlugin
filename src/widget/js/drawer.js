@@ -1,9 +1,19 @@
+import state from './state';
+
+const TOP_MARGIN = 135;
+
+const _calcBottomMargin = () => {
+  const { sorting, filter } = state.settings;
+  const headerHasOptions = (sorting.allowUserControlledSorting || filter.allowFilterByPrice || filter.allowFilterByOpeningHours);
+  return headerHasOptions ? 90 : 54;
+};
+
 const _calcPositions = () => {
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   return {
-    expanded: screenHeight - 135,
+    expanded: screenHeight - TOP_MARGIN,
     halfExpanded: (screenHeight / 2),
-    collapsed: 75
+    collapsed: _calcBottomMargin()
   };
 };
 
@@ -20,7 +30,6 @@ const initialize = (settings) => {
   const drawerHeader = document.querySelector('.drawer .drawer-header');
   const locationSummary = document.querySelector('#locationSummary');
   const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-  const lowerMargin = 75;
   const upperMargin = 115;
   let originalHeight = 0;
   let originalY = 0;
@@ -28,11 +37,10 @@ const initialize = (settings) => {
 
   reset(settings.design?.listViewPosition);
 
-  const positions = _calcPositions();
-
   const adjustDrawer = (e) => {
     let targetTop;
     let targetHeight;
+    const positions = _calcPositions();
     const pageY = e.pageY || e.changedTouches[0]?.pageY;
     const pointsToExpanded = Math.abs(positions.expanded - (screenHeight - pageY));
     const pointsToHalfExpanded = Math.abs(positions.halfExpanded - (screenHeight - pageY));
@@ -67,6 +75,7 @@ const initialize = (settings) => {
   const resize = (e) => {
     const pageY = e.pageY || e.changedTouches[0]?.pageY;
     const height = originalHeight - (pageY - originalMouseY);
+    const lowerMargin = _calcBottomMargin();
     if (height > lowerMargin && height < (screenHeight - upperMargin)) {
       element.style.height = `${height}px`;
       element.style.top = `${originalY + (pageY - originalMouseY)}px`;
@@ -92,8 +101,6 @@ const initialize = (settings) => {
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
   });
-
-
 
   document.addEventListener('touchstart', (e) => {
     const draggableTargets = ['filter-options', 'drawer-header', 'resizer'];

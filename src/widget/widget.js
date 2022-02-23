@@ -1343,6 +1343,8 @@ const initDrawerFilterOptions = () => {
   const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const mainMapContainer = document.querySelector('#mainMapContainer');
+  const mapCenterBtn = document.querySelector('#mapCenterBtn');
   const sortingOptions = [
     {
       key: 'allowSortByReverseAlphabetical',
@@ -1382,6 +1384,8 @@ const initDrawerFilterOptions = () => {
   ];
 
   [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
+  mainMapContainer.style.height = 'calc(100vh - 210px)';
+  mapCenterBtn.style.bottom = '105px';
 
   if (sorting.allowUserControlledSorting) {
     const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
@@ -1450,6 +1454,11 @@ const initDrawerFilterOptions = () => {
   }
   if (filter.allowFilterByOpeningHours) {
     showElement(openNowFilterBtn);
+  }
+  if (!sorting.allowUserControlledSorting && !filter.allowFilterByPrice && !filter.allowFilterByOpeningHours) {
+    // google maps reset
+    mainMapContainer.style.height = 'calc(100vh - 174px)';
+    mapCenterBtn.style.bottom = '75px';
   }
 };
 const initHomeView = () => {
@@ -1611,11 +1620,13 @@ const handleCPSync = (message) => {
           navigateTo('home');
           showMapView();
           initDrawerFilterOptions();
+          drawer.reset(state.settings.design.listViewPosition);
         } else if (f.allowFilterByOpeningHours !== of.allowFilterByOpeningHours || f.allowFilterByPrice !== of.allowFilterByPrice) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
           initDrawerFilterOptions();
+          drawer.reset(state.settings.design.listViewPosition);
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
           const areaSearchInput = document.querySelector('#areaSearchLabel');
           if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
