@@ -92,6 +92,7 @@ section#filter {
   padding: 0 15px;
   margin-left: -15px;
   margin-right: -15px;
+  margin-top: 18px;
 }
 .header-qf .mdc-chip {
   border-radius: 8px;

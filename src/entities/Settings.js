@@ -54,6 +54,7 @@ export default class Settings {
       defaultMapStyle: 'light',
       defaultMapType: 'streets',
       enableMapTerrainView: false,
+      enableCategoriesQuickFilter: true,
       allowStyleSelection: true,
       detailsMapPosition: 'top',
       showDetailsCategory: true

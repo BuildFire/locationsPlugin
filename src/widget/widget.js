@@ -11,7 +11,12 @@ import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
-import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
+import {
+  showElement,
+  hideElement,
+  toggleDropdownMenu,
+  adjustMapHeight
+} from './js/util/ui';
 import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 
@@ -461,11 +466,22 @@ const renderListingLocations = (list) => {
 
 let chipSet;
 const refreshQuickFilter = () => {
+  const { design, filter } = state.settings;
+  const container = document.querySelector('.header-qf');
+  const hideQFBtn = document.querySelector('#hideQFBtn');
   if (chipSet) {
     chipSet.destroy();
     chipSet = null;
   }
-  const container = document.querySelector('.header-qf');
+
+  if (!design.enableCategoriesQuickFilter) {
+    hideElement(container);
+    hideQFBtn.style.opacity = '0.5';
+    if (filter.allowFilterByArea) {
+      showElement('#areaSearchLabel');
+    }
+    return;
+  }
   const quickFilterItems = state.categories.slice(0, 10);
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
@@ -902,7 +918,7 @@ const initEventListeners = () => {
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
-    } else if (e.target.id === 'hideQFBtn') {
+    } else if (e.target.id === 'hideQFBtn' && state.settings.design.enableCategoriesQuickFilter) {
       hideElement('#areaSearchLabel');
       showElement('.header-qf');
     } else if (e.target.id === 'showMapView') {
@@ -1343,8 +1359,6 @@ const initDrawerFilterOptions = () => {
   const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
-  const mainMapContainer = document.querySelector('#mainMapContainer');
-  const mapCenterBtn = document.querySelector('#mapCenterBtn');
   const sortingOptions = [
     {
       key: 'allowSortByReverseAlphabetical',
@@ -1384,8 +1398,6 @@ const initDrawerFilterOptions = () => {
   ];
 
   [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
-  mainMapContainer.style.height = 'calc(100vh - 210px)';
-  mapCenterBtn.style.bottom = '105px';
 
   if (sorting.allowUserControlledSorting) {
     const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
@@ -1455,11 +1467,8 @@ const initDrawerFilterOptions = () => {
   if (filter.allowFilterByOpeningHours) {
     showElement(openNowFilterBtn);
   }
-  if (!sorting.allowUserControlledSorting && !filter.allowFilterByPrice && !filter.allowFilterByOpeningHours) {
-    // google maps reset
-    mainMapContainer.style.height = 'calc(100vh - 174px)';
-    mapCenterBtn.style.bottom = '75px';
-  }
+
+  adjustMapHeight();
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
@@ -1600,6 +1609,21 @@ const handleCPSync = (message) => {
         } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
           [state.selectedLocation] = state.listLocations;
           showLocationDetail();
+        } else if (d.enableCategoriesQuickFilter !== o.enableCategoriesQuickFilter) {
+          const hideQFBtn = document.querySelector('#hideQFBtn');
+          if (d.enableCategoriesQuickFilter) {
+            hideQFBtn.style.opacity = '1';
+            refreshQuickFilter();
+            hideElement('#areaSearchLabel');
+            showElement('.header-qf');
+          } else {
+            hideQFBtn.style.opacity = '0.5';
+            hideElement('.header-qf');
+            if (state.settings.filter.allowFilterByArea) {
+              showElement('#areaSearchLabel');
+            }
+          }
+          adjustMapHeight();
         } else {
           hideFilterOverlay();
           navigateTo('home');
@@ -1614,7 +1638,8 @@ const handleCPSync = (message) => {
         const of = outdatedSettings.filter;
         const ms = state.settings.map;
         const oms = outdatedSettings.map;
-
+        // current design
+        const d = state.settings.design;
         if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
           hideFilterOverlay();
           navigateTo('home');
@@ -1628,11 +1653,16 @@ const handleCPSync = (message) => {
           initDrawerFilterOptions();
           drawer.reset(state.settings.design.listViewPosition);
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
-          const areaSearchInput = document.querySelector('#areaSearchLabel');
-          if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
-            showElement('.header-qf');
+          const headerQF = document.querySelector('.header-qf');
+          hideElement('#areaSearchLabel');
+          if (f.allowFilterByArea && !d.enableCategoriesQuickFilter) {
+            showElement('#areaSearchLabel');
+          } else if (d.enableCategoriesQuickFilter && headerQF?.style.display === 'none') {
+            showElement(headerQF);
+          } else {
             hideElement('#areaSearchLabel');
           }
+          adjustMapHeight();
         } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
           setLocationsDistance();
         } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
