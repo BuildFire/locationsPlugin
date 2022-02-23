@@ -7,7 +7,6 @@ import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
 
-
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
 
@@ -15,6 +14,7 @@ const templates = {};
 const state = {
   settings: new Settings(),
   dictionary: {
+    allowUserControlledSorting: "Allow User Controlled Sorting",
     allowSortByReverseAlphabetical: 'Allow Reverse Alphabetical Order',
     allowSortByNearest: 'Nearest to User Location',
     allowSortByPriceHighToLow: "Allow Price High to Low",
@@ -23,6 +23,8 @@ const state = {
     allowSortByDate: "Allow by Date (New to old)",
     allowSortByRating: "Allow by Rating",
     allowFilterByArea: "Filter by Selected Area",
+    allowFilterByOpeningHours: "Filter by Opening Hours",
+    allowFilterByPrice: "Filter by Price",
     allowFilterByLatest: "Filter by Latest",
     allowFilterByBookmarks: "Filter by Top Bookmarked",
     allowForLocations: "Allow Bookmark Location",
