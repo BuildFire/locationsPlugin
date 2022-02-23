@@ -1337,7 +1337,10 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting } = state.settings;
+  const { sorting, filter } = state.settings;
+  const otherSortingContainer = document.querySelector('.other-sorting-container');
+  const priceFilterContainer = document.querySelector('.price-filter-container');
+  const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
   const sortingOptions = [
@@ -1378,67 +1381,76 @@ const initDrawerFilterOptions = () => {
     }
   ];
 
-  let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
+  [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
+
+  if (sorting.allowUserControlledSorting) {
+    const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+    mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
+    let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">Title (A-Z)</span>
             </li>`;
 
-  for (let i = 0; i < sortingOptions.length; i++) {
-    const option = sortingOptions[i];
-    if (sorting[option.key]) {
-      list += `<li class="mdc-list-item" role="menuitem" data-value="${option.value}">
+    for (let i = 0; i < sortingOptions.length; i++) {
+      const option = sortingOptions[i];
+      if (sorting[option.key]) {
+        list += `<li class="mdc-list-item" role="menuitem" data-value="${option.value}">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">${option.textContent}</span>
             </li>`;
+      }
     }
+
+    otherSortingMenuList.innerHTML = list;
+    otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
+    mdcSortingMenu.listen('MDCMenu:selected', (event) => {
+      const value = event.detail.item.getAttribute('data-value');
+      otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+      otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+      if (value === 'distance') {
+        state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+      } else if (value === 'A-Z') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+      } else if (value === 'Z-A') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+      } else if (value === 'date') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+      } else if (value === 'price-low-high') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
+      } else if (value === 'price-high-low') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
+      } else if (value === 'rating') {
+        state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
+      } else if (value === 'views') {
+        state.searchCriteria.sort = { sortBy: 'views', order: 1 };
+      }
+      clearAndSearchWithDelay();
+    });
+    showElement(otherSortingContainer);
   }
-
-  otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
-
-  mdcPriceMenu = new mdc.menu.MDCMenu(document.querySelector('.price-filter-menu'));
-  mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
-  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
-  const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
-  const priceSortingBtn = document.querySelector('#priceSortingBtn');
-  mdcPriceMenu.listen('MDCMenu:selected', (event) => {
-    const value = event.detail.item.getAttribute('data-value');
-    if (value === '0') {
-      state.searchCriteria.priceRange = null;
-      priceSortingBtnLabel.textContent = 'Price';
-      priceSortingBtn.style.removeProperty('background-color');
-    } else {
-      state.searchCriteria.priceRange = Number(value);
-      state.checkNearLocation  = true;
-      priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-      priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-    }
-    clearAndSearchWithDelay();
-  });
-
-  mdcSortingMenu.listen('MDCMenu:selected', (event) => {
-    const value = event.detail.item.getAttribute('data-value');
-    otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-    otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-    if (value === 'distance') {
-      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
-    } else if (value === 'A-Z') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
-    } else if (value === 'Z-A') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
-    } else if (value === 'date') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
-    } else if (value === 'price-low-high') {
-      state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
-    } else if (value === 'price-high-low') {
-      state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
-    } else if (value === 'rating') {
-      state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
-    } else if (value === 'views') {
-      state.searchCriteria.sort = { sortBy: 'views', order: 1 };
-    }
-    clearAndSearchWithDelay();
-  });
+  if (filter.allowFilterByPrice) {
+    mdcPriceMenu = new mdc.menu.MDCMenu(document.querySelector('.price-filter-menu'));
+    const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
+    const priceSortingBtn = document.querySelector('#priceSortingBtn');
+    mdcPriceMenu.listen('MDCMenu:selected', (event) => {
+      const value = event.detail.item.getAttribute('data-value');
+      if (value === '0') {
+        state.searchCriteria.priceRange = null;
+        priceSortingBtnLabel.textContent = 'Price';
+        priceSortingBtn.style.removeProperty('background-color');
+      } else {
+        state.searchCriteria.priceRange = Number(value);
+        state.checkNearLocation  = true;
+        priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+        priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+      }
+      clearAndSearchWithDelay();
+    });
+    showElement(priceFilterContainer);
+  }
+  if (filter.allowFilterByOpeningHours) {
+    showElement(openNowFilterBtn);
+  }
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
@@ -1595,6 +1607,11 @@ const handleCPSync = (message) => {
         const oms = outdatedSettings.map;
 
         if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          initDrawerFilterOptions();
+        } else if (f.allowFilterByOpeningHours !== of.allowFilterByOpeningHours || f.allowFilterByPrice !== of.allowFilterByPrice) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();

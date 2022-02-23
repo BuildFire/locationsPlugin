@@ -990,3 +990,8 @@ body section#home {
 #locationDirectionsBtn i {
   pointer-events: none;
 }
+.other-sorting-container,
+.price-filter-container,
+#openNowSortingBtn {
+  display: none;
+}
