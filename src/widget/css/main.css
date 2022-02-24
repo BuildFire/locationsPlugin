@@ -427,6 +427,7 @@ button span {
 }
 .location-image-item__body p:nth-child(2) {
   font-size: 13px;
+  min-height: 16px;
 }
 .location-image-item__body p:last-child span:last-child {
   min-width: 80px;

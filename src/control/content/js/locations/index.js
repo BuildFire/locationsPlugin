@@ -581,12 +581,12 @@ const locationInputValidation = () => {
   //   handleInputError(addLocationControls.locationAddressError, false);
   // }
 
-  if (!categories || categories?.main?.length === 0) {
-    handleInputError(addLocationControls.locationCategoriesError, true);
-    isValid = false;
-  } else {
-    handleInputError(addLocationControls.locationCategoriesError, false);
-  }
+  // if (!categories || categories?.main?.length === 0) {
+  //   handleInputError(addLocationControls.locationCategoriesError, true);
+  //   isValid = false;
+  // } else {
+  //   handleInputError(addLocationControls.locationCategoriesError, false);
+  // }
 
   if (!listImage) {
     handleInputError(addLocationControls.listImageError, true);
