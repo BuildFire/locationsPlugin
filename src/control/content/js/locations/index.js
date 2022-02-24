@@ -13,7 +13,7 @@ import ActionItemsUI from "./actionItemsUI";
 import LocationsController from "./controller";
 import CategoriesController from "../categories/controller";
 import globalState from '../../state';
-import generateDeeplinkUrl from "../../../../utils/generateDeeplinkUrl";
+import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 
@@ -1402,7 +1402,7 @@ const loadCategories = (callback) => {
 };
 
 const copyLocationDeepling = (location, tr) => {
-  generateDeeplinkUrl(location).then((result) => {
+  DeepLink.generateDeeplinkUrl(location).then((result) => {
     const copyElement = document.createElement("textarea");
     copyElement.style.position = 'fixed';
     copyElement.style.opacity = '0';
