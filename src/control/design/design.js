@@ -21,7 +21,7 @@ const render = () => {
   const defaultMapTypeRadios = document.querySelectorAll('input[name="defaultMapType"]');
   const mapPositionRadios = document.querySelectorAll('input[name="mapPosition"]');
   const enableMapTerrainViewBtn = document.querySelector('#enable-map-terrain-view-btn');
-  const enableQuickFilterBtn = document.querySelector('#enable-quick-filter-btn');
+  const hideQuickFilterBtn = document.querySelector('#hide-quick-filter-btn');
   const allowMapStyleSelectionBtn = document.querySelector('#allow-map-style-selection-btn');
   const showCategoryOnLocDetailsBtn = document.querySelector('#show-category-on-loc-details-btn');
 
@@ -91,9 +91,9 @@ const render = () => {
     saveSettings();
   };
 
-  enableQuickFilterBtn.checked = state.settings.design.enableCategoriesQuickFilter;
-  enableQuickFilterBtn.onchange = (e) => {
-    state.settings.design.enableCategoriesQuickFilter = e.target.checked;
+  hideQuickFilterBtn.checked = state.settings.design.hideQuickFilter;
+  hideQuickFilterBtn.onchange = (e) => {
+    state.settings.design.hideQuickFilter = e.target.checked;
     saveSettings();
   };
 

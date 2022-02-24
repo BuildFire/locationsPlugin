@@ -20,7 +20,7 @@ export default class Settings {
     };
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
-      allowUserControlledSorting: true,
+      hideSorting: false,
       allowSortByReverseAlphabetical: true,
       allowSortByNearest: true,
       allowSortByPriceLowToHigh: true,
@@ -31,8 +31,8 @@ export default class Settings {
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
-      allowFilterByOpeningHours: true,
-      allowFilterByPrice: true
+      hideOpeningHoursFilter: false,
+      hidePriceFilter: false
       // allowFilterByBookmarks: true,
     };
     this.map = data.map || {
@@ -54,7 +54,7 @@ export default class Settings {
       defaultMapStyle: 'light',
       defaultMapType: 'streets',
       enableMapTerrainView: false,
-      enableCategoriesQuickFilter: true,
+      hideQuickFilter: false,
       allowStyleSelection: true,
       detailsMapPosition: 'top',
       showDetailsCategory: true

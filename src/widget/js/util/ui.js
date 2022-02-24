@@ -42,12 +42,12 @@ export const adjustMapHeight = () => {
   let baseMapHeight = 164;
   let baseCenterBtnBottom = 120;
 
-  if (design.enableCategoriesQuickFilter || filter.allowFilterByArea) {
+  if (!design.hideQuickFilter || filter.allowFilterByArea) {
     baseMapHeight += 46;
     baseCenterBtnBottom -= 10;
   }
 
-  if (!sorting.allowUserControlledSorting && !filter.allowFilterByPrice && !filter.allowFilterByOpeningHours) {
+  if (sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter) {
     baseMapHeight -= 36;
     baseCenterBtnBottom -= 30;
   }

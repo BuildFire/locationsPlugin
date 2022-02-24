@@ -4,7 +4,7 @@ const TOP_MARGIN = 135;
 
 const _calcBottomMargin = () => {
   const { sorting, filter } = state.settings;
-  const headerHasOptions = (sorting.allowUserControlledSorting || filter.allowFilterByPrice || filter.allowFilterByOpeningHours);
+  const headerHasOptions = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
   return headerHasOptions ? 90 : 54;
 };
 

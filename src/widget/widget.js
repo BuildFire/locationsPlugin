@@ -474,7 +474,7 @@ const refreshQuickFilter = () => {
     chipSet = null;
   }
 
-  if (!design.enableCategoriesQuickFilter) {
+  if (design.hideQuickFilter) {
     hideElement(container);
     hideQFBtn.style.opacity = '0.5';
     if (filter.allowFilterByArea) {
@@ -918,7 +918,7 @@ const initEventListeners = () => {
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
-    } else if (e.target.id === 'hideQFBtn' && state.settings.design.enableCategoriesQuickFilter) {
+    } else if (e.target.id === 'hideQFBtn' && !state.settings.design.hideQuickFilter) {
       hideElement('#areaSearchLabel');
       showElement('.header-qf');
     } else if (e.target.id === 'showMapView') {
@@ -1399,7 +1399,7 @@ const initDrawerFilterOptions = () => {
 
   [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
 
-  if (sorting.allowUserControlledSorting) {
+  if (!sorting.hideSorting) {
     const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
     mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
     let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
@@ -1444,7 +1444,7 @@ const initDrawerFilterOptions = () => {
     });
     showElement(otherSortingContainer);
   }
-  if (filter.allowFilterByPrice) {
+  if (!filter.hidePriceFilter) {
     mdcPriceMenu = new mdc.menu.MDCMenu(document.querySelector('.price-filter-menu'));
     const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
     const priceSortingBtn = document.querySelector('#priceSortingBtn');
@@ -1464,7 +1464,7 @@ const initDrawerFilterOptions = () => {
     });
     showElement(priceFilterContainer);
   }
-  if (filter.allowFilterByOpeningHours) {
+  if (!filter.hideOpeningHoursFilter) {
     showElement(openNowFilterBtn);
   }
 
@@ -1609,9 +1609,9 @@ const handleCPSync = (message) => {
         } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
           [state.selectedLocation] = state.listLocations;
           showLocationDetail();
-        } else if (d.enableCategoriesQuickFilter !== o.enableCategoriesQuickFilter) {
+        } else if (d.hideQuickFilter !== o.hideQuickFilter) {
           const hideQFBtn = document.querySelector('#hideQFBtn');
-          if (d.enableCategoriesQuickFilter) {
+          if (!d.hideQuickFilter) {
             hideQFBtn.style.opacity = '1';
             refreshQuickFilter();
             hideElement('#areaSearchLabel');
@@ -1646,7 +1646,7 @@ const handleCPSync = (message) => {
           showMapView();
           initDrawerFilterOptions();
           drawer.reset(state.settings.design.listViewPosition);
-        } else if (f.allowFilterByOpeningHours !== of.allowFilterByOpeningHours || f.allowFilterByPrice !== of.allowFilterByPrice) {
+        } else if (f.hideOpeningHoursFilter !== of.hideOpeningHoursFilter || f.hidePriceFilter !== of.hidePriceFilter) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
@@ -1655,9 +1655,9 @@ const handleCPSync = (message) => {
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
           const headerQF = document.querySelector('.header-qf');
           hideElement('#areaSearchLabel');
-          if (f.allowFilterByArea && !d.enableCategoriesQuickFilter) {
+          if (f.allowFilterByArea && d.hideQuickFilter) {
             showElement('#areaSearchLabel');
-          } else if (d.enableCategoriesQuickFilter && headerQF?.style.display === 'none') {
+          } else if (!d.hideQuickFilter && headerQF?.style.display === 'none') {
             showElement(headerQF);
           } else {
             hideElement('#areaSearchLabel');
