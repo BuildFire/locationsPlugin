@@ -1564,7 +1564,7 @@ const setLocationsDistance = () => {
   }
 };
 
-const initGoogleMapsSDK = () => new Promise((resolve) => {
+const initGoogleMapsSDK = () => {
   const { apiKeys } = buildfire.getContext();
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
@@ -1572,7 +1572,6 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
   script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
-    resolve();
   };
   script.onerror = () => {
     buildfire.dialog.alert({
@@ -1581,7 +1580,7 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
     });
   };
   document.head.appendChild(script);
-});
+};
 
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
@@ -1824,12 +1823,22 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
   attempt();
 });
 
+const watchUserPositionChanges = () => {
+  buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
+    console.log(`User position has changed for: ${position}`);
+    state.userPosition = position.coords;
+    // todo update the UI
+    // todo update the map with user position
+  });
+};
+
 const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
     refreshSettings(),
   ];
   initGoogleMapsSDK();
+  watchUserPositionChanges();
   window.googleMapOnLoad = () => {
     Promise.all(initialRequests)
       .then(() => {
