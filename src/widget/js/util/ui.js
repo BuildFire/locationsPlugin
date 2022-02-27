@@ -38,6 +38,7 @@ export const adjustMapHeight = () => {
   const { design, filter, sorting } = state.settings;
   const mainMapContainer = document.querySelector('#mainMapContainer');
   const mapCenterBtn = document.querySelector('#mapCenterBtn');
+  const headerHasOptions = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
 
   let baseMapHeight = 164;
   let baseCenterBtnBottom = 120;
@@ -50,6 +51,11 @@ export const adjustMapHeight = () => {
   if (sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter) {
     baseMapHeight -= 36;
     baseCenterBtnBottom -= 30;
+  }
+
+  if (!headerHasOptions && document.querySelector('html').getAttribute('safe-area') === 'true') {
+    baseMapHeight += 20;
+    baseCenterBtnBottom += 20;
   }
 
   mainMapContainer.style.height = `calc(100vh - ${baseMapHeight}px)`;

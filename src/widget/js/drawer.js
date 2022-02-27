@@ -9,6 +9,7 @@ const _calcBottomMargin = () => {
   if (headerHasOptions) {
     margin = 90;
   } else if (!headerHasOptions && document.querySelector('html').getAttribute('safe-area') === 'true') {
+    document.querySelector('.drawer-header').style.paddingBottom = '35px';
     margin = 70;
   }
   return margin;
