@@ -7,6 +7,7 @@ export default class Map {
     this.init(selector, options);
     this.initMarkerCluster();
     this.Marker = CustomMarker();
+    this.userPositionMarker = null;
   }
 
   init(selector, userOptions) {
@@ -91,6 +92,9 @@ export default class Map {
 
   addUserPosition(coordinates) {
     if (!this.map) return;
+    if (this.userPositionMarker) {
+      this.userPositionMarker.setMap(null);
+    }
     const { latitude, longitude } = coordinates;
     const iconOptions = {
       url: cdnImage('https://app.buildfire.com/app/media/google_marker_blue_icon.png'),
@@ -99,7 +103,7 @@ export default class Map {
       anchor: new google.maps.Point(10, 10),
     };
 
-    new google.maps.Marker({
+   this.userPositionMarker = new google.maps.Marker({
       position: new google.maps.LatLng(latitude, longitude),
       map: this.map,
       icon: iconOptions,

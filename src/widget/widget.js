@@ -1827,8 +1827,8 @@ const watchUserPositionChanges = () => {
   buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
     console.log(`User position has changed for: ${position}`);
     state.userPosition = position.coords;
-    // todo update the UI
-    // todo update the map with user position
+    state.maps.map.addUserPosition(state.userPosition);
+    setLocationsDistance();
   });
 };
 
