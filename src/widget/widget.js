@@ -1551,7 +1551,7 @@ const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
-    const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
+    const imageDistanceSelector = document.querySelector(`.location-image-item[data-id="${location.id}"] .location-image-item__header p`);
 
     if (distanceSelector) distanceSelector.textContent = distance;
     if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
