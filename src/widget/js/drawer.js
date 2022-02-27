@@ -5,7 +5,13 @@ const TOP_MARGIN = 135;
 const _calcBottomMargin = () => {
   const { sorting, filter } = state.settings;
   const headerHasOptions = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
-  return headerHasOptions ? 90 : 54;
+  let margin = 54;
+  if (headerHasOptions) {
+    margin = 90;
+  } else if (!headerHasOptions && document.querySelector('html').getAttribute('safe-area') === 'true') {
+    margin = 70;
+  }
+  return margin;
 };
 
 const _calcPositions = () => {
