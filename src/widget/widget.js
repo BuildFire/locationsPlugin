@@ -388,6 +388,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   const emptyStateContainer = document.querySelector('.drawer-empty-state');
+  const bookmarksSettings = state.settings.bookmarks;
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
@@ -429,7 +430,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">star_outline</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -879,6 +880,28 @@ const getDirections = () => {
   }
 };
 
+const bookmarkLocation = (e) => {
+  const locationId = e.target.closest('[data-id]')?.dataset?.id;
+  const { bookmarks } = state.settings;
+  if (!locationId || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+  const location = state.listLocations.find((i) => i.id === locationId);
+  console.log('location: ', location);
+  buildfire.bookmarks.add(
+    {
+      id: location.id,
+      title: location.title,
+      icon: cdnImage(location.listImage),
+      payload: {
+        data: { locationId: location.id },
+      },
+    },
+    (err, bookmark) => {
+      if (err) return console.error(err);
+      e.target.textContent = 'star';
+      console.log("Bookmark added", bookmark);
+    }
+  );
+};
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -895,7 +918,9 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'locationDirectionsBtn') {
+    if (e.target.classList.contains('bookmark-location-btn')) {
+      bookmarkLocation(e);
+    } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;

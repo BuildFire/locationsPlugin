@@ -412,12 +412,12 @@ window.onSidenavChange = (section) => {
         initMap();
       });
       break;
-    // case 'bookmarks':
-    //   setActiveSidenavTab('bookmarks');
-    //   navigate('bookmarks', () => {
-    //     iniBookmarks();
-    //   });
-    //   break;
+    case 'bookmarks':
+      setActiveSidenavTab('bookmarks');
+      navigate('bookmarks', () => {
+        iniBookmarks();
+      });
+      break;
     default:
       setActiveSidenavTab('sorting');
       navigate('sorting');
