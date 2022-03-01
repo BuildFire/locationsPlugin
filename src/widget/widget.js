@@ -1381,9 +1381,10 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting } = state.settings;
+  const { sorting, bookmarks } = state.settings;
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const bookmarksContainer = document.querySelector('.bookmark-result');
   const sortingOptions = [
     {
       key: 'allowSortByReverseAlphabetical',
@@ -1422,6 +1423,9 @@ const initDrawerFilterOptions = () => {
     }
   ];
 
+  if (bookmarks.enabled && bookmarks.allowForFilters) {
+    bookmarksContainer.style.display = 'flex';
+  }
   let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">Title (A-Z)</span>

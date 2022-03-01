@@ -360,6 +360,10 @@ div.empty-page {
   z-index: 1;
   cursor: grab;
 }
+.drawer-header .bookmark-result {
+  display: none;
+}
+
 .drawer-header .bookmark-result p {
   font-size: 14px;
   font-weight: bold;
