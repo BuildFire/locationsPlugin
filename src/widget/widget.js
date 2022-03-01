@@ -117,7 +117,6 @@ const searchIntroLocations = () => {
     key: "_buildfire.geo",
     maxDistance: 10000,
     distanceField: "distance",
-    num: 10000,
     query: { ...query }
   };
 
