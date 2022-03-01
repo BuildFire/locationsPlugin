@@ -38,5 +38,6 @@ export default {
   nearestLocation: null,
   checkNearLocation: true,
   isMapIdle: false,
-  firstRender: true
+  firstRender: true,
+  bookmarks: []
 };

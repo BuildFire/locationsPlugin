@@ -990,6 +990,6 @@ body section#home {
 #locationDirectionsBtn i {
   pointer-events: none;
 }
-.bookmark-location-btn {
+.pointer-all {
   pointer-events: all !important;
 }
