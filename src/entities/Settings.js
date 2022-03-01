@@ -8,7 +8,7 @@ export default class Settings {
    * @constructor
    */
   constructor(data = {}) {
-    this.showIntroductoryListView = typeof data.showIntroductoryListView === undefined? true : data.showIntroductoryListView;
+    this.showIntroductoryListView = typeof data.showIntroductoryListView === 'undefined' ? true : data.showIntroductoryListView;
     this.measurementUnit = data.measurementUnit || 'metric';
     this.introductoryListView = data.introductoryListView || {
       images: [],
@@ -20,6 +20,7 @@ export default class Settings {
     };
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
+      hideSorting: false,
       allowSortByReverseAlphabetical: true,
       allowSortByNearest: true,
       allowSortByPriceLowToHigh: true,
@@ -30,6 +31,8 @@ export default class Settings {
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
+      hideOpeningHoursFilter: false,
+      hidePriceFilter: false
       // allowFilterByBookmarks: true,
     };
     this.map = data.map || {
@@ -51,6 +54,7 @@ export default class Settings {
       defaultMapStyle: 'light',
       defaultMapType: 'streets',
       enableMapTerrainView: false,
+      hideQuickFilter: false,
       allowStyleSelection: true,
       detailsMapPosition: 'top',
       showDetailsCategory: true
