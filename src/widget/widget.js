@@ -1825,9 +1825,11 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
 
 const watchUserPositionChanges = () => {
   buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
-    console.log(`User position has changed for: ${position}`);
+    console.log(`User position has changed for: ${JSON.stringify(position)}`);
     state.userPosition = position.coords;
-    state.maps.map.addUserPosition(state.userPosition);
+    if (state.maps.map) {
+      state.maps.map.addUserPosition(state.userPosition);
+    }
     setLocationsDistance();
   });
 };
@@ -1838,7 +1840,6 @@ const init = () => {
     refreshSettings(),
   ];
   initGoogleMapsSDK();
-  watchUserPositionChanges();
   window.googleMapOnLoad = () => {
     Promise.all(initialRequests)
       .then(() => {
@@ -1849,6 +1850,7 @@ const init = () => {
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
+        watchUserPositionChanges();
       });
   };
 };
