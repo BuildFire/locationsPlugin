@@ -1551,7 +1551,7 @@ const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
-    const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
+    const imageDistanceSelector = document.querySelector(`.location-image-item[data-id="${location.id}"] .location-image-item__header p`);
 
     if (distanceSelector) distanceSelector.textContent = distance;
     if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
@@ -1564,7 +1564,7 @@ const setLocationsDistance = () => {
   }
 };
 
-const initGoogleMapsSDK = () => new Promise((resolve) => {
+const initGoogleMapsSDK = () => {
   const { apiKeys } = buildfire.getContext();
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
@@ -1572,7 +1572,6 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
   script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
-    resolve();
   };
   script.onerror = () => {
     buildfire.dialog.alert({
@@ -1581,7 +1580,7 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
     });
   };
   document.head.appendChild(script);
-});
+};
 
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
@@ -1824,6 +1823,17 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
   attempt();
 });
 
+const watchUserPositionChanges = () => {
+  buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
+    console.log(`User position has changed for: ${JSON.stringify(position)}`);
+    state.userPosition = position.coords;
+    if (state.maps.map) {
+      state.maps.map.addUserPosition(state.userPosition);
+    }
+    setLocationsDistance();
+  });
+};
+
 const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
@@ -1840,6 +1850,7 @@ const init = () => {
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
+        watchUserPositionChanges();
       });
   };
 };

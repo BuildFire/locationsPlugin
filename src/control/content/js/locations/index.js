@@ -169,10 +169,11 @@ const renderBreadcrumbs = () => {
 };
 
 window.addEditLocation = (location) => {
-  if (state.categories.length === 0) {
-    openRequiredCategoriesDialog();
-    return;
-  }
+  // categories are no more mandatory now so the following is not needed anymore
+  // if (state.categories.length === 0) {
+  //   openRequiredCategoriesDialog();
+  //   return;
+  // }
 
   renderAddLocationsPage();
 
