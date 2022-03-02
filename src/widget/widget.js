@@ -932,8 +932,9 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-
-    if (e.target.classList.contains('bookmark-location-btn')) {
+    if (e.target.id === 'bookmarkResultsBtn') {
+      bookmarkSearchResults(e);
+    } else if (e.target.classList.contains('bookmark-location-btn')) {
       const locationId = e.target.closest('[data-id]')?.dataset?.id;
       bookmarkLocation(locationId, e);
     } else if (['topBookmarkLocationBtn', 'bookmarkLocationBtn'].includes(e.target.id)) {
@@ -1826,6 +1827,67 @@ const getAllBookmarks = () => new Promise((resolve) => {
     resolve();
   });
 });
+
+const bookmarkSearchResults = (e) => {
+  const { map } = state.maps;
+  const {
+    searchValue,
+    openingNow,
+    priceRange,
+    sort
+  } = state.searchCriteria;
+
+  const data = {
+    locationsPluginFilter: true,
+    searchCriteria: {
+      searchValue,
+      openingNow,
+      priceRange,
+      sort,
+    },
+    mapCenter: {
+      lat: map.getCenter().lat(),
+      lng: map.getCenter().lng()
+    },
+    filterElements: {}
+  };
+
+  for (const key in state.filterElements) {
+    if (state.filterElements[key].checked) {
+      data.filterElements[key] = state.filterElements[key];
+    }
+  }
+
+  buildfire.input.showTextDialog(
+    {
+      placeholder: 'Enter bookmark title here',
+      saveText: 'Set',
+      maxLength: 50,
+      defaultValue: state.searchCriteria.searchValue,
+    },
+    (err, response) => {
+      if (err) return console.error(err);
+
+      const { results } = response;
+
+      if (response.cancelled || !results.length || !response.results[0].textValue) return;
+
+      buildfire.bookmarks.add(
+        {
+          title: response.results[0].textValue,
+          payload: {
+            data,
+          },
+        },
+        (err, bookmark) => {
+          if (err) return console.error(err);
+          e.target.textContent = 'star';
+          console.log('bookmark added', bookmark);
+        }
+      );
+    }
+  );
+};
 const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
