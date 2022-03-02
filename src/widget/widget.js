@@ -11,7 +11,12 @@ import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
 import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
-import { showElement, hideElement, toggleDropdownMenu } from './js/util/ui';
+import {
+  showElement,
+  hideElement,
+  toggleDropdownMenu,
+  adjustMapHeight
+} from './js/util/ui';
 import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 
@@ -112,7 +117,6 @@ const searchIntroLocations = () => {
     key: "_buildfire.geo",
     maxDistance: 10000,
     distanceField: "distance",
-    num: 10000,
     query: { ...query }
   };
 
@@ -462,11 +466,22 @@ const renderListingLocations = (list) => {
 
 let chipSet;
 const refreshQuickFilter = () => {
+  const { design, filter } = state.settings;
+  const container = document.querySelector('.header-qf');
+  const hideQFBtn = document.querySelector('#hideQFBtn');
   if (chipSet) {
     chipSet.destroy();
     chipSet = null;
   }
-  const container = document.querySelector('.header-qf');
+
+  if (design.hideQuickFilter) {
+    hideElement(container);
+    hideQFBtn.style.opacity = '0.5';
+    if (filter.allowFilterByArea) {
+      showElement('#areaSearchLabel');
+    }
+    return;
+  }
   const quickFilterItems = state.categories.slice(0, 10);
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
@@ -946,7 +961,7 @@ const initEventListeners = () => {
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
       toggleFilterOverlay();
-    } else if (e.target.id === 'hideQFBtn') {
+    } else if (e.target.id === 'hideQFBtn' && !state.settings.design.hideQuickFilter) {
       hideElement('#areaSearchLabel');
       showElement('.header-qf');
     } else if (e.target.id === 'showMapView') {
@@ -1382,7 +1397,10 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting, bookmarks } = state.settings;
+  const { sorting, bookmarks, filter} = state.settings;
+  const otherSortingContainer = document.querySelector('.other-sorting-container');
+  const priceFilterContainer = document.querySelector('.price-filter-container');
+  const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
   const bookmarksContainer = document.querySelector('.bookmark-result');
@@ -1424,70 +1442,81 @@ const initDrawerFilterOptions = () => {
     }
   ];
 
+  [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
+
   if (bookmarks.enabled && bookmarks.allowForFilters) {
     bookmarksContainer.style.display = 'flex';
   }
-  let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
+  if (!sorting.hideSorting) {
+    const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+    mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
+    let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">Title (A-Z)</span>
             </li>`;
 
-  for (let i = 0; i < sortingOptions.length; i++) {
-    const option = sortingOptions[i];
-    if (sorting[option.key]) {
-      list += `<li class="mdc-list-item" role="menuitem" data-value="${option.value}">
+    for (let i = 0; i < sortingOptions.length; i++) {
+      const option = sortingOptions[i];
+      if (sorting[option.key]) {
+        list += `<li class="mdc-list-item" role="menuitem" data-value="${option.value}">
               <span class="mdc-list-item__ripple"></span>
               <span class="mdc-list-item__text">${option.textContent}</span>
             </li>`;
+      }
     }
+
+    otherSortingMenuList.innerHTML = list;
+    otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
+    mdcSortingMenu.listen('MDCMenu:selected', (event) => {
+      const value = event.detail.item.getAttribute('data-value');
+      otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+      otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+      if (value === 'distance') {
+        state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+      } else if (value === 'A-Z') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+      } else if (value === 'Z-A') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+      } else if (value === 'date') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+      } else if (value === 'price-low-high') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
+      } else if (value === 'price-high-low') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
+      } else if (value === 'rating') {
+        state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
+      } else if (value === 'views') {
+        state.searchCriteria.sort = { sortBy: 'views', order: 1 };
+      }
+      clearAndSearchWithDelay();
+    });
+    showElement(otherSortingContainer);
+  }
+  if (!filter.hidePriceFilter) {
+    mdcPriceMenu = new mdc.menu.MDCMenu(document.querySelector('.price-filter-menu'));
+    const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
+    const priceSortingBtn = document.querySelector('#priceSortingBtn');
+    mdcPriceMenu.listen('MDCMenu:selected', (event) => {
+      const value = event.detail.item.getAttribute('data-value');
+      if (value === '0') {
+        state.searchCriteria.priceRange = null;
+        priceSortingBtnLabel.textContent = 'Price';
+        priceSortingBtn.style.removeProperty('background-color');
+      } else {
+        state.searchCriteria.priceRange = Number(value);
+        state.checkNearLocation  = true;
+        priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
+        priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+      }
+      clearAndSearchWithDelay();
+    });
+    showElement(priceFilterContainer);
+  }
+  if (!filter.hideOpeningHoursFilter) {
+    showElement(openNowFilterBtn);
   }
 
-  otherSortingMenuList.innerHTML = list;
-  otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
-
-  mdcPriceMenu = new mdc.menu.MDCMenu(document.querySelector('.price-filter-menu'));
-  mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
-  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
-  const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
-  const priceSortingBtn = document.querySelector('#priceSortingBtn');
-  mdcPriceMenu.listen('MDCMenu:selected', (event) => {
-    const value = event.detail.item.getAttribute('data-value');
-    if (value === '0') {
-      state.searchCriteria.priceRange = null;
-      priceSortingBtnLabel.textContent = 'Price';
-      priceSortingBtn.style.removeProperty('background-color');
-    } else {
-      state.searchCriteria.priceRange = Number(value);
-      state.checkNearLocation  = true;
-      priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-      priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-    }
-    clearAndSearchWithDelay();
-  });
-
-  mdcSortingMenu.listen('MDCMenu:selected', (event) => {
-    const value = event.detail.item.getAttribute('data-value');
-    otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
-    otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-    if (value === 'distance') {
-      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
-    } else if (value === 'A-Z') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
-    } else if (value === 'Z-A') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
-    } else if (value === 'date') {
-      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
-    } else if (value === 'price-low-high') {
-      state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
-    } else if (value === 'price-high-low') {
-      state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
-    } else if (value === 'rating') {
-      state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
-    } else if (value === 'views') {
-      state.searchCriteria.sort = { sortBy: 'views', order: 1 };
-    }
-    clearAndSearchWithDelay();
-  });
+  adjustMapHeight();
 };
 const initHomeView = () => {
   const { showIntroductoryListView } = state.settings;
@@ -1570,7 +1599,7 @@ const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
     const distance = calculateLocationDistance(location.coordinates);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
-    const imageDistanceSelector = document.querySelector(`.location-image-item .location-image-item__header p`);
+    const imageDistanceSelector = document.querySelector(`.location-image-item[data-id="${location.id}"] .location-image-item__header p`);
 
     if (distanceSelector) distanceSelector.textContent = distance;
     if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
@@ -1583,7 +1612,7 @@ const setLocationsDistance = () => {
   }
 };
 
-const initGoogleMapsSDK = () => new Promise((resolve) => {
+const initGoogleMapsSDK = () => {
   const { apiKeys } = buildfire.getContext();
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
@@ -1591,7 +1620,6 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
   script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
-    resolve();
   };
   script.onerror = () => {
     buildfire.dialog.alert({
@@ -1600,7 +1628,7 @@ const initGoogleMapsSDK = () => new Promise((resolve) => {
     });
   };
   document.head.appendChild(script);
-});
+};
 
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
@@ -1628,6 +1656,21 @@ const handleCPSync = (message) => {
         } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
           [state.selectedLocation] = state.listLocations;
           showLocationDetail();
+        } else if (d.hideQuickFilter !== o.hideQuickFilter) {
+          const hideQFBtn = document.querySelector('#hideQFBtn');
+          if (!d.hideQuickFilter) {
+            hideQFBtn.style.opacity = '1';
+            refreshQuickFilter();
+            hideElement('#areaSearchLabel');
+            showElement('.header-qf');
+          } else {
+            hideQFBtn.style.opacity = '0.5';
+            hideElement('.header-qf');
+            if (state.settings.filter.allowFilterByArea) {
+              showElement('#areaSearchLabel');
+            }
+          }
+          adjustMapHeight();
         } else {
           hideFilterOverlay();
           navigateTo('home');
@@ -1642,18 +1685,31 @@ const handleCPSync = (message) => {
         const of = outdatedSettings.filter;
         const ms = state.settings.map;
         const oms = outdatedSettings.map;
-
+        // current design
+        const d = state.settings.design;
         if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
           initDrawerFilterOptions();
+          drawer.reset(state.settings.design.listViewPosition);
+        } else if (f.hideOpeningHoursFilter !== of.hideOpeningHoursFilter || f.hidePriceFilter !== of.hidePriceFilter) {
+          hideFilterOverlay();
+          navigateTo('home');
+          showMapView();
+          initDrawerFilterOptions();
+          drawer.reset(state.settings.design.listViewPosition);
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
-          const areaSearchInput = document.querySelector('#areaSearchLabel');
-          if (areaSearchInput?.style.display === 'block' && !f.allowFilterByArea) {
-            showElement('.header-qf');
+          const headerQF = document.querySelector('.header-qf');
+          hideElement('#areaSearchLabel');
+          if (f.allowFilterByArea && d.hideQuickFilter) {
+            showElement('#areaSearchLabel');
+          } else if (!d.hideQuickFilter && headerQF?.style.display === 'none') {
+            showElement(headerQF);
+          } else {
             hideElement('#areaSearchLabel');
           }
+          adjustMapHeight();
         } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
           setLocationsDistance();
         } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
@@ -1816,6 +1872,17 @@ const getCurrentUserPosition = () => new Promise((resolve) => {
   attempt();
 });
 
+const watchUserPositionChanges = () => {
+  buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
+    console.log(`User position has changed for: ${JSON.stringify(position)}`);
+    state.userPosition = position.coords;
+    if (state.maps.map) {
+      state.maps.map.addUserPosition(state.userPosition);
+    }
+    setLocationsDistance();
+  });
+};
+
 const getAllBookmarks = () => new Promise((resolve) => {
   buildfire.bookmarks.getAll((err, bookmarks) => {
     if (err) {
@@ -1905,6 +1972,7 @@ const init = () => {
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
+        watchUserPositionChanges();
       });
   };
 };

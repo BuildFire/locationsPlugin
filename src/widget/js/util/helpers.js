@@ -19,7 +19,7 @@ const _deepDiff = (a, b, r, reversible) => {
 };
 
 export const transformCategoriesToText = (categories) => {
-  let text = '--';
+  let text = '';
   if (!categories.main.length) {
     return text;
   }

@@ -92,6 +92,7 @@ section#filter {
   padding: 0 15px;
   margin-left: -15px;
   margin-right: -15px;
+  margin-top: 18px;
 }
 .header-qf .mdc-chip {
   border-radius: 8px;
@@ -430,6 +431,7 @@ button span {
 }
 .location-image-item__body p:nth-child(2) {
   font-size: 13px;
+  min-height: 16px;
 }
 .location-image-item__body p:last-child span:last-child {
   min-width: 80px;
@@ -751,7 +753,7 @@ button span {
   position: absolute;
   transform: translateX(-100%);
   -webkit-transform: translateX(-100%);
-  bottom: 150px;
+  bottom: 170px;
   z-index: 10;
   right: 0;
   left: 0;
@@ -901,7 +903,7 @@ body section#home {
 .map-center-btn {
   position: fixed;
   right: 10px;
-  bottom: 90px;
+  bottom: 105px;
   text-align: center;
   z-index: 1;
   cursor: pointer;
@@ -993,6 +995,11 @@ body section#home {
 }
 #locationDirectionsBtn i {
   pointer-events: none;
+}
+.other-sorting-container,
+.price-filter-container,
+#openNowSortingBtn {
+  display: none;
 }
 .pointer-all {
   pointer-events: all !important;
