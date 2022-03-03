@@ -921,7 +921,7 @@ const bookmarkLocation = (locationId, e) => {
       title: location.title,
       icon: cdnImage(location.listImage),
       payload: {
-        data: { locationId: location.id },
+        locationId: location.id
       },
     },
     (err, bookmark) => {
@@ -1529,12 +1529,19 @@ const initHomeView = () => {
   initEventListeners();
   drawer.initialize(state.settings);
   initDrawerFilterOptions();
-  if (showIntroductoryListView) {
+
+  if (state.deepLinkData?.isResultsBookmark) {
+    handleResultsBookmark();
+  } else if (showIntroductoryListView) {
     Analytics.listViewUsed();
     initIntroLocations();
   } else {
     showMapView();
     initMapLocations();
+  }
+
+  if (state.deepLinkData?.locationId) {
+    navigateToLocationId(state.deepLinkData.locationId);
   }
 };
 
@@ -1794,11 +1801,76 @@ const handleCPSync = (message) => {
   }
 };
 
-const getDataHandler = (deeplinkData) => {
-  console.log('deeplinkData: ', deeplinkData);
-  if (deeplinkData?.locationId) {
+const handleResultsBookmark = () => {
+  const { deepLinkData } = state;
+  const { filter, sorting } = state.settings;
+  const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
+  const priceSortingBtn = document.querySelector('#priceSortingBtn');
+  const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
+  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+  const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const searchTextField = document.querySelector('#searchTextField');
+
+  if (deepLinkData.searchCriteria.openingNow && !filter.hideOpeningHoursFilter) {
+    state.searchCriteria.openingNow = true;
+    state.checkNearLocation  = true;
+    openNowFilterBtn.classList.add('selected');
+  }
+  if (deepLinkData.searchCriteria.priceRange && !filter.hidePriceFilter) {
+    state.searchCriteria.priceRange = deepLinkData.searchCriteria.priceRange;
+    priceSortingBtnLabel.textContent = '$'.repeat(deepLinkData.searchCriteria.priceRange);
+    priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+    openNowFilterBtn.classList.add('selected');
+  }
+  if (deepLinkData.searchCriteria.searchValue) {
+    state.searchCriteria.searchValue = deepLinkData.searchCriteria.searchValue;
+    searchTextField.value = state.searchCriteria.searchValue;
+  }
+
+  if (!sorting.hideSorting && sorting.defaultSorting !== deepLinkData.searchCriteria.sort.sortBy) {
+    const { sortBy, order } = deepLinkData.searchCriteria.sort;
+
+    state.searchCriteria.sort = deepLinkData.searchCriteria.sort;
+    otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+    if (sortBy === 'distance') {
+      otherSortingMenuBtnLabel.textContent = 'Distance';
+    } else if (sortBy === '_buildfire.index.text' && order === 1) {
+      otherSortingMenuBtnLabel.textContent = 'Title (A-Z)';
+    } else if (sortBy === '_buildfire.index.text' && order === -1) {
+      otherSortingMenuBtnLabel.textContent = 'Title (Z-A)';
+    } else if (sortBy === 'price.range' && order === -1) {
+      otherSortingMenuBtnLabel.textContent = '$ - $$$';
+    } else if (sortBy === 'price.range' && order === 1) {
+      otherSortingMenuBtnLabel.textContent = '$$$ - $';
+    } else if (sortBy === '_buildfire.index.date1') {
+      otherSortingMenuBtnLabel.textContent = 'Recent';
+    } else if (sortBy === 'rating.average') {
+      otherSortingMenuBtnLabel.textContent = 'Recommended';
+    } else if (sortBy === 'views') {
+      otherSortingMenuBtnLabel.textContent = 'Most Viewed';
+    }
+  }
+
+  for (const key in deepLinkData.filterElements) {
+    if (state.filterElements[key]) {
+      state.filterElements[key] = deepLinkData.filterElements[key];
+    }
+  }
+
+  if (Object.keys(deepLinkData.filterElements).length > 0) {
+    refreshQuickFilter();
+  }
+
+  if (state.maps.map) {
+    state.maps.map.center(deepLinkData.mapCenter);
+  }
+  showMapView();
+  initMapLocations();
+};
+const navigateToLocationId = (locationId) => {
+  if (state.deepLinkData?.locationId) {
     refreshCategories()
-      .then(() => WidgetController.getLocation(deeplinkData.locationId))
+      .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = response.data;
         showLocationDetail();
@@ -1895,6 +1967,14 @@ const getAllBookmarks = () => new Promise((resolve) => {
   });
 });
 
+const handleDeepLinkData = () => new Promise((resolve) => {
+  buildfire.deeplink.getData((deepLinkData) => {
+    console.log('deeplinkData: ', deepLinkData);
+    state.deepLinkData = deepLinkData;
+    resolve();
+  });
+});
+
 const bookmarkSearchResults = (e) => {
   const { map } = state.maps;
   const {
@@ -1904,8 +1984,8 @@ const bookmarkSearchResults = (e) => {
     sort
   } = state.searchCriteria;
 
-  const data = {
-    locationsPluginFilter: true,
+  const payload = {
+    isResultsBookmark: true,
     searchCriteria: {
       searchValue,
       openingNow,
@@ -1921,7 +2001,7 @@ const bookmarkSearchResults = (e) => {
 
   for (const key in state.filterElements) {
     if (state.filterElements[key].checked) {
-      data.filterElements[key] = state.filterElements[key];
+      payload.filterElements[key] = state.filterElements[key];
     }
   }
 
@@ -1942,9 +2022,7 @@ const bookmarkSearchResults = (e) => {
       buildfire.bookmarks.add(
         {
           title: response.results[0].textValue,
-          payload: {
-            data,
-          },
+          payload,
         },
         (err, bookmark) => {
           if (err) return console.error(err);
@@ -1959,7 +2037,8 @@ const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
     refreshSettings(),
-    getAllBookmarks()
+    getAllBookmarks(),
+    handleDeepLinkData()
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
@@ -1967,7 +2046,6 @@ const init = () => {
       .then(() => {
         views.fetch('filter').then(() => { views.inject('filter'); });
         views.fetch('home').then(refreshCategories).then(initHomeView);
-        buildfire.deeplink.getData(getDataHandler);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;

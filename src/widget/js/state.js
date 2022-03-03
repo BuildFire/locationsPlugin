@@ -39,5 +39,6 @@ export default {
   checkNearLocation: true,
   isMapIdle: false,
   firstRender: true,
-  bookmarks: []
+  bookmarks: [],
+  deepLinkData: null
 };
