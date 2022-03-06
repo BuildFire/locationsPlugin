@@ -13,6 +13,7 @@ export default {
   searchCriteria: {
     searchValue: '',
     openingNow: false,
+    bookmarked: false,
     priceRange: null,
     sort: {
       sortBy: 'distance',

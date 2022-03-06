@@ -81,8 +81,8 @@ const buildSearchCriteria = () => {
       });
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0) {
-    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0 || state.searchCriteria.bookmarked) {
+    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
       array1Index.push(`pr_${state.searchCriteria.priceRange}`);
     }
@@ -90,6 +90,11 @@ const buildSearchCriteria = () => {
     if (state.searchableTitles.length > 0) {
       array1Index.push(...state.searchableTitles.map((title) => `title_${title.toLowerCase()}`));
     }
+
+    if (state.searchCriteria.bookmarked) {
+      array1Index = [...array1Index, ...state.bookmarks.map((b) => `bfid_${b.id}`)];
+    }
+
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
 
@@ -398,7 +403,7 @@ const renderListingLocations = (list) => {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.bfId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
@@ -434,7 +439,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.bfId) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -469,6 +474,7 @@ const refreshQuickFilter = () => {
   const { design, filter } = state.settings;
   const container = document.querySelector('.header-qf');
   const hideQFBtn = document.querySelector('#hideQFBtn');
+  let html = '';
   if (chipSet) {
     chipSet.destroy();
     chipSet = null;
@@ -491,7 +497,20 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
+  if (filter.allowFilterByBookmarks) {
+    html += `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="bookmarksFilterBtn">
+        <div class="mdc-chip__ripple"></div>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+          <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+        </span>
+        <span role="gridcell">
+          <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+            <span class="mdc-chip__text">Bookmarks</span>
+          </span>
+        </span>
+      </div>`;
+  }
+  html += quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
           <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
@@ -502,14 +521,18 @@ const refreshQuickFilter = () => {
           </span>
         </span>
       </div>`).join('\n');
+
+  container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
   chipSet.listen('MDCChip:interaction', (event) => {
-    const categoryId = event.detail.chipId;
-    if (state.filterElements[categoryId]) {
-      state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
+    const { chipId } = event.detail;
+    if (chipId === 'bookmarksFilterBtn') {
+      state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
+    } else if (state.filterElements[chipId]) {
+      state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
     } else {
-      state.filterElements[categoryId] = { checked: true, subcategories: [] };
+      state.filterElements[chipId] = { checked: true, subcategories: [] };
     }
     clearAndSearchWithDelay();
   });
@@ -691,7 +714,7 @@ const showLocationDetail = () => {
 
       if (bookmarks.enabled && bookmarks.allowForLocations) {
         selectors.bookmarkLocationBtn.style.display = 'inline-block';
-        if (state.bookmarks.find((l) => l.id === selectedLocation.id)) {
+        if (state.bookmarks.find((l) => l.id === selectedLocation.bfId)) {
           selectors.bookmarkLocationBtn.textContent = 'star';
         }
       }
@@ -911,13 +934,13 @@ const bookmarkLocation = (locationId, e) => {
 
   if (!location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
 
-  if (state.bookmarks.find((l) => l.id === location.id)) {
+  if (state.bookmarks.find((l) => l.id === location.bfId)) {
     return console.warn('location already bookmarked');
   }
   console.log('location: ', location);
   buildfire.bookmarks.add(
     {
-      id: location.id,
+      id: location.bfId,
       title: location.title,
       icon: cdnImage(location.listImage),
       payload: {
@@ -1372,7 +1395,7 @@ const handleMarkerClick = (location) => {
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.id) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.bfId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>

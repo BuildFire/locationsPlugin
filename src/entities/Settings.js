@@ -32,8 +32,8 @@ export default class Settings {
     this.filter = data.filter || {
       allowFilterByArea: true,
       hideOpeningHoursFilter: false,
-      hidePriceFilter: false
-      // allowFilterByBookmarks: true,
+      hidePriceFilter: false,
+      allowFilterByBookmarks: true,
     };
     this.map = data.map || {
       distanceUnit: 'metric',
