@@ -26,6 +26,7 @@ let SEARCH_TIMOUT;
 
 let mdcSortingMenu;
 let mdcPriceMenu;
+let bookmarkLoading = false;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -932,27 +933,44 @@ const bookmarkLocation = (locationId, e) => {
   const location = state.listLocations.find((i) => i.id === locationId);
   const { bookmarks } = state.settings;
 
-  if (!location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+  if (bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+
+  bookmarkLoading = true;
+  setTimeout(() => { bookmarkLoading = false; }, 1000);
 
   if (state.bookmarks.find((l) => l.id === location.bfId)) {
-    return console.warn('location already bookmarked');
-  }
-  console.log('location: ', location);
-  buildfire.bookmarks.add(
-    {
-      id: location.bfId,
-      title: location.title,
-      icon: cdnImage(location.listImage),
-      payload: {
-        locationId: location.id
+    buildfire.bookmarks.delete(location.bfId, () => {
+      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed!' });
+    });
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.bfId), 1);
+    e.target.textContent = 'star_outline';
+  } else {
+    buildfire.components.toast.showToastMessage({ text: 'Bookmark added!' });
+    console.log('location: ', location);
+    buildfire.bookmarks.add(
+      {
+        id: location.bfId,
+        title: location.title,
+        icon: cdnImage(location.listImage),
+        payload: {
+          locationId: location.id
+        },
       },
-    },
-    (err, bookmark) => {
-      if (err) return console.error(err);
-      e.target.textContent = 'star';
-      console.log("Bookmark added", bookmark);
-    }
-  );
+      (err, bookmark) => {
+        if (err) {
+          console.error(err);
+          buildfire.components.toast.showToastMessage({ text: 'Couldn\'t bookmark!' });
+          return;
+        }
+        state.bookmarks.push({
+          id: location.bfId,
+          title: location.title
+        });
+        e.target.textContent = 'star';
+        console.log("Bookmark added", bookmark);
+      }
+    );
+  }
 };
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
@@ -1999,6 +2017,8 @@ const handleDeepLinkData = () => new Promise((resolve) => {
 });
 
 const bookmarkSearchResults = (e) => {
+  if (bookmarkLoading) return;
+
   const { map } = state.maps;
   const {
     searchValue,
@@ -2031,7 +2051,7 @@ const bookmarkSearchResults = (e) => {
   buildfire.input.showTextDialog(
     {
       placeholder: 'Enter bookmark title here',
-      saveText: 'Set',
+      saveText: 'Bookmark',
       maxLength: 50,
       defaultValue: state.searchCriteria.searchValue,
     },
@@ -2042,6 +2062,8 @@ const bookmarkSearchResults = (e) => {
 
       if (response.cancelled || !results.length || !response.results[0].textValue) return;
 
+      bookmarkLoading = true;
+      setTimeout(() => { bookmarkLoading = false; }, 1000);
       buildfire.bookmarks.add(
         {
           title: response.results[0].textValue,
@@ -2050,6 +2072,7 @@ const bookmarkSearchResults = (e) => {
         (err, bookmark) => {
           if (err) return console.error(err);
           e.target.textContent = 'star';
+          buildfire.components.toast.showToastMessage({ text: 'Bookmark added!' });
           console.log('bookmark added', bookmark);
         }
       );
