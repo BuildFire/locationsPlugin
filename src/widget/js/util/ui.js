@@ -35,7 +35,12 @@ export const toggleDropdownMenu = (element) => {
 };
 
 export const adjustMapHeight = () => {
-  const { design, filter, sorting } = state.settings;
+  const {
+    design,
+    filter,
+    sorting,
+    bookmarks
+  } = state.settings;
   const mainMapContainer = document.querySelector('#mainMapContainer');
   const mapCenterBtn = document.querySelector('#mapCenterBtn');
 
@@ -47,7 +52,7 @@ export const adjustMapHeight = () => {
     baseCenterBtnBottom -= 10;
   }
 
-  if (sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter) {
+  if (sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter && (!bookmarks.enabled || !bookmarks.allowForFilters)) {
     baseMapHeight -= 36;
     baseCenterBtnBottom -= 30;
   }

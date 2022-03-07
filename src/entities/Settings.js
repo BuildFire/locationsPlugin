@@ -31,9 +31,9 @@ export default class Settings {
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
+      allowFilterByBookmarks: false,
       hideOpeningHoursFilter: false,
       hidePriceFilter: false,
-      allowFilterByBookmarks: false,
     };
     this.map = data.map || {
       distanceUnit: 'metric',

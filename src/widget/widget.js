@@ -1446,13 +1446,15 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting, bookmarks, filter} = state.settings;
+  const { sorting, bookmarks, filter } = state.settings;
   const otherSortingContainer = document.querySelector('.other-sorting-container');
   const priceFilterContainer = document.querySelector('.price-filter-container');
+  const drawerHeaderContainer = document.querySelector('.drawer-header');
   const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
   const bookmarksContainer = document.querySelector('.bookmark-result');
+  const isEmptyHeader = (!bookmarks.enabled || !bookmarks.allowForFilters) && sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter;
   const sortingOptions = [
     {
       key: 'allowSortByReverseAlphabetical',
@@ -1565,6 +1567,10 @@ const initDrawerFilterOptions = () => {
   }
   if (!filter.hideOpeningHoursFilter) {
     showElement(openNowFilterBtn);
+  }
+
+  if (isEmptyHeader && document.querySelector('html').getAttribute('safe-area') === 'true') {
+    drawerHeaderContainer.style.paddingBottom = '30px';
   }
 
   adjustMapHeight();
@@ -1751,11 +1757,13 @@ const handleCPSync = (message) => {
             renderListingLocations(state.listLocations);
             initDrawerFilterOptions();
             refreshQuickFilter();
+            drawer.reset(state.settings.design.listViewPosition);
           } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
             clearMapViewList();
             renderListingLocations(state.listLocations);
           } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
             initDrawerFilterOptions();
+            drawer.reset(state.settings.design.listViewPosition);
           }
         } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
           hideFilterOverlay();

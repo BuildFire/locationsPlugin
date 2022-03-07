@@ -3,8 +3,8 @@ import state from './state';
 const TOP_MARGIN = 135;
 
 const _calcBottomMargin = () => {
-  const { sorting, filter } = state.settings;
-  const headerHasOptions = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
+  const { sorting, filter, bookmarks } = state.settings;
+  const headerHasOptions = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter || (bookmarks.enabled && bookmarks.allowForFilters));
   let margin = 54;
   if (headerHasOptions) {
     margin = 90;
@@ -12,6 +12,17 @@ const _calcBottomMargin = () => {
     margin = 70;
   }
   return margin;
+};
+
+const _adjustBookmarksMargin = (method = 'add') => {
+  const { sorting, filter } = state.settings;
+  const headerHasButtons = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
+
+  if (method === 'add' && headerHasButtons) {
+    document.querySelector('.bookmark-result').classList.add('margin-bottom-thirty');
+  } else if (method === 'remove') {
+    document.querySelector('.bookmark-result').classList.remove('margin-bottom-thirty');
+  }
 };
 
 const _calcPositions = () => {
@@ -29,6 +40,10 @@ const reset = (position) => {
   const positions = _calcPositions();
   element.style.height = `${position ? positions[position] : positions.halfExpanded}px`;
   element.style.top = `${screenHeight - (position ? positions[position] : positions.halfExpanded)}px`;
+
+  if (position === 'collapsed') {
+    _adjustBookmarksMargin('add');
+  }
 };
 
 const initialize = (settings) => {
@@ -52,10 +67,12 @@ const initialize = (settings) => {
     const pointsToHalfExpanded = Math.abs(positions.halfExpanded - (screenHeight - pageY));
     const pointsToCollapsed = Math.abs(positions.collapsed - (screenHeight - pageY));
 
+    _adjustBookmarksMargin('remove');
     if (pageY > originalMouseY) {
       if (pointsToHalfExpanded > pointsToCollapsed) {
         targetHeight = positions.collapsed;
         targetTop = screenHeight - positions.collapsed;
+        _adjustBookmarksMargin('add');
       } else {
         targetHeight = positions.halfExpanded;
         targetTop = screenHeight - positions.halfExpanded;
