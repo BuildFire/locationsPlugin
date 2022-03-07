@@ -19,6 +19,7 @@ import {
 } from './js/util/ui';
 import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
+import { generateUUID } from '../control/content/utils/helpers';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -83,7 +84,7 @@ const buildSearchCriteria = () => {
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0 || state.searchCriteria.bookmarked) {
-    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
       array1Index.push(`pr_${state.searchCriteria.priceRange}`);
     }
@@ -93,7 +94,7 @@ const buildSearchCriteria = () => {
     }
 
     if (state.searchCriteria.bookmarked) {
-      array1Index = [...array1Index, ...state.bookmarks.map((b) => `bfid_${b.id}`)];
+      query._id = { $in: state.bookmarks.map((b) => b.id) };
     }
 
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
@@ -404,7 +405,7 @@ const renderListingLocations = (list) => {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.bfId) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
@@ -440,7 +441,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.bfId) ? 'star' : 'star_outline'}</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -535,6 +536,7 @@ const refreshQuickFilter = () => {
     } else {
       state.filterElements[chipId] = { checked: true, subcategories: [] };
     }
+    resetResultsBookmark();
     clearAndSearchWithDelay();
   });
   setTimeout(() => {
@@ -715,7 +717,7 @@ const showLocationDetail = () => {
 
       if (bookmarks.enabled && bookmarks.allowForLocations) {
         selectors.bookmarkLocationBtn.style.display = 'inline-block';
-        if (state.bookmarks.find((l) => l.id === selectedLocation.bfId)) {
+        if (state.bookmarks.find((l) => l.id === selectedLocation.id)) {
           selectors.bookmarkLocationBtn.textContent = 'star';
         }
       }
@@ -938,18 +940,18 @@ const bookmarkLocation = (locationId, e) => {
   bookmarkLoading = true;
   setTimeout(() => { bookmarkLoading = false; }, 1000);
 
-  if (state.bookmarks.find((l) => l.id === location.bfId)) {
-    buildfire.bookmarks.delete(location.bfId, () => {
-      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed!' });
+  if (state.bookmarks.find((l) => l.id === location.id)) {
+    buildfire.bookmarks.delete(location.id, () => {
+      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
     });
-    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.bfId), 1);
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.id), 1);
     e.target.textContent = 'star_outline';
   } else {
-    buildfire.components.toast.showToastMessage({ text: 'Bookmark added!' });
+    buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
     console.log('location: ', location);
     buildfire.bookmarks.add(
       {
-        id: location.bfId,
+        id: location.id,
         title: location.title,
         icon: cdnImage(location.listImage),
         payload: {
@@ -959,11 +961,11 @@ const bookmarkLocation = (locationId, e) => {
       (err, bookmark) => {
         if (err) {
           console.error(err);
-          buildfire.components.toast.showToastMessage({ text: 'Couldn\'t bookmark!' });
+          buildfire.components.toast.showToastMessage({ text: 'Couldn\'t bookmark' });
           return;
         }
         state.bookmarks.push({
-          id: location.bfId,
+          id: location.id,
           title: location.title
         });
         e.target.textContent = 'star';
@@ -1049,6 +1051,7 @@ const initEventListeners = () => {
     if (e.target.id === 'searchTextField') {
       state.searchCriteria.searchValue = value;
       state.checkNearLocation  = true;
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     }
 
@@ -1056,6 +1059,7 @@ const initEventListeners = () => {
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
       state.searchCriteria.searchValue = value;
       state.checkNearLocation  = true;
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     }
   });
@@ -1082,6 +1086,7 @@ const initEventListeners = () => {
       openNowSortingBtn.classList.remove('selected');
     }
     state.checkNearLocation  = true;
+    resetResultsBookmark();
     clearAndSearchWithDelay();
   };
 };
@@ -1178,6 +1183,7 @@ const initFilterOverlay = () => {
     });
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
+    resetResultsBookmark();
     setTimeout(() => {
       target.disabled = false;
       mdcCheckBox.classList.remove('mdc-checkbox--disabled');
@@ -1220,6 +1226,7 @@ const initFilterOverlay = () => {
     }
 
     mdcChip.classList.add('disabled');
+    resetResultsBookmark();
     setTimeout(() => mdcChip.classList.remove('disabled'), 500);
   }));
 };
@@ -1375,6 +1382,7 @@ const initMainMap = () => {
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = () => {
     state.isMapIdle = false;
+    resetResultsBookmark();
     // handle hiding opened location
     const locationSummary = document.querySelector('#locationSummary');
     if (locationSummary && locationSummary.classList.contains('slide-in')) {
@@ -1413,7 +1421,7 @@ const handleMarkerClick = (location) => {
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.bfId) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.id) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
@@ -1529,6 +1537,7 @@ const initDrawerFilterOptions = () => {
       } else if (value === 'views') {
         state.searchCriteria.sort = { sortBy: 'views', order: 1 };
       }
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     });
     showElement(otherSortingContainer);
@@ -1549,6 +1558,7 @@ const initDrawerFilterOptions = () => {
         priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
       }
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     });
     showElement(priceFilterContainer);
@@ -2016,9 +2026,22 @@ const handleDeepLinkData = () => new Promise((resolve) => {
   });
 });
 
+const resetResultsBookmark = () => {
+  const bookmarkBtn = document.querySelector('#bookmarkResultsBtn');
+  bookmarkBtn.removeAttribute('bookmarkId');
+  bookmarkBtn.textContent = 'star_outline';
+};
+
 const bookmarkSearchResults = (e) => {
   if (bookmarkLoading) return;
 
+  const targetBookmarkId = e.target.getAttribute('bookmarkId');
+  if (targetBookmarkId) {
+    return buildfire.bookmarks.delete(targetBookmarkId, () => {
+      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
+      resetResultsBookmark();
+    });
+  }
   const { map } = state.maps;
   const {
     searchValue,
@@ -2064,15 +2087,18 @@ const bookmarkSearchResults = (e) => {
 
       bookmarkLoading = true;
       setTimeout(() => { bookmarkLoading = false; }, 1000);
+      const bookmarkId = generateUUID();
       buildfire.bookmarks.add(
         {
+          id: bookmarkId,
           title: response.results[0].textValue,
           payload,
         },
         (err, bookmark) => {
           if (err) return console.error(err);
           e.target.textContent = 'star';
-          buildfire.components.toast.showToastMessage({ text: 'Bookmark added!' });
+          e.target.setAttribute('bookmarkId', bookmarkId);
+          buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
           console.log('bookmark added', bookmark);
         }
       );
