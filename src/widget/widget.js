@@ -473,7 +473,7 @@ const renderListingLocations = (list) => {
 
 let chipSet;
 const refreshQuickFilter = () => {
-  const { design, filter } = state.settings;
+  const { design, filter, bookmarks } = state.settings;
   const container = document.querySelector('.header-qf');
   const hideQFBtn = document.querySelector('#hideQFBtn');
   let html = '';
@@ -499,7 +499,7 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  if (filter.allowFilterByBookmarks) {
+  if (filter.allowFilterByBookmarks && bookmarks.enabled) {
     html += `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="bookmarksFilterBtn">
         <div class="mdc-chip__ripple"></div>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
@@ -1491,7 +1491,7 @@ const initDrawerFilterOptions = () => {
     }
   ];
 
-  [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
+  [otherSortingContainer, priceFilterContainer, openNowFilterBtn, bookmarksContainer].forEach((el) => hideElement(el));
 
   if (bookmarks.enabled && bookmarks.allowForFilters) {
     bookmarksContainer.style.display = 'flex';
@@ -1745,7 +1745,19 @@ const handleCPSync = (message) => {
         const oms = outdatedSettings.map;
         // current design
         const d = state.settings.design;
-        if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
+        if (Object.keys(deepObjectDiff(state.settings.bookmarks, outdatedSettings.bookmarks)).length) {
+          if (state.settings.bookmarks.enabled !== outdatedSettings.bookmarks.enabled) {
+            clearMapViewList();
+            renderListingLocations(state.listLocations);
+            initDrawerFilterOptions();
+            refreshQuickFilter();
+          } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
+            clearMapViewList();
+            renderListingLocations(state.listLocations);
+          } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
+            initDrawerFilterOptions();
+          }
+        } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
@@ -1757,6 +1769,8 @@ const handleCPSync = (message) => {
           showMapView();
           initDrawerFilterOptions();
           drawer.reset(state.settings.design.listViewPosition);
+        } else if (f.allowFilterByBookmarks !== of.allowFilterByBookmarks) {
+          refreshQuickFilter();
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
           const headerQF = document.querySelector('.header-qf');
           hideElement('#areaSearchLabel');

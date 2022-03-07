@@ -1,6 +1,6 @@
 {
   "author":"BuildFire",
-  "pluginName": "Locations-2.0",
+  "pluginName": "Locations",
   "pluginDescription": "Create locations on the map and categorize them; add details, open hours, price range, custom actions, and other settings.",
   "pluginKeywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "requireLogin": false,
