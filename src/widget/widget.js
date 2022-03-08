@@ -441,7 +441,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -953,7 +953,7 @@ const bookmarkLocation = (locationId, e) => {
       {
         id: location.id,
         title: location.title,
-        icon: cdnImage(location.listImage),
+        icon: location.listImage,
         payload: {
           locationId: location.id
         },
@@ -1883,6 +1883,10 @@ const handleResultsBookmark = () => {
   const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
   const searchTextField = document.querySelector('#searchTextField');
+  const bookmarkResultsBtn = document.querySelector('#bookmarkResultsBtn');
+
+  bookmarkResultsBtn.setAttribute('bookmarkId', deepLinkData.bookmarkId);
+  bookmarkResultsBtn.textContent = 'star';
 
   if (deepLinkData.searchCriteria.openingNow && !filter.hideOpeningHoursFilter) {
     state.searchCriteria.openingNow = true;
@@ -1893,16 +1897,15 @@ const handleResultsBookmark = () => {
     state.searchCriteria.priceRange = deepLinkData.searchCriteria.priceRange;
     priceSortingBtnLabel.textContent = '$'.repeat(deepLinkData.searchCriteria.priceRange);
     priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-    openNowFilterBtn.classList.add('selected');
   }
   if (deepLinkData.searchCriteria.searchValue) {
     state.searchCriteria.searchValue = deepLinkData.searchCriteria.searchValue;
     searchTextField.value = state.searchCriteria.searchValue;
   }
 
-  if (!sorting.hideSorting && sorting.defaultSorting !== deepLinkData.searchCriteria.sort.sortBy) {
-    const { sortBy, order } = deepLinkData.searchCriteria.sort;
+  const { sortBy, order } = deepLinkData.searchCriteria.sort;
 
+  if (!sorting.hideSorting && sorting.defaultSorting !== deepLinkData.searchCriteria.sort.sortBy && !(sorting.defaultSorting === 'alphabetical' && sortBy === '_buildfire.index.text' && order === 1)) {
     state.searchCriteria.sort = deepLinkData.searchCriteria.sort;
     otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
     if (sortBy === 'distance') {
@@ -1937,6 +1940,7 @@ const handleResultsBookmark = () => {
   if (state.maps.map) {
     state.maps.map.center(deepLinkData.mapCenter);
   }
+
   showMapView();
   initMapLocations();
 };
@@ -2059,11 +2063,13 @@ const bookmarkSearchResults = (e) => {
 
   const targetBookmarkId = e.target.getAttribute('bookmarkId');
   if (targetBookmarkId) {
-    return buildfire.bookmarks.delete(targetBookmarkId, () => {
+    return buildfire.bookmarks.delete(targetBookmarkId, (err, success) => {
+      state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === targetBookmarkId), 1);
       buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
       resetResultsBookmark();
     });
   }
+  const bookmarkId = generateUUID();
   const { map } = state.maps;
   const {
     searchValue,
@@ -2074,6 +2080,7 @@ const bookmarkSearchResults = (e) => {
 
   const payload = {
     isResultsBookmark: true,
+    bookmarkId,
     searchCriteria: {
       searchValue,
       openingNow,
@@ -2109,10 +2116,10 @@ const bookmarkSearchResults = (e) => {
 
       bookmarkLoading = true;
       setTimeout(() => { bookmarkLoading = false; }, 1000);
-      const bookmarkId = generateUUID();
       buildfire.bookmarks.add(
         {
           id: bookmarkId,
+          icon: 'https://pluginserver.buildfire.com/sharedResources/ic_location_no_img.png',
           title: response.results[0].textValue,
           payload,
         },

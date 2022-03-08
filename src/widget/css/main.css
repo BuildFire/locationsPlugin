@@ -1004,3 +1004,7 @@ body section#home {
 .pointer-all {
   pointer-events: all !important;
 }
+
+.align-self-center {
+  align-self: center;
+}
