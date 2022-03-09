@@ -15,10 +15,15 @@
     "settings":{
       "enabled":true
     },
-    "customTabs": [{
-      "title": "Tests",
-      "url": "/tests/index.html"
-    }
+    "customTabs": [
+      {
+        "title": "Tests",
+        "url": "/tests/index.html"
+      },
+      {
+        "title": "Language",
+        "url": "/strings/index.html"
+      }
   ]
   },
   "widget":{},

@@ -2,7 +2,7 @@
   <header>
     <label class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body">
       <i class="material-icons mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="searchLocationsBtn">search</i>
-      <input class="mdc-text-field__input mdc-theme--primary" placeholder="Search" type="text" aria-labelledby="searchTextField" id="searchTextField" autocomplete="off">
+      <input aria-labelledby="searchTextField" autocomplete="off" bfString="general.search" class="mdc-text-field__input mdc-theme--primary" id="searchTextField" placeholder="Search" type="text">
       <i id="filterIconBtn" class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">filter_alt</i>
     </label>
 
@@ -13,7 +13,6 @@
     </label>
 
     <div class="mdc-chip-set mdc-chip-set--filter header-qf" role="grid">
-      <p class="empty-state mdc-theme--text-body">No Categories Added</p>
     </div>
   </header>
 
@@ -57,7 +56,7 @@
             <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="priceSortingBtn">
               <span class="mdc-button__ripple"></span>
               <span class="mdc-button__focus-ring"></span>
-              <span class="mdc-button__label">Price</span>
+              <span bfString="general.price" class="mdc-button__label">Price</span>
             </button>
             <div class="mdc-menu mdc-menu-surface price-filter-menu">
               <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
@@ -79,7 +78,7 @@
                 </li>
                 <li class="mdc-list-item" role="menuitem" data-value="0">
                   <span class="mdc-list-item__ripple"></span>
-                  <span class="mdc-list-item__text">Reset</span>
+                  <span bfString="general.reset" class="mdc-list-item__text">Reset</span>
                 </li>
               </ul>
             </div>
@@ -87,13 +86,13 @@
           <button class="mdc-button mdc-button--unelevated margin-right-ten" id="openNowSortingBtn">
             <span class="mdc-button__ripple"></span>
             <span class="mdc-button__focus-ring"></span>
-            <span class="mdc-button__label">Open</span>
+            <span bfString="general.open" class="mdc-button__label">Open</span>
           </button>
           <div class="mdc-menu-surface--anchor margin-right-ten other-sorting-container">
             <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="otherSortingBtn">
               <span class="mdc-button__ripple"></span>
               <span class="mdc-button__focus-ring"></span>
-              <span class="mdc-button__label">Distance</span>
+              <span bfStrong="sortingOptions.distance" class="mdc-button__label">Distance</span>
             </button>
             <div class="mdc-menu mdc-menu-surface other-sorting-menu">
               <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">

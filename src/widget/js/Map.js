@@ -167,7 +167,7 @@ export default class Map {
     controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
     controlText.style.fontSize = '12px';
     controlText.style.fontWeight = 'bold';
-    controlText.innerHTML = 'Find within this area';
+    controlText.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
     controlUI.appendChild(controlText);
     // Setup the click event listeners: simply set the map to Chicago.
     controlUI.addEventListener('click', onClick);

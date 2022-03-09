@@ -17,6 +17,7 @@ const WebpackConfig = {
     'control/design/design': path.join(__dirname, '../src/control/design/design.js'),
     'control/settings/settings': path.join(__dirname, '../src/control/settings/settings.js'),
     'control/tests/tests': path.join(__dirname, '../src/control/tests/tests.js'),
+    'control/strings/strings': path.join(__dirname, '../src/control/strings/strings.js'),
     'widget/widget': path.join(__dirname, '../src/widget/widget.js')
   },
 
@@ -135,6 +136,13 @@ const WebpackConfig = {
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/control/tests/index.html'),
       chunks: ['devServer', 'control/tests/tests']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/strings/index.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/strings/index.html'),
+      chunks: ['devServer', 'control/strings/strings']
     }),
     new HtmlWebpackPlugin({
       filename: 'widget/index.html',

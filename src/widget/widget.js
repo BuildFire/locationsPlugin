@@ -19,9 +19,12 @@ import {
 } from './js/util/ui';
 import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
+import '../shared/strings';
+import stringsConfig from '../shared/stringsConfig';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
+
 let SEARCH_TIMOUT;
 
 let mdcSortingMenu;
@@ -406,7 +409,7 @@ const renderListingLocations = (list) => {
                 <span>${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
-                  <span class="location-image__open-status">${ n.settings.showOpeningHours ? (isLocationOpen(n) ? 'Open' : 'Closed') : ''}</span>
+                  <span class="location-image__open-status">${n.settings.showOpeningHours ? (window.strings.get(isLocationOpen(n) ? 'general.open' : 'general.closed').v) : ''}</span>
                 </span>
               </p>
             </div>
@@ -453,7 +456,7 @@ const renderListingLocations = (list) => {
   }
 
   if (!state.listLocations.length) {
-    emptyStateContainer.textContent = state.firstRender ? 'Start your search.' : 'No locations found within this area.';
+    emptyStateContainer.textContent = window.strings.get(state.firstRender ? 'emptyState.locationsListBeforeSearch' : 'emptyState.locationsListAfterSearch').v;
     showElement(emptyStateContainer);
   } else {
     hideElement(emptyStateContainer);
@@ -485,7 +488,7 @@ const refreshQuickFilter = () => {
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
   if (!quickFilterItems.length) {
-    container.innerHTML = '<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">No Categories Added</small>';
+    container.innerHTML = `<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">${window.strings.get('emptyState.emptyCategories').v}</small>`;
     advancedFilterBtn.classList.add('disabled');
     return;
   }
@@ -592,6 +595,7 @@ const showLocationDetail = () => {
     .fetch('detail')
     .then(() => {
       views.inject('detail');
+      window.strings.inject(document.querySelector('section#detail'), false);
       const pageMapPosition = state.settings.design.detailsMapPosition;
       let selectors = {
         address: document.querySelector('.location-detail__address p:first-child'),
@@ -672,8 +676,8 @@ const showLocationDetail = () => {
 
       if (!selectedLocation.settings.showOpeningHours) {
         selectors.workingHoursBtn.style.display = 'none';
-      } else if (!isLocationOpen(selectedLocation)) {
-        selectors.workingHoursBtnLabel.textContent = 'Closed';
+      } else {
+        selectors.workingHoursBtnLabel.textContent = window.strings.get(isLocationOpen(selectedLocation) ? 'general.open' : 'general.closed').v;
       }
 
       if (!selectedLocation.settings.showStarRating) {
@@ -709,12 +713,12 @@ const showWorkingHoursDrawer = () => {
   const { days } = state.selectedLocation.openingHours;
   buildfire.components.drawer.open(
     {
-      header: 'Open Hours',
+      header: window.strings.get('openingHoursDialog.openHours').v,
       content: `<table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
       ${Object.entries(days).map(([day, prop]) => `<tr>
-        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${day}</td>
+        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`openingHoursDialog.${day}`).v}</td>
         <td style="vertical-align: top;">
-          ${!prop.active ? 'Closed' : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
+          ${!prop.active ? window.strings.get('general.closed') : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -1362,37 +1366,37 @@ const initDrawerFilterOptions = () => {
     {
       key: 'allowSortByReverseAlphabetical',
       value: 'Z-A',
-      textContent: 'Title (Z-A)'
+      textContent: window.strings.get('sortingOptions.alphabeticalDsc').v
     },
     {
       key: 'allowSortByNearest',
       value: 'distance',
-      textContent: 'Distance'
+      textContent: window.strings.get('sortingOptions.distance').v
     },
     {
       key: 'allowSortByRating',
       value: 'rating',
-      textContent: 'Recommended'
+      textContent: window.strings.get('sortingOptions.recommended').v
     },
     {
       key: 'allowSortByPriceHighToLow',
       value: 'price-high-low',
-      textContent: '$$$ - $'
+      textContent: window.strings.get('sortingOptions.priceDsc').v
     },
     {
       key: 'allowSortByPriceLowToHigh',
       value: 'price-low-high',
-      textContent: '$ - $$$'
+      textContent: window.strings.get('sortingOptions.priceAsc').v
     },
     {
       key: 'allowSortByDate',
       value: 'date',
-      textContent: 'Recent'
+      textContent: window.strings.get('sortingOptions.recent').v
     },
     {
       key: 'allowSortByViews',
       value: 'views',
-      textContent: 'Most Viewed'
+      textContent: window.strings.get('sortingOptions.mostViewed').v
     }
   ];
 
@@ -1403,7 +1407,7 @@ const initDrawerFilterOptions = () => {
     mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
     let list = `<li class="mdc-list-item" role="menuitem" data-value="A-Z">
               <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Title (A-Z)</span>
+              <span class="mdc-list-item__text">${window.strings.get('sortingOptions.alphabeticalAsc').v}</span>
             </li>`;
 
     for (let i = 0; i < sortingOptions.length; i++) {
@@ -1417,7 +1421,7 @@ const initDrawerFilterOptions = () => {
     }
 
     otherSortingMenuList.innerHTML = list;
-    otherSortingMenuBtnLabel.textContent = sorting.defaultSorting === 'distance' ? 'Distance' : 'A-Z';
+    otherSortingMenuBtnLabel.textContent = window.strings.get(sorting.defaultSorting === 'distance' ? 'sortingOptions.distance' : 'sortingOptions.alphabeticalAsc').v;
     mdcSortingMenu.listen('MDCMenu:selected', (event) => {
       const value = event.detail.item.getAttribute('data-value');
       otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
@@ -1451,7 +1455,7 @@ const initDrawerFilterOptions = () => {
       const value = event.detail.item.getAttribute('data-value');
       if (value === '0') {
         state.searchCriteria.priceRange = null;
-        priceSortingBtnLabel.textContent = 'Price';
+        priceSortingBtnLabel.textContent = window.strings?.get('general.price')?.v;
         priceSortingBtn.style.removeProperty('background-color');
       } else {
         state.searchCriteria.priceRange = Number(value);
@@ -1537,11 +1541,11 @@ const calculateLocationDistance = (address) => {
   const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
   let result;
   if (distance < 0.2) {
-    result = `${Math.round(distance * 5280).toLocaleString()} ft`;
+    result = `${Math.round(distance * 5280).toLocaleString()} ${window.strings.get('general.distanceUnitFt').v}`;
   } else if (state.settings.measurementUnit === 'metric') {
-    result = `${Math.round(distance * 1.60934).toLocaleString()} km`;
+    result = `${Math.round(distance * 1.60934).toLocaleString()} ${window.strings.get('general.distanceUnitKm').v}`;
   } else {
-    result = `${Math.round(distance).toLocaleString()} mi`;
+    result = `${Math.round(distance).toLocaleString()} ${window.strings.get('general.distanceUnitMi').v}`;
   }
   return result;
 };
@@ -1833,6 +1837,21 @@ const watchUserPositionChanges = () => {
   });
 };
 
+const initAppStrings = () => {
+  // string will have all the language settings from teh strings page on the control side
+  window.strings = new buildfire.services.Strings('en-us', stringsConfig);
+  window.strings
+    .init()
+    .then((s) => {
+    // Inject into elements that have an attribute bfString
+      window.strings.inject(document, false);
+    });
+  // todo handle onReceivedMessage refresh
+  // buildfire.messaging.onReceivedMessage =msg=>{
+  //   if(msg.cmd=="refresh") // message comes from the strings page on the control side
+  //     location.reload();
+  // };
+};
 const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
@@ -1850,6 +1869,7 @@ const init = () => {
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
         watchUserPositionChanges();
+        initAppStrings();
       });
   };
 };
