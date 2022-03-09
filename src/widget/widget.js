@@ -510,7 +510,7 @@ const refreshQuickFilter = () => {
         </span>
         <span role="gridcell">
           <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-            <span class="mdc-chip__text">Bookmarks</span>
+            <span class="mdc-chip__text">${window.strings.get('general.bookmarks').v}</span>
           </span>
         </span>
       </div>`;
@@ -755,7 +755,7 @@ const showWorkingHoursDrawer = () => {
       ${Object.entries(days).map(([day, prop]) => `<tr>
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`openingHoursDialog.${day}`).v}</td>
         <td style="vertical-align: top;">
-          ${!prop.active ? window.strings.get('general.closed') : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
+          ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -946,12 +946,12 @@ const bookmarkLocation = (locationId, e) => {
 
   if (state.bookmarks.find((l) => l.id === location.id)) {
     buildfire.bookmarks.delete(location.id, () => {
-      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
+      buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksRemoved').v });
     });
     state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.id), 1);
     e.target.textContent = 'star_outline';
   } else {
-    buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
+    buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
     console.log('location: ', location);
     buildfire.bookmarks.add(
       {
@@ -965,7 +965,7 @@ const bookmarkLocation = (locationId, e) => {
       (err, bookmark) => {
         if (err) {
           console.error(err);
-          buildfire.components.toast.showToastMessage({ text: 'Couldn\'t bookmark' });
+          buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksError').v });
           return;
         }
         state.bookmarks.push({
@@ -2069,7 +2069,7 @@ const bookmarkSearchResults = (e) => {
   if (targetBookmarkId) {
     return buildfire.bookmarks.delete(targetBookmarkId, (err, success) => {
       state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === targetBookmarkId), 1);
-      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
+      buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksRemoved').v });
       resetResultsBookmark();
     });
   }
@@ -2131,7 +2131,7 @@ const bookmarkSearchResults = (e) => {
           if (err) return console.error(err);
           e.target.textContent = 'star';
           e.target.setAttribute('bookmarkId', bookmarkId);
-          buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
+          buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
           console.log('bookmark added', bookmark);
         }
       );
