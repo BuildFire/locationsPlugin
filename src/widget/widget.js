@@ -4,6 +4,7 @@
 import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
+import Location from '../entities/Location';
 import Accordion from './js/Accordion';
 import MainMap from './js/Map';
 import drawer from './js/drawer';
@@ -87,7 +88,7 @@ const buildSearchCriteria = () => {
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0 || state.searchCriteria.bookmarked) {
-    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
       array1Index.push(`pr_${state.searchCriteria.priceRange}`);
     }
@@ -97,7 +98,7 @@ const buildSearchCriteria = () => {
     }
 
     if (state.searchCriteria.bookmarked) {
-      query._id = { $in: state.bookmarks.map((b) => b.id) };
+      array1Index = [...array1Index, ...state.bookmarks.map((b) => `cid_${b.id}`)];
     }
 
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
@@ -944,18 +945,23 @@ const bookmarkLocation = (locationId, e) => {
   bookmarkLoading = true;
   setTimeout(() => { bookmarkLoading = false; }, 1000);
 
-  if (state.bookmarks.find((l) => l.id === location.id)) {
-    buildfire.bookmarks.delete(location.id, () => {
+  if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
+    buildfire.bookmarks.delete(location.clientId, () => {
       buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksRemoved').v });
     });
-    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.id), 1);
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
     e.target.textContent = 'star_outline';
   } else {
     buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
     console.log('location: ', location);
+    if (!location.clientId) {
+      console.log('updating location: ', location);
+      location.clientId = generateUUID();
+      WidgetController.updateLocation(location.id, new Location(location).toJSON());
+    }
     buildfire.bookmarks.add(
       {
-        id: location.id,
+        id: location.clientId,
         title: location.title,
         icon: location.listImage,
         payload: {
@@ -2106,8 +2112,8 @@ const bookmarkSearchResults = (e) => {
 
   buildfire.input.showTextDialog(
     {
-      placeholder: 'Enter bookmark title here',
-      saveText: 'Bookmark',
+      placeholder: window.strings.get('general.enterBookmarkTitleHere'),
+      saveText: window.strings.get('general.bookmark'),
       maxLength: 50,
       defaultValue: state.searchCriteria.searchValue,
     },

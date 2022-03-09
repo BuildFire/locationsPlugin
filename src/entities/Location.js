@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import buildfire from 'buildfire';
+import { generateUUID } from '../control/content/utils/helpers';
 
 /**
  * Location data model
@@ -12,6 +13,7 @@ export default class Location {
    */
   constructor(data = {}) {
     this.id = data.id || undefined;
+    this.clientId = data.clientId || generateUUID();
     this.title = data.title || null;
     this.subtitle = data.subtitle || null;
     this.pinIndex = data.pinIndex || null;
@@ -57,6 +59,7 @@ export default class Location {
   toJSON() {
     return {
       id: this.id,
+      clientId: this.clientId,
       title: this.title,
       subtitle: this.subtitle,
       pinIndex: this.pinIndex,
@@ -93,6 +96,7 @@ export default class Location {
             ...this.categories.subcategories.map(elemId => ({ string1: 's_' + elemId })),
             { string1: 'v_' + this.views },
             { string1: 'pr_' + this.price.range },
+            { string1: 'cid_' + this.clientId },
             { string1: 'title_' + this.title.toLowerCase() }
           ],
           number1: this.pinIndex

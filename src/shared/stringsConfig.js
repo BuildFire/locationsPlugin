@@ -33,6 +33,12 @@ export default {
         defaultValue: 'Closed',
         maxLength: 8,
       },
+      bookmark: {
+        title: 'Bookmark',
+        placeholder: 'Enter text here',
+        defaultValue: 'Bookmark',
+        maxLength: 10,
+      },
       bookmarks: {
         title: 'Bookmarks',
         placeholder: 'Enter text here',
@@ -44,6 +50,12 @@ export default {
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark Results',
         maxLength: 12,
+      },
+      enterBookmarkTitleHere: {
+        title: 'Enter bookmark title here',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enter bookmark title here',
+        maxLength: 50,
       },
       rateThisLocation: {
         title: 'Rate This Location',
