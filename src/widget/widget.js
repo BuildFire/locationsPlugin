@@ -21,6 +21,7 @@ import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/h
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
+import { generateUUID } from '../control/content/utils/helpers';
 
 // following is San Diego,US location
 const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
@@ -29,6 +30,7 @@ let SEARCH_TIMOUT;
 
 let mdcSortingMenu;
 let mdcPriceMenu;
+let bookmarkLoading = false;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -84,7 +86,7 @@ const buildSearchCriteria = () => {
       });
     }
   }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0) {
+  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0 || state.searchCriteria.bookmarked) {
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     if (state.searchCriteria.priceRange) {
       array1Index.push(`pr_${state.searchCriteria.priceRange}`);
@@ -93,6 +95,11 @@ const buildSearchCriteria = () => {
     if (state.searchableTitles.length > 0) {
       array1Index.push(...state.searchableTitles.map((title) => `title_${title.toLowerCase()}`));
     }
+
+    if (state.searchCriteria.bookmarked) {
+      query._id = { $in: state.bookmarks.map((b) => b.id) };
+    }
+
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
 
@@ -395,12 +402,13 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   const emptyStateContainer = document.querySelector('.drawer-empty-state');
+  const bookmarksSettings = state.settings.bookmarks;
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
@@ -436,7 +444,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -468,9 +476,10 @@ const renderListingLocations = (list) => {
 
 let chipSet;
 const refreshQuickFilter = () => {
-  const { design, filter } = state.settings;
+  const { design, filter, bookmarks } = state.settings;
   const container = document.querySelector('.header-qf');
   const hideQFBtn = document.querySelector('#hideQFBtn');
+  let html = '';
   if (chipSet) {
     chipSet.destroy();
     chipSet = null;
@@ -493,7 +502,20 @@ const refreshQuickFilter = () => {
     return;
   }
 
-  container.innerHTML = quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
+  if (filter.allowFilterByBookmarks && bookmarks.enabled) {
+    html += `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="bookmarksFilterBtn">
+        <div class="mdc-chip__ripple"></div>
+        <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+          <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+        </span>
+        <span role="gridcell">
+          <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+            <span class="mdc-chip__text">Bookmarks</span>
+          </span>
+        </span>
+      </div>`;
+  }
+  html += quickFilterItems.map((n) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="${n.id}">
         <div class="mdc-chip__ripple"></div>
         <span class="mdc-chip__checkmark"> <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
           <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
@@ -504,15 +526,20 @@ const refreshQuickFilter = () => {
           </span>
         </span>
       </div>`).join('\n');
+
+  container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
   chipSet.listen('MDCChip:interaction', (event) => {
-    const categoryId = event.detail.chipId;
-    if (state.filterElements[categoryId]) {
-      state.filterElements[categoryId].checked = !state.filterElements[categoryId].checked;
+    const { chipId } = event.detail;
+    if (chipId === 'bookmarksFilterBtn') {
+      state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
+    } else if (state.filterElements[chipId]) {
+      state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
     } else {
-      state.filterElements[categoryId] = { checked: true, subcategories: [] };
+      state.filterElements[chipId] = { checked: true, subcategories: [] };
     }
+    resetResultsBookmark();
     clearAndSearchWithDelay();
   });
   setTimeout(() => {
@@ -590,6 +617,7 @@ const isLocationOpen = (location) => {
 
 const showLocationDetail = () => {
   const { selectedLocation } = state;
+  const { bookmarks } = state.settings;
 
   views
     .fetch('detail')
@@ -619,7 +647,8 @@ const showLocationDetail = () => {
             main: document.querySelector('.location-detail__top-view'),
             map: document.querySelector('.location-detail__map--top-view'),
             workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
-            workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label')
+            workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
+            bookmarkLocationBtn: document.querySelector('#topBookmarkLocationBtn')
           }
         };
         selectors.main.style.display = 'block';
@@ -634,7 +663,8 @@ const showLocationDetail = () => {
             main: document.querySelector('.location-detail__cover'),
             map: document.querySelector('.location-detail__map'),
             workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
-            workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label')
+            workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
+            bookmarkLocationBtn: document.querySelector('#bookmarkLocationBtn')
           }
         };
         selectors.main.style.display = 'flex';
@@ -687,6 +717,13 @@ const showLocationDetail = () => {
         selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
         selectors.ratingValue.textContent = Array(Math.round(selectedLocation.rating.average) + 1).join('★ ');
         buildfire.components.ratingSystem.injectRatings();
+      }
+
+      if (bookmarks.enabled && bookmarks.allowForLocations) {
+        selectors.bookmarkLocationBtn.style.display = 'inline-block';
+        if (state.bookmarks.find((l) => l.id === selectedLocation.id)) {
+          selectors.bookmarkLocationBtn.textContent = 'star';
+        }
       }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
       ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="${a.iconClassName}"></i>` : ''}
@@ -898,6 +935,49 @@ const getDirections = () => {
   }
 };
 
+const bookmarkLocation = (locationId, e) => {
+  const location = state.listLocations.find((i) => i.id === locationId);
+  const { bookmarks } = state.settings;
+
+  if (bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+
+  bookmarkLoading = true;
+  setTimeout(() => { bookmarkLoading = false; }, 1000);
+
+  if (state.bookmarks.find((l) => l.id === location.id)) {
+    buildfire.bookmarks.delete(location.id, () => {
+      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
+    });
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.id), 1);
+    e.target.textContent = 'star_outline';
+  } else {
+    buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
+    console.log('location: ', location);
+    buildfire.bookmarks.add(
+      {
+        id: location.id,
+        title: location.title,
+        icon: location.listImage,
+        payload: {
+          locationId: location.id
+        },
+      },
+      (err, bookmark) => {
+        if (err) {
+          console.error(err);
+          buildfire.components.toast.showToastMessage({ text: 'Couldn\'t bookmark' });
+          return;
+        }
+        state.bookmarks.push({
+          id: location.id,
+          title: location.title
+        });
+        e.target.textContent = 'star';
+        console.log("Bookmark added", bookmark);
+      }
+    );
+  }
+};
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -914,7 +994,14 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'locationDirectionsBtn') {
+    if (e.target.id === 'bookmarkResultsBtn') {
+      bookmarkSearchResults(e);
+    } else if (e.target.classList.contains('bookmark-location-btn')) {
+      const locationId = e.target.closest('[data-id]')?.dataset?.id;
+      bookmarkLocation(locationId, e);
+    } else if (['topBookmarkLocationBtn', 'bookmarkLocationBtn'].includes(e.target.id)) {
+      bookmarkLocation(state.selectedLocation.id, e);
+    } if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
@@ -968,6 +1055,7 @@ const initEventListeners = () => {
     if (e.target.id === 'searchTextField') {
       state.searchCriteria.searchValue = value;
       state.checkNearLocation  = true;
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     }
 
@@ -975,6 +1063,7 @@ const initEventListeners = () => {
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
       state.searchCriteria.searchValue = value;
       state.checkNearLocation  = true;
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     }
   });
@@ -1001,6 +1090,7 @@ const initEventListeners = () => {
       openNowSortingBtn.classList.remove('selected');
     }
     state.checkNearLocation  = true;
+    resetResultsBookmark();
     clearAndSearchWithDelay();
   };
 };
@@ -1097,6 +1187,7 @@ const initFilterOverlay = () => {
     });
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
+    resetResultsBookmark();
     setTimeout(() => {
       target.disabled = false;
       mdcCheckBox.classList.remove('mdc-checkbox--disabled');
@@ -1139,6 +1230,7 @@ const initFilterOverlay = () => {
     }
 
     mdcChip.classList.add('disabled');
+    resetResultsBookmark();
     setTimeout(() => mdcChip.classList.remove('disabled'), 500);
   }));
 };
@@ -1294,6 +1386,7 @@ const initMainMap = () => {
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = () => {
     state.isMapIdle = false;
+    resetResultsBookmark();
     // handle hiding opened location
     const locationSummary = document.querySelector('#locationSummary');
     if (locationSummary && locationSummary.classList.contains('slide-in')) {
@@ -1328,10 +1421,11 @@ const refreshMapOptions = () => {
 
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
+  const { bookmarks } = state.settings;
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.id) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
@@ -1356,12 +1450,15 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.add('slide-in');
 };
 const initDrawerFilterOptions = () => {
-  const { sorting, filter } = state.settings;
+  const { sorting, bookmarks, filter } = state.settings;
   const otherSortingContainer = document.querySelector('.other-sorting-container');
   const priceFilterContainer = document.querySelector('.price-filter-container');
+  const drawerHeaderContainer = document.querySelector('.drawer-header');
   const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const bookmarksContainer = document.querySelector('.bookmark-result');
+  const isEmptyHeader = (!bookmarks.enabled || !bookmarks.allowForFilters) && sorting.hideSorting && filter.hidePriceFilter && filter.hideOpeningHoursFilter;
   const sortingOptions = [
     {
       key: 'allowSortByReverseAlphabetical',
@@ -1400,8 +1497,11 @@ const initDrawerFilterOptions = () => {
     }
   ];
 
-  [otherSortingContainer, priceFilterContainer, openNowFilterBtn].forEach((el) => hideElement(el));
+  [otherSortingContainer, priceFilterContainer, openNowFilterBtn, bookmarksContainer].forEach((el) => hideElement(el));
 
+  if (bookmarks.enabled && bookmarks.allowForFilters) {
+    bookmarksContainer.style.display = 'flex';
+  }
   if (!sorting.hideSorting) {
     const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
     mdcSortingMenu = new mdc.menu.MDCMenu(document.querySelector('.other-sorting-menu'));
@@ -1443,6 +1543,7 @@ const initDrawerFilterOptions = () => {
       } else if (value === 'views') {
         state.searchCriteria.sort = { sortBy: 'views', order: 1 };
       }
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     });
     showElement(otherSortingContainer);
@@ -1463,12 +1564,17 @@ const initDrawerFilterOptions = () => {
         priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
       }
+      resetResultsBookmark();
       clearAndSearchWithDelay();
     });
     showElement(priceFilterContainer);
   }
   if (!filter.hideOpeningHoursFilter) {
     showElement(openNowFilterBtn);
+  }
+
+  if (isEmptyHeader && document.querySelector('html').getAttribute('safe-area') === 'true') {
+    drawerHeaderContainer.style.paddingBottom = '30px';
   }
 
   adjustMapHeight();
@@ -1484,12 +1590,19 @@ const initHomeView = () => {
   initEventListeners();
   drawer.initialize(state.settings);
   initDrawerFilterOptions();
-  if (showIntroductoryListView) {
+
+  if (state.deepLinkData?.isResultsBookmark) {
+    handleResultsBookmark();
+  } else if (showIntroductoryListView) {
     Analytics.listViewUsed();
     initIntroLocations();
   } else {
     showMapView();
     initMapLocations();
+  }
+
+  if (state.deepLinkData?.locationId) {
+    navigateToLocationId(state.deepLinkData.locationId);
   }
 };
 
@@ -1642,7 +1755,21 @@ const handleCPSync = (message) => {
         const oms = outdatedSettings.map;
         // current design
         const d = state.settings.design;
-        if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
+        if (Object.keys(deepObjectDiff(state.settings.bookmarks, outdatedSettings.bookmarks)).length) {
+          if (state.settings.bookmarks.enabled !== outdatedSettings.bookmarks.enabled) {
+            clearMapViewList();
+            renderListingLocations(state.listLocations);
+            initDrawerFilterOptions();
+            refreshQuickFilter();
+            drawer.reset(state.settings.design.listViewPosition);
+          } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
+            clearMapViewList();
+            renderListingLocations(state.listLocations);
+          } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
+            initDrawerFilterOptions();
+            drawer.reset(state.settings.design.listViewPosition);
+          }
+        } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
           hideFilterOverlay();
           navigateTo('home');
           showMapView();
@@ -1654,6 +1781,8 @@ const handleCPSync = (message) => {
           showMapView();
           initDrawerFilterOptions();
           drawer.reset(state.settings.design.listViewPosition);
+        } else if (f.allowFilterByBookmarks !== of.allowFilterByBookmarks) {
+          refreshQuickFilter();
         } else if (f.allowFilterByArea !== of.allowFilterByArea) {
           const headerQF = document.querySelector('.header-qf');
           hideElement('#areaSearchLabel');
@@ -1749,10 +1878,80 @@ const handleCPSync = (message) => {
   }
 };
 
-const getDataHandler = (deeplinkData) => {
-  if (deeplinkData?.locationId) {
+const handleResultsBookmark = () => {
+  const { deepLinkData } = state;
+  const { filter, sorting } = state.settings;
+  const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
+  const priceSortingBtn = document.querySelector('#priceSortingBtn');
+  const priceSortingBtnLabel = document.querySelector('#priceSortingBtn .mdc-button__label');
+  const otherSortingMenuBtn = document.querySelector('#otherSortingBtn');
+  const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
+  const searchTextField = document.querySelector('#searchTextField');
+  const bookmarkResultsBtn = document.querySelector('#bookmarkResultsBtn');
+
+  bookmarkResultsBtn.setAttribute('bookmarkId', deepLinkData.bookmarkId);
+  bookmarkResultsBtn.textContent = 'star';
+
+  if (deepLinkData.searchCriteria.openingNow && !filter.hideOpeningHoursFilter) {
+    state.searchCriteria.openingNow = true;
+    state.checkNearLocation  = true;
+    openNowFilterBtn.classList.add('selected');
+  }
+  if (deepLinkData.searchCriteria.priceRange && !filter.hidePriceFilter) {
+    state.searchCriteria.priceRange = deepLinkData.searchCriteria.priceRange;
+    priceSortingBtnLabel.textContent = '$'.repeat(deepLinkData.searchCriteria.priceRange);
+    priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+  }
+  if (deepLinkData.searchCriteria.searchValue) {
+    state.searchCriteria.searchValue = deepLinkData.searchCriteria.searchValue;
+    searchTextField.value = state.searchCriteria.searchValue;
+  }
+
+  const { sortBy, order } = deepLinkData.searchCriteria.sort;
+
+  if (!sorting.hideSorting && sorting.defaultSorting !== deepLinkData.searchCriteria.sort.sortBy && !(sorting.defaultSorting === 'alphabetical' && sortBy === '_buildfire.index.text' && order === 1)) {
+    state.searchCriteria.sort = deepLinkData.searchCriteria.sort;
+    otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+    if (sortBy === 'distance') {
+      otherSortingMenuBtnLabel.textContent = 'Distance';
+    } else if (sortBy === '_buildfire.index.text' && order === 1) {
+      otherSortingMenuBtnLabel.textContent = 'Title (A-Z)';
+    } else if (sortBy === '_buildfire.index.text' && order === -1) {
+      otherSortingMenuBtnLabel.textContent = 'Title (Z-A)';
+    } else if (sortBy === 'price.range' && order === -1) {
+      otherSortingMenuBtnLabel.textContent = '$ - $$$';
+    } else if (sortBy === 'price.range' && order === 1) {
+      otherSortingMenuBtnLabel.textContent = '$$$ - $';
+    } else if (sortBy === '_buildfire.index.date1') {
+      otherSortingMenuBtnLabel.textContent = 'Recent';
+    } else if (sortBy === 'rating.average') {
+      otherSortingMenuBtnLabel.textContent = 'Recommended';
+    } else if (sortBy === 'views') {
+      otherSortingMenuBtnLabel.textContent = 'Most Viewed';
+    }
+  }
+
+  for (const key in deepLinkData.filterElements) {
+    if (state.filterElements[key]) {
+      state.filterElements[key] = deepLinkData.filterElements[key];
+    }
+  }
+
+  if (Object.keys(deepLinkData.filterElements).length > 0) {
+    refreshQuickFilter();
+  }
+
+  if (state.maps.map) {
+    state.maps.map.center(deepLinkData.mapCenter);
+  }
+
+  showMapView();
+  initMapLocations();
+};
+const navigateToLocationId = (locationId) => {
+  if (state.deepLinkData?.locationId) {
     refreshCategories()
-      .then(() => WidgetController.getLocation(deeplinkData.locationId))
+      .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = response.data;
         showLocationDetail();
@@ -1837,13 +2036,115 @@ const watchUserPositionChanges = () => {
   });
 };
 
+const getAllBookmarks = () => new Promise((resolve) => {
+  buildfire.bookmarks.getAll((err, bookmarks) => {
+    if (err) {
+      console.error(err);
+      return resolve;
+    }
+    console.info('retrieved bookmarks: ', bookmarks);
+    state.bookmarks = bookmarks;
+    resolve();
+  });
+});
+
+const handleDeepLinkData = () => new Promise((resolve) => {
+  buildfire.deeplink.getData((deepLinkData) => {
+    console.log('deeplinkData: ', deepLinkData);
+    state.deepLinkData = deepLinkData;
+    resolve();
+  });
+});
+
+const resetResultsBookmark = () => {
+  const bookmarkBtn = document.querySelector('#bookmarkResultsBtn');
+  bookmarkBtn.removeAttribute('bookmarkId');
+  bookmarkBtn.textContent = 'star_outline';
+};
+
+const bookmarkSearchResults = (e) => {
+  if (bookmarkLoading) return;
+
+  const targetBookmarkId = e.target.getAttribute('bookmarkId');
+  if (targetBookmarkId) {
+    return buildfire.bookmarks.delete(targetBookmarkId, (err, success) => {
+      state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === targetBookmarkId), 1);
+      buildfire.components.toast.showToastMessage({ text: 'Bookmark removed' });
+      resetResultsBookmark();
+    });
+  }
+  const bookmarkId = generateUUID();
+  const { map } = state.maps;
+  const {
+    searchValue,
+    openingNow,
+    priceRange,
+    sort
+  } = state.searchCriteria;
+
+  const payload = {
+    isResultsBookmark: true,
+    bookmarkId,
+    searchCriteria: {
+      searchValue,
+      openingNow,
+      priceRange,
+      sort,
+    },
+    mapCenter: {
+      lat: map.getCenter().lat(),
+      lng: map.getCenter().lng()
+    },
+    filterElements: {}
+  };
+
+  for (const key in state.filterElements) {
+    if (state.filterElements[key].checked) {
+      payload.filterElements[key] = state.filterElements[key];
+    }
+  }
+
+  buildfire.input.showTextDialog(
+    {
+      placeholder: 'Enter bookmark title here',
+      saveText: 'Bookmark',
+      maxLength: 50,
+      defaultValue: state.searchCriteria.searchValue,
+    },
+    (err, response) => {
+      if (err) return console.error(err);
+
+      const { results } = response;
+
+      if (response.cancelled || !results.length || !response.results[0].textValue) return;
+
+      bookmarkLoading = true;
+      setTimeout(() => { bookmarkLoading = false; }, 1000);
+      buildfire.bookmarks.add(
+        {
+          id: bookmarkId,
+          icon: 'https://pluginserver.buildfire.com/sharedResources/ic_location_no_img.png',
+          title: response.results[0].textValue,
+          payload,
+        },
+        (err, bookmark) => {
+          if (err) return console.error(err);
+          e.target.textContent = 'star';
+          e.target.setAttribute('bookmarkId', bookmarkId);
+          buildfire.components.toast.showToastMessage({ text: 'Bookmark added' });
+          console.log('bookmark added', bookmark);
+        }
+      );
+    }
+  );
+};
 const initAppStrings = () => {
   // string will have all the language settings from teh strings page on the control side
   window.strings = new buildfire.services.Strings('en-us', stringsConfig);
   window.strings
     .init()
     .then((s) => {
-    // Inject into elements that have an attribute bfString
+      // Inject into elements that have an attribute bfString
       window.strings.inject(document, false);
     });
   // todo handle onReceivedMessage refresh
@@ -1856,6 +2157,8 @@ const init = () => {
   const initialRequests = [
     getCurrentUserPosition(),
     refreshSettings(),
+    getAllBookmarks(),
+    handleDeepLinkData()
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
@@ -1863,7 +2166,6 @@ const init = () => {
       .then(() => {
         views.fetch('filter').then(() => { views.inject('filter'); });
         views.fetch('home').then(refreshCategories).then(initHomeView);
-        buildfire.deeplink.getData(getDataHandler);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;

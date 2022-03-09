@@ -361,6 +361,10 @@ div.empty-page {
   z-index: 1;
   cursor: grab;
 }
+.drawer-header .bookmark-result {
+  display: none;
+}
+
 .drawer-header .bookmark-result p {
   font-size: 14px;
   font-weight: bold;
@@ -996,4 +1000,11 @@ body section#home {
 .price-filter-container,
 #openNowSortingBtn {
   display: none;
+}
+.pointer-all {
+  pointer-events: all !important;
+}
+
+.align-self-center {
+  align-self: center;
 }

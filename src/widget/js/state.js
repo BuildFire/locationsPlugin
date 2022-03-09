@@ -13,6 +13,7 @@ export default {
   searchCriteria: {
     searchValue: '',
     openingNow: false,
+    bookmarked: false,
     priceRange: null,
     sort: {
       sortBy: 'distance',
@@ -38,5 +39,7 @@ export default {
   nearestLocation: null,
   checkNearLocation: true,
   isMapIdle: false,
-  firstRender: true
+  firstRender: true,
+  bookmarks: [],
+  deepLinkData: null
 };

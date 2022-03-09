@@ -26,7 +26,7 @@ const state = {
     hideOpeningHoursFilter: "Hide Opening Hours Filter",
     hidePriceFilter: "Hide Price Filter",
     allowFilterByLatest: "Filter by Latest",
-    allowFilterByBookmarks: "Filter by Top Bookmarked",
+    allowFilterByBookmarks: "Filter by Bookmarks",
     allowForLocations: "Allow Bookmark Location",
     allowForFilters: "Allow Bookmark Search"
   }
@@ -414,12 +414,12 @@ window.onSidenavChange = (section) => {
         initMap();
       });
       break;
-    // case 'bookmarks':
-    //   setActiveSidenavTab('bookmarks');
-    //   navigate('bookmarks', () => {
-    //     iniBookmarks();
-    //   });
-    //   break;
+    case 'bookmarks':
+      setActiveSidenavTab('bookmarks');
+      navigate('bookmarks', () => {
+        iniBookmarks();
+      });
+      break;
     default:
       setActiveSidenavTab('sorting');
       navigate('sorting');
