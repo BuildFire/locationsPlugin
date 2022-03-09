@@ -5,9 +5,11 @@ import Analytics from '../../../../utils/analytics';
 import DeepLink from '../../../../utils/deeplink';
 import SearchEngine from '../../../../repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
+import { generateUUID } from '../../utils/helpers';
 
 export default {
   createLocation(location) {
+    location.clientId = generateUUID();
     location.createdOn = new Date();
     location.createdBy = authManager.currentUser;
     return Location.add(location.toJSON()).then((result) => {

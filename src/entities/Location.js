@@ -13,7 +13,7 @@ export default class Location {
    */
   constructor(data = {}) {
     this.id = data.id || undefined;
-    this.clientId = data.clientId || generateUUID();
+    this.clientId = data.clientId || undefined;
     this.title = data.title || null;
     this.subtitle = data.subtitle || null;
     this.pinIndex = data.pinIndex || null;

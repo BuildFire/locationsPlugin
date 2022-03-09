@@ -409,7 +409,7 @@ const renderListingLocations = (list) => {
     content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
             <div class="location-image-item__header">
               <p>${n.distance ? n.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
               <p class="margin-bottom-five">${n.title}</p>
@@ -445,7 +445,7 @@ const renderListingLocations = (list) => {
             <p class="mdc-theme--text-body text-truncate">${n.address}</p>
           </div>
           <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.id) ? 'star' : 'star_outline'}</i>
+            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
@@ -620,6 +620,9 @@ const showLocationDetail = () => {
   const { selectedLocation } = state;
   const { bookmarks } = state.settings;
 
+  console.log('selectedLocation: ', selectedLocation);
+  console.log('state.deepLinkData: ', state.deepLinkData);
+
   views
     .fetch('detail')
     .then(() => {
@@ -722,7 +725,7 @@ const showLocationDetail = () => {
 
       if (bookmarks.enabled && bookmarks.allowForLocations) {
         selectors.bookmarkLocationBtn.style.display = 'inline-block';
-        if (state.bookmarks.find((l) => l.id === selectedLocation.id)) {
+        if (state.bookmarks.find((l) => l.id === selectedLocation.clientId)) {
           selectors.bookmarkLocationBtn.textContent = 'star';
         }
       }
@@ -975,7 +978,7 @@ const bookmarkLocation = (locationId, e) => {
           return;
         }
         state.bookmarks.push({
-          id: location.id,
+          id: location.clientId,
           title: location.title
         });
         e.target.textContent = 'star';
@@ -1431,7 +1434,7 @@ const handleMarkerClick = (location) => {
   summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(location.listImage)});">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.id) ? 'star' : 'star_outline'}</i>
+              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.clientId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
@@ -2112,8 +2115,8 @@ const bookmarkSearchResults = (e) => {
 
   buildfire.input.showTextDialog(
     {
-      placeholder: window.strings.get('general.enterBookmarkTitleHere'),
-      saveText: window.strings.get('general.bookmark'),
+      placeholder: window.strings.get('general.enterBookmarkTitleHere').v,
+      saveText: window.strings.get('general.bookmark').v,
       maxLength: 50,
       defaultValue: state.searchCriteria.searchValue,
     },
@@ -2137,6 +2140,10 @@ const bookmarkSearchResults = (e) => {
           if (err) return console.error(err);
           e.target.textContent = 'star';
           e.target.setAttribute('bookmarkId', bookmarkId);
+          state.bookmarks.push({
+            id: bookmarkId,
+            title: response.results[0].textValue
+          });
           buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
           console.log('bookmark added', bookmark);
         }

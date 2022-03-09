@@ -51,7 +51,6 @@ buildfire.services.Strings = class {
 
     /// use ${context.XXX} or global variables
     if (enableVariables) v = eval(`\`${v}\``);
-    console.log('l: ', l)
     return { v, isPlaceHolder: l.isPlaceHolder };
   }
 
@@ -111,7 +110,6 @@ buildfire.services.Strings = class {
   inject(element, enableVariables) {
     if (!element) element = document;
     const { type } = buildfire.getContext();
-    console.log('type: ', type)
     element.querySelectorAll("*[bfString]").forEach((e) => {
       const { v, isPlaceHolder } = this.get(e.getAttribute("bfString"), enableVariables) || "";
       if (e.nodeName === "TEXTAREA") {
