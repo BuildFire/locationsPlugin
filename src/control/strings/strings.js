@@ -56,7 +56,10 @@ function deleteLanguage() {
 
 function save() {
   strings.save(() => {
-    buildfire.messaging.sendMessageToWidget({ cmd: "refresh" });
+    buildfire.messaging.sendMessageToWidget({
+      cmd: 'sync',
+      scope: 'strings'
+    });
   });
 }
 

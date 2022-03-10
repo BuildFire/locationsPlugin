@@ -7,7 +7,7 @@ export default {
         placeholder: 'Enter text here',
         defaultValue: 'Search',
         isPlaceHolder: true,
-        maxLength: 20,
+        maxLength: 25,
       },
       price: {
         title: 'Price',
@@ -19,6 +19,12 @@ export default {
         title: 'Reset',
         placeholder: 'Enter text here',
         defaultValue: 'Reset',
+        maxLength: 10,
+      },
+      notAvailable: {
+        title: 'Not Available',
+        placeholder: 'Enter text here',
+        defaultValue: 'N/A',
         maxLength: 10,
       },
       open: {
@@ -37,7 +43,7 @@ export default {
         title: 'Bookmark',
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark',
-        maxLength: 10,
+        maxLength: 9,
       },
       bookmarks: {
         title: 'Bookmarks',
@@ -202,19 +208,19 @@ export default {
         title: 'Bookmark Removed',
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark removed',
-        maxLength: 25,
+        maxLength: 50,
       },
       bookmarksAdded: {
         title: 'Bookmark Added',
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark added',
-        maxLength: 25,
+        maxLength: 50,
       },
       bookmarksError: {
         title: 'Couldn\'t bookmark',
         placeholder: 'Enter text here',
         defaultValue: 'Couldn\'t bookmark',
-        maxLength: 25,
+        maxLength: 50,
       }
     }
   },
@@ -225,7 +231,7 @@ export default {
         title: 'Quick Filter',
         placeholder: 'Enter text here',
         defaultValue: 'No Categories Added',
-        maxLength: 25,
+        maxLength: 30,
       },
       locationsListBeforeSearch: {
         title: 'Locations List (Pre-Search)',

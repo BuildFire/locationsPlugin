@@ -1338,7 +1338,7 @@ const generateMapOptions = () => {
   if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
     options.center = { ...map.initialAreaCoordinates };
     state.currentLocation = { ...map.initialAreaCoordinates };
-    areaSearchTextField.value = map.initialAreaDisplayAddress || 'N/A';
+    areaSearchTextField.value = map.initialAreaDisplayAddress || window.strings.get('general.notAvailable').v;
   } else if (userPosition) {
     options.center = {
       lat: userPosition.latitude,
@@ -1599,6 +1599,7 @@ const initHomeView = () => {
   initEventListeners();
   drawer.initialize(state.settings);
   initDrawerFilterOptions();
+  window.strings.inject(document, false);
 
   if (state.deepLinkData?.isResultsBookmark) {
     handleResultsBookmark();
@@ -1884,6 +1885,8 @@ const handleCPSync = (message) => {
         showFilterOverlay();
         refreshQuickFilter();
       });
+  } else if (scope === 'strings') {
+    window.strings.refresh(() => window.location.reload());
   }
 };
 
@@ -2154,12 +2157,7 @@ const bookmarkSearchResults = (e) => {
 const initAppStrings = () => {
   // string will have all the language settings from teh strings page on the control side
   window.strings = new buildfire.services.Strings('en-us', stringsConfig);
-  window.strings
-    .init()
-    .then((s) => {
-      // Inject into elements that have an attribute bfString
-      window.strings.inject(document, false);
-    });
+  return window.strings.init()
   // todo handle onReceivedMessage refresh
   // buildfire.messaging.onReceivedMessage =msg=>{
   //   if(msg.cmd=="refresh") // message comes from the strings page on the control side
@@ -2171,7 +2169,8 @@ const init = () => {
     getCurrentUserPosition(),
     refreshSettings(),
     getAllBookmarks(),
-    handleDeepLinkData()
+    handleDeepLinkData(),
+    initAppStrings()
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
@@ -2184,7 +2183,6 @@ const init = () => {
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
         watchUserPositionChanges();
-        initAppStrings();
       });
   };
 };
