@@ -1955,6 +1955,7 @@ const handleResultsBookmark = () => {
 
   if (state.maps.map) {
     state.maps.map.center(deepLinkData.mapCenter);
+    state.maps.map.setZoom(deepLinkData.mapZoom);
   }
 
   showMapView();
@@ -2107,6 +2108,7 @@ const bookmarkSearchResults = (e) => {
       lat: map.getCenter().lat(),
       lng: map.getCenter().lng()
     },
+    mapZoom: map.zoom,
     filterElements: {}
   };
 

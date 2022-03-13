@@ -190,5 +190,9 @@ export default class Map {
     return boundsFields;
   }
 
+  get zoom() {
+    return this.map.getZoom();
+  }
+
   onMapIdle() {}
 }
