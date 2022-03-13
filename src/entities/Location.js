@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 import buildfire from 'buildfire';
-import { generateUUID } from '../control/content/utils/helpers';
 
 /**
  * Location data model
@@ -33,6 +32,11 @@ export default class Location {
     this.openingHours = data.openingHours || {
       timezone: null,
       days: {}
+    };
+    this.editingPermissions = data.editingPermissions || {
+      active: false,
+      editors: [],
+      tags: []
     };
     this.images = data.images || [];
     this.listImage = data.listImage || null;

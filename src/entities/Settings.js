@@ -60,6 +60,14 @@ export default class Settings {
       showDetailsCategory: true
     };
     this.owner = data.owner || {};
+    this.globalEditors = data.globalEditors || {
+      enabled: false,
+      tags: [],
+      users: []
+    };
+    this.locationEditors = data.locationEditors || {
+      enabled: false
+    };
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
