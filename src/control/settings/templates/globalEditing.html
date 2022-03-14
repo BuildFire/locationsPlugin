@@ -1,0 +1,41 @@
+<template>
+  <div class="flex-row space-between">
+    <div class="section-title">Global Editing Permissions</div>
+    <div class="form-group margin-top-ten">
+      <div class="button-switch">
+        <input id="enable-global-editing-btn" type="checkbox" />
+        <label class="label-success" for="enable-global-editing-btn"></label>
+      </div>
+    </div>
+  </div>
+  <div class="clearfix">
+    <p class="info-note">Grant permissions to edit all locations to specific users or users with specific tags. Users with editing permissions can edit the location through the app. "tooltip here"</p>
+  </div>
+
+  <hr class="none" />
+  <div class="actions">
+    <p>Tags</p>
+    <div class="actions">
+      <button class="btn btn-success btn-add" id="addGlobalTagsButton" type="button">
+        Add Tags
+      </button>
+    </div>
+  </div>
+  <div id="global-tags-list"></div>
+  <div class="empty-state hidden margin-top-fifteen" id="global-tags-empty-list">
+    <h4>No Tags Added.</h4>
+  </div>
+
+  <div class="actions">
+    <p>Location Editors</p>
+    <div class="actions">
+      <button class="btn btn-success btn-add" id="addGlobalEditorsButton" type="button">
+        Add Location Editors
+      </button>
+    </div>
+  </div>
+  <div id="global-editors-list"></div>
+  <div class="empty-state hidden margin-top-fifteen" id="global-editors-empty-list">
+    <h4>No Users Added.</h4>
+  </div>
+</template>

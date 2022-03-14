@@ -1,0 +1,44 @@
+thead, tbody tr {
+    display:table;
+    width:100%;
+    table-layout:fixed;/* even columns width , fix width of table too*/
+}
+th{
+    padding: 12px 8px 12px !important;
+    line-height: 26px;
+    vertical-align: top;
+    border-bottom: 1px solid #d8d8d8;
+}
+th > span {
+    padding-left: 5px;
+    cursor: pointer;
+}
+td.ellipsis{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 150px;
+}
+tbody {
+    display: block;
+    max-height: 300px !important;
+	overflow-y: auto;
+}
+table tbody tr {
+    background-color: transparent !important;
+}
+table tbody tr td {
+    border-top: none!important;
+    border-bottom: 1px solid #d8d8d8;
+}
+.editColumn,.deleteColumn{
+    width: 50px;
+    text-align: center;
+}
+.actionsColumn{
+    width: auto;
+    text-align: right;
+}
+.btn-primary {
+    margin-bottom: 16px;
+}

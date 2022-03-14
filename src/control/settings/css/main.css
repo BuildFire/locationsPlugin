@@ -1,7 +1,25 @@
 @import "../../../../../../styles/helper.css";
 @import "../../assets/bf_base.css";
 @import "../../assets/style.css";
+@import "../../assets/linearicons/cpIcons.css";
+@import "./dialog.css";
+@import "./sortableList.css";
+@import "./searchTable.css";
+@import "./reset.css";
+
+
 
 .button-switch {
     margin: 0 !important;
+}
+
+#global-tags-list,
+#global-editors-list {
+  max-height: 400px !important;
+  overflow-y: auto;
+}
+
+/*to fix a conflict with sortable List*/
+.text-primary {
+  color: #09A3EE !important;
 }

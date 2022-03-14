@@ -6,6 +6,8 @@ import buildfire from 'buildfire';
 import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
+import GlobalTagsListUI from './js/ui/globalTagsListUI';
+import GlobalEditrosListUI from './js/ui/globalEditorsListUI';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -31,6 +33,9 @@ const state = {
     allowForFilters: "Allow Bookmark Search"
   }
 };
+
+let globalTagsListUI = null;
+let locationsEditorsListUI = null;
 
 const initChat = () => {
   const allowChat = document.querySelector('#allow-chat-btn');
@@ -133,6 +138,132 @@ const initFiltering = () => {
 
     filterOptionsContainer.appendChild(switchBtn);
   }
+};
+
+const handleTagsEmptyState = () => {
+  const emptyState = document.querySelector('#global-tags-empty-list');
+  if (!state.settings.globalEditors.tags.length) {
+    emptyState.innerHTML = `<h4>No Tags Found.</h4>`;
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+};
+const handleEditorsEmptyState = () => {
+  const emptyState = document.querySelector('#global-editors-empty-list');
+  if (!state.settings.globalEditors.users.length) {
+    emptyState.innerHTML = `<h4>No Editors Found.</h4>`;
+    emptyState.classList.remove('hidden');
+  } else {
+    emptyState.classList.add('hidden');
+  }
+};
+
+const addGlobalTags = () => {
+  buildfire.auth.showTagsSearchDialog(null, (err, result) => {
+    if (err) return console.error(err);
+    console.log(result);
+
+    const { globalEditors } = state.settings;
+    globalEditors.tags = globalEditors.tags.concat(result.filter((t) => globalEditors.tags.findIndex((i) => i.id === t.id) < 0));
+    saveSettingsWithDelay();
+    globalTagsListUI.init(globalEditors.tags);
+  });
+};
+const addGlobalEditors = () => {
+  buildfire.auth.showUsersSearchDialog(null, (err, result) => {
+    if (err) return console.log(err);
+
+    if (result) {
+      console.log("Selected users", result.users);
+      console.log("Selected user ids", result.userIds);
+      const { globalEditors } = state.settings;
+      globalEditors.users = globalEditors.users.concat(result.userIds.filter((t) => globalEditors.users.findIndex((i) => i === t) < 0));
+      saveSettingsWithDelay();
+      locationsEditorsListUI.init(globalEditors.users);
+    }
+  });
+};
+
+const deleteGlobalEditor = (item, index, callback) => {
+  buildfire.notifications.confirm(
+    {
+      title: 'Delete Global Editor',
+      message: `Are you sure you want to delete ${item} global editor?`,
+      confirmButton: {
+        text: "Delete",
+        key: "y",
+        type: "danger",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        const { globalEditors } = state.settings;
+        globalEditors.users = globalEditors.users.filter((elem) => elem !== item);
+        saveSettingsWithDelay();
+        handleEditorsEmptyState();
+        callback(item);
+      }
+    }
+  );
+};
+
+const deleteGlobalTag = (item, index, callback) => {
+  buildfire.notifications.confirm(
+    {
+      title: 'Delete Global Tag',
+      message: `Are you sure you want to delete ${item.tagName} global tag?`,
+      confirmButton: {
+        text: "Delete",
+        key: "y",
+        type: "danger",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+        const { globalEditors } = state.settings;
+        globalEditors.tags = globalEditors.tags.filter((elem) => elem.id !== item.id);
+        saveSettingsWithDelay();
+        handleTagsEmptyState();
+        callback(item);
+      }
+    }
+  );
+};
+
+const initGlobalEditing = () => {
+  const enableBookmarksBtn = document.querySelector('#enable-global-editing-btn');
+  const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
+  const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
+  const { tags, users } = state.settings.globalEditors;
+
+  addGlobalTagsButton.addEventListener('click', addGlobalTags);
+  addGlobalEditorsButton.addEventListener('click', addGlobalEditors);
+  enableBookmarksBtn.checked = state.settings.globalEditors.enabled;
+  enableBookmarksBtn.onchange = (e) => {
+    state.settings.globalEditors.enabled = e.target.checked;
+    saveSettingsWithDelay();
+  };
+
+  globalTagsListUI = new GlobalTagsListUI('global-tags-list');
+  globalTagsListUI.onDeleteItem = deleteGlobalTag;
+  globalTagsListUI.init(tags);
+  handleTagsEmptyState();
+
+  locationsEditorsListUI = new GlobalEditrosListUI('global-editors-list');
+  locationsEditorsListUI.onDeleteItem = deleteGlobalEditor;
+  locationsEditorsListUI.init(users);
+  handleEditorsEmptyState();
 };
 
 const iniBookmarks = () => {
@@ -418,6 +549,12 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('bookmarks');
       navigate('bookmarks', () => {
         iniBookmarks();
+      });
+      break;
+    case 'globalEditing':
+      setActiveSidenavTab('global-editing');
+      navigate('globalEditing', () => {
+        initGlobalEditing();
       });
       break;
     default:

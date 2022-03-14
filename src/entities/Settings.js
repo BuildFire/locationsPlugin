@@ -89,6 +89,8 @@ export default class Settings {
       bookmarks: this.bookmarks,
       design: this.design,
       owner: this.owner,
+      globalEditors: this.globalEditors,
+      locationEditors: this.locationEditors,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,

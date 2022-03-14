@@ -84,6 +84,7 @@ export default class Location {
       rating: this.rating,
       bookmarksCount: this.bookmarksCount,
       actionItems: this.actionItems,
+      editingPermissions: this.editingPermissions,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,
