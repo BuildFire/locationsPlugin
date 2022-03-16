@@ -111,6 +111,12 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/control/settings/templates/globalEditing.html'),
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalEditing.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalEditing.html')
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/index.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

@@ -1,0 +1,68 @@
+<template>
+  <div class="flex-row space-between">
+    <div class="section-title">Location Editing Permissions</div>
+    <div class="form-group margin-top-ten">
+      <div class="button-switch">
+        <input id="enable-location-editing-btn" type="checkbox" />
+        <label class="label-success" for="enable-location-editing-btn"></label>
+      </div>
+    </div>
+  </div>
+  <div class="clearfix">
+    <p class="info-note">Grant editing permissions to specific locations and specific users. Users with editing permissions can edit the location through the app. "tooltip here"</p>
+  </div>
+
+  <hr class="none" />
+  <div class="actions">
+    <div class="actions">
+      <div class="search-bar">
+        <input id="category-search-input"  onkeyup="searchCategories()" placeholder="Search"
+               type="text" />
+        <button class="btn btn-info" onclick="searchCategories()" type="button">
+          <div class="search-icon"></div>
+        </button>
+      </div>
+      <button class="btn btn-success btn-add" id="addLocationsButton" type="button">
+        Select Locations
+      </button>
+    </div>
+  </div>
+  <div id="global-tags-list"></div>
+  <div class="empty-state hidden margin-top-fifteen" id="global-tags-empty-list">
+    <h4>No Tags Added.</h4>
+  </div>
+
+
+  <template id="searchBoxTemplate">
+    <div class="search-bar">
+      <input class="form-control search-input" id="" name="searchTxt" placeholder="Search" type="text"/>
+      <button class="btn btn-info search-btn" type="button">
+        <div class="search-icon"></div>
+      </button>
+    </div>
+  </template>
+
+  <template id="selectLocationItemTemplate">
+    <div class="main clearfix flex-row location-list-item">
+      <div class="padding-left-zero">
+        <div class="icon-holder location-icon">
+          <img class="image-icon hidden" />
+          <i class="glyph-icon hidden"></i>
+        </div>
+      </div>
+      <div class="flex-auto padding-zero">
+        <div class="flex-row space-between">
+          <div>
+            <h5 class="location-name text-bold margin-top-zero"></h5>
+            <span class="location-address"></span>
+          </div>
+          <div class="checkbox checkbox-primary">
+            <input class="checkbox-input" id="checkbox1" type="checkbox" />
+            <label class="checkbox-label" for="checkbox1"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+</template>

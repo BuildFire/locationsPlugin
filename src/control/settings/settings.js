@@ -8,6 +8,8 @@ import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
 import GlobalTagsListUI from './js/ui/globalTagsListUI';
 import GlobalEditrosListUI from './js/ui/globalEditorsListUI';
+import DialogComponent from './js/ui/dialog/dialog';
+import Locations from '../../repository/Locations';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -15,6 +17,17 @@ const emptyState = document.getElementById('empty-state');
 const templates = {};
 const state = {
   settings: new Settings(),
+  selectLocations: {
+    locations: [],
+    selected: [],
+    filter: {},
+    totalRecord: 0,
+    pageIndex: 0,
+    pageSize: 50,
+    fetchingNextPage: false,
+    fetchingEndReached: false,
+  },
+  editingLocations: {},
   dictionary: {
     hideSorting: "Hide User Controlled Sorting",
     allowSortByReverseAlphabetical: 'Allow Reverse Alphabetical Order',
@@ -241,16 +254,196 @@ const deleteGlobalTag = (item, index, callback) => {
   );
 };
 
+const resetSelectLocations = () => {
+  state.selectLocations.locations = [];
+  state.selectLocations.selected = [];
+  state.selectLocations.filter = {};
+  state.selectLocations.totalRecord = 0;
+  state.selectLocations.pageIndex = 0;
+  state.selectLocations.fetchingNextPage = false;
+  state.selectLocations.fetchingEndReached = false;
+};
+
+const searchLocations = (options = {}) => {
+  options.recordCount = true;
+  return Locations.search(options);
+};
+
+const loadSelectLocations = () => {
+  const { selectLocations } = state;
+  const options = {
+    sort: { "_buildfire.index.text": -1 },
+    filter: {
+      $or: [
+        { editingPermissions: { $exists: false } },
+        { 'editingPermissions.active': false }
+      ]
+    },
+    page: selectLocations.pageIndex,
+    pageSize: selectLocations.pageSize
+  };
+
+  if (Object.keys(selectLocations.filter).length > 0) {
+    Object.assign(options.filter, selectLocations.filter);
+  }
+
+  searchLocations(options)
+    .then(({ result, totalRecord }) => {
+      selectLocations.locations = selectLocations.locations.concat(result || []);
+      selectLocations.totalRecord = totalRecord || 0;
+      selectLocations.fetchingNextPage = false;
+      selectLocations.fetchingEndReached = selectLocations.locations.length >= totalRecord;
+      renderSelectLocations();
+    });
+};
+
+const loadMoreSelectLocations = () => {
+  const { selectLocations } = state;
+  if (selectLocations.fetchingNextPage || selectLocations.fetchingEndReached || !selectLocations.locations.length) return;
+  selectLocations.fetchingNextPage = true;
+  selectLocations.pageIndex += 1;
+  loadSelectLocations();
+};
+
+const cropImage = (url, options) => {
+  if (!url) {
+    return "";
+  }
+  return buildfire.imageLib.cropImage(url, options);
+};
+
+const createEmptyHolder = (message) => {
+  const div = document.createElement("div");
+  div.className = 'empty-state margin-top-fifteen';
+  div.innerHTML = `<hr class="none"><h4>${message || 'No Data'}.</h4>`;
+  return div;
+};
+
+const createDialogLocationsList = (locations, locationsContainer) => {
+  const { selectLocations } = state;
+
+  locationsContainer.innerHTML = '';
+
+  if (locations.length === 0) {
+    locationsContainer.appendChild(createEmptyHolder('No Locations Found'));
+    return;
+  }
+  // eslint-disable-next-line no-restricted-syntax
+  for (let i = 0; i < locations.length; i++) {
+    const _location = locations[i];
+    const selectLocationItem = createTemplate("selectLocationItemTemplate");
+    const categoryIcon = selectLocationItem.querySelector(".location-icon");
+    const locationName = selectLocationItem.querySelector(".location-name");
+    const locationAddress = selectLocationItem.querySelector(".location-address");
+    const checkboxInput = selectLocationItem.querySelector('.checkbox-input');
+    const checkboxLabel = selectLocationItem.querySelector('.checkbox-label');
+
+    selectLocationItem.id = _location.id;
+
+    const imageIcon = categoryIcon.querySelector(".image-icon");
+    imageIcon.classList.remove("hidden");
+    imageIcon.src = cropImage(_location.listImage, {
+      width:  40,
+      height: 40,
+    });
+
+    locationName.innerHTML = _location.title;
+    locationAddress.innerHTML = _location.formattedAddress;
+
+    checkboxInput.id = _location.id;
+    checkboxLabel.htmlFor = _location.id;
+    checkboxInput.onchange = (e) => {
+      if (e.target.checked) {
+        selectLocations.selected.push(e.target.id);
+      } else {
+        selectLocations.selected = selectLocations.selected.filter((locationId) => locationId !== e.target.id);
+      }
+    };
+    locationsContainer.appendChild(selectLocationItem);
+  }
+};
+
+const renderSelectLocations = () => {
+  const { selectLocations } = state;
+  const categoriesListContainer = document.querySelector('.select-locations-list');
+  createDialogLocationsList(selectLocations.locations, categoriesListContainer);
+};
+
+const openSelectLocationsDialog = () => {
+  const locationsListContainer = document.createElement("div");
+  locationsListContainer.classList.add("select-locations-list");
+  locationsListContainer.appendChild(createEmptyHolder('Loading...'));
+
+  const searchBox = createTemplate('searchBoxTemplate');
+  const dialogContent = document.createElement('div');
+  dialogContent.appendChild(searchBox);
+  dialogContent.appendChild(locationsListContainer);
+
+  const selectLocationDialog = new DialogComponent("dialogComponent", dialogContent);
+  selectLocationDialog.onScroll = (e) => {
+    if (e.target.scrollTop + e.target.offsetHeight > locationsListContainer.offsetHeight) {
+      loadMoreSelectLocations();
+    }
+  };
+
+  let timeoutId;
+  const searchInput = dialogContent.querySelector('.search-input');
+  searchInput.onkeyup = (e) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      const searchValue = e.target.value;
+      locationsListContainer.innerHTML = '';
+      locationsListContainer.appendChild(createEmptyHolder('Loading...'));
+      resetSelectLocations();
+      if (searchValue) {
+        state.selectLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+      }
+      loadSelectLocations();
+    }, 300);
+  };
+
+  selectLocationDialog.showDialog(
+    {
+      title: 'Select Locations',
+      saveText: 'Add Locations',
+      hideDelete: false,
+    },
+    (e) => {
+      e.preventDefault();
+      if (state.selectLocations.selected.length > 0) {
+        // todo save locations
+      }
+      selectLocationDialog.close(e);
+    }
+  );
+
+  resetSelectLocations();
+  loadSelectLocations();
+};
+
+const initLocationEditing = () => {
+  const enableLocationEditingBtn = document.querySelector('#enable-location-editing-btn');
+  const addLocationsButton = document.querySelector('#addLocationsButton');
+
+  enableLocationEditingBtn.checked = state.settings.locationEditors.enabled;
+  enableLocationEditingBtn.onchange = (e) => {
+    state.settings.locationEditors.enabled = e.target.checked;
+    saveSettingsWithDelay();
+  };
+
+  addLocationsButton.addEventListener('click', openSelectLocationsDialog);
+};
+
 const initGlobalEditing = () => {
-  const enableBookmarksBtn = document.querySelector('#enable-global-editing-btn');
+  const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
   const { tags, users } = state.settings.globalEditors;
 
   addGlobalTagsButton.addEventListener('click', addGlobalTags);
   addGlobalEditorsButton.addEventListener('click', addGlobalEditors);
-  enableBookmarksBtn.checked = state.settings.globalEditors.enabled;
-  enableBookmarksBtn.onchange = (e) => {
+  enableGlobalEditingBtn.checked = state.settings.globalEditors.enabled;
+  enableGlobalEditingBtn.onchange = (e) => {
     state.settings.globalEditors.enabled = e.target.checked;
     saveSettingsWithDelay();
   };
@@ -555,6 +748,12 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('global-editing');
       navigate('globalEditing', () => {
         initGlobalEditing();
+      });
+      break;
+    case 'locationEditing':
+      setActiveSidenavTab('location-editing');
+      navigate('locationEditing', () => {
+        initLocationEditing();
       });
       break;
     default:

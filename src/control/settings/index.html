@@ -54,6 +54,11 @@
           <p>Global Editing Permissions</p>
         </a>
       </li>
+      <li id="location-editing-tab">
+        <a onclick="onSidenavChange('locationEditing')">
+          <p>Location Editing Permissions</p>
+        </a>
+      </li>
     </ul>
     <div id="sidenav-content" class="sidenav-content">
       <div id="main"></div>
@@ -73,6 +78,36 @@
     </div>
     <hr class="none" />
   </template>
+
+  <div class="dialog-component" id="dialogComponent">
+    <div class="dialog-header padded">
+      <h4 class="dialog-header-text">Entity Title</h4>
+      <a><span class="icon icon-cross2 close-modal"></span></a>
+    </div>
+    <div class="dialog-body padded">
+      <div class="form-group main clearfix">
+        <div class="col-md-4 pull-left">
+          <label class="required-label" for="statTitle">Title</label>
+        </div>
+        <div class="col-md-8 pull-right">
+          <input
+            class="form-control"
+            id="statTitle"
+            maxlength="100"
+            placeholder="Title"
+            required
+            type="text"
+          />
+          <div class="text-danger hidden" id="statTitleError">Required</div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer padded">
+      <button class="btn btn-default dialog-cancel-btn">Cancel</button>
+      <button class="btn btn-success dialog-save-btn">Save</button>
+    </div>
+  </div>
+
   <!--
     Do not include the 'settings.js' script tag!
     Webpack will inject it automatically to this html's body

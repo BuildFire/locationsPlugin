@@ -138,6 +138,13 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationEditing.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationEditing.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/tests/index.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
