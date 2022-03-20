@@ -7,9 +7,11 @@ import Settings from '../../entities/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
 import GlobalTagsListUI from './js/ui/globalTagsListUI';
-import GlobalEditrosListUI from './js/ui/globalEditorsListUI';
+import GlobalEditorsListUI from './js/ui/globalEditorsListUI';
+import LocationEditingListUI from './js/ui/locationEditingListUI';
 import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../repository/Locations';
+import { getDisplayName } from './js/util/helpers';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -27,7 +29,15 @@ const state = {
     fetchingNextPage: false,
     fetchingEndReached: false,
   },
-  editingLocations: {},
+  editingLocations: {
+    locations: [],
+    filter: {},
+    totalRecord: 0,
+    pageIndex: 0,
+    pageSize: 50,
+    fetchingNextPage: false,
+    fetchingEndReached: false,
+  },
   dictionary: {
     hideSorting: "Hide User Controlled Sorting",
     allowSortByReverseAlphabetical: 'Allow Reverse Alphabetical Order',
@@ -49,6 +59,7 @@ const state = {
 
 let globalTagsListUI = null;
 let locationsEditorsListUI = null;
+let locationEditingListUI = null;
 
 const initChat = () => {
   const allowChat = document.querySelector('#allow-chat-btn');
@@ -171,16 +182,29 @@ const handleEditorsEmptyState = () => {
     emptyState.classList.add('hidden');
   }
 };
+const handleLocationsEditingEmptyState = () => {
+  if (state.editingLocations.locations.length) return;
+  const locationsContainer = document.querySelector('#location-editing-list');
+  locationsContainer.innerHTML = '';
+  locationsContainer.appendChild(createEmptyHolder('No Locations Found'));
+};
+
+const showLocationsEditingLoadingState = () => {
+  const locationsContainer = document.querySelector('#location-editing-list');
+  locationsContainer.innerHTML = '';
+  locationsContainer.appendChild(createEmptyHolder('Loading..'));
+};
 
 const addGlobalTags = () => {
   buildfire.auth.showTagsSearchDialog(null, (err, result) => {
     if (err) return console.error(err);
-    console.log(result);
-
-    const { globalEditors } = state.settings;
-    globalEditors.tags = globalEditors.tags.concat(result.filter((t) => globalEditors.tags.findIndex((i) => i.id === t.id) < 0));
-    saveSettingsWithDelay();
-    globalTagsListUI.init(globalEditors.tags);
+    if (result) {
+      const { globalEditors } = state.settings;
+      globalEditors.tags = globalEditors.tags.concat(result.filter((t) => globalEditors.tags.findIndex((i) => i.id === t.id) < 0));
+      saveSettingsWithDelay();
+      handleTagsEmptyState();
+      globalTagsListUI.init(globalEditors.tags);
+    }
   });
 };
 const addGlobalEditors = () => {
@@ -189,11 +213,68 @@ const addGlobalEditors = () => {
 
     if (result) {
       console.log("Selected users", result.users);
-      console.log("Selected user ids", result.userIds);
       const { globalEditors } = state.settings;
       globalEditors.users = globalEditors.users.concat(result.userIds.filter((t) => globalEditors.users.findIndex((i) => i === t) < 0));
+
+      buildfire.auth.getUserProfiles({ userIds: globalEditors.users }, (err, _users) => {
+        if (err) return console.error(err);
+        if (globalEditors.users.length !== _users.length) console.error('Not all users are retrieved');
+        handleEditorsEmptyState();
+        locationsEditorsListUI.init(_users);
+      });
       saveSettingsWithDelay();
-      locationsEditorsListUI.init(globalEditors.users);
+    }
+  });
+};
+
+const addLocationTags = (location, callback) => {
+  buildfire.auth.showTagsSearchDialog(null, (err, result) => {
+    if (err) return console.error(err);
+    if (result?.length) {
+      const { tags } = location.editingPermissions;
+      location.editingPermissions.tags = tags.concat(result.filter((item) => tags.findIndex((i) => i.id === item.id) < 0));
+
+      const payload = {
+        $set: {
+          lastUpdatedOn: new Date(),
+          editingPermissions: location.editingPermissions
+        }
+      };
+
+      Locations
+        .update(location.id, payload)
+        .then((result) => {
+          callback(null, { id: result.id, ...result.data });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  });
+};
+const addLocationEditors = (location, callback) => {
+  buildfire.auth.showUsersSearchDialog(null, (err, result) => {
+    if (err) return console.log(err);
+
+    if (result && result.userIds.length) {
+      const { editors } = location.editingPermissions;
+      location.editingPermissions.editors = editors.concat(result.userIds.filter((item) => editors.indexOf(item) < 0));
+
+      const payload = {
+        $set: {
+          lastUpdatedOn: new Date(),
+          editingPermissions: location.editingPermissions
+        }
+      };
+
+      Locations
+        .update(location.id, payload)
+        .then((result) => {
+          callback(null, { id: result.id, ...result.data });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   });
 };
@@ -202,7 +283,7 @@ const deleteGlobalEditor = (item, index, callback) => {
   buildfire.notifications.confirm(
     {
       title: 'Delete Global Editor',
-      message: `Are you sure you want to delete ${item} global editor?`,
+      message: `Are you sure you want to delete ${getDisplayName(item)} global editor?`,
       confirmButton: {
         text: "Delete",
         key: "y",
@@ -217,7 +298,7 @@ const deleteGlobalEditor = (item, index, callback) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
         const { globalEditors } = state.settings;
-        globalEditors.users = globalEditors.users.filter((elem) => elem !== item);
+        globalEditors.users = globalEditors.users.filter((elem) => elem !== item._id);
         saveSettingsWithDelay();
         handleEditorsEmptyState();
         callback(item);
@@ -264,9 +345,95 @@ const resetSelectLocations = () => {
   state.selectLocations.fetchingEndReached = false;
 };
 
+const resetEditingLocations = () => {
+  state.editingLocations.locations = [];
+  state.editingLocations.filter = {};
+  state.editingLocations.totalRecord = 0;
+  state.editingLocations.pageIndex = 0;
+  state.editingLocations.fetchingNextPage = false;
+  state.editingLocations.fetchingEndReached = false;
+};
+
 const searchLocations = (options = {}) => {
   options.recordCount = true;
   return Locations.search(options);
+};
+
+const removeAsEditingLocations = (location, index, callback) => {
+  buildfire.notifications.confirm(
+    {
+      title: 'Remove Editing Permissions',
+      message: `Are you sure you want to remove the editing permissions for this location?`,
+      confirmButton: {
+        text: "Delete",
+        key: "y",
+        type: "danger",
+      },
+      cancelButton: {
+        text: "Cancel",
+        key: "n",
+        type: "default",
+      },
+    }, (e, data) => {
+      if (e) console.error(e);
+      if (data && data.selectedButton.key === "y") {
+
+        const payload = {
+          $set: {
+            lastUpdatedOn: new Date(),
+            editingPermissions: {
+              active: false,
+              tags: [],
+              editors: []
+            }
+          }
+        };
+
+        Locations
+          .update(location.id, payload)
+          .then((result) => {
+            state.editingLocations.locations = state.editingLocations.locations.filter((item) => item.id !== result.id);
+            handleLocationsEditingEmptyState();
+            callback({ id: result.id, ...result.data });
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    }
+  );
+};
+
+const selectAsEditingLocations = () => {
+  if (!state.selectLocations.selected.length) return;
+
+  showLocationsEditingLoadingState();
+
+  const promiseChain = [];
+  const { selectLocations } = state;
+
+  selectLocations.selected.forEach((id) => {
+    const location = selectLocations.locations.find((l) => l.id === id);
+    location.editingPermissions.active = true;
+    const payload = {
+      $set: {
+        lastUpdatedOn: new Date(),
+        editingPermissions: location.editingPermissions
+      }
+    };
+
+    promiseChain.push(Locations.update(id, payload));
+  });
+
+  Promise.all(promiseChain)
+    .then((result) => {
+      console.log('result after update: ', result.map((u) => ({ ...u.data, id: u.id })));
+      state.editingLocations.locations = [...result.map((u) => ({ ...u.data, id: u.id })), ...state.editingLocations.locations];
+      locationEditingListUI.init(state.editingLocations.locations);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 };
 
 const loadSelectLocations = () => {
@@ -303,6 +470,41 @@ const loadMoreSelectLocations = () => {
   selectLocations.fetchingNextPage = true;
   selectLocations.pageIndex += 1;
   loadSelectLocations();
+};
+
+const loadMoreEditingLocations = () => {
+  const { editingLocations } = state;
+  if (editingLocations.fetchingNextPage || editingLocations.fetchingEndReached || !editingLocations.locations.length) return;
+  editingLocations.fetchingNextPage = true;
+  editingLocations.pageIndex += 1;
+  loadEditingLocations();
+};
+
+const loadEditingLocations = () => {
+  const { editingLocations } = state;
+
+  const options = {
+    sort: { "_buildfire.index.text": -1 },
+    filter: {
+      'editingPermissions.active': true
+    },
+    page: editingLocations.pageIndex,
+    pageSize: editingLocations.pageSize
+  };
+
+  if (Object.keys(editingLocations.filter).length > 0) {
+    Object.assign(options.filter, editingLocations.filter);
+  }
+
+  searchLocations(options)
+    .then(({ result, totalRecord }) => {
+      editingLocations.locations = editingLocations.locations.concat(result || []);
+      editingLocations.totalRecord = totalRecord || 0;
+      editingLocations.fetchingNextPage = false;
+      editingLocations.fetchingEndReached = editingLocations.locations.length >= totalRecord;
+      locationEditingListUI.init(editingLocations.locations);
+      handleLocationsEditingEmptyState();
+    });
 };
 
 const cropImage = (url, options) => {
@@ -410,9 +612,7 @@ const openSelectLocationsDialog = () => {
     },
     (e) => {
       e.preventDefault();
-      if (state.selectLocations.selected.length > 0) {
-        // todo save locations
-      }
+      selectAsEditingLocations();
       selectLocationDialog.close(e);
     }
   );
@@ -421,9 +621,120 @@ const openSelectLocationsDialog = () => {
   loadSelectLocations();
 };
 
+const openLocationPermsDialog = (location) => {
+  let hasChanged = false;
+
+  const handleLocationsTagsEmptyState = () => {
+    if (!editingPermissions.tags.length) {
+      locationTagsListContainer.appendChild(createEmptyHolder('No Tags Found'));
+    }
+  };
+  const handleLocationsEditorsEmptyState = () => {
+    if (!editingPermissions.editors.length) {
+      locationEditorsListContainer.innerHTML = '';
+      locationEditorsListContainer.appendChild(createEmptyHolder('No Users Found'));
+    }
+  };
+  const deleteLocationTag = (item, index, callback) => {
+    editingPermissions.tags = editingPermissions.tags.filter((elem) => elem.id !== item.id);
+    hasChanged = true;
+    handleLocationsTagsEmptyState();
+    callback(item);
+  };
+  const deleteLocationEditor = (item, index, callback) => {
+    editingPermissions.editors = editingPermissions.editors.filter((elem) => elem !== item._id);
+    hasChanged = true;
+    handleLocationsEditorsEmptyState();
+    callback(item);
+  };
+
+
+  const locationTagsListContainer = document.createElement('div');
+  const tagsContainerTitle = document.createElement('h5');
+
+  locationTagsListContainer.id = 'location-tags-list';
+  tagsContainerTitle.textContent = 'Location Editor Tags';
+
+  const locationEditorsListContainer = document.createElement('div');
+  const editorsContainerTitle = document.createElement('h5');
+
+  editorsContainerTitle.textContent = 'Location Editors';
+  locationEditorsListContainer.id = 'location-editors-list';
+  locationEditorsListContainer.appendChild(createEmptyHolder('Loading..'));
+
+  const infoNote = document.createElement('p');
+  infoNote.className = 'info-note pre-line';
+  infoNote.textContent = 'Users that have the tags included here will still be editors even if they haven\'t been specifically added.\n\nThe location editing permissions will be removed if all tags and editors are removed.';
+
+  const dialogContent = document.createElement('div');
+  dialogContent.appendChild(infoNote);
+  dialogContent.appendChild(tagsContainerTitle);
+  dialogContent.appendChild(locationTagsListContainer);
+  dialogContent.appendChild(editorsContainerTitle);
+  dialogContent.appendChild(locationEditorsListContainer);
+
+  const selectLocationDialog = new DialogComponent("dialogComponent", dialogContent);
+
+  const editingPermissions = JSON.parse(JSON.stringify(location.editingPermissions));
+  if (editingPermissions.tags.length) {
+    const locationTagsListUI = new GlobalTagsListUI('location-tags-list');
+    locationTagsListUI.onDeleteItem = deleteLocationTag;
+    locationTagsListUI.init(editingPermissions.tags);
+  } else {
+    handleLocationsTagsEmptyState();
+  }
+
+  if (editingPermissions.editors.length) {
+    buildfire.auth.getUserProfiles({ userIds: editingPermissions.editors }, (err, users) => {
+      if (err) return console.error(err);
+      if (users.length !== editingPermissions.editors.length) console.error('Not all users are retrieved');
+      const locationEditorsListUI = new GlobalEditorsListUI('location-editors-list');
+      locationEditorsListUI.onDeleteItem = deleteLocationEditor;
+      locationEditorsListUI.init(users);
+    });
+  } else {
+    handleLocationsEditorsEmptyState();
+  }
+
+  selectLocationDialog.showDialog(
+    {
+      title: location.title,
+      saveText: 'OK',
+      hideDelete: false,
+      primarySaveBtn: true
+    },
+    (e) => {
+      e.preventDefault();
+      selectLocationDialog.close(e);
+      if (hasChanged) {
+        showLocationsEditingLoadingState();
+        const payload = {
+          $set: {
+            lastUpdatedOn: new Date(),
+            editingPermissions
+          }
+        };
+
+        Locations
+          .update(location.id, payload)
+          .then((result) => {
+            const index = state.editingLocations.locations.findIndex((i) => i.id === result.id);
+            state.editingLocations.locations[index] = { id: result.id, ...result.data };
+            locationEditingListUI.init(state.editingLocations.locations);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    }
+  );
+};
 const initLocationEditing = () => {
   const enableLocationEditingBtn = document.querySelector('#enable-location-editing-btn');
   const addLocationsButton = document.querySelector('#addLocationsButton');
+  const locationsListContainer = document.querySelector('#location-editing-list');
+  const searchInput = document.querySelector('#location-editing-search-input');
+  let timeoutId;
 
   enableLocationEditingBtn.checked = state.settings.locationEditors.enabled;
   enableLocationEditingBtn.onchange = (e) => {
@@ -431,7 +742,35 @@ const initLocationEditing = () => {
     saveSettingsWithDelay();
   };
 
-  addLocationsButton.addEventListener('click', openSelectLocationsDialog);
+  searchInput.onkeyup = (e) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      const searchValue = e.target.value;
+      resetEditingLocations();
+      showLocationsEditingLoadingState();
+      if (searchValue) {
+        state.editingLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+      }
+      loadEditingLocations();
+    }, 300);
+  };
+
+  addLocationsButton.onclick = openSelectLocationsDialog;
+  locationsListContainer.onscroll = (e) => {
+    if (e.target.scrollTop + e.target.offsetHeight > locationsListContainer.offsetHeight) {
+      loadMoreEditingLocations();
+    }
+  };
+
+  locationEditingListUI = new LocationEditingListUI('location-editing-list');
+  locationEditingListUI.onAddUsers = addLocationEditors;
+  locationEditingListUI.onAddTags = addLocationTags;
+  locationEditingListUI.onDeleteItem = removeAsEditingLocations;
+  locationEditingListUI.onUpdateItem = openLocationPermsDialog;
+
+  showLocationsEditingLoadingState();
+  resetEditingLocations();
+  loadEditingLocations();
 };
 
 const initGlobalEditing = () => {
@@ -453,9 +792,15 @@ const initGlobalEditing = () => {
   globalTagsListUI.init(tags);
   handleTagsEmptyState();
 
-  locationsEditorsListUI = new GlobalEditrosListUI('global-editors-list');
+  locationsEditorsListUI = new GlobalEditorsListUI('global-editors-list');
   locationsEditorsListUI.onDeleteItem = deleteGlobalEditor;
-  locationsEditorsListUI.init(users);
+  if (users.length) {
+    buildfire.auth.getUserProfiles({ userIds: users }, (err, _users) => {
+      if (err) return console.error(err);
+      if (users.length !== _users.length) console.error('Not all users are retrieved');
+      locationsEditorsListUI.init(_users);
+    });
+  }
   handleEditorsEmptyState();
 };
 

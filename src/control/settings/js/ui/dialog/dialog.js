@@ -41,6 +41,7 @@ export default class DialogComponent {
     const btnCancelButton = this.container.querySelector(".dialog-cancel-btn");
     btnCancelButton.style.display = ''; // reset
     btnSave.style.display = ''; // reset
+    btnSave.classList.add('btn-success'); // reset
     this.container.querySelector('.dialog-footer').style.display = ''; // reset
     this.closeButton.style.display = '';
 
@@ -67,6 +68,10 @@ export default class DialogComponent {
       }
       if (options.hideCancel) {
         this.closeButton.style.display = 'none';
+      }
+      if (options.primarySaveBtn) {
+        btnSave.classList.remove('btn-success');
+        btnSave.classList.add('btn-primary');
       }
     }
     this.showBackdrop();

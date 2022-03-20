@@ -28,6 +28,8 @@ class SortableListUI {
       this.sortableList = new SortableList(this.container, items || [], this._injectItemElements, this.options);
       this.sortableList.onItemClick = this.onItemClick;
       this.sortableList.onDeleteItem = this.onDeleteItem;
+      this.sortableList.onAddUsers = this.onAddUsers;
+      this.sortableList.onAddTags = this.onAddTags;
       this.sortableList.onUpdateItem = this.onUpdateItem;
       this.sortableList.onOrderChange = this.onOrderChange;
       this.sortableList.onToggleChange = this.onToggleChange;
@@ -83,6 +85,10 @@ class SortableListUI {
   onImageClick(item, index, divRow) {
 
   }
+
+  onAddUsers() {}
+
+  onAddTags() {}
 }
 
 export default SortableListUI;

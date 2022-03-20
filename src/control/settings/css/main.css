@@ -14,19 +14,73 @@
 }
 
 #global-tags-list,
-#global-editors-list {
+#global-editors-list,
+#location-editing-list {
   max-height: 400px !important;
   overflow-y: auto;
 }
+
+#location-tags-list,
+#location-editors-list {
+  max-height: 300px !important;
+  overflow-y: auto;
+}
+
 
 /*to fix a conflict with sortable List*/
 .text-primary {
   color: #09A3EE !important;
 }
 
+.select-locations-list {
+  margin-top: 20px;
+}
 .select-locations-list .location-list-item {
   border-radius: 4px;
   border: 1px solid #d3d2d2;
   padding: .7rem;
   margin-top: .5rem;
+}
+
+#location-editing-list .btn.btn-sm {
+  min-width: 5rem;
+}
+
+.pre-line {
+  white-space: pre-line;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+.width-unset {
+  width: unset !important;
+}
+
+.bf-tooltip {
+  display: inline-flex;
+  position: relative;
+  cursor: default;
+  z-index: 10;
+}
+
+.bf-tooltip .tooltip-content {
+  top: 75px;
+}
+
+.bf-tooltip .tooltip-content img {
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.cursor-default {
+  cursor: default !important;
+}
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.pointer-events-none {
+  pointer-events: none  !important;
 }

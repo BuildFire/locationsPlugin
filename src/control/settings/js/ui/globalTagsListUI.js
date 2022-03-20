@@ -23,7 +23,7 @@ class GlobalTagsListUI extends SortableListUI {
     // Add the required classes to the elements
     divRow.className = "d-item clearfix";
     moveHandle.className = "icon icon-menu cursor-grab";
-    titleContainer.className = "title-container ellipsis";
+    titleContainer.className = "title-container ellipsis pointer-events-none";
     title.className = "title ellipsis item-title";
 
     titleContainer.appendChild(title);
