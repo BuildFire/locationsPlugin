@@ -218,7 +218,7 @@ const addGlobalEditors = () => {
 
       buildfire.auth.getUserProfiles({ userIds: globalEditors.users }, (err, _users) => {
         if (err) return console.error(err);
-        if (globalEditors.users.length !== _users.length) console.error('Not all users are retrieved');
+        if (globalEditors.users.length !== _users.length) console.warn('Not all users are retrieved');
         handleEditorsEmptyState();
         locationsEditorsListUI.init(_users);
       });
@@ -514,10 +514,13 @@ const cropImage = (url, options) => {
   return buildfire.imageLib.cropImage(url, options);
 };
 
-const createEmptyHolder = (message) => {
+const createEmptyHolder = (message = 'No Data', classes = '') => {
   const div = document.createElement("div");
-  div.className = 'empty-state margin-top-fifteen';
-  div.innerHTML = `<hr class="none"><h4>${message || 'No Data'}.</h4>`;
+  let className = 'empty-state margin-top-fifteen';
+  if (classes) className = className.concat(` ${classes}`);
+
+  div.className = className;
+  div.innerHTML = `<hr class="none"><h4>${message}.</h4>`;
   return div;
 };
 
@@ -626,13 +629,13 @@ const openLocationPermsDialog = (location) => {
 
   const handleLocationsTagsEmptyState = () => {
     if (!editingPermissions.tags.length) {
-      locationTagsListContainer.appendChild(createEmptyHolder('No Tags Found'));
+      locationTagsListContainer.appendChild(createEmptyHolder('No Tags Found', 'min-height-unset padding-2'));
     }
   };
   const handleLocationsEditorsEmptyState = () => {
     if (!editingPermissions.editors.length) {
       locationEditorsListContainer.innerHTML = '';
-      locationEditorsListContainer.appendChild(createEmptyHolder('No Users Found'));
+      locationEditorsListContainer.appendChild(createEmptyHolder('No Users Found', 'min-height-unset padding-2'));
     }
   };
   const deleteLocationTag = (item, index, callback) => {

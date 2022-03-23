@@ -84,3 +84,10 @@
 .pointer-events-none {
   pointer-events: none  !important;
 }
+
+.min-height-unset {
+  min-height: unset !important;
+}
+.padding-2 {
+  padding: 2rem;
+}

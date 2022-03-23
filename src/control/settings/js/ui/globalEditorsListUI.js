@@ -32,7 +32,7 @@ class CategoriesListUI extends SortableListUI {
     title.innerHTML = getDisplayName(item);
 
     const mediaHolder = document.createElement("div");
-    mediaHolder.className = "media-holder";
+    mediaHolder.className = "media-holder cursor-default";
 
     const img = document.createElement("img");
     img.src = item.imageUrl ? this._cropImage(item.imageUrl, {
