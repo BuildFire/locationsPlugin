@@ -530,16 +530,30 @@ window.importCategories = () => {
         return;
       }
 
-      const categories = result.map((elem) => {
-        delete elem.id;
-        elem.title = elem?.title?.trim();
-        elem.iconUrl = elem?.iconUrl?.trim();
-        elem.iconClassName = elem?.iconClassName?.trim();
-        elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() }));
-        elem.createdOn = new Date();
-        elem.createdBy = authManager.currentUser;
-        return new Category(elem).toJSON();
-      });
+      let categories = [];
+      if(result.some((item) => item.categories)){//Places 2.0 file
+        let categoriesLoaded = new Set();
+        result.forEach((item) =>{
+          let itemCategories = item.categories.split(",");
+          if(itemCategories?.length > 0) 
+            itemCategories.forEach((cat)=> {
+              if(cat?.length > 0) 
+                categoriesLoaded.add(cat.trim())
+            });
+        });
+        categoriesLoaded.forEach((cat) => categories.push(new Category({title:cat,createdOn:new Date(),createdBy:authManager.currentUser}).toJSON()));
+      }else{
+        categories = result.map((elem) => {
+          delete elem.id;
+          elem.title = elem?.title?.trim();
+          elem.iconUrl = elem?.iconUrl?.trim();
+          elem.iconClassName = elem?.iconClassName?.trim();
+          elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() }));
+          elem.createdOn = new Date();
+          elem.createdBy = authManager.currentUser;
+          return new Category(elem).toJSON();
+        });
+      }
 
       const dialogRef = showProgressDialog({
         title: 'Importing Categories',
