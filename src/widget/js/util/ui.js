@@ -1,4 +1,5 @@
 import state from '../state';
+import { addBreadcrumb } from './helpers';
 
 export const showElement = (selector) => {
   let element = selector;
@@ -60,3 +61,16 @@ export const adjustMapHeight = () => {
   mainMapContainer.style.height = `calc(100vh - ${baseMapHeight}px)`;
   mapCenterBtn.style.bottom = `${baseCenterBtnBottom}px`;
 };
+
+export const navigateTo = (template) => {
+  const currentActive = document.querySelector('section.active');
+  currentActive?.classList.remove('active');
+  document.querySelector(`section#${template}`).classList.add('active');
+  if (template === 'home' && state.breadcrumbs.length) {
+    addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
+  }
+};
+
+export const resetBodyScroll = () => { document.querySelector('body').scrollTop = 0; };
+
+export const hideOverlays = () => { document.querySelector('section.overlay')?.classList.remove('overlay'); };

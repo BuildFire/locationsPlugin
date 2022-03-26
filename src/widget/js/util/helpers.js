@@ -1,5 +1,6 @@
 import isObject from 'lodash.isobject';
 import forEach from 'lodash.foreach';
+import { convertTimeToDate, getCurrentDayName, openingNowDate } from '../../../utils/datetime';
 import state from '../state';
 
 export const deepObjectDiff = (a, b, reversible) => {
@@ -18,19 +19,19 @@ const _deepDiff = (a, b, r, reversible) => {
   });
 };
 
-export const transformCategoriesToText = (categories) => {
+export const transformCategoriesToText = (locationCategories, categories) => {
   let text = '';
-  if (!categories.main.length) {
+  if (!locationCategories.main.length) {
     return text;
   }
-  const subCategories = state.categories.map((cat) => cat.subcategories).flat();
+  const subCategories = categories.map((cat) => cat.subcategories).flat();
   const mainCategoriesTitles = [];
   const subCategoriesTitles = [];
-  categories.main.forEach((c) => {
-    const item = state.categories.find((p) => p.id === c);
+  locationCategories.main.forEach((c) => {
+    const item = categories.find((p) => p.id === c);
     if (item) mainCategoriesTitles.push(item.title);
   });
-  categories.subcategories.forEach((c) => {
+  locationCategories.subcategories.forEach((c) => {
     const item = subCategories.find((p) => p.id === c);
     if (item) subCategoriesTitles.push(item.title);
   });
@@ -48,4 +49,68 @@ export const transformCategoriesToText = (categories) => {
 export const cdnImage = (imageUrl) => {
   const { cloudImageHost } = buildfire.getContext().endPoints;
   return `${cloudImageHost}/${imageUrl}`;
+};
+
+export const generateUUID = () => {
+  let dt = new Date().getTime();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const replace = (dt + Math.random() * 16) % 16 | 0;
+    dt = Math.floor(dt / 16);
+    return (c === "x" ? replace : (replace & 0x3) | 0x8).toString(16);
+  });
+};
+
+export const getDefaultOpeningHours = () => {
+  const intervals = [{ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") }];
+  return {
+    days: {
+      monday: {index: 0, active: true, intervals: [...intervals]},
+      tuesday: {index: 1, active: true, intervals: [...intervals]},
+      wednesday: {index: 2, active: true, intervals: [...intervals]},
+      thursday: {index: 3, active: true, intervals: [...intervals]},
+      friday: {index: 4, active: true, intervals: [...intervals]},
+      saturday: {index: 5, active: true, intervals: [...intervals]},
+      sunday: {index: 6, active: true, intervals: [...intervals]},
+    }
+  }
+};
+
+export const createTemplate = (templateId) => {
+  const template = document.getElementById(`${templateId}`);
+  return document.importNode(template.content, true);
+};
+
+export const showToastMessage = (message, duration = 3000) => {
+  buildfire.dialog.toast({ message: window.strings.get(`toast.${message}`).v, duration });
+};
+
+export const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === pageName) {
+    return;
+  }
+  state.breadcrumbs.push({ name: pageName });
+  buildfire.history.push(label, {
+    showLabelInTitlebar: false
+  });
+};
+
+export const getActiveTemplate = () => getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+
+export const cropImage = (url, options) => {
+  if (!url) {
+    return '';
+  }
+  return buildfire.imageLib.cropImage(url, options);
+};
+
+export const isLocationOpen = (location) => {
+  let isOpen = false;
+  const today = location.openingHours.days[getCurrentDayName()];
+  const now = openingNowDate();
+
+  if (today.active) {
+    const interval = today.intervals.find((i) => (new Date(i.from) <= now) && (new Date(i.to) > now));
+    if (interval) isOpen = true;
+  }
+  return isOpen;
 };

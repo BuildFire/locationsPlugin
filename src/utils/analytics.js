@@ -2,7 +2,6 @@
 import buildfire from "buildfire";
 
 class Analytics {
-
   static get LIST_VIEW() {
     return "listViewUsed";
   }
@@ -11,9 +10,34 @@ class Analytics {
     return "mapListUsed";
   }
 
+  static get LOCATION_BOOKMARK() {
+    return "locationBookmarkUsed";
+  }
+
+  static get RESULTS_BOOKMARK() {
+    return "resultsBookmarkUsed";
+  }
+
+  static get LOCATION_EDIT() {
+    return "inAppEditUsed";
+  }
+
+  static get LOCATION_SHARE() {
+    return "locationShareUsed";
+  }
+
+  static get LOCATION_DIRECTIONS() {
+    return "locationDirectionsUsed";
+  }
+
   static init() {
     this.registerEvent('List View (Used)', this.LIST_VIEW, '');
     this.registerEvent('Map List (Used)', this.MAP_LIST, '');
+    this.registerEvent('Location Bookmark (Used)', this.LOCATION_BOOKMARK, '');
+    this.registerEvent('Results Bookmark (Used)', this.RESULTS_BOOKMARK, '');
+    this.registerEvent('Location In-App Edit (Used)', this.LOCATION_EDIT, '');
+    this.registerEvent('Location Share (Used)', this.LOCATION_SHARE, '');
+    this.registerEvent('Location Directions (Used)', this.LOCATION_DIRECTIONS, '');
   }
 
   static registerEvent(title, key, description) {
@@ -59,6 +83,26 @@ class Analytics {
 
   static mapListUsed() {
     buildfire.analytics.trackAction(this.MAP_LIST);
+  }
+
+  static locationBookmarkUsed() {
+    buildfire.analytics.trackAction(this.LOCATION_BOOKMARK);
+  }
+
+  static resultsBookmarkUsed() {
+    buildfire.analytics.trackAction(this.RESULTS_BOOKMARK);
+  }
+
+  static inAppEditUsed() {
+    buildfire.analytics.trackAction(this.LOCATION_EDIT);
+  }
+
+  static locationShareUsed() {
+    buildfire.analytics.trackAction(this.LOCATION_SHARE);
+  }
+
+  static locationDirectionsUsed() {
+    buildfire.analytics.trackAction(this.LOCATION_DIRECTIONS);
   }
 }
 

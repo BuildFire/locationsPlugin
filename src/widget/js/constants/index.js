@@ -14,4 +14,6 @@ const getMapStyle = (name) => {
   return style;
 };
 
-export default { getMapStyle };
+const getDefaultLocation = () => ({ lat: 32.7182625, lng: -117.1601157 });
+
+export default { getMapStyle, getDefaultLocation };

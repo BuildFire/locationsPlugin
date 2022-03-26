@@ -61,12 +61,12 @@ export default class Settings {
     };
     this.owner = data.owner || {};
     this.globalEditors = data.globalEditors || {
-      enabled: false,
+      enabled: true,
       tags: [],
       users: []
     };
     this.locationEditors = data.locationEditors || {
-      enabled: false
+      enabled: true
     };
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;

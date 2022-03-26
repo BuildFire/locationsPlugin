@@ -180,10 +180,24 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/categories.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/categories.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/detail.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/detail.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/edit.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/edit.html'),
       chunks: ['devServer']
     }),
     new CopyWebpackPlugin([{

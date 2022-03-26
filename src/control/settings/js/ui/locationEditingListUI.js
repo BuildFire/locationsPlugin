@@ -111,7 +111,7 @@ class LocationEditingUI extends SortableListUI {
       let t = this;
       this.onDeleteItem(item, index, (confirmed) => {
         if (confirmed) {
-          divRow.parentNode.removeChild(divRow);
+          divRow.parentNode?.removeChild(divRow);
           t.reIndexRows();
         }
       });

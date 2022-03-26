@@ -1,4 +1,5 @@
 export default {
+  currentUser: null,
   maps: {
     map: null,
     detail: null
