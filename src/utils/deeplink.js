@@ -27,16 +27,17 @@ class DeepLink {
 
   static registerDeeplink = (location) => {
     buildfire.deeplink.registerDeeplink(
-        {
-          id: "location-" + location.id,
-          name: location.title,
-          deeplinkData: {locationId: location.id},
-        },
-        (err, result) => {
-          if (err) {
-            console.error(err);
-          }
-        });
+      {
+        id: `location-${location.id}`,
+        name: location.title,
+        deeplinkData: { locationId: location.id },
+        imageUrl: location.listImage
+      },
+      (err, result) => {
+        if (err) {
+          console.error(err);
+        }
+      });
   }
 
   static unregisterDeeplink = (locationId) => {
