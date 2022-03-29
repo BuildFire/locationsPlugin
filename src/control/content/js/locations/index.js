@@ -1290,7 +1290,7 @@ window.importLocations = () =>  {
         elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
         elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
         let categories = elem.categories ? elem.categories : "";
-        categories = elem.categories?.split(',').filter((elem) => elem).map(((elem) => elem.toLowerCase()));
+        categories = elem.categories?.split(',').filter((elem) => elem).map(((elem) => elem.toLowerCase().trim()));
         const mainCategories = state.categories.filter((elem) => categories?.includes(elem.title.toLowerCase())).map((elem) => elem.id);
         elem.categories = { main: mainCategories, subcategories: [] };
         elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
