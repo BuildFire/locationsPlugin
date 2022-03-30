@@ -222,17 +222,18 @@ const _createImageHolder = (options, onClick, onDelete) => {
   button.className = 'img-select margin-right-ten';
   if (hasImage) button.classList.add('has-img');
 
+  const i = document.createElement('i');
+  i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
+  i.textContent = 'close';
+  i.tabIndex = '0';
   div.appendChild(button);
-  const span = document.createElement('span');
-  span.className = 'delete-img';
-  span.textContent = '×';
   const img = document.createElement('img');
   img.src = imageUrl ?? '';
-  button.appendChild(span);
+  button.appendChild(i);
   button.appendChild(img);
 
   if (onClick) button.onclick = onClick;
-  if (onDelete) span.onclick = onDelete;
+  if (onDelete) i.onclick = onDelete;
   return div;
 };
 
@@ -694,7 +695,7 @@ const init = () => {
       const locationListImageInput = document.querySelector('#locationListImageInput');
       const listImageImg = locationListImageInput.querySelector('img');
       const listImageSelectBtn = locationListImageInput.querySelector('button');
-      const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img');
+      const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();

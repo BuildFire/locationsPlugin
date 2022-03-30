@@ -25,7 +25,7 @@
         <div class="expansion-panel-body-content" role="grid">
           <div class="text-field-container margin-bottom-ten">
             <div class="mdc-text-field" id="locationTitleField">
-              <input class="mdc-text-field__input" id="locationTitleFieldInput" maxlength="100" type="text">
+              <input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationTitleFieldInput" maxlength="100" type="text">
               <div class="mdc-line-ripple"></div>
               <label bfString="locationEditing.locationName" class="mdc-floating-label" for="locationTitleFieldInput">Location Name</label>
             </div>
@@ -36,7 +36,7 @@
 
           <div class="text-field-container margin-bottom-twenty">
             <div class="mdc-text-field" id="locationSubtitleField">
-              <input class="mdc-text-field__input" id="locationSubtitleFieldInput">
+              <input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationSubtitleFieldInput">
               <div class="mdc-line-ripple"></div>
               <label bfString="locationEditing.locationSubtitle" class="mdc-floating-label" for="locationSubtitleFieldInput">Location Subtitle</label>
             </div>
@@ -44,7 +44,7 @@
 
           <div class="text-field-container">
             <div class="mdc-text-field" id="locationAddressField">
-              <input autocomplete="off" class="mdc-text-field__input needsclick" id="locationAddressFieldInput" spellcheck="false" type="text">
+              <input autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" id="locationAddressFieldInput" spellcheck="false" type="text">
               <div class="mdc-line-ripple"></div>
               <label bfString="locationEditing.locationAddress" class="mdc-floating-label" for="locationAddressFieldInput">Location Address</label>
             </div>
@@ -154,7 +154,7 @@
       <h4 bfString="locationEditing.listImage" class="mdc-theme--text-primary-on-background">List Image</h4>
       <div class="img-select-holder">
         <button class="img-select has-img">
-          <span class="delete-img">×</span>
+          <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn" role="button" tabIndex="0">close</i>
           <img alt="" src="">
         </button>
       </div>
@@ -226,12 +226,12 @@
     <div class="day-intervals-item margin-bottom-ten">
       <div class="d-flex justify-space-between align-items-center">
         <div class="mdc-text-field text-field mdc-text-field--no-label mdc-ripple-upgraded flex-grow-1">
-          <input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label"  class="mdc-text-field__input form-control from" type="time" value="08:00">
+          <input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label"  class="mdc-text-field__input form-control from mdc-theme--text-primary-on-background" type="time" value="08:00">
           <div class="mdc-line-ripple"></div>
         </div>
         <span style="font-weight: 700; font-size: 20px; margin: 0 10px;"> - </span>
         <div class="mdc-text-field text-field mdc-text-field--no-label mdc-ripple-upgraded flex-grow-1">
-          <input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label" class="mdc-text-field__input form-control to" type="time" value="20:00">
+          <input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label" class="mdc-text-field__input form-control to mdc-theme--text-primary-on-background" type="time" value="20:00">
           <div class="mdc-line-ripple"></div>
         </div>
         <div class="actions">

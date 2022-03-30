@@ -52,7 +52,7 @@ class LocationEditingUI extends SortableListUI {
     deleteButton.className = "btn--icon icon icon-cross2";
     addUsersButton.className = "btn btn-default btn-sm margin-right-ten";
     addUsersButtonSpan.className = "text-success";
-    addTagsButton.className = "btn btn-default btn-sm";
+    addTagsButton.className = "btn btn-default btn-sm margin-right-ten";
     addTagsButtonSpan.className = "text-success";
 
     // min-width 6rem
