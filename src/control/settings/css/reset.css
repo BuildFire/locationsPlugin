@@ -1,0 +1,47 @@
+/* Reset carousel Design */
+
+.draggable-list-view.carousel-items .pull-right .btn-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.25rem;
+    font-size: 1.125rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: unset;
+    background-color: transparent;
+    color: #000;
+    /* margin: 0 !important; */
+    top: auto !important;
+}
+
+.draggable-list-view.carousel-items .pull-right .btn-icon:hover {
+    background-color: var(--c-gray1);
+}
+
+.draggable-list-view.carousel-items .pull-right .btn-icon.btn-delete-icon:hover {
+    color: var(--c-danger) !important;
+}
+
+.draggable-list-view.carousel-items .d-item .copy {
+    top: auto !important;
+}
+
+.draggable-list-view.carousel-items .d-item span.title {
+    width: 35% !important;
+    top: 0 !important;
+}
+
+
+.draggable-list-view.carousel-items div > div.copy.pull-right > div {
+    display: flex;
+    align-items: center;
+}
+
+
+/* END Reset carousel Design */
+
+
+.colorgrid {
+    margin-bottom: -15px !important;
+}

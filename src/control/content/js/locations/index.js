@@ -1480,8 +1480,10 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
     let data = null;
     if (realtimeUpdate) {
       data = {
+        id: state.locationObj.id,
         title: addLocationControls.locationTitle.value,
         subtitle: addLocationControls.locationSubtitle.value,
+        address: state.locationObj.address,
         formattedAddress: addLocationControls.locationAddress.value,
         coordinates: state.locationObj.coordinates,
         marker: state.locationObj.marker,
@@ -1492,6 +1494,8 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
         actionItems: state.locationObj.actionItems,
         listImage: state.locationObj.listImage,
         rating: state.locationObj.rating,
+        price: state.locationObj.price,
+        editingPermissions: state.locationObj.editingPermissions,
         openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours }
       };
     }

@@ -9,13 +9,14 @@
           <h5>Subtitle</h5>
         </span>
         <span>
-          <i id="shareLocationBtn" class="material-icons-outlined mdc-text-field__icon pointer mdc-theme--text-icon-on-background" tabindex="0" role="button">ios_share</i>
+          <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer hidden" id="topEditLocationBtn" role="button" tabindex="0">edit</i>
+          <i class="material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer mdc-theme--text-icon-on-background" id="shareLocationBtn" role="button" tabindex="0">ios_share</i>
           <i class="material-icons-outlined mdc-text-field__icon margin-left-fifteen mdc-theme--text-icon-on-background pointer" id="topBookmarkLocationBtn" role="button" style="display: none;" tabindex="0">star_outline</i>
         </span>
       </div>
 
       <div class="location-detail__top-subtitle">
-        <p class="text-truncate">Category | Subcategory</p>
+        <p class="text-truncate mdc-theme--text-primary-on-background">Category | Subcategory</p>
         <button class="mdc-button mdc-button--unelevated working-hours-button" id="topWorkingHoursBtn">
           <span class="mdc-button__ripple"></span>
           <span class="mdc-button__focus-ring"></span>
@@ -36,6 +37,7 @@
       <span class="location-cover__rating-value"></span>
       <h2>Location Title</h2>
       <h4>Subtitle</h4>
+      <i class="material-icons-outlined mdc-text-field__icon pointer hidden" id="editLocationBtn" role="button" tabindex="0">edit</i>
       <i id="shareLocationBtn" class="material-icons-outlined mdc-text-field__icon" tabindex="0" role="button">ios_share</i>
       <i class="material-icons-outlined mdc-text-field__icon pointer" id="bookmarkLocationBtn" role="button" style="display: none;" tabindex="0">star_outline</i>
     </div>

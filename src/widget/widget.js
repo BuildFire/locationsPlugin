@@ -11,27 +11,38 @@ import drawer from './js/drawer';
 import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
-import { openingNowDate, getCurrentDayName, convertDateToTime } from '../utils/datetime';
+import {
+  openingNowDate,
+  getCurrentDayName,
+  convertDateToTime,
+} from '../utils/datetime';
 import {
   showElement,
   hideElement,
-  toggleDropdownMenu,
-  adjustMapHeight
+  adjustMapHeight,
+  navigateTo,
+  resetBodyScroll,
+  hideOverlays
 } from './js/util/ui';
-import { deepObjectDiff, transformCategoriesToText, cdnImage } from './js/util/helpers';
+import {
+  deepObjectDiff,
+  transformCategoriesToText,
+  cdnImage,
+  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen
+} from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
-import { generateUUID } from '../control/content/utils/helpers';
-
-// following is San Diego,US location
-const DEFAULT_LOCATION = { lat: 32.7182625, lng: -117.1601157 };
+import editView from './js/views/editView';
+import mapView from './js/views/mapView';
+import introView from './js/views/introView';
 
 let SEARCH_TIMOUT;
 
 let mdcSortingMenu;
 let mdcPriceMenu;
 let bookmarkLoading = false;
+let chipSet;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -60,8 +71,6 @@ const getCategoriesAndSubCategoriesByName = (name) => {
 const buildSearchCriteria = () => {
   const query = {};
   if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
-    // query["_buildfire.index.text"] = { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" };
-
     const { subcategoryIds, categoryIds }  = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue);
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     query.$or = [
@@ -273,7 +282,7 @@ const searchLocations = () => {
       }
 
       // Render Map listLocations
-      renderListingLocations(result);
+      mapView.renderListingLocations(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
       if (!state.fetchingEndReached && state.listLocations.length <= 200) {
@@ -311,171 +320,16 @@ const getNearestLocation = () => {
   });
 };
 
-const refreshSettings = () => {
-  return WidgetController
-    .getAppSettings()
-    .then((response) => state.settings = response);
-};
+const refreshSettings = () => WidgetController
+  .getAppSettings()
+  .then((response) => state.settings = response);
 
-const refreshCategories = () => {
-  return WidgetController
-    .searchCategories({
-      sort: { title: -1 }
-    })
-    .then((result) => state.categories = result);
-};
+const refreshCategories = () => WidgetController
+  .searchCategories({
+    sort: { title: -1 }
+  })
+  .then((result) => state.categories = result);
 
-const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
-const clearMapViewList = () => {
-  document.querySelector('.drawer').scrollTop = 0;
-  document.querySelector('#listingLocationsList').innerHTML = '';
-};
-const resetBodyScroll = () => { document.querySelector('body').scrollTop = 0; };
-const hideFilterOverlay = () => { document.querySelector('section#filter').classList.remove('overlay'); };
-
-const renderIntroductoryLocations = (list, includePinned = false) => {
-  const container = document.querySelector('#introLocationsList');
-  let reducedLocations = list.reduce((filtered, n) => {
-    const index = state.pinnedLocations.findIndex((pinned) => pinned.id === n.id);
-    if (index === -1) {
-      filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
-        <div class="d-flex">
-          <img src=${cdnImage(n.listImage)} alt="Location image">
-          <div class="location-item__description">
-            <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
-          </div>
-          <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
-            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
-          </div>
-        </div>
-        <div class="mdc-chip-set" role="grid">
-
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
-              <div class="mdc-chip__ripple"></div>
-              <span role="gridcell">
-                  <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                    <span class="mdc-chip__text">${a.title}</span>
-                  </span>
-                </span>
-            </div>`).join('\n')}
-         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
-        </div>
-      </div>`);
-    }
-    return filtered;
-  }, []);
-
-  if (includePinned) {
-    reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
-        <div class="d-flex">
-          <img src=${cdnImage(n.listImage)} alt="Location image">
-          <div class="location-item__description">
-            <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
-          </div>
-          <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
-            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
-          </div>
-        </div>
-        <div class="mdc-chip-set" role="grid">
-
-         ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
-              <div class="mdc-chip__ripple"></div>
-              <span role="gridcell">
-                  <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                    <span class="mdc-chip__text">${a.title}</span>
-                  </span>
-                </span>
-            </div>`).join('\n')}
-         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
-        </div>
-      </div>`)).concat(reducedLocations);
-  }
-
-  const content = reducedLocations.join('\n');
-  container.insertAdjacentHTML('beforeend', content);
-};
-const renderListingLocations = (list) => {
-  const container = document.querySelector('#listingLocationsList');
-  const emptyStateContainer = document.querySelector('.drawer-empty-state');
-  const bookmarksSettings = state.settings.bookmarks;
-  let content;
-  if (state.settings.design.listViewStyle === 'backgroundImage') {
-    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
-            <div class="location-image-item__header">
-              <p>${n.distance ? n.distance : '--'}</p>
-              <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
-            </div>
-            <div class="location-image-item__body">
-              <p class="margin-bottom-five">${n.title}</p>
-              <p class="margin-top-zero">${transformCategoriesToText(n.categories)}</p>
-              <p>
-                <span>${n.subtitle ?? ''}</span>
-                <span>
-                  <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
-                  <span class="location-image__open-status">${n.settings.showOpeningHours ? (window.strings.get(isLocationOpen(n) ? 'general.open' : 'general.closed').v) : ''}</span>
-                </span>
-              </p>
-            </div>
-            <div class="mdc-chip-set" role="grid">
-              ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
-                <div class="mdc-chip__ripple"></div>
-                <span role="gridcell">
-                    <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                      <span class="mdc-chip__text">${a.title}</span>
-                    </span>
-                  </span>
-              </div>`).join('\n')}
-              ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
-            </div>
-          </div>
-`)).join('\n');
-  } else {
-    content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
-        <div class="d-flex">
-          <img src="${cdnImage(n.listImage)}" alt="Location image">
-          <div class="location-item__description">
-            <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
-          </div>
-          <div class="location-item__actions">
-            <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
-            <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
-          </div>
-        </div>
-        <div class="mdc-chip-set" role="grid">
-        
-          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
-            <div class="mdc-chip__ripple"></div>
-              <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">${a.title}</span>
-                </span>
-              </span>
-            </div>`).join('\n')}
-          ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
-        </div>
-      </div>`)).join('\n');
-  }
-
-  if (!state.listLocations.length) {
-    emptyStateContainer.textContent = window.strings.get(state.firstRender ? 'emptyState.locationsListBeforeSearch' : 'emptyState.locationsListAfterSearch').v;
-    showElement(emptyStateContainer);
-  } else {
-    hideElement(emptyStateContainer);
-  }
-
-  state.firstRender = false;
-  container.insertAdjacentHTML('beforeend', content);
-};
-
-let chipSet;
 const refreshQuickFilter = () => {
   const { design, filter, bookmarks } = state.settings;
   const container = document.querySelector('.header-qf');
@@ -570,26 +424,16 @@ const refreshIntroductoryCarousel = () => {
   }
 };
 
-const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
-  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === pageName) {
-    return;
-  }
-  state.breadcrumbs.push({ name: pageName });
-  // todo show title bar when adding the language
-  buildfire.history.push(label, {
-    showLabelInTitlebar: false
-  });
-};
-
 const showFilterOverlay = () => {
-  const filterOverlay = document.querySelector('section#filter');
+  const overlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
 
   currentActive?.classList.remove('active');
-  filterOverlay.classList.add('overlay');
-  addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
+  overlay.classList.add('overlay');
+  addBreadcrumb({ pageName: 'af' });
   state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
 };
+
 const toggleFilterOverlay = () => {
   const filterOverlay = document.querySelector('section#filter');
   const homeView = document.querySelector('section#home');
@@ -604,24 +448,11 @@ const toggleFilterOverlay = () => {
     state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
   }
 };
-const isLocationOpen = (location) => {
-  let isOpen = false;
-  const today = location.openingHours.days[getCurrentDayName()];
-  const now = openingNowDate();
-
-  if (today.active) {
-    const interval = today.intervals.find((i) => (new Date(i.from) <= now) && (new Date(i.to) > now));
-    if (interval) isOpen = true;
-  }
-  return isOpen;
-};
 
 const showLocationDetail = () => {
   const { selectedLocation } = state;
   const { bookmarks } = state.settings;
-
-  console.log('selectedLocation: ', selectedLocation);
-  console.log('state.deepLinkData: ', state.deepLinkData);
+  const isAuthorizedToEdit = editView.isAuthorized();
 
   views
     .fetch('detail')
@@ -652,7 +483,8 @@ const showLocationDetail = () => {
             map: document.querySelector('.location-detail__map--top-view'),
             workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
             workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
-            bookmarkLocationBtn: document.querySelector('#topBookmarkLocationBtn')
+            bookmarkLocationBtn: document.querySelector('#topBookmarkLocationBtn'),
+            editLocationBtn: document.querySelector('#topEditLocationBtn')
           }
         };
         selectors.main.style.display = 'block';
@@ -668,11 +500,16 @@ const showLocationDetail = () => {
             map: document.querySelector('.location-detail__map'),
             workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
             workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
-            bookmarkLocationBtn: document.querySelector('#bookmarkLocationBtn')
+            bookmarkLocationBtn: document.querySelector('#bookmarkLocationBtn'),
+            editLocationBtn: document.querySelector('#editLocationBtn')
           }
         };
         selectors.main.style.display = 'flex';
         selectors.rating.classList.add('location-detail__rating--dual-shadow');
+      }
+
+      if (selectedLocation.id && isAuthorizedToEdit) {
+        selectors.editLocationBtn.classList.remove('hidden');
       }
 
       if (selectedLocation.images?.length > 0) {
@@ -685,7 +522,7 @@ const showLocationDetail = () => {
       }
 
       if (!selectedLocation.coordinates.lat || !selectedLocation.coordinates.lng) {
-        selectedLocation.coordinates = DEFAULT_LOCATION;
+        selectedLocation.coordinates = constants.getDefaultLocation();
       }
       selectors.map.style.display = 'block';
       const detailMap = new MainMap(selectors.map, {
@@ -704,7 +541,7 @@ const showLocationDetail = () => {
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
 
       if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
-        selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories);
+        selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories, state.categories);
         selectors.categories.style.display = 'block';
       }
 
@@ -750,14 +587,15 @@ const showLocationDetail = () => {
       }
     });
 };
+
 const showWorkingHoursDrawer = () => {
   const { days } = state.selectedLocation.openingHours;
   buildfire.components.drawer.open(
     {
-      header: window.strings.get('openingHoursDialog.openHours').v,
+      header: window.strings.get('general.openHours').v,
       content: `<table style="width: 100%;border-collapse: separate;border-spacing: 10px; border: none;">
       ${Object.entries(days).map(([day, prop]) => `<tr>
-        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`openingHoursDialog.${day}`).v}</td>
+        <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
@@ -786,6 +624,7 @@ const shareLocation = () => {
       }, (err, result) => {
         if (err) console.error(err);
         if (result) console.log(result);
+        Analytics.locationShareUsed();
       });
     }
   );
@@ -827,7 +666,7 @@ const fetchMoreIntroductoryLocations = (e) => {
       state.searchCriteria.page += 1;
       searchLocations()
         .then((result) => {
-          renderIntroductoryLocations(result);
+          introView.renderIntroductoryLocations(result);
         });
     }
   }
@@ -894,13 +733,13 @@ const clearAndSearchLocations = () => {
   searchLocations()
     .then(() => {
       if (showIntroductoryListView) {
-        clearIntroViewList();
+        introView.clearIntroViewList();
         fetchPinnedLocations(() => {
-          renderIntroductoryLocations(state.listLocations, true);
+          introView.renderIntroductoryLocations(state.listLocations, true);
         });
       }
-      clearMapViewList();
-      renderListingLocations(state.listLocations);
+      mapView.clearMapViewList();
+      mapView.renderListingLocations(state.listLocations);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -927,6 +766,7 @@ const getFormattedAddress = (coords, cb) => {
 };
 
 const getDirections = () => {
+  Analytics.locationDirectionsUsed();
   const { selectedLocation } = state;
   if (selectedLocation.coordinates?.lat && selectedLocation.coordinates?.lng) {
     buildfire.getContext((err, context) => {
@@ -950,12 +790,12 @@ const bookmarkLocation = (locationId, e) => {
 
   if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
     buildfire.bookmarks.delete(location.clientId, () => {
-      buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksRemoved').v });
+      showToastMessage('bookmarksRemoved');
     });
     state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
     e.target.textContent = 'star_outline';
   } else {
-    buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
+    showToastMessage('bookmarksAdded');
     console.log('location: ', location);
     if (!location.clientId) {
       console.log('updating location: ', location);
@@ -974,9 +814,10 @@ const bookmarkLocation = (locationId, e) => {
       (err, bookmark) => {
         if (err) {
           console.error(err);
-          buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksError').v });
+          showToastMessage('bookmarksError');
           return;
         }
+        Analytics.locationBookmarkUsed();
         state.bookmarks.push({
           id: location.clientId,
           title: location.title
@@ -1010,7 +851,10 @@ const initEventListeners = () => {
       bookmarkLocation(locationId, e);
     } else if (['topBookmarkLocationBtn', 'bookmarkLocationBtn'].includes(e.target.id)) {
       bookmarkLocation(state.selectedLocation.id, e);
-    } if (e.target.id === 'locationDirectionsBtn') {
+    } else if (['topEditLocationBtn', 'editLocationBtn'].includes(e.target.id)) {
+      Analytics.inAppEditUsed();
+      editView.init();
+    } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
@@ -1106,7 +950,7 @@ const initEventListeners = () => {
 
 const initFilterOverlay = () => {
   let html = '';
-  const container = document.querySelector('.expansion-panel__container .accordion');
+  const container = document.querySelector('#filter .expansion-panel__container .accordion');
   state.categories.forEach((category) => {
     let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
     if (category.iconUrl) {
@@ -1164,7 +1008,7 @@ const initFilterOverlay = () => {
   container.innerHTML = html;
 
   new Accordion({
-    element: document.querySelector('.accordion'),
+    element: container,
     multi: true
   });
 
@@ -1175,7 +1019,7 @@ const initFilterOverlay = () => {
     chipSets[parent.dataset.cid] = new mdc.chips.MDCChipSet(c);
   });
 
-  const expansionPanelCheckBox = document.querySelectorAll('.mdc-checkbox input');
+  const expansionPanelCheckBox = document.querySelectorAll('#filter .mdc-checkbox input');
   Array.from(expansionPanelCheckBox).forEach((c) => c.addEventListener('change', (e) => {
     const { target } = e;
     const mdcCheckBox = target.closest('.mdc-checkbox');
@@ -1250,17 +1094,8 @@ const showMapView = () => {
   Analytics.mapListUsed();
 };
 
-const navigateTo = (template) => {
-  const currentActive = document.querySelector('section.active');
-  currentActive?.classList.remove('active');
-  document.querySelector(`section#${template}`).classList.add('active');
-  if (template === 'home' && state.breadcrumbs.length) {
-    addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
-  }
-};
-
-const initAreaAutocompleteField = () => {
-  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+const initAreaAutocompleteField = (textfield, callback) => {
+  const areaSearchTextField = document.querySelector(`#${textfield}`);
   const autocomplete = new google.maps.places.SearchBox(
     areaSearchTextField,
     {
@@ -1279,26 +1114,9 @@ const initAreaAutocompleteField = () => {
       observer.observe(target, { childList: true });
     }
     console.log('observer target :', target);
-  }, 1000);
+  }, 2000);
 
-  autocomplete.addListener('places_changed', () => {
-    const places = autocomplete.getPlaces();
-    const place = places[0];
-
-    if (!place || !place.geometry) {
-      return;
-    }
-
-    const point = {
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng()
-    };
-
-    state.currentLocation = point;
-    state.maps.map.center(point);
-    state.maps.map.setZoom(10);
-    triggerSearchOnMapIdle();
-  });
+  callback(autocomplete);
 };
 
 const generateMapOptions = () => {
@@ -1346,8 +1164,8 @@ const generateMapOptions = () => {
     };
     state.currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
   } else {
-    options.center = DEFAULT_LOCATION;
-    state.currentLocation = DEFAULT_LOCATION;
+    options.center = constants.getDefaultLocation();
+    state.currentLocation = constants.getDefaultLocation();
   }
 
   return options;
@@ -1370,8 +1188,8 @@ const triggerSearchOnMapIdle = () => {
 
   clearLocations();
   searchLocations().then((result) => {
-    clearMapViewList();
-    renderListingLocations(state.listLocations);
+    mapView.clearMapViewList();
+    mapView.renderListingLocations(state.listLocations);
   });
 };
 
@@ -1380,8 +1198,8 @@ const findViewPortLocations = () => {
   SEARCH_TIMOUT = setTimeout(() => {
     clearLocations();
     searchLocations().then((result) => {
-      clearMapViewList();
-      renderListingLocations(state.listLocations);
+      mapView.clearMapViewList();
+      mapView.renderListingLocations(state.listLocations);
     });
   }, 300);
 
@@ -1438,7 +1256,7 @@ const handleMarkerClick = (location) => {
             </div>
             <div class="location-summary__body">
               <p class="margin-bottom-five">${location.title}</p>
-              <p class="margin-top-zero">${transformCategoriesToText(location.categories)}</p>
+              <p class="margin-top-zero">${transformCategoriesToText(location.categories, state.categories)}</p>
               <p>
                 <span>${location.addressAlias ?? location.subtitle ?? ''}</span>
               </p>
@@ -1581,7 +1399,6 @@ const initDrawerFilterOptions = () => {
   if (!filter.hideOpeningHoursFilter) {
     showElement(openNowFilterBtn);
   }
-
   if (isEmptyHeader && document.querySelector('html').getAttribute('safe-area') === 'true') {
     drawerHeaderContainer.style.paddingBottom = '30px';
   }
@@ -1589,12 +1406,30 @@ const initDrawerFilterOptions = () => {
   adjustMapHeight();
 };
 const initHomeView = () => {
-  const { showIntroductoryListView } = state.settings;
   views.inject('home');
-  initFilterOverlay();
+  const { showIntroductoryListView } = state.settings;
   refreshQuickFilter();
   initMainMap();
-  initAreaAutocompleteField();
+  initAreaAutocompleteField('areaSearchTextField', (autocomplete) => {
+    autocomplete.addListener('places_changed', () => {
+      const places = autocomplete.getPlaces();
+      const place = places[0];
+
+      if (!place || !place.geometry) {
+        return;
+      }
+
+      const point = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+      };
+
+      state.currentLocation = point;
+      state.maps.map.center(point);
+      state.maps.map.setZoom(10);
+      triggerSearchOnMapIdle();
+    });
+  });
   setDefaultSorting();
   initEventListeners();
   drawer.initialize(state.settings);
@@ -1621,7 +1456,7 @@ const initIntroLocations = () => {
 
   searchIntroLocations().then((result) => {
     fetchPinnedLocations(() => {
-      renderIntroductoryLocations(state.listLocations, true);
+      introView.renderIntroductoryLocations(state.listLocations, true);
       refreshIntroductoryDescription();
       showElement('section#intro');
       refreshIntroductoryCarousel();
@@ -1649,10 +1484,10 @@ const initMapLocations = () => {
   }
   attempts = 0;
   clearLocations();
-  clearMapViewList();
+  mapView.clearMapViewList();
   searchLocations()
     .then(() => {
-      clearIntroViewList();
+      introView.clearIntroViewList();
     });
 };
 
@@ -1721,13 +1556,13 @@ const handleCPSync = (message) => {
         const o = outdatedSettings.design;
 
         if (d.listViewStyle !== o.listViewStyle) {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
-          clearMapViewList();
-          renderListingLocations(state.listLocations);
+          mapView.clearMapViewList();
+          mapView.renderListingLocations(state.listLocations);
         } else if (d.listViewPosition !== o.listViewPosition) {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
           drawer.reset(d.listViewPosition);
@@ -1750,7 +1585,7 @@ const handleCPSync = (message) => {
           }
           adjustMapHeight();
         } else {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
           refreshMapOptions();
@@ -1767,26 +1602,26 @@ const handleCPSync = (message) => {
         const d = state.settings.design;
         if (Object.keys(deepObjectDiff(state.settings.bookmarks, outdatedSettings.bookmarks)).length) {
           if (state.settings.bookmarks.enabled !== outdatedSettings.bookmarks.enabled) {
-            clearMapViewList();
-            renderListingLocations(state.listLocations);
+            mapView.clearMapViewList();
+            mapView.renderListingLocations(state.listLocations);
             initDrawerFilterOptions();
             refreshQuickFilter();
             drawer.reset(state.settings.design.listViewPosition);
           } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
-            clearMapViewList();
-            renderListingLocations(state.listLocations);
+            mapView.clearMapViewList();
+            mapView.renderListingLocations(state.listLocations);
           } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
             initDrawerFilterOptions();
             drawer.reset(state.settings.design.listViewPosition);
           }
         } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
           initDrawerFilterOptions();
           drawer.reset(state.settings.design.listViewPosition);
         } else if (f.hideOpeningHoursFilter !== of.hideOpeningHoursFilter || f.hidePriceFilter !== of.hidePriceFilter) {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
           initDrawerFilterOptions();
@@ -1810,7 +1645,7 @@ const handleCPSync = (message) => {
           || ms.initialArea !== oms.initialArea
           || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
           || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showMapView();
           refreshMapOptions();
@@ -1825,7 +1660,7 @@ const handleCPSync = (message) => {
           setDefaultSorting();
           clearAndSearchWithDelay();
           refreshIntroductoryDescription();
-          hideFilterOverlay();
+          hideOverlays();
           navigateTo('home');
           showElement('section#intro');
           hideElement('section#listing');
@@ -1848,7 +1683,7 @@ const handleCPSync = (message) => {
         title: 'Location Title',
         subtitle: 'Location Subtitle',
         formattedAddress: 'Location Address',
-        coordinates: DEFAULT_LOCATION,
+        coordinates: constants.getDefaultLocation(),
         categories: {
           main: [],
           subcategories: []
@@ -1869,12 +1704,12 @@ const handleCPSync = (message) => {
           }
         }
       }
-      hideFilterOverlay();
+      hideOverlays();
       showLocationDetail();
     } else if (isCancel) {
       buildfire.history.pop();
     } else {
-      hideFilterOverlay();
+      hideOverlays();
       navigateTo('home');
       showMapView();
     }
@@ -1977,7 +1812,10 @@ const navigateToLocationId = (locationId) => {
 
 const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
-  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
+  console.log(state.breadcrumbs[state.breadcrumbs.length - 1].name)
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'categoriesEdit') {
+    editView.refreshCategoriesText();
+  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
       if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
@@ -1988,20 +1826,24 @@ const onPopHandler = (breadcrumb) => {
   }
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
-    hideFilterOverlay();
+    hideOverlays();
     navigateTo('home');
   } else {
     const page = state.breadcrumbs[state.breadcrumbs.length - 1];
     if (page.name === 'af') {
       showFilterOverlay();
     } else if (page.name === 'detail') {
-      hideFilterOverlay();
+      hideOverlays();
       showLocationDetail();
+    } else if (page.name === 'edit') {
+      console.log('its edit');
+      hideOverlays();
+      showLocationEdit();
     } else {
-      hideFilterOverlay();
+      hideOverlays();
       navigateTo('home');
     }
-    state.breadcrumbs.pop();
+    // state.breadcrumbs.pop();
   }
 };
 
@@ -2020,27 +1862,40 @@ const onRatingHandler = (e) => {
 
 const getCurrentUserPosition = () => new Promise((resolve) => {
   let retries = 5;
+  let resolved;
+  const startedAt = +new Date();
+  const log = (message) => { console.info(`[User Position Debug]: ${message}`); };
+
   const attempt = () => {
-    console.info(`attempting to get user position ${retries}`);
+    log(`attempting to get user position, attempt no: ${5 - retries + 1}`);
     buildfire.geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 1000 }, (err, position) => {
+      log(`callback triggered: ${JSON.stringify(err)} : ${JSON.stringify(position)}`);
       if (!err) {
         state.userPosition = position.coords;
+        resolved = true;
+        log(`succeed, time elapsed: ${(((+new Date() - startedAt) % 60000) / 1000)}s`);
         resolve();
       } else if (retries > 0) {
         retries -= 1;
         attempt();
       } else {
-        console.warn(`failed to get current user position ${JSON.stringify(err)}`);
+        log('failed to get current user position');
+        resolved = true;
         resolve();
       }
     });
   };
+  setTimeout(() => {
+    if (!resolved) {
+      log(`Force resolving, time elapsed: ${(((+new Date() - startedAt) % 60000) / 1000)}s`);
+      resolve();
+    }
+  }, 3000);
   attempt();
 });
 
 const watchUserPositionChanges = () => {
   buildfire.geo.watchPosition({ timeout: 30000 }, (position) => {
-    console.log(`User position has changed for: ${JSON.stringify(position)}`);
     state.userPosition = position.coords;
     if (state.maps.map) {
       state.maps.map.addUserPosition(state.userPosition);
@@ -2082,7 +1937,7 @@ const bookmarkSearchResults = (e) => {
   if (targetBookmarkId) {
     return buildfire.bookmarks.delete(targetBookmarkId, (err, success) => {
       state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === targetBookmarkId), 1);
-      buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksRemoved').v });
+      showToastMessage('bookmarksRemoved');
       resetResultsBookmark();
     });
   }
@@ -2143,50 +1998,64 @@ const bookmarkSearchResults = (e) => {
         },
         (err, bookmark) => {
           if (err) return console.error(err);
+          Analytics.resultsBookmarkUsed();
           e.target.textContent = 'star';
           e.target.setAttribute('bookmarkId', bookmarkId);
           state.bookmarks.push({
             id: bookmarkId,
             title: response.results[0].textValue
           });
-          buildfire.components.toast.showToastMessage({ text: window.strings.get('toast.bookmarksAdded').v });
-          console.log('bookmark added', bookmark);
+          showToastMessage('bookmarksAdded');
         }
       );
     }
   );
 };
+
+const showLocationEdit = () => {
+  navigateTo('edit');
+  addBreadcrumb({ pageName: 'edit', title: 'Location Edit' });
+};
+
 const initAppStrings = () => {
   // string will have all the language settings from teh strings page on the control side
   window.strings = new buildfire.services.Strings('en-us', stringsConfig);
-  return window.strings.init()
-  // todo handle onReceivedMessage refresh
-  // buildfire.messaging.onReceivedMessage =msg=>{
-  //   if(msg.cmd=="refresh") // message comes from the strings page on the control side
-  //     location.reload();
-  // };
+  return window.strings.init();
 };
-const init = () => {
-  const initialRequests = [
+const getCurrentUser = () => {
+  buildfire.auth.getCurrentUser((err, currentUser) => {
+    if (!err && currentUser) {
+      state.currentUser = currentUser;
+    }
+  });
+};
+
+const initApp = () => {
+  const bootstrap = [
     getCurrentUserPosition(),
     refreshSettings(),
     getAllBookmarks(),
     handleDeepLinkData(),
-    initAppStrings()
+    initAppStrings(),
+    refreshCategories()
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
-    Promise.all(initialRequests)
+    Promise.all(bootstrap)
       .then(() => {
-        views.fetch('filter').then(() => { views.inject('filter'); });
-        views.fetch('home').then(refreshCategories).then(initHomeView);
+        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
+        views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
+        getCurrentUser();
         watchUserPositionChanges();
+      })
+      .catch((err) => {
+        console.error(`init error ${err}`);
       });
   };
 };
 
-init();
+initApp();

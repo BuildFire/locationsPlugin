@@ -131,6 +131,20 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalEditing.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalEditing.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationEditing.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationEditing.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/tests/index.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
@@ -166,10 +180,24 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/categories.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/categories.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/detail.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/detail.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/edit.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/edit.html'),
       chunks: ['devServer']
     }),
     new CopyWebpackPlugin([{

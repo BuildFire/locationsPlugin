@@ -126,7 +126,7 @@ const initialize = (settings) => {
   });
 
   document.addEventListener('touchstart', (e) => {
-    const draggableTargets = ['filter-options', 'drawer-header', 'resizer'];
+    const draggableTargets = ['filter-options', 'drawer-header', 'resizer', 'bookmark-result'];
     if (!draggableTargets.some((c) => e.target.classList?.contains(c))) return;
     originalHeight = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', ''));
     originalY = element.getBoundingClientRect().top;

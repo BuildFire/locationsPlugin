@@ -60,6 +60,14 @@ export default class Settings {
       showDetailsCategory: true
     };
     this.owner = data.owner || {};
+    this.globalEditors = data.globalEditors || {
+      enabled: true,
+      tags: [],
+      users: []
+    };
+    this.locationEditors = data.locationEditors || {
+      enabled: true
+    };
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -81,6 +89,8 @@ export default class Settings {
       bookmarks: this.bookmarks,
       design: this.design,
       owner: this.owner,
+      globalEditors: this.globalEditors,
+      locationEditors: this.locationEditors,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,

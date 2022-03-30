@@ -1,8 +1,9 @@
 export default class Accordion {
-  constructor({ element, active = null, multi = false }) {
+  constructor({ element, active = null, multi = false, expanded = false }) {
     this.el = element;
     this.activePanel = active;
     this.multi = multi;
+    this.expanded = expanded;
 
     this.init();
   }
@@ -24,6 +25,12 @@ export default class Accordion {
   collapseAll() {
     for (const h of this.headers) {
       h.closest(".expansion-panel").classList.remove("active");
+    }
+  }
+
+  expandAll() {
+    for (const h of this.headers) {
+      h.closest(".expansion-panel").classList.add("active");
     }
   }
 
@@ -49,7 +56,9 @@ export default class Accordion {
   }
 
   initialExpand() {
-    if (this.activePanel > 0 && this.activePanel < this.panels.length) {
+    if (this.expanded) {
+      this.expandAll();
+    } else if (this.activePanel > 0 && this.activePanel < this.panels.length) {
       // Add the "active" class to the correct panel
       this.panels[this.activePanel - 1].classList.add("active");
       // Fix the current active panel index "zero based index"
@@ -60,8 +69,13 @@ export default class Accordion {
   attachEvents() {
     this.headers.forEach((h, idx) => {
       h.addEventListener('click', (e) => {
-        const { classList } = e.target;
-        if (classList.contains('mdc-checkbox__native-control') || classList.contains('mdc-touch-target-wrapper')) return;
+        const classList = [...e.target.classList];
+        const controls = ['mdc-touch-target-wrapper', 'mdc-checkbox__native-control', 'mdc-switch__native-control'];
+
+        if (controls.some((r) => classList.includes(r))) {
+          return;
+        }
+
         if (!this.multi) {
           // Check if there is an active panel and close it before opening another one.
           // If there is no active panel, close all the panels.

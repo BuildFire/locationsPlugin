@@ -1,0 +1,78 @@
+.dialog-component {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: white;
+    z-index: 1010;
+    /* padding: 1em; */
+}
+
+.dialog-component.activeFull {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.dialog-body{
+    max-height: calc(100vh - 200px);
+    overflow: auto;
+}
+
+#dialogBackdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffffaa;
+    width: 100vw;
+    display: block;
+    height: 100vh;
+    z-index: 1000;
+}
+
+.dialog-component.activeDialog {
+    display: block;
+    width: 70%;
+    left: 20%;
+    top: 40px;
+    box-shadow: rgb(206, 204, 204) 5px 5px 15px;
+    /* outline: 9999px solid #ffffffaa; */
+}
+
+.dialog-component >.dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* padding: 11px 15px; */
+    background: #eef0f0;
+    position: relative;
+    font-size: 15px;
+}
+
+.dialog-header h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    /* line-height: 27px;
+    padding-right: 30px; */
+}
+
+.dialog-header span.close-modal {
+    color: #5f5f5f;
+    font-size: 20px;
+}
+
+.dialog-component >.dialog-footer {
+    text-align: right;
+    border-top: 1px solid #ddd !important;
+}
+
+.dialog-footer button {
+    margin-left: 8px;
+}
+
+.input-group-append {
+    margin-top: 0.3rem;
+    color: #929292;
+}
