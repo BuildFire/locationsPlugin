@@ -16,6 +16,7 @@ import globalState from '../../state';
 import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
+import Locations from "../../../../repository/Locations";
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -1322,16 +1323,39 @@ window.importLocations = () =>  {
 };
 
 window.exportLocations = () => {
-  const data = state.locations.map(elem => ({
-    ...elem, ...elem.coordinates, ...elem.settings,
-    markerType: elem.marker.type,
-    markerImage: elem.marker.image,
-    markerColorRGBA: elem.marker.color?.color,
-    priceRange: elem.price.range,
-    priceCurrency: elem.price.currency,
-    categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
-  }));
- downloadCsvTemplate(data, locationTemplateHeader, 'locations');
+  let searchOptions = {
+    limit: 50,
+    skip: 0,
+    recordCount: true
+  }, records = [];
+
+  const processLocations = () => {
+    const data = records.map(elem => ({
+      ...elem, ...elem.coordinates, ...elem.settings,
+      markerType: elem.marker.type,
+      markerImage: elem.marker.image,
+      markerColorRGBA: elem.marker.color?.color,
+      priceRange: elem.price.range,
+      priceCurrency: elem.price.currency,
+      categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
+    }));
+    downloadCsvTemplate(data, locationTemplateHeader, 'locations');
+  }
+
+  const getLocations = () => {
+    Locations.search(searchOptions).then(response => {
+      if (response.result.length < searchOptions.limit) {
+        records = records.concat(response.result);
+        processLocations();
+      } else {
+        searchOptions.skip = searchOptions.skip + searchOptions.limit;
+        records = records.concat(response.result);
+        return getLocations();
+      }
+    }).catch(err => console.error(err));
+  }
+
+  getLocations();
 };
 
 const showImportErrorMessage = ({ message }) => {
