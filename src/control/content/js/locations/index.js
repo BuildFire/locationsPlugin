@@ -1325,7 +1325,7 @@ window.importLocations = () =>  {
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
     title: 'Exporting Locations',
-    message: 'We’re importing your locations, please wait.'
+    message: 'We’re exporting your locations, please wait.'
   });
 
   let searchOptions = {
