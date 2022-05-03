@@ -1323,6 +1323,11 @@ window.importLocations = () =>  {
 };
 
 window.exportLocations = () => {
+  const dialogRef = showProgressDialog({
+    title: 'Exporting Locations',
+    message: 'We’re importing your locations, please wait.'
+  });
+
   let searchOptions = {
     limit: 50,
     skip: 0,
@@ -1340,6 +1345,7 @@ window.exportLocations = () => {
       categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
     }));
     downloadCsvTemplate(data, locationTemplateHeader, 'locations');
+    dialogRef.close();
   }
 
   const getLocations = () => {
@@ -1354,7 +1360,6 @@ window.exportLocations = () => {
       }
     }).catch(err => console.error(err));
   }
-
   getLocations();
 };
 
