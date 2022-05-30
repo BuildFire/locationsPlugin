@@ -504,6 +504,11 @@ window.sortCategories = (sort) => {
     return a === b ? 0 : a > b ? 1 : - 1;
   });
   sortTextElem.innerHTML = sort === 'Z-A' ? 'Z - A' : 'A - Z';
+ buildfire.messaging.sendMessageToWidget({
+  cmd: 'sort',
+  scope: 'category',
+  sortBy: sort === 'Z-A' ? 'Desc' : 'Asc'
+});
   categoriesListUI.init(state.categories);
 };
 
@@ -618,7 +623,8 @@ const handleSubcategoriesEmptyState = (category, showEmptyState) => {
 
 const loadCategories = () => {
   const options = {
-    filter: {}
+    filter: {},
+    sort: {title: 1}
   };
   options.filter["_buildfire.index.date1"] = { $type: 10 };
   CategoriesController.searchCategories(options).then((categories) => {

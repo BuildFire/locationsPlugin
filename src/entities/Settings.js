@@ -66,8 +66,10 @@ export default class Settings {
       users: []
     };
     this.locationEditors = data.locationEditors || {
-      enabled: true
+      enabled: true,
+      time: "12H" 
     };
+    this.categoriesSortBy =  data.categoriesSortBy || "Asc";
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -91,6 +93,7 @@ export default class Settings {
       owner: this.owner,
       globalEditors: this.globalEditors,
       locationEditors: this.locationEditors,
+      categoriesSortBy: this.categoriesSortBy,
       createdOn: this.createdOn,
       createdBy: this.createdBy,
       lastUpdatedOn: this.lastUpdatedOn,

@@ -59,6 +59,14 @@ const state = {
   pageSize: 50,
   fetchingNextPage: false,
   fetchingEndReached: false,
+  defaultCircleMarkerColor: {
+    backgroundCSS: "background: rgba(253,35,5,1)",
+    color: "rgba(253,35,5,1)",
+    colorCSS: "color: rgba(253,35,5,1)",
+    colorHex: "#fd2305",
+    opacity: "100"
+  },
+  saveBtnClicked: false
 };
 
 const locationTemplateHeader = {
@@ -169,6 +177,19 @@ const renderBreadcrumbs = () => {
   }
 };
 
+const checkInputErrorOnChange = (element, errorElement)=> {
+  if(state.saveBtnClicked ){
+    if (element.value != "") {
+      errorElement.parentNode.classList.remove('has-error');
+      errorElement.classList.add('hidden');
+    } else {
+      errorElement.classList.remove('hidden');
+      errorElement.innerHTML = message || 'Required';
+      errorElement.parentNode.classList.add('has-error');
+    }
+  }
+}
+
 window.addEditLocation = (location) => {
   // categories are no more mandatory now so the following is not needed anymore
   // if (state.categories.length === 0) {
@@ -218,6 +239,7 @@ window.addEditLocation = (location) => {
       ed.on('keyup change', () => {
         state.locationObj.description = tinymce.activeEditor.getContent();
         triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
       });
     }
   });
@@ -343,10 +365,28 @@ window.addEditLocation = (location) => {
   addLocationControls.locationTitle.onkeydown = () => {
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
-
+  addLocationControls.locationTitle.onchange = (e) => {
+    checkInputErrorOnChange(addLocationControls.locationTitle, addLocationControls.locationTitleError);
+  };
   addLocationControls.locationSubtitle.onkeydown = () => {
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
+
+  addLocationControls.locationAddress.onchange = () => {
+    const {  address,coordinates } = state.locationObj;
+      if(state.saveBtnClicked ){
+        if (!address || !coordinates.lat || !coordinates.lng) {
+          addLocationControls.locationTitleError.classList.remove('hidden');
+          addLocationControls.locationTitleError.innerHTML = message || 'Required';
+          addLocationControls.locationTitleError.parentNode.classList.add('has-error');
+        } else {
+          addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
+          addLocationControls.locationTitleError.classList.add('hidden');
+          
+        }
+      }
+  }
+
 
   addLocationControls.listImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -366,6 +406,11 @@ window.addEditLocation = (location) => {
         if (iconUrl) {
           setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
           state.locationObj.listImage = iconUrl;
+          if(state.saveBtnClicked){
+            addLocationControls.listImageError.parentNode.classList.remove('has-error');
+            addLocationControls.listImageError.classList.add('hidden');
+          }
+
         }
       }
     );
@@ -513,6 +558,7 @@ window.addEditLocation = (location) => {
   };
 
   addLocationControls.saveBtn.onclick = (e) => {
+    state.saveBtnClicked = true;
     saveLocation(location ? "Edit" : "Add");
   };
 
@@ -522,6 +568,35 @@ window.addEditLocation = (location) => {
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
+const _isLocationTimeDuplicated = (intervals) => {
+  let fromTime = []
+  let toTime = []
+  let isValid = true;
+  intervals.forEach(element => {
+    let timeFrom = new Date(element.from).getUTCHours();
+    let timeTo= new Date(element.to).getUTCHours();
+    if(fromTime.includes(timeFrom) || toTime.includes(timeTo)){
+      isValid = false;
+    }
+    fromTime.push(timeFrom)
+    toTime.push(timeTo)
+  });
+  return isValid;
+}
+
+const _validateOpeningHoursDuplication = () => {
+  const {
+    openingHours
+  } = state.locationObj;
+  let isValid = true;
+  Object.entries(openingHours.days).forEach(element => {
+      let timeday = element[1]
+      if(isValid && timeday.intervals.length > 1){
+        isValid = _isLocationTimeDuplicated(timeday.intervals)
+      }
+  });
+  return isValid;
+}
 const saveLocation = (action, callback = () => {}) => {
   state.locationObj.title = addLocationControls.locationTitle.value;
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
@@ -529,12 +604,21 @@ const saveLocation = (action, callback = () => {}) => {
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
-
+  if(!_validateOpeningHoursDuplication()) {
+    buildfire.dialog.alert(
+      {
+        title: "Location Save Error",
+        message: "Opening hours are duplicated for the same day",
+      },
+      (err, actionButton) => {}
+    );
+    callback(false);
+    return;
+  };
   if (!locationInputValidation()) {
     callback(false);
     return;
   }
-
   addLocationControls.saveBtn.disabled = true;
   if (action === 'Add') {
     createLocation(state.locationObj).then(callback);
@@ -671,6 +755,7 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.locationObj.marker.type = value;
+      state.locationObj.marker.color = state.defaultCircleMarkerColor;
       handleMarkerType(value);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
@@ -957,12 +1042,12 @@ const renderOpeningHours = (openingHours) => {
       enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
-        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       addHoursBtn.onclick = (e) => {
         days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
-        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+       // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       renderDayIntervals(days[day], dayIntervals);
 
@@ -1000,7 +1085,7 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(start, interval.to, intervalError)) {
         return;
       }
-      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+    //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
       const end = convertTimeToDate(e.target.value);
@@ -1008,12 +1093,12 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(interval.from, end, intervalError)) {
         return;
       }
-      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
       dayInterval.remove();
-      triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
 
     dayIntervalsContainer.appendChild(dayInterval);

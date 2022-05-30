@@ -76,7 +76,9 @@ export default class Map {
         map: this.map,
         label: {
           text: labelText,
-          fontSize: '14px',
+          color: "#000",
+          fontSize: "16px",
+          fontWeight: "bold",
           className: 'marker-label'
         },
       });

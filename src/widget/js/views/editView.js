@@ -181,6 +181,7 @@ const _saveChanges = (e) => {
   }
 
   if (!_validateLocationSave()) return;
+  if(!_validateOpeningHoursDuplication())return;
 
   e.target.disabled = true;
 
@@ -359,7 +360,7 @@ const _initCategoriesOverlay = () => {
         </button>
         <div class="expansion-panel-body">
           <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-          ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
+          ${category.subcategory.length > 0 ? category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
               <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
               <span class="mdc-chip__checkmark">
@@ -371,7 +372,7 @@ const _initCategoriesOverlay = () => {
                   <span class="mdc-chip__text">${subcategory.title}</span>
                 </span>
               </span>
-            </div>`).join('\n')}
+            </div>`).join('\n') : ''}
         </div>
       </div>
       </div>`;

@@ -14,7 +14,8 @@ import views from './js/Views';
 import {
   openingNowDate,
   getCurrentDayName,
-  convertDateToTime,
+  convertDateToTime12H,
+  convertDateToTime
 } from '../utils/datetime';
 import {
   showElement,
@@ -326,7 +327,7 @@ const refreshSettings = () => WidgetController
 
 const refreshCategories = () => WidgetController
   .searchCategories({
-    sort: { title: -1 }
+    sort: { title: 1 }
   })
   .then((result) => state.categories = result);
 
@@ -395,7 +396,7 @@ const refreshQuickFilter = () => {
       state.filterElements[chipId] = { checked: true, subcategories: [] };
     }
     resetResultsBookmark();
-    clearAndSearchWithDelay();
+    clearAndSearchAllLocation();
   });
   setTimeout(() => {
     chipSet.chips.forEach((a) => {
@@ -405,6 +406,30 @@ const refreshQuickFilter = () => {
     });
   }, 200);
 };
+
+const clearAndSearchAllLocation = () => {
+  clearLocations();
+  const { showIntroductoryListView } = state.settings;
+  let chipsIdChecked = [];
+  for (const key in state.filterElements) {
+    if (state.filterElements[key].checked) {
+      chipsIdChecked.push(key)
+    }
+  }
+  WidgetController.searchLocations().then((result)=>{
+    state.listLocations = result.result.filter(res=>  chipsIdChecked.some((val) => res.categories.main.indexOf(val) !== -1))
+    if (showIntroductoryListView) {
+      introView.clearIntroViewList();
+      fetchPinnedLocations(() => {
+        introView.renderIntroductoryLocations(state.listLocations, true);
+      });
+    }
+    mapView.clearMapViewList();
+    mapView.renderListingLocations(state.listLocations);
+    state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+  })
+}
+
 
 const refreshIntroductoryDescription = () => {
   if (state.settings.introductoryListView.description) {
@@ -514,10 +539,10 @@ const showLocationDetail = () => {
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )})`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${cdnImage(selectedLocation.images[0].imageUrl)})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})})`;
         }
       }
 
@@ -577,7 +602,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${cdnImage(n.imageUrl)});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})});" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       resetBodyScroll();
       navigateTo('detail');
@@ -590,6 +615,7 @@ const showLocationDetail = () => {
 
 const showWorkingHoursDrawer = () => {
   const { days } = state.selectedLocation.openingHours;
+  const {time} = state.settings.locationEditors;
   buildfire.components.drawer.open(
     {
       header: window.strings.get('general.openHours').v,
@@ -597,7 +623,8 @@ const showWorkingHoursDrawer = () => {
       ${Object.entries(days).map(([day, prop]) => `<tr>
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
-          ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${convertDateToTime(t.from)} - ${convertDateToTime(t.to)}</p>`).join('\n')}
+          ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
+            t.to) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -982,26 +1009,27 @@ const initFilterOverlay = () => {
                   <div class="mdc-checkbox__ripple"></div>
                 </div>
               </div>
-              <div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+              ${category.subcategories.length > 0 ? `<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>`: ""}
             </div>
           </div>
         </button>
         <div class="expansion-panel-body">
-          <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-          ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
-              <div class="mdc-chip__ripple"></div>
-              <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
-              <span class="mdc-chip__checkmark">
-                <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
-                  <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+        ${category.subcategories.length > 0 ? `<div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
+        ${ category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
+            <div class="mdc-chip__ripple"></div>
+            <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
+            <span class="mdc-chip__checkmark">
+              <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+                <path class="mdc-chip__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /> </svg>
+            </span>
+            <span role="gridcell">
+              <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+                <span class="mdc-chip__text">${subcategory.title}</span>
               </span>
-              <span role="gridcell">
-                <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-                  <span class="mdc-chip__text">${subcategory.title}</span>
-                </span>
-              </span>
-            </div>`).join('\n')}
-        </div>
+            </span>
+          </div>`).join('\n')}
+      </div>` : ""}
+        
       </div>
       </div>`;
   });
@@ -1089,8 +1117,10 @@ const initFilterOverlay = () => {
 };
 
 const showMapView = () => {
+  addBreadcrumb({ pageName: 'Map', title: 'Map View' });
   hideElement('section#intro');
   showElement('section#listing');
+  clearAndSearchAllLocation();
   Analytics.mapListUsed();
 };
 
@@ -1273,6 +1303,18 @@ const handleMarkerClick = (location) => {
             </div>
           </div>`;
   drawer.reset('collapsed');
+  setTimeout(() => {
+    window.addEventListener("click", function abc(e) {
+      if (!document.getElementById("locationSummary").contains(e.target)) {
+        summaryContainer.classList.add("slide-out");
+        summaryContainer.classList.remove("slide-in");
+        this.setTimeout(()=>{
+          summaryContainer.classList.remove("slide-out");
+        },500)
+        window.removeEventListener("click", abc);
+      }
+    });
+  }, 100);
   summaryContainer.classList.remove('slide-out');
   summaryContainer.classList.add('slide-in');
 };
@@ -1819,11 +1861,23 @@ const onPopHandler = (breadcrumb) => {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
       if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
-        clearAndSearchWithDelay();
+        clearAndSearchAllLocation();
         break;
       }
     }
   }
+   else if (
+    state.breadcrumbs.length &&
+    (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
+    state.breadcrumbs[state.breadcrumbs.length - 1].name === "home") &&
+    state.settings.showIntroductoryListView
+  ) {
+    hideElement("section#listing");
+    showElement("section#intro");
+    introView.clearIntroViewList();
+    introView.renderIntroductoryLocations(state.listLocations, true);
+  }
+  
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
     hideOverlays();
@@ -1850,6 +1904,16 @@ const onPopHandler = (breadcrumb) => {
 const onReceivedMessageHandler = (message) => {
   if (message.cmd === 'sync') {
     handleCPSync(message);
+  }
+  if (message.cmd === "sort" && message.scope == "category") {
+    WidgetController.searchCategories({
+      sort: { title: message.sortBy === "Asc" ? 1 : -1 },
+    })
+      .then((result) => (state.categories = result))
+      .then(() => {
+        initFilterOverlay();
+        refreshQuickFilter();
+      });
   }
 };
 const onRatingHandler = (e) => {
