@@ -19,10 +19,10 @@ export const convertDateToTime = (date) => {
 
 export const convertDateToTime12H = (date) => {
   var dt = new Date(date);
-  var hours = dt.getHours() ;
+  var hours = dt.getUTCHours() ;
   var AmOrPm = hours >= 12 ? 'PM' : 'AM';
   hours = (hours % 12) || 12;
-  var minutes = dt.getMinutes() ;
+  var minutes = dt.getUTCMinutes() ;
   minutes = minutes < 10 ? "0" + minutes : minutes
   return `${hours}:${minutes} ${AmOrPm}` ;
 }

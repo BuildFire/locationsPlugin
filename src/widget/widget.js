@@ -409,25 +409,62 @@ const refreshQuickFilter = () => {
 
 const clearAndSearchAllLocation = () => {
   clearLocations();
-  const { showIntroductoryListView } = state.settings;
-  let chipsIdChecked = [];
+  hideElement("div.empty-page");
+  const query = {};
+  const subcategoryIds = [];
+  const categoryIds = [];
   for (const key in state.filterElements) {
     if (state.filterElements[key].checked) {
-      chipsIdChecked.push(key)
-    }
-  }
-  WidgetController.searchLocations().then((result)=>{
-    state.listLocations = result.result.filter(res=>  chipsIdChecked.some((val) => res.categories.main.indexOf(val) !== -1))
-    if (showIntroductoryListView) {
-      introView.clearIntroViewList();
-      fetchPinnedLocations(() => {
-        introView.renderIntroductoryLocations(state.listLocations, true);
+      categoryIds.push(key);
+      const selectedSubcategories = state.filterElements[key].subcategories;
+      subcategoryIds.push(...selectedSubcategories);
+      const category = state.categories.find((elem) => elem.id === key);
+      Analytics.categorySelected(category.id);
+      const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
+      subcategories.forEach((subcategory) => {
+        Analytics.subcategorySelected(subcategory.id);
       });
     }
+  }
+  if (categoryIds.length > 0 || subcategoryIds.length > 0) {
+    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    query["_buildfire.index.array1.string1"] = { $in: array1Index };
+  }
+  let options = {
+    filter: {
+      ...query
+    }
+  }
+  if(Object.entries(query).length == 0){
     mapView.clearMapViewList();
-    mapView.renderListingLocations(state.listLocations);
-    state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-  })
+    renderIntroductoryLocations();
+  } else {
+    WidgetController.searchLocations(options).then((response)=>{
+      state.listLocations = response.result;
+      renderIntroductoryLocations();
+      if(state.listLocations.length == 0){
+        showElement("div.empty-page");
+      }
+      mapView.clearMapViewList();
+      mapView.renderListingLocations(state.listLocations);
+      state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+    
+    })
+  }
+  
+}
+
+const renderIntroductoryLocations = () => {
+  const { showIntroductoryListView } = state.settings;
+  if (showIntroductoryListView) {
+    introView.clearIntroViewList();
+    fetchPinnedLocations(() => {
+      introView.renderIntroductoryLocations(state.listLocations, true);
+      if(state.listLocations.length == 0){
+        showElement("div.empty-page");
+      }
+    });
+  }
 }
 
 

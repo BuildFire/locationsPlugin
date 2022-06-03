@@ -48,10 +48,11 @@ export default class Accordion {
   // for the CSS transition.
   setSize() {
     this.bodies.forEach((b, idx) => {
-      const bound = b
-        .querySelector(".expansion-panel-body-content")
-        .getBoundingClientRect();
-      b.setAttribute("style", `--ht:${bound.height}px`);
+      const bound = b.querySelector(".expansion-panel-body-content")
+      if(bound != null){
+        bound.getBoundingClientRect();
+        b.setAttribute("style", `--ht:${bound.height}px`);
+      }
     });
   }
 
