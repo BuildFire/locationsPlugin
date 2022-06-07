@@ -747,7 +747,14 @@ const fetchMoreListLocations = (e) => {
   }
 };
 
-const viewFullImage = (url) => { buildfire.imagePreviewer.show({ images: url.map((u) => cdnImage(u.imageUrl)) }); };
+const viewFullImage = (url, selectedId) => { 
+  let images = [];
+  let index = url.findIndex(x => x.id === selectedId);
+  url.forEach(image => {
+    images.push(buildfire.imageLib.cropImage(image.imageUrl,{ size: window.innerWidth}));
+  })
+  buildfire.imagePreviewer.show({ images: images, index: index }); 
+};
 
 const setDefaultSorting = () => {
   const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
@@ -947,7 +954,8 @@ const initEventListeners = () => {
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
-      viewFullImage(state.selectedLocation.images);
+      var selectedId = e.target.getAttribute("data-id");
+      viewFullImage(state.selectedLocation.images, selectedId);
     } else if (e.target.parentNode?.classList?.contains('action-item')) {
       handleDetailActionItem(e);
     } else if (e.target.id === 'mapCenterBtn') {
@@ -1046,7 +1054,7 @@ const initFilterOverlay = () => {
                   <div class="mdc-checkbox__ripple"></div>
                 </div>
               </div>
-              ${category.subcategories.length > 0 ? `<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>`: ""}
+              <div style="opacity: ${category.subcategories.length > 0 ? 1 : 0}"  class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
             </div>
           </div>
         </button>
@@ -1071,11 +1079,11 @@ const initFilterOverlay = () => {
       </div>`;
   });
   container.innerHTML = html;
-
-  new Accordion({
-    element: container,
-    multi: true
-  });
+  
+    new Accordion({
+      element: container,
+      multi: true
+    });
 
   const chipSetsElements = document.querySelectorAll('#filter .mdc-chip-set');
   const chipSets = {};
