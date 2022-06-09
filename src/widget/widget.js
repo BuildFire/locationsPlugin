@@ -751,7 +751,7 @@ const viewFullImage = (url, selectedId) => {
   let images = [];
   let index = url.findIndex(x => x.id === selectedId);
   url.forEach(image => {
-    images.push(buildfire.imageLib.cropImage(image.imageUrl,{ size: window.innerWidth}));
+    images.push(image.imageUrl);
   })
   buildfire.imagePreviewer.show({ images: images, index: index }); 
 };
