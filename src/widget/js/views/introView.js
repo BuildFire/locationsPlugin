@@ -4,11 +4,16 @@ import { cdnImage } from '../util/helpers';
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
   let reducedLocations = list.reduce((filtered, n) => {
+    if(n.listImage != null){
+      n.listImage = buildfire.imageLib.cropImage(n.listImage, {size: "full_width", aspect:"1:1"})
+    } else {
+      n.listImage = "./images/empty_image.PNG"
+    }
     const index = state.pinnedLocations.findIndex((pinned) => pinned.id === n.id);
     if (index === -1) {
       filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${cdnImage(n.listImage)} alt="Location image">
+          <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
@@ -39,7 +44,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   if (includePinned) {
     reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${cdnImage(n.listImage)} alt="Location image">
+          <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, {size: "full_width", aspect:"1:1"}) : "./images/empty_image.PNG"} alt="Location image">
           <div class="location-item__description">
             <p class="mdc-theme--text-header">${n.title}</p>
             <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>

@@ -737,7 +737,20 @@ const initLocationEditing = () => {
   const addLocationsButton = document.querySelector('#addLocationsButton');
   const locationsListContainer = document.querySelector('#location-editing-list');
   const searchInput = document.querySelector('#location-editing-search-input');
+  const defaultLocationsTimeRadios = document.querySelectorAll('input[name="defaultLocationTime"]');
   let timeoutId;
+
+
+  for (const radio of defaultLocationsTimeRadios) {
+    if (radio.value === state.settings.locationEditors.time) {
+      radio.checked = true;
+    }
+    radio.onchange = (e) => {
+      const { value } = e.target;
+      state.settings.locationEditors.time = value;
+      saveSettingsWithDelay();
+    };
+  }
 
   enableLocationEditingBtn.checked = state.settings.locationEditors.enabled;
   enableLocationEditingBtn.onchange = (e) => {

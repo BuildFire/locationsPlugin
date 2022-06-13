@@ -17,6 +17,16 @@ export const convertDateToTime = (date) => {
   return `${hour}:${mins}`;
 };
 
+export const convertDateToTime12H = (date) => {
+  var dt = new Date(date);
+  var hours = dt.getUTCHours() ;
+  var AmOrPm = hours >= 12 ? 'PM' : 'AM';
+  hours = (hours % 12) || 12;
+  var minutes = dt.getUTCMinutes() ;
+  minutes = minutes < 10 ? "0" + minutes : minutes
+  return `${hours}:${minutes} ${AmOrPm}` ;
+}
+
 export const openingNowDate = () => {
   const date = new Date();
   return new Date(Date.UTC(1970, 0, 1, date.getHours(), date.getMinutes()));
