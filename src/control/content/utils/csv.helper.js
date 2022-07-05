@@ -153,7 +153,7 @@ export const csvToJson = (csv, options) => {
     let item = {};
     for (let col = 0; col < header.length && col < rows[row].length; col++) {
       let key = header[col];
-      if(col == 7){ // description column
+      if(key == "description"){ // description column
         var temporalDivElement = document.createElement("div");
         temporalDivElement.innerHTML = rows[row][col];
         temporalDivElement.querySelectorAll('[data-sheets-value]').forEach(element => {
