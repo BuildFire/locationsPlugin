@@ -1020,10 +1020,16 @@ const initEventListeners = () => {
   };
 };
 
-const initFilterOverlay = () => {
+const initFilterOverlay = (isInitialized, newcategories) => {
+  var categories;
+  if(isInitialized){
+    categories = state.categories
+  } else {
+    categories = newcategories
+  }
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
-  state.categories.forEach((category) => {
+  categories.forEach((category) => {
     let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
     if (category.iconUrl) {
       categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
@@ -1078,7 +1084,11 @@ const initFilterOverlay = () => {
       </div>
       </div>`;
   });
-  container.innerHTML = html;
+  if(isInitialized){
+    container.innerHTML = html;
+  } else {
+    container.innerHTML += html;
+  }
   
     new Accordion({
       element: container,
@@ -1803,7 +1813,7 @@ const handleCPSync = (message) => {
   } else if (scope === 'category') {
     refreshCategories()
       .then(() => {
-        initFilterOverlay();
+        initFilterOverlay(true, null);
         showFilterOverlay();
         refreshQuickFilter();
       });
@@ -1956,7 +1966,7 @@ const onReceivedMessageHandler = (message) => {
     })
       .then((result) => (state.categories = result))
       .then(() => {
-        initFilterOverlay();
+        initFilterOverlay(true, null);
         refreshQuickFilter();
       });
   }
@@ -2139,6 +2149,9 @@ const getCurrentUser = () => {
   });
 };
 
+var skipFilter = 1;
+var isLoading = false;
+
 const initApp = () => {
   const bootstrap = [
     getCurrentUserPosition(),
@@ -2152,7 +2165,7 @@ const initApp = () => {
   window.googleMapOnLoad = () => {
     Promise.all(bootstrap)
       .then(() => {
-        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
+        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
@@ -2160,6 +2173,33 @@ const initApp = () => {
         buildfire.appearance.titlebar.show();
         getCurrentUser();
         watchUserPositionChanges();
+        setTimeout(()=>{
+          var t = document.querySelector('#filter')
+          t.onscroll = (e) => {
+            if (
+              (t.scrollTop + t.clientHeight) / t.scrollHeight >
+              0.8 && !isLoading
+            ) {
+              isLoading = true;
+              skipFilter += 1;
+              const options = {
+                filter: {},
+                page: skipFilter,
+                pageSize: 20,
+                sort: {title: 1}
+              };
+
+              WidgetController
+              .searchCategories(options)
+              .then((result) => {
+                if(result && result.length > 0){
+                  isLoading = false;
+                  initFilterOverlay(false, result);
+                }
+              });
+            }
+          };
+        },3000)
       })
       .catch((err) => {
         console.error(`init error ${err}`);
