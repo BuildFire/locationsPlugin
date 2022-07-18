@@ -640,6 +640,7 @@ const handleSubcategoriesEmptyState = (category, showEmptyState) => {
 var skipFilter = 0;
 var isLoading = false;
 const loadCategories = () => {
+  skipFilter = 0;
   const options = {
     filter: {},
     skip: skipFilter,
@@ -660,7 +661,7 @@ const loadCategories = () => {
 const loadMoreCategories = () => {
   var t = document.getElementById("items")
   t.onscroll = (e) => {
-    if (t.scrollTop / t.scrollHeight > 0.8 && !isLoading) {
+    if (t.scrollTop / t.scrollHeight > 0.6 && !isLoading) {
       isLoading = true;
       skipFilter += 1;
       const options = {
@@ -671,7 +672,6 @@ const loadMoreCategories = () => {
       };
       options.filter["_buildfire.index.date1"] = { $type: 10 };
       CategoriesController.searchCategories(options).then((categories) => {
-        skipFilter += 1;
         state.categories += categories;
         globalState.categories += categories;
         categoriesListUI.append(categories)

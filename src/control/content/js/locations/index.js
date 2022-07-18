@@ -1504,15 +1504,22 @@ const getPinnedLocation = () => {
     state.pinnedLocations = result || [];
   });
 };
-
+var skipFilter = 0;
 const loadCategories = (callback) => {
-  CategoriesController.searchCategories().then((categories) => {
-    state.categories = categories;
-    globalState.categories = categories;
-    for (const category of state.categories) {
+  const options = {
+    filter: {},
+    page: skipFilter,
+    pageSize: 30,
+    sort: {title: 1}
+  };
+  CategoriesController.searchCategories(options).then((categories) => {
+    skipFilter += 1;
+    for(const category of categories){
+      state.categories.push(category);
+      globalState.categories.push(category);
       state.categoriesLookup[category.id] = category;
     }
-    callback();
+    callback(null, categories);
   });
 };
 
@@ -1631,9 +1638,16 @@ window.initLocations = () => {
   );
   handleLocationEmptyState(true);
   state.filter = {};
-  loadCategories(() => {
-    refreshLocations();
-  });
+ 
+  var _loadCategoriesTimer = setInterval(()=>{
+    loadCategories((err ,result)=>{
+      if(result.length < 30){
+        clearInterval(_loadCategoriesTimer)
+        refreshLocations();
+      }
+    })
+   
+  },500)
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
     window.addEditLocation(obj);
