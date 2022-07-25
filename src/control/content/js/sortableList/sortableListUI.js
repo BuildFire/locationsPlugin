@@ -22,6 +22,9 @@ class SortableListUI {
     this.container.innerHTML = "";
     this.render(items);
   }
+  append(items) {
+    this.sortableList.append(items);
+  }
 
   render(items) {
     if (!this.sortableList) {

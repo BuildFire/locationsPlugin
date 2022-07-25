@@ -466,20 +466,36 @@ const cancelAddCategory = () => {
 };
 
 window.searchCategories = () => {
-  const searchElem = categories.querySelector('#category-search-input');
-  if (!searchElem.value) {
-    categoriesListUI.init(state.categories);
-    handleCategoriesEmptyState(false, false);
-    return;
-  }
-
-  const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchElem.value.toLowerCase()));
-  if (data.length === 0) {
-    handleCategoriesEmptyState(false, true);
-  } else {
-    handleCategoriesEmptyState(false, false);
-  }
-  categoriesListUI.init(data);
+  setTimeout(()=>{
+    const searchElem = categories.querySelector('#category-search-input');
+    if (!searchElem.value) {
+      categoriesListUI.init(state.categories);
+      handleCategoriesEmptyState(false, false);
+      return;
+    }
+    const options = {
+      filter: {
+        $or: [{
+            "$json.title": {
+              $regex: searchElem.value.toLowerCase(),
+              $options: "-i",
+            },
+          },
+        ],
+      },
+      sort: {title: 1}
+    };
+    options.filter["_buildfire.index.date1"] = { $type: 10 };
+    CategoriesController.searchCategories(options).then((categories) => {
+      const data = categories
+      if (data && data.length === 0) {
+        handleCategoriesEmptyState(false, true);
+      } else {
+        handleCategoriesEmptyState(false, false);
+      }
+      categoriesListUI.init(data);
+    });
+  },500)
 };
 
 window.openCategorySort = (e) => {
@@ -621,19 +637,49 @@ const handleSubcategoriesEmptyState = (category, showEmptyState) => {
   }
 };
 
+var skipFilter = 0;
+var isLoading = false;
 const loadCategories = () => {
+  skipFilter = 0;
   const options = {
     filter: {},
+    skip: skipFilter,
     sort: {title: 1}
   };
   options.filter["_buildfire.index.date1"] = { $type: 10 };
   CategoriesController.searchCategories(options).then((categories) => {
+    skipFilter += 1;
     state.categories = categories;
     globalState.categories = categories;
     categoriesListUI.init(categories);
+
+    loadMoreCategories();
     handleCategoriesEmptyState(false);
   });
 };
+
+const loadMoreCategories = () => {
+  var t = document.getElementById("items")
+  t.onscroll = (e) => {
+    if (t.scrollTop / t.scrollHeight > 0.6 && !isLoading) {
+      isLoading = true;
+      skipFilter += 1;
+      const options = {
+        filter: {},
+        page: skipFilter,
+        pageSize: 20,
+        sort: {title: 1}
+      };
+      options.filter["_buildfire.index.date1"] = { $type: 10 };
+      CategoriesController.searchCategories(options).then((categories) => {
+        state.categories += categories;
+        globalState.categories += categories;
+        categoriesListUI.append(categories)
+        isLoading = false;
+      });
+    } 
+  };
+}
 
 const deleteCategory = (item, index, callback) => {
   buildfire.notifications.confirm(
