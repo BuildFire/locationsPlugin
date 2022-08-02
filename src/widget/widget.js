@@ -263,10 +263,10 @@ const searchLocations = () => {
       state.listLocations = state.listLocations.concat(result);
 
       if (state.searchCriteria.sort.sortBy === 'distance') {
-        result.sort((a, b) => b.distance - a.distance);
-        state.listLocations.sort((a, b) => b.distance - a.distance);
+        result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
+        state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
       }
-
+   
       if (state.searchCriteria.searchValue && !state.listLocations.length && !state.nearestLocation && nearestLocation && state.checkNearLocation) {
         state.nearestLocation = nearestLocation;
         state.checkNearLocation  = false;
