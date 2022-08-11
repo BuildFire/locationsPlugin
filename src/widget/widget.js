@@ -219,7 +219,7 @@ const searchLocations = () => {
 
   const $sort = {};
   if (state.searchCriteria.sort) {
-    if (state.searchCriteria.sort.sortBy === 'distance') {
+    if (state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition != null) {
       const centerMapPoint = state.maps.map.getCenter();
       const lat1 = Math.abs(state.currentLocation.lat);
       const lng1 = Math.abs(state.currentLocation.lng);
@@ -261,8 +261,7 @@ const searchLocations = () => {
       result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
         .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       state.listLocations = state.listLocations.concat(result);
-
-      if (state.searchCriteria.sort.sortBy === 'distance') {
+      if(state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition != null){
         result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
         state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
       }
