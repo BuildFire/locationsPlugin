@@ -266,7 +266,7 @@ const searchLocations = () => {
         result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
         state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
       }
-   
+
       if (state.searchCriteria.searchValue && !state.listLocations.length && !state.nearestLocation && nearestLocation && state.checkNearLocation) {
         state.nearestLocation = nearestLocation;
         state.checkNearLocation  = false;
@@ -448,10 +448,10 @@ const clearAndSearchAllLocation = () => {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-    
+
     })
   }
-  
+
 }
 
 const renderIntroductoryLocations = () => {
@@ -747,13 +747,13 @@ const fetchMoreListLocations = (e) => {
   }
 };
 
-const viewFullImage = (url, selectedId) => { 
+const viewFullImage = (url, selectedId) => {
   let images = [];
   let index = url.findIndex(x => x.id === selectedId);
   url.forEach(image => {
     images.push(image.imageUrl);
   })
-  buildfire.imagePreviewer.show({ images: images, index: index }); 
+  buildfire.imagePreviewer.show({ images: images, index: index });
 };
 
 const setDefaultSorting = () => {
@@ -1080,7 +1080,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
             </span>
           </div>`).join('\n')}
       </div>` : ""}
-        
+
       </div>
       </div>`;
   });
@@ -1089,7 +1089,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
   } else {
     container.innerHTML += html;
   }
-  
+
     new Accordion({
       element: container,
       multi: true
@@ -1550,13 +1550,17 @@ const initHomeView = () => {
 
 const initIntroLocations = () => {
   const { introductoryListView } = state.settings;
+  const carouselSkeleton = new buildfire.components.skeleton('.skeleton-carousel', { type: 'image, sentence' }).start();
+  const listSkeleton = new buildfire.components.skeleton('.skeleton-wrapper', { type: 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line' }).start();
+  showElement('section#intro');
 
   searchIntroLocations().then((result) => {
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
-      refreshIntroductoryDescription();
-      showElement('section#intro');
+      listSkeleton.stop();
       refreshIntroductoryCarousel();
+      carouselSkeleton.stop();
+      refreshIntroductoryDescription();
 
       if (introductoryListView.images.length === 0
         && !state.listLocations.length
@@ -1582,9 +1586,14 @@ const initMapLocations = () => {
   attempts = 0;
   clearLocations();
   mapView.clearMapViewList();
+  const type = state.settings.design.listViewStyle === 'backgroundImage'
+    ? 'image, image, image, image'
+    : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line'
+  const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
   searchLocations()
     .then(() => {
       introView.clearIntroViewList();
+      listViewCarousel.stop();
     });
 };
 
@@ -1932,7 +1941,7 @@ const onPopHandler = (breadcrumb) => {
     introView.clearIntroViewList();
     introView.renderIntroductoryLocations(state.listLocations, true);
   }
-  
+
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
     hideOverlays();
