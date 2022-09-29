@@ -5,6 +5,7 @@ import { hideElement, showElement } from '../util/ui';
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
   const emptyStateContainer = document.querySelector('.drawer-empty-state');
+  const emptyStateContainer2 = document.querySelector('.empty-page');
   const bookmarksSettings = state.settings.bookmarks;
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
@@ -65,11 +66,12 @@ const renderListingLocations = (list) => {
         </div>
       </div>`)).join('\n');
   }
-
+  
   if (!state.listLocations.length) {
     emptyStateContainer.textContent = window.strings.get(state.firstRender ? 'emptyState.locationsListBeforeSearch' : 'emptyState.locationsListAfterSearch').v;
     showElement(emptyStateContainer);
   } else {
+    hideElement(emptyStateContainer2);
     hideElement(emptyStateContainer);
   }
 
