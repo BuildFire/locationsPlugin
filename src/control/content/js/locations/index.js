@@ -3,6 +3,7 @@
 /* eslint-disable no-use-before-define */
 import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
+import Category from "../../../../entities/Category";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog } from "../../utils/helpers";
@@ -17,7 +18,6 @@ import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
-
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -1356,56 +1356,143 @@ window.importLocations = () =>  {
       if (!validateLocationCsv(result)) {
         return;
       }
-      const locations = result.map((elem) => {
-        delete elem.id;
-        elem.title = elem.title?.trim();
-        elem.subtitle = elem.subtitle?.trim();
-        elem.address = elem.address?.trim();
-        elem.formattedAddress = elem.formattedAddress?.trim();
-        elem.addressAlias = elem.addressAlias?.trim();
-        elem.listImage = elem.listImage?.trim();
-        elem.description = elem.description?.trim();
-        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
-        elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
-        elem.settings = {
-          showCategory: elem.showCategory || true,
-          showOpeningHours: elem.showOpeningHours || false,
-          showPriceRange: elem.showPriceRange || false,
-          showStarRating: elem.showStarRating || false,
-        };
-        elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
-        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
-        let categories = elem.categories ? elem.categories : "";
-        categories = elem.categories?.split(',').filter((elem) => elem).map(((elem) => elem.toLowerCase().trim()));
-        const mainCategories = state.categories.filter((elem) => categories?.includes(elem.title.toLowerCase())).map((elem) => elem.id);
-        elem.categories = { main: mainCategories, subcategories: [] };
-        elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
-        elem.createdOn = new Date();
-        elem.createdBy = authManager.currentUser;
-        return new Location(elem).toJSON();
-      });
-
       const dialogRef = showProgressDialog({
         title: 'Importing Locations',
         message: 'We’re importing your locations, please wait.'
       });
-      LocationsController.bulkCreateLocation(locations).then((result) => {
-        dialogRef.close();
-        fileInput.value = '';
+      var categories = searchAndUpdateCategoriesAndSubCategories(result)
+      if(categories.length == 0){
+        insertLocations(result, ()=>{
+          fileInput.value = '';
+          dialogRef.close();
+        })
+      } else {
+        CategoriesController.bulkCreateCategories(categories).then((_) => {
+          CategoriesController.searchCategories({}).then((_categories)=>{
+            state.categories = _categories;
+            insertLocations(result, () => {
+              fileInput.value = '';
+              dialogRef.close();
+            })
+          });
+        }).catch((err) => {
+          fileInput.value = '';
+          dialogRef.close();
+          console.error(err);
+        });
+      }
+  
+ 
+    });
+  };
+};
+
+const searchAndUpdateCategoriesAndSubCategories = (result) => {
+  var categories = []
+  var newCategories = [];
+
+  result.forEach(elem => {
+    if(elem.categories){
+      var newSubCategories = [];
+      var _categories = elem.categories.split(",").filter(e => e)
+        _categories.forEach(categoryAndSub => {
+        var categoryAndSub = categoryAndSub.split(" -> ")
+        var selectedCategory = categoryAndSub[0]
+        var selectedSubCategories = categoryAndSub[1]?.split(",")
+        var savedCategory = state.categories.find(x => x.title == selectedCategory)
+        
+        if(savedCategory == null){ // Check if category not found in collection
+          var isNewCategorySaved = newCategories.find(x => x == selectedCategory)
+          if(isNewCategorySaved == null){ // Check if category already added
+            newCategories.push(selectedCategory)
+            var categoryToBeSaved = {
+              title: selectedCategory,
+              iconUrl: "",
+              iconClassName: "",
+              subcategories:  selectedSubCategories?.map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() })),
+              createdOn: new Date(),
+              createdBy: authManager.currentUser
+            }
+            categories.push(new Category(categoryToBeSaved).toJSON())
+          }
+   
+        } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
+          var savedSubCategories = savedCategory.subcategories.map(x => x.title);
+          var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
+          if(nonSavedSubCategories.length > 0){ // Check if there is new subcategory & update category
+            nonSavedSubCategories.forEach(subCategory => {
+              var isNewSubCategorySaved = newSubCategories.find(x => x == subCategory)
+              if(isNewSubCategorySaved == null){ // Check if subcategory already added
+                newSubCategories.push(subCategory)
+                savedCategory.subcategories.push({ id: generateUUID(), title: subCategory?.trim() })
+              }
+            });
+            CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
+          }
+
+        }   
+      });
+     }
+  })
+  return categories;
+}
+
+const insertLocations = (result, callback) => {
+  const locations = result.map((elem) => {
+    delete elem.id;
+    elem.title = elem.title?.trim();
+    elem.subtitle = elem.subtitle?.trim();
+    elem.address = elem.address?.trim();
+    elem.formattedAddress = elem.formattedAddress?.trim();
+    elem.addressAlias = elem.addressAlias?.trim();
+    elem.listImage = elem.listImage?.trim();
+    elem.description = elem.description?.trim();
+    elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
+    elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
+    elem.settings = {
+      showCategory: elem.showCategory || true,
+      showOpeningHours: elem.showOpeningHours || false,
+      showPriceRange: elem.showPriceRange || false,
+      showStarRating: elem.showStarRating || false,
+    };
+    elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
+    elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
+
+    var elemCateogires = elem.categories.split(",").filter(e => e)
+    let categories = [];
+    let subCategories = [];
+    elemCateogires.forEach(categoryAndSub => {
+      var categoryAndSub = categoryAndSub.split("->")
+      var selectedCategory = categoryAndSub[0]
+      var selectedSubCategories = categoryAndSub[1]?.split(",")
+      var savedCategory = state.categories.find(x => x.title == selectedCategory)
+      if(savedCategory != null){
+        categories.push(savedCategory.id)
+        selectedSubCategories?.forEach(subcategory => {
+            subCategories.push(subcategory)
+        });
+      }
+    
+    })
+    elem.categories = { main: categories, subcategories: subCategories };
+    elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
+    elem.createdOn = new Date();
+    elem.createdBy = authManager.currentUser;
+    return new Location(elem).toJSON();
+    });
+    LocationsController.bulkCreateLocation(locations).then((result) => {
         buildfire.dialog.toast({
           message: "Successfully imported locations",
           type: "success",
         });
         refreshLocations();
         triggerWidgetOnLocationsUpdate({});
+        callback(null, true)
       }).catch((err) => {
-        fileInput.value = '';
-        dialogRef.close();
+        callback(err, null)
         console.error(err);
-      });
     });
-  };
-};
+}
 
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
