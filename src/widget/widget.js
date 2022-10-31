@@ -285,7 +285,7 @@ const searchLocations = () => {
       mapView.renderListingLocations(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
-      if (!state.fetchingEndReached) {
+      if (!state.fetchingEndReached && state.listLocations.length <= 200) {
         state.searchCriteria.page += 1;
         return searchLocations();
       }
