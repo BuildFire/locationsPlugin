@@ -265,7 +265,7 @@ const searchLocations = () => {
         result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
         state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
       }
-   
+
       if (state.searchCriteria.searchValue && !state.listLocations.length && !state.nearestLocation && nearestLocation && state.checkNearLocation) {
         state.nearestLocation = nearestLocation;
         state.checkNearLocation  = false;
@@ -441,16 +441,16 @@ const clearAndSearchAllLocation = () => {
     WidgetController.searchLocations(options).then((response)=>{
       state.listLocations = response.result;
       renderIntroductoryLocations();
-      if(state.listLocations.length == 0){
+      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
         showElement("div.empty-page");
       }
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-    
+
     })
   }
-  
+
 }
 
 const renderIntroductoryLocations = () => {
@@ -459,7 +459,7 @@ const renderIntroductoryLocations = () => {
     introView.clearIntroViewList();
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
-      if(state.listLocations.length == 0){
+      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
         showElement("div.empty-page");
       }
     });
@@ -575,10 +575,10 @@ const showLocationDetail = () => {
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )}')`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})}')`;
         }
       }
 
@@ -638,7 +638,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})}');" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       resetBodyScroll();
       navigateTo('detail');
@@ -707,9 +707,15 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  const actionItem = state.listLocations
+  var actionItem = state.listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
+
+  if(!actionItem){
+     actionItem = state.pinnedLocations
+    .reduce((prev, next) => prev.concat(next.actionItems), [])
+    .find((entity) => entity.id === actionItemId);
+  }
   buildfire.actionItems.execute(
     actionItem,
     (err) => {
@@ -746,13 +752,13 @@ const fetchMoreListLocations = (e) => {
   }
 };
 
-const viewFullImage = (url, selectedId) => { 
+const viewFullImage = (url, selectedId) => {
   let images = [];
   let index = url.findIndex(x => x.id === selectedId);
   url.forEach(image => {
     images.push(image.imageUrl);
   })
-  buildfire.imagePreviewer.show({ images: images, index: index }); 
+  buildfire.imagePreviewer.show({ images: images, index: index });
 };
 
 const setDefaultSorting = () => {
@@ -1079,7 +1085,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
             </span>
           </div>`).join('\n')}
       </div>` : ""}
-        
+
       </div>
       </div>`;
   });
@@ -1088,7 +1094,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
   } else {
     container.innerHTML += html;
   }
-  
+
     new Accordion({
       element: container,
       multi: true
@@ -1549,13 +1555,17 @@ const initHomeView = () => {
 
 const initIntroLocations = () => {
   const { introductoryListView } = state.settings;
+  const carouselSkeleton = new buildfire.components.skeleton('.skeleton-carousel', { type: 'image, sentence' }).start();
+  const listSkeleton = new buildfire.components.skeleton('.skeleton-wrapper', { type: 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line' }).start();
+  showElement('section#intro');
 
   searchIntroLocations().then((result) => {
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
-      refreshIntroductoryDescription();
-      showElement('section#intro');
+      listSkeleton.stop();
       refreshIntroductoryCarousel();
+      carouselSkeleton.stop();
+      refreshIntroductoryDescription();
 
       if (introductoryListView.images.length === 0
         && !state.listLocations.length
@@ -1581,9 +1591,14 @@ const initMapLocations = () => {
   attempts = 0;
   clearLocations();
   mapView.clearMapViewList();
+  const type = state.settings.design.listViewStyle === 'backgroundImage'
+    ? 'image, image, image, image'
+    : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line'
+  const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
   searchLocations()
     .then(() => {
       introView.clearIntroViewList();
+      listViewCarousel.stop();
     });
 };
 
@@ -1763,7 +1778,8 @@ const handleCPSync = (message) => {
           refreshIntroductoryCarousel();
           if (state.settings.introductoryListView.images.length === 0
             && state.listLocations.length === 0
-            && !state.settings.introductoryListView.description) {
+            && !state.settings.introductoryListView.description
+            && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
             showElement('#intro div.empty-page');
           }
           // eslint-disable-next-line no-new
@@ -1931,7 +1947,7 @@ const onPopHandler = (breadcrumb) => {
     introView.clearIntroViewList();
     introView.renderIntroductoryLocations(state.listLocations, true);
   }
-  
+
   state.breadcrumbs.pop();
   if (!state.breadcrumbs.length) {
     hideOverlays();

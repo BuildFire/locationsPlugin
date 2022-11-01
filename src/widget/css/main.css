@@ -69,6 +69,7 @@ section#categories.overlay {
 }
 /*temp for text fields end*/
 
+.skeleton-carousel,
 .carousel-wrapper {
   margin-left: -15px;
   margin-right: -15px;
@@ -1275,4 +1276,18 @@ section#edit {
 }
 .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
   color: var(--mdc-theme-primary, #6200ee);
+}
+
+.skeleton-carousel .skeleton-sentences {
+	padding: 10px;
+}
+
+#introLocationsList #skeletonLoader {
+	margin-top: -20px;
+}
+#listingLocationsList .bf-skeleton-loader.skeleton-avatar,
+#introLocationsList .bf-skeleton-loader.skeleton-avatar {
+	border-radius: 4px;
+	width: 64px;
+	height: 64px;
 }
