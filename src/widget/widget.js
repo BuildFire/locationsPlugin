@@ -441,7 +441,7 @@ const clearAndSearchAllLocation = () => {
     WidgetController.searchLocations(options).then((response)=>{
       state.listLocations = response.result;
       renderIntroductoryLocations();
-      if(state.listLocations.length == 0){
+      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
         showElement("div.empty-page");
       }
       mapView.clearMapViewList();
@@ -459,7 +459,7 @@ const renderIntroductoryLocations = () => {
     introView.clearIntroViewList();
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
-      if(state.listLocations.length == 0){
+      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
         showElement("div.empty-page");
       }
     });
@@ -575,10 +575,10 @@ const showLocationDetail = () => {
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )})`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )}')`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})})`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})}')`;
         }
       }
 
@@ -638,7 +638,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url(${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})});" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})}');" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       resetBodyScroll();
       navigateTo('detail');
@@ -707,9 +707,15 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  const actionItem = state.listLocations
+  var actionItem = state.listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
+
+  if(!actionItem){
+     actionItem = state.pinnedLocations
+    .reduce((prev, next) => prev.concat(next.actionItems), [])
+    .find((entity) => entity.id === actionItemId);
+  }
   buildfire.actionItems.execute(
     actionItem,
     (err) => {
@@ -1772,7 +1778,8 @@ const handleCPSync = (message) => {
           refreshIntroductoryCarousel();
           if (state.settings.introductoryListView.images.length === 0
             && state.listLocations.length === 0
-            && !state.settings.introductoryListView.description) {
+            && !state.settings.introductoryListView.description
+            && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
             showElement('#intro div.empty-page');
           }
           // eslint-disable-next-line no-new
