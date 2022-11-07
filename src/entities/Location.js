@@ -42,7 +42,7 @@ export default class Location {
     this.listImage = data.listImage || null;
     this.description = data.description || null;
     this.owner = data.owner || null;
-    this.views = isNaN(parseInt(data.views)) ?  0  : parseInt(data.views); // Test this
+    this.views = isNaN(parseInt(data.views)) ?  0  : parseInt(data.views);
     this.price = data.price || { range: 1, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };
     this.bookmarksCount = data.bookmarksCount || 0;
