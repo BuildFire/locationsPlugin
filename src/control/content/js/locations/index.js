@@ -17,7 +17,7 @@ import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
-
+import Category from "../../../../entities/Category";
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -93,6 +93,32 @@ const locationTemplateHeader = {
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
   bookmarksCount: "bookmarksCount"
+};
+
+const locationInfoRowHeader = {
+  id: '[!Reserved-Field!]',
+  title: "Location Title Name is a required field",
+  subtitle: "Subtitle of the location is a n optional field to add ",
+  address: "Location address  is required filed, please make sure to upload accurate addresses from Google Map(https://www.google.com/maps) the address format is written with the format : Address Line 1, city , state , country and zip code",
+  formattedAddress: "Google Map Location written with the format : Address Line 1, city , state , country and zip code",
+  addressAlias: "This is for the Custom Location Title that can be displayed and pinned on the map ",
+  lat: "Latitude (Required)",
+  lng: "Longitude (Required)",
+  listImage: "Please insert the location images as URL and you can upload multiple separated by comma ex: Image Url 1, Image Url 2ï؟½ ( this is a Required field to upload)",
+  description: "Enter a Text or HTML Element (for the location description , this is a Required Field )",
+  categories: "you can link each location to multiple categories and subcategories under each category , please fill as the below example to link category and subcategories together using the arrow and to set location to multiple use comma between each category, EX :  Category1 -> Subcategory1, Category1 -> Subcategory2, Category2",
+  markerType: "Enter the type of the market as : Pin or Circle or Image",
+  markerImage: "Please insert the location images as URL and you can upload multiple separated by comma ex: Image Url 1, Image Url 2 ( this is a Required field to upload)",
+  markerColorRGBA: "If the marker type is selected to circle please fill this column with any of the following colors rgba(255,255,255,0)",
+  showCategory: "TRUE or FALSE",
+  showOpeningHours: "TRUE or FALSE",
+  showPriceRange: "TRUE or FALSE",
+  showStarRating: "TRUE or FALSE",
+  images: "Insert images URLs separated by comma Image Url 1, Image Url 2 ",
+  views: "",
+  priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
+  priceCurrency: "If price range is enabled select the currency type $ or €",
+  bookmarksCount: ""
 };
 
 const renderAddLocationsPage = () => {
@@ -854,7 +880,7 @@ const openSelectCategoriesDialog = (action) => {
     const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchValue.toLowerCase()));
     createDialogCategoriesList(data, categoriesListContainer, state.locationObj.categories);
   };
-
+  
   selectCategoryDialog = new DialogComponent("dialogComponent", dialogContent);
 
   selectCategoryDialog.showDialog(
@@ -1309,7 +1335,7 @@ window.openLocationsBulkAction = (e) => {
 
 const downloadCsvTemplate = (templateData, header, name) => {
   const  csv = jsonToCsv(templateData, {
-    header
+    header, locationInfoRowHeader
   });
 
   downloadCsv(csv, `${name? name : 'template'}.csv`);
@@ -1329,19 +1355,21 @@ const validateLocationCsv = (items) => {
   }
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (!item.title || !item.address || !item.description) {
-      showImportErrorMessage({
-        message: `This file has missing title, address or description in row number [${i + 1}], please fix it and upload it again.`,
-      });
-      return false;
-    }
-
-    if (!isLatitude(item.lat) || !isLongitude(item.lng)) {
-      showImportErrorMessage({
-        message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
-      });
-      return false;
-    }
+    if(item.id != null && item.id != '[!Reserved-Field!]'){
+      if (!item.title || !item.address || !item.description) {
+        showImportErrorMessage({
+          message: `This file has missing title, address or description in row number [${i + 1}], please fix it and upload it again.`,
+        });
+        return false;
+      }
+  
+      if (!isLatitude(item.lat) || !isLongitude(item.lng)) {
+        showImportErrorMessage({
+          message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
+        });
+        return false;
+      }
+    } 
   }
 
   return true;
@@ -1356,57 +1384,156 @@ window.importLocations = () =>  {
       if (!validateLocationCsv(result)) {
         return;
       }
-      const locations = result.map((elem) => {
-        delete elem.id;
-        elem.title = elem.title?.trim();
-        elem.subtitle = elem.subtitle?.trim();
-        elem.address = elem.address?.trim();
-        elem.formattedAddress = elem.formattedAddress?.trim();
-        elem.addressAlias = elem.addressAlias?.trim();
-        elem.listImage = elem.listImage?.trim();
-        elem.description = elem.description?.trim();
-        elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
-        elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
-        elem.settings = {
-          showCategory: elem.showCategory || true,
-          showOpeningHours: elem.showOpeningHours || false,
-          showPriceRange: elem.showPriceRange || false,
-          showStarRating: elem.showStarRating || false,
-        };
-        elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
-        elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
-        let categories = elem.categories ? elem.categories : "";
-        categories = elem.categories?.split(',').filter((elem) => elem).map(((elem) => elem.toLowerCase().trim()));
-        const mainCategories = state.categories.filter((elem) => categories?.includes(elem.title.toLowerCase())).map((elem) => elem.id);
-        elem.categories = { main: mainCategories, subcategories: [] };
-        elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
-        elem.createdOn = new Date();
-        elem.createdBy = authManager.currentUser;
-        return new Location(elem).toJSON();
-      });
-
       const dialogRef = showProgressDialog({
         title: 'Importing Locations',
         message: 'We’re importing your locations, please wait.'
       });
-      LocationsController.bulkCreateLocation(locations).then((result) => {
-        dialogRef.close();
+      insertData(result, (err, result) => {
+        if(err)  console.error(err);
         fileInput.value = '';
+        dialogRef.close();
+      })
+    });
+  };
+};
+
+const insertData = (jsonResult, callback, fileInput, dialogRef) => {
+    CategoriesController.getAllCategories((allCategories1)=>{ 
+          state.categories = allCategories1;
+          upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
+            if(newCategories.length == 0){
+              insertLocations(jsonResult, ()=>{
+                callback(null, true);
+              })
+            } else {
+              CategoriesController._bulkCreateCategories(newCategories).then((res) => {
+                registerCategoryAnalytics(res.data.length);
+                CategoriesController.getAllCategories((allCategories2)=>{ 
+                  state.categories = allCategories2;
+                  insertLocations(jsonResult, () => {
+                    callback(null, true);
+                  })
+                })
+              }).catch((err) => {
+                callback(err, false);
+              });
+            }
+          })
+    })
+}
+
+const upsertCategories = (result, allCategories) => {
+  return new Promise((resolve, reject) => {
+    var categories = []
+    var newCategories = [];
+    result.forEach(elem => {
+      if(elem.categories){
+        var newSubCategories = [];
+        var _categories = elem.categories.split(",").filter(e => e)
+          _categories.forEach(categoryAndSub => {
+
+          var categoryAndSub = categoryAndSub.split(" -> ")
+          var selectedCategoryTitle = categoryAndSub[0]
+          var selectedSubCategories = categoryAndSub[1]?.split(",")
+          var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle)
+          
+          if(!savedCategory){ // Check if category not found in collection
+            var isNewCategorySaved = newCategories.find(x => x == selectedCategoryTitle)
+
+            if(!isNewCategorySaved){ // Check if category already added
+              newCategories.push(selectedCategoryTitle)
+
+              var categoryToBeSaved = {
+                title: selectedCategoryTitle,
+                iconUrl: "",
+                iconClassName: "",
+                subcategories: selectedSubCategories ? selectedSubCategories.map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() })) : [],
+                createdOn: new Date(),
+                createdBy: authManager.currentUser
+              }
+              categories.push(new Category(categoryToBeSaved).toJSON())
+            }
+    
+          } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
+            var savedSubCategories = savedCategory.subcategories.map(x => x.title);
+            var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
+            if(nonSavedSubCategories.length > 0){ // Check if there is new subcategory & update category
+              nonSavedSubCategories.forEach(subCategory => {
+                var isNewSubCategorySaved = newSubCategories.find(x => x == subCategory)
+                if(isNewSubCategorySaved == null){ // Check if subcategory already added
+                  newSubCategories.push(subCategory)
+                  savedCategory.subcategories.push({ id: generateUUID(), title: subCategory?.trim() })
+                }
+              });
+              CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
+            }
+
+          }   
+        });
+      }
+    })
+    resolve(categories)
+  });
+  
+}
+
+const insertLocations = (result, callback) => {
+  const locations = result.map((elem) => {
+    delete elem.id;
+    elem.title = elem.title?.trim();
+    elem.subtitle = elem.subtitle?.trim();
+    elem.address = elem.address?.trim();
+    elem.formattedAddress = elem.formattedAddress?.trim();
+    elem.addressAlias = elem.addressAlias?.trim();
+    elem.listImage = elem.listImage?.trim();
+    elem.description = elem.description?.trim();
+    elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
+    elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
+    elem.settings = {
+      showCategory: elem.showCategory || true,
+      showOpeningHours: elem.showOpeningHours || false,
+      showPriceRange: elem.showPriceRange || false,
+      showStarRating: elem.showStarRating || false,
+    };
+    elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
+    elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
+    var elemCategories = elem.categories.split(",").filter(e => e)
+    let categories = [];
+    let subCategories = [];
+    elemCategories.forEach(categoryAndSub => {
+      var categoryAndSub = categoryAndSub.split(" -> ")
+      var selectedCategoryTitle = categoryAndSub[0]
+      var selectedSubCategories = categoryAndSub[1]
+      var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
+      if(savedCategory){
+        categories.push(savedCategory.id)
+        if(selectedSubCategories){
+          var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
+          if(selectedSubCategory){
+            subCategories.push(selectedSubCategory.id)
+          }
+        }
+      }
+    })
+    elem.categories = { main: categories, subcategories: subCategories };
+    elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
+    elem.createdOn = new Date();
+    elem.createdBy = authManager.currentUser;
+    return new Location(elem).toJSON();
+    });
+    LocationsController.bulkCreateLocation(locations).then((result) => {
         buildfire.dialog.toast({
           message: "Successfully imported locations",
           type: "success",
         });
         refreshLocations();
         triggerWidgetOnLocationsUpdate({});
+        callback(null, true)
       }).catch((err) => {
-        fileInput.value = '';
-        dialogRef.close();
+        callback(err, null)
         console.error(err);
-      });
     });
-  };
-};
-
+}
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
     title: 'Exporting Locations',
