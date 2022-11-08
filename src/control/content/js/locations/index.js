@@ -1407,7 +1407,7 @@ const insertData = (jsonResult, callback, fileInput, dialogRef) => {
               })
             } else {
               CategoriesController._bulkCreateCategories(newCategories).then((res) => {
-                registerCategoryAnalytics(res.data.length);
+                CategoriesController.registerCategoryAnalytics(res.data.length);
                 CategoriesController.getAllCategories((allCategories2)=>{ 
                   state.categories = allCategories2;
                   insertLocations(jsonResult, () => {
