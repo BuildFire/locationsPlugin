@@ -101,7 +101,7 @@ export const jsonToCsv = (objArray, options) => {
         csvStr += `"${value.trim()}",`;
       }
     }
-    if(options.locationInfoRowHeader){
+    if(options.locationInfoRowHeader && array.length == 1 && typeof(array[0]) == 'object'){
       csvStr = csvStr.slice(0, -1) + "\r\n";
       locationInfoRowHeader = options.locationInfoRowHeader;
       for (const key in header) {
@@ -120,7 +120,7 @@ export const jsonToCsv = (objArray, options) => {
         let value = key.toString().replace(/"/g, '""');
         // remove �
         value = value.replace(/\uFFFD/g, '');
-        csvStr += `"${value.trim()}",`;
+        csvStr += `"${value.trim()}", `;
       }
     }
   }

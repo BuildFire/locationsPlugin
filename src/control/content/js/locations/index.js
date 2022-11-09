@@ -1429,13 +1429,13 @@ const upsertCategories = (result, allCategories) => {
     result.forEach(elem => {
       if(elem.categories){
         var newSubCategories = [];
-        var _categories = elem.categories.split(",").filter(e => e)
+        var _categories = elem.categories.split(", ").filter(Boolean)
           _categories.forEach(categoryAndSub => {
 
           var categoryAndSub = categoryAndSub.split(" -> ")
           var selectedCategoryTitle = categoryAndSub[0]
           var selectedSubCategories = categoryAndSub[1]?.split(",")
-          var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle)
+          var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle && x.deletedBy == null)
           
           if(!savedCategory){ // Check if category not found in collection
             var isNewCategorySaved = newCategories.find(x => x == selectedCategoryTitle)
@@ -1547,15 +1547,38 @@ window.exportLocations = () => {
   }, records = [];
 
   const processLocations = () => {
-    const data = records.map(elem => ({
-      ...elem, ...elem.coordinates, ...elem.settings,
-      markerType: elem.marker.type,
-      markerImage: elem.marker.image,
-      markerColorRGBA: elem.marker.color?.color,
-      priceRange: elem.price.range,
-      priceCurrency: elem.price.currency,
-      categories: elem.categories.main.map(catId => state.categoriesLookup[catId]),
-    }));
+    const data = records.map(elem => {
+      elem= elem;
+      elem.lat = elem.coordinates?.lat;
+      elem.lng = elem.coordinates?.lng;
+      elem.settings= elem.settings;
+      elem.markerType= elem.marker.type;
+      elem.markerImage= elem.marker.image;
+      elem.markerColorRGBA= elem.marker.color?.color;
+      elem.priceRange= elem.price.range;
+      elem.priceCurrency= elem.price.currency;
+      let categories = [];
+      elem.categories.main.forEach(catId => {
+        var category = state.categoriesLookup[catId]
+        if(category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0){
+          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id) )
+          if(subcategories && subcategories.length > 0){
+            subcategories.forEach(e => {
+              categories.push({
+                title: category.title + " -> " + e.title
+              } ) 
+            })
+          } else {
+            categories.push({title: category.title}) 
+          }
+        } else {
+          categories.push({title: category.title}) 
+        }
+      });
+      elem.categories = categories
+
+      return elem;
+    });
     downloadCsvTemplate(data, locationTemplateHeader, 'locations');
     dialogRef.close();
   }
