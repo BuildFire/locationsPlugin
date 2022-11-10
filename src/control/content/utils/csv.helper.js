@@ -135,8 +135,9 @@ export const jsonToCsv = (objArray, options) => {
       } else {
         const value1 = JSON.parse(JSON.stringify(array[rowNo][index]));
         let line1 = "";
-        value1.forEach((val) => {
-          line1 += (val.title || val.imageUrl) + ",";
+        value1.forEach((val,index) => {
+          line1 += (val.title || val.imageUrl);
+          line1 += index != value1.length - 1 ? ", " : ""
         });
         line += '"' + line1.replace(/"/g, '""').replace(/\uFFFD/g, '') + '",';
       }

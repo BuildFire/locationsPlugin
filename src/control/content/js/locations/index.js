@@ -1399,7 +1399,11 @@ window.importLocations = () =>  {
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
     CategoriesController.getAllCategories((allCategories1)=>{ 
+          for(const category of allCategories1){
+            state.categoriesLookup[category.id] = category;
+          }
           state.categories = allCategories1;
+          globalState.categories = allCategories1;
           upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
             if(newCategories.length == 0){
               insertLocations(jsonResult, ()=>{
@@ -1409,7 +1413,11 @@ const insertData = (jsonResult, callback, fileInput, dialogRef) => {
               CategoriesController._bulkCreateCategories(newCategories).then((res) => {
                 CategoriesController.registerCategoryAnalytics(res.data.length);
                 CategoriesController.getAllCategories((allCategories2)=>{ 
+                  for(const category of allCategories2){
+                    state.categoriesLookup[category.id] = category;
+                  }
                   state.categories = allCategories2;
+                  globalState.categories = allCategories2;
                   insertLocations(jsonResult, () => {
                     callback(null, true);
                   })
@@ -1429,14 +1437,14 @@ const upsertCategories = (result, allCategories) => {
     result.forEach(elem => {
       if(elem.categories){
         var newSubCategories = [];
-        var _categories = elem.categories.split(", ").filter(Boolean)
+        var _categories = elem.categories.split(",").filter(Boolean)
           _categories.forEach(categoryAndSub => {
 
-          var categoryAndSub = categoryAndSub.split(" -> ")
-          var selectedCategoryTitle = categoryAndSub[0]
+          var categoryAndSub = categoryAndSub.split("->")
+          var selectedCategoryTitle = categoryAndSub[0].trim()
           var selectedSubCategories = categoryAndSub[1]?.split(",")
           var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle && x.deletedBy == null)
-          
+
           if(!savedCategory){ // Check if category not found in collection
             var isNewCategorySaved = newCategories.find(x => x == selectedCategoryTitle)
 
@@ -1452,6 +1460,12 @@ const upsertCategories = (result, allCategories) => {
                 createdBy: authManager.currentUser
               }
               categories.push(new Category(categoryToBeSaved).toJSON())
+            } else if(selectedSubCategories){
+              let selectedCategory = categories.find(x => x.title == selectedCategoryTitle)
+              var isSubCategoryAdded = selectedCategory.subcategories.find(x => x.title == selectedSubCategories[0].trim())
+              if(!isSubCategoryAdded){
+                selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim()})
+              }
             }
     
           } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
@@ -1501,9 +1515,9 @@ const insertLocations = (result, callback) => {
     let categories = [];
     let subCategories = [];
     elemCategories.forEach(categoryAndSub => {
-      var categoryAndSub = categoryAndSub.split(" -> ")
-      var selectedCategoryTitle = categoryAndSub[0]
-      var selectedSubCategories = categoryAndSub[1]
+      var _categoryAndSub = categoryAndSub.split("->")
+      var selectedCategoryTitle = _categoryAndSub[0].trim();
+      var selectedSubCategories = _categoryAndSub[1]?.trim();
       var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
       if(savedCategory){
         categories.push(savedCategory.id)
