@@ -1520,7 +1520,11 @@ const insertLocations = (result, callback) => {
       var selectedSubCategories = _categoryAndSub[1]?.trim();
       var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
       if(savedCategory){
-        categories.push(savedCategory.id)
+        var isCategoryAdded = categories.find(x=>x == savedCategory.id)
+        if(!isCategoryAdded){
+          categories.push(savedCategory.id)
+
+        }
         if(selectedSubCategories){
           var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
           if(selectedSubCategory){
