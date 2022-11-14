@@ -55,6 +55,7 @@ export default {
         Categories.search(searchOptions).then(result => {
           if (result.length < searchOptions.limit) {
               categories = categories.concat(result);
+              categories = categories.filter(x => x.deletedBy == null);
               return callback(categories);
           } else {
               searchOptions.skip = searchOptions.skip + searchOptions.limit;
