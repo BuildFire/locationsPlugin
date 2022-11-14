@@ -1511,28 +1511,30 @@ const insertLocations = (result, callback) => {
     };
     elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
     elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
-    var elemCategories = elem.categories.split(",").filter(e => e)
+    var elemCategories = elem.categories?.split(",").filter(e => e)
     let categories = [];
     let subCategories = [];
-    elemCategories.forEach(categoryAndSub => {
-      var _categoryAndSub = categoryAndSub.split("->")
-      var selectedCategoryTitle = _categoryAndSub[0].trim();
-      var selectedSubCategories = _categoryAndSub[1]?.trim();
-      var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
-      if(savedCategory){
-        var isCategoryAdded = categories.find(x=>x == savedCategory.id)
-        if(!isCategoryAdded){
-          categories.push(savedCategory.id)
-
-        }
-        if(selectedSubCategories){
-          var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
-          if(selectedSubCategory){
-            subCategories.push(selectedSubCategory.id)
+    if(elemCategories){
+      elemCategories.forEach(categoryAndSub => {
+        var _categoryAndSub = categoryAndSub.split("->")
+        var selectedCategoryTitle = _categoryAndSub[0].trim();
+        var selectedSubCategories = _categoryAndSub[1]?.trim();
+        var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
+        if(savedCategory){
+          var isCategoryAdded = categories.find(x=>x == savedCategory.id)
+          if(!isCategoryAdded){
+            categories.push(savedCategory.id)
+  
+          }
+          if(selectedSubCategories){
+            var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
+            if(selectedSubCategory){
+              subCategories.push(selectedSubCategory.id)
+            }
           }
         }
-      }
-    })
+      })
+    }
     elem.categories = { main: categories, subcategories: subCategories };
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
