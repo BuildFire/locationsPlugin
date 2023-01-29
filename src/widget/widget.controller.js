@@ -6,7 +6,6 @@ import Location from '../repository/Locations';
 // import Location from '../../entities/Location';
 // import authManager from '../../UserAccessControl/authManager';
 const DEFAULT_PAGE = 0;
-const DEFAULT_PAGE_SIZE = 7;
 
 export default {
   getLocation(id) {
@@ -22,7 +21,7 @@ export default {
   },
   searchLocations(options = {}) {
     const defaultOptions = {
-      pageSize: DEFAULT_PAGE_SIZE,
+      pageSize: 50,
       page: DEFAULT_PAGE,
       recordCount: true,
       ...options
