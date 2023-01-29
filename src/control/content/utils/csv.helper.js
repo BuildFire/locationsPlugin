@@ -90,6 +90,7 @@ export const jsonToCsv = (objArray, options) => {
   }
   let csvStr = "";
   let header = null;
+  let locationInfoRowHeader = null;
   if (options && options.header) {
     header = options.header;
     for (const key in header) {
@@ -100,6 +101,18 @@ export const jsonToCsv = (objArray, options) => {
         csvStr += `"${value.trim()}",`;
       }
     }
+    if(options.locationInfoRowHeader && array.length == 1 && typeof(array[0]) == 'object'){
+      csvStr = csvStr.slice(0, -1) + "\r\n";
+      locationInfoRowHeader = options.locationInfoRowHeader;
+      for (const key in header) {
+        if (locationInfoRowHeader.hasOwnProperty(key)) {
+          let value = (locationInfoRowHeader[String(key)] || "").replace(/"/g, '""');
+          value = value.replace(/\uFFFD/g, '');
+          csvStr += `"${value.trim()}",`;
+        }
+      }
+    }
+   
   } else {
     header = array[0];
     for (const key in header) {
@@ -107,7 +120,7 @@ export const jsonToCsv = (objArray, options) => {
         let value = key.toString().replace(/"/g, '""');
         // remove �
         value = value.replace(/\uFFFD/g, '');
-        csvStr += `"${value.trim()}",`;
+        csvStr += `"${value.trim()}", `;
       }
     }
   }
@@ -122,8 +135,9 @@ export const jsonToCsv = (objArray, options) => {
       } else {
         const value1 = JSON.parse(JSON.stringify(array[rowNo][index]));
         let line1 = "";
-        value1.forEach((val) => {
-          line1 += (val.title || val.imageUrl) + ",";
+        value1.forEach((val,index) => {
+          line1 += (val.title || val.imageUrl);
+          line1 += index != value1.length - 1 ? ", " : ""
         });
         line += '"' + line1.replace(/"/g, '""').replace(/\uFFFD/g, '') + '",';
       }
@@ -149,7 +163,12 @@ export const csvToJson = (csv, options) => {
     return;
   }
   let items = [];
-  for (let row = 1; row < rows.length; row++) {
+  let dataRowsStartFrom = 1;
+  if(rows[1] && rows[1][0] == "[!Reserved-Field!]"){
+    dataRowsStartFrom = 2;
+  }
+
+  for (let row = dataRowsStartFrom; row < rows.length; row++) {
     let item = {};
     for (let col = 0; col < header.length && col < rows[row].length; col++) {
       let key = header[col];
