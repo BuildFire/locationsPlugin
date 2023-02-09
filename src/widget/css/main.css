@@ -777,6 +777,7 @@ button span {
   padding: 10px 20px;
   color: #FFFFFF;
   background-size: cover;
+  background-position: center;
 }
 .location-summary__header {
   display: flex;
