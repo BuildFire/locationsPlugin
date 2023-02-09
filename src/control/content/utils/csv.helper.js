@@ -172,21 +172,11 @@ export const csvToJson = (csv, options) => {
     let item = {};
     for (let col = 0; col < header.length && col < rows[row].length; col++) {
       let key = header[col];
-      if(key == "description"){ // description column
-        var temporalDivElement = document.createElement("div");
-        temporalDivElement.innerHTML = rows[row][col];
-        temporalDivElement.querySelectorAll('[data-sheets-value]').forEach(element => {
-            var newElement = document.createElement(element.nodeName);
-            newElement.innerHTML = element.innerHTML;
-            element.parentNode.replaceChild(newElement, element);
-        });
-        rows[row][col] = temporalDivElement.innerHTML;;
-      }
       item[key] = rows[row][col];
     }
     items.push(item);
   }
-  return JSON.stringify(items).replace(/},/g, "},\r\n").replace(/\uFFFD/g, '');
+  return JSON.stringify(items).replace(/\uFFFD/g, '');
 };
 
 export const readCSVFile = (file, callback) => {
