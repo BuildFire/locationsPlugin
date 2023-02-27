@@ -1336,6 +1336,15 @@ const refreshMapOptions = () => {
   }
 };
 
+window.addEventListener("click", function removeLocationContainerOutsideBox(e) {
+  const locationContainer = document.querySelector('#locationSummary')
+
+  if (!locationContainer.contains(e.target) && !locationContainer.classList.contains('transition-in-progress')) {
+    locationContainer.classList.add('slide-out');
+    locationContainer.classList.remove('slide-in');
+  }
+});
+
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   const { bookmarks } = state.settings;
@@ -1363,20 +1372,12 @@ const handleMarkerClick = (location) => {
             </div>
           </div>`;
   drawer.reset('collapsed');
-  setTimeout(() => {
-    window.addEventListener("click", function abc(e) {
-      if (!document.getElementById("locationSummary").contains(e.target)) {
-        summaryContainer.classList.add("slide-out");
-        summaryContainer.classList.remove("slide-in");
-        this.setTimeout(()=>{
-          summaryContainer.classList.remove("slide-out");
-        },500)
-        window.removeEventListener("click", abc);
-      }
-    });
-  }, 100);
   summaryContainer.classList.remove('slide-out');
-  summaryContainer.classList.add('slide-in');
+  // transition-in-progress class is added to track css transitioning start/stop
+  summaryContainer.classList.add('slide-in', 'transition-in-progress');
+  setTimeout(()=>{
+    summaryContainer.classList.remove('transition-in-progress');
+  }, 500)
 };
 const initDrawerFilterOptions = () => {
   const { sorting, bookmarks, filter } = state.settings;
