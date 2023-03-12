@@ -18,6 +18,7 @@ import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime
 import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
+import { validateOpeningHoursDuplication } from '../../../../widget/js/util/helpers';
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -594,35 +595,6 @@ window.addEditLocation = (location) => {
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
-const _isLocationTimeDuplicated = (intervals) => {
-  let fromTime = []
-  let toTime = []
-  let isValid = true;
-  intervals.forEach(element => {
-    let timeFrom = new Date(element.from).getUTCHours();
-    let timeTo= new Date(element.to).getUTCHours();
-    if(fromTime.includes(timeFrom) || toTime.includes(timeTo)){
-      isValid = false;
-    }
-    fromTime.push(timeFrom)
-    toTime.push(timeTo)
-  });
-  return isValid;
-}
-
-const _validateOpeningHoursDuplication = () => {
-  const {
-    openingHours
-  } = state.locationObj;
-  let isValid = true;
-  Object.entries(openingHours.days).forEach(element => {
-      let timeday = element[1]
-      if(isValid && timeday.intervals.length > 1){
-        isValid = _isLocationTimeDuplicated(timeday.intervals)
-      }
-  });
-  return isValid;
-}
 const saveLocation = (action, callback = () => {}) => {
   state.locationObj.title = addLocationControls.locationTitle.value;
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
@@ -630,7 +602,7 @@ const saveLocation = (action, callback = () => {}) => {
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
-  if(!_validateOpeningHoursDuplication()) {
+  if(!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
     buildfire.dialog.alert(
       {
         title: "Location Save Error",

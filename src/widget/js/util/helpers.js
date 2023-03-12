@@ -114,3 +114,33 @@ export const isLocationOpen = (location) => {
   }
   return isOpen;
 };
+
+const _isLocationTimeDuplicated = (intervals) => {
+  const fromTime = [];
+  const toTime = [];
+  let isValid = true;
+  intervals.forEach((element) => {
+    const timeFrom = new Date(element.from).getUTCHours();
+    const timeTo = new Date(element.to).getUTCHours();
+    if (fromTime.includes(timeFrom) || toTime.includes(timeTo)) {
+      isValid = false;
+    }
+    fromTime.push(timeFrom);
+    toTime.push(timeTo);
+  });
+  return isValid;
+};
+
+export const validateOpeningHoursDuplication = (openingHours) => {
+  // const {
+  //   openingHours
+  // } = state.locationObj;
+  let isValid = true;
+  Object.entries(openingHours.days).forEach((element) => {
+    const timeday = element[1];
+    if (isValid && timeday.intervals.length > 1) {
+      isValid = _isLocationTimeDuplicated(timeday.intervals);
+    }
+  });
+  return isValid;
+};

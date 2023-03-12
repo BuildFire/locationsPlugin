@@ -13,7 +13,8 @@ import {
   transformCategoriesToText,
   addBreadcrumb,
   getActiveTemplate,
-  cropImage
+  cropImage,
+  validateOpeningHoursDuplication
 } from '../util/helpers';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from '../Accordion';
@@ -181,7 +182,7 @@ const _saveChanges = (e) => {
   }
 
   if (!_validateLocationSave()) return;
-  if(!_validateOpeningHoursDuplication())return;
+  if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
 
   e.target.disabled = true;
 
