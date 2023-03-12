@@ -132,9 +132,6 @@ const _isLocationTimeDuplicated = (intervals) => {
 };
 
 export const validateOpeningHoursDuplication = (openingHours) => {
-  // const {
-  //   openingHours
-  // } = state.locationObj;
   let isValid = true;
   Object.entries(openingHours.days).forEach((element) => {
     const timeday = element[1];
