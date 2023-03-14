@@ -18,7 +18,7 @@ import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime
 import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
-import { validateOpeningHoursDuplication } from '../../../../widget/js/util/helpers';
+import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");

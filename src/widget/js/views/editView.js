@@ -13,14 +13,14 @@ import {
   transformCategoriesToText,
   addBreadcrumb,
   getActiveTemplate,
-  cropImage,
-  validateOpeningHoursDuplication
+  cropImage
 } from '../util/helpers';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
+import { validateOpeningHoursDuplication } from '../../../shared/utils';
 
 const localState = {
   pendingLocation: null,
