@@ -20,6 +20,7 @@ import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
+import { validateOpeningHoursDuplication } from '../../../shared/utils';
 
 const localState = {
   pendingLocation: null,
@@ -181,7 +182,7 @@ const _saveChanges = (e) => {
   }
 
   if (!_validateLocationSave()) return;
-  if(!_validateOpeningHoursDuplication())return;
+  if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
 
   e.target.disabled = true;
 

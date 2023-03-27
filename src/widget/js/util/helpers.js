@@ -114,3 +114,4 @@ export const isLocationOpen = (location) => {
   }
   return isOpen;
 };
+
