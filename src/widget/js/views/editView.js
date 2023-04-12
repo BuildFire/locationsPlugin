@@ -361,7 +361,7 @@ const _initCategoriesOverlay = () => {
         </button>
         <div class="expansion-panel-body">
           <div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-          ${category.subcategory.length > 0 ? category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
+          ${category.subcategories.length > 0 ? category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
               <div class="mdc-chip__ripple"></div>
               <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
               <span class="mdc-chip__checkmark">
