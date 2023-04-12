@@ -105,7 +105,7 @@ export default class Map {
       anchor: new google.maps.Point(10, 10),
     };
 
-   this.userPositionMarker = new google.maps.Marker({
+    this.userPositionMarker = new google.maps.Marker({
       position: new google.maps.LatLng(latitude, longitude),
       map: this.map,
       icon: iconOptions,
@@ -142,39 +142,8 @@ export default class Map {
 
   onBoundsChange() {}
 
-  initSearchAreaBtn(onClick) {
-  // Set CSS for the control border.
-    const controlUI = document.createElement('div');
-    const controlDiv = document.createElement('div');
-    controlDiv.style.top = '5rem;';
-    controlDiv.id = 'custom-top-center';
-    controlUI.style.backgroundColor = 'rgb(0 0 0 / 60%)';
-    controlUI.style.borderRadius = '20px';
-    // controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    controlUI.style.boxShadow = 'rgb(0 0 0 / 30%) 0px 1px 4px -1px';
-    controlUI.style.cursor = 'pointer';
-    controlUI.style.margin = '0 0 10px';
-    controlUI.style.padding = '10px 17px';
-    controlUI.style.height = 'auto';
-    controlUI.style.textAlign = 'center';
-    controlUI.style.textTransform = 'capitalize';
-    controlUI.title = 'Click to find locations';
-    controlUI.id = 'findLocationsBtn';
-    controlDiv.appendChild(controlUI);
-
-    // Set CSS for the control interior.
-    const controlText = document.createElement('div');
-
-    controlText.style.color = '#e3e3e3';
-    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-    controlText.style.fontSize = '12px';
-    controlText.style.fontWeight = 'bold';
-    controlText.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
-    controlUI.appendChild(controlText);
-    // Setup the click event listeners: simply set the map to Chicago.
-    controlUI.addEventListener('click', onClick);
-    controlUI.style.display = 'none';
-    this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv);
+  addControlToMap(control) {
+    this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
   }
 
   get mapBounds() {
