@@ -413,10 +413,15 @@ const clearAndSearchAllLocation = () => {
   const subcategoryIds = [];
   const categoryIds = [];
   for (const key in state.filterElements) {
-    if (state.filterElements[key].checked) {
-      categoryIds.push(key);
-      const selectedSubcategories = state.filterElements[key].subcategories;
-      subcategoryIds.push(...selectedSubcategories);
+    const categoryFilterElement = state.filterElements[key];
+    if (categoryFilterElement.checked) {
+
+      const selectedSubcategories = categoryFilterElement.subcategories;
+      if(categoryFilterElement.isAllSubCategoriesChecked || selectedSubcategories.length === 0){
+        categoryIds.push(key);
+      } else if(selectedSubcategories.length > 0){
+        subcategoryIds.push(...selectedSubcategories);
+      }
       const category = state.categories.find((elem) => elem.id === key);
       Analytics.categorySelected(category.id);
       const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
@@ -447,7 +452,6 @@ const clearAndSearchAllLocation = () => {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-
     })
   }
 
@@ -1039,7 +1043,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     if (category.iconUrl) {
       categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
     }
-    state.filterElements[category.id] = { checked: false, subcategories: [] };
+    state.filterElements[category.id] = { checked: false, subcategories: [], isAllSubCategoriesChecked: false };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
@@ -1114,9 +1118,10 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     if (!target.checked) {
-      state.filterElements[categoryId] = { checked: false, subcategories: [] };
+      state.filterElements[categoryId] = { checked: false, subcategories: [], isAllSubCategoriesChecked: false };
     } else {
       state.filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].isAllSubCategoriesChecked = true;
     }
 
     chipSets[categoryId].chips.forEach((c) => {
@@ -1162,12 +1167,16 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     if (state.filterElements[categoryId].subcategories.length === 0) {
       input.checked = false;
       state.filterElements[categoryId].checked = false;
+      state.filterElements[categoryId].isAllSubCategoriesChecked = false;
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].isAllSubCategoriesChecked = true;
+
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
+      state.filterElements[categoryId].isAllSubCategoriesChecked = false;
     }
 
     mdcChip.classList.add('disabled');
