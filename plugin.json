@@ -27,7 +27,7 @@
   ]
   },
   "widget":{},
-  "features" : [],
+  "features" : [{"name" : "Geo"}],
   "webpack": "8080",
   "keywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "supportSite": "https://learn.appdocumentation.com/en/articles/5979361-locations-feature",
