@@ -1,6 +1,6 @@
-import MarkerClusterer from "./lib/markercluster";
-import CustomMarker from "./CustomMarker";
-import { cdnImage } from './util/helpers';
+import MarkerClusterer from './markercluster';
+import CustomMarker from './CustomMarker';
+import { cdnImage } from '../util/helpers';
 
 export default class Map {
   constructor(selector, options) {
@@ -8,6 +8,7 @@ export default class Map {
     this.initMarkerCluster();
     this.Marker = CustomMarker();
     this.userPositionMarker = null;
+    this.markers = [];
   }
 
   init(selector, userOptions) {
@@ -57,16 +58,28 @@ export default class Map {
     this.markerClusterer = new MarkerClusterer(this.map, [], clusterOptions);
   }
 
+  removeMarker(marker) {
+    if (marker instanceof this.Marker) {
+      marker.remove();
+    } else {
+      marker.setMap(null);
+    }
+    if (this.markerClusterer) {
+      this.markerClusterer.removeMarker(marker);
+    }
+  }
+
   addMarker(location, onClick) {
     if (!this.map) return;
+
     const { lat, lng } = location.coordinates;
     let marker;
     let labelText = location.addressAlias ?? location.title;
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (
-      (location.marker.type === "circle" && location.marker.color?.color) ||
-      (location.marker.type === "image" && location.marker.image)
+      (location.marker.type === "circle" && location.marker.color?.color)
+      || (location.marker.type === "image" && location.marker.image)
     ) {
       marker = new this.Marker(location, this.map, onClick);
     } else {
@@ -87,9 +100,15 @@ export default class Map {
       });
     }
 
+    if (this.markers.length >= 200) {
+      this.removeMarker(this.markers.shift());
+    }
+
     if (this.markerClusterer) {
       this.markerClusterer.addMarker(marker);
     }
+
+    this.markers.push(marker);
   }
 
   addUserPosition(coordinates) {

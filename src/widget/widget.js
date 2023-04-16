@@ -6,7 +6,7 @@ import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Location from '../entities/Location';
 import Accordion from './js/Accordion';
-import MainMap from './js/Map';
+import MainMap from './js/map/Map';
 import drawer from './js/drawer';
 import state from './js/state';
 import constants from './js/constants';
