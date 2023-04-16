@@ -11,7 +11,7 @@ export default {
 
     switch (state) {
       case 'FIND_MORE':
-        controlTextElement.innerHTML = 'Find More';
+        controlTextElement.innerHTML = window.strings?.get('general.findMore')?.v;
         controlElementContainer.classList.add('sm-label');
         break;
       case 'FIND_IN_AREA':
