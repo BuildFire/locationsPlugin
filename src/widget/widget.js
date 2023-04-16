@@ -754,13 +754,12 @@ const fetchMoreIntroductoryLocations = (e) => {
 };
 
 const fetchMoreListLocations = (e) => {
+  if (state.fetchingNextPage || state.fetchingEndReached) return;
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    if (!state.fetchingNextPage && !state.fetchingEndReached) {
-      state.fetchingNextPage = true;
-      state.searchCriteria.page += 1;
-      searchLocations();
-    }
+    state.fetchingNextPage = true;
+    state.searchCriteria.page += 1;
+    searchLocations();
   }
 };
 
@@ -919,7 +918,7 @@ const bookmarkLocation = (locationId, e) => {
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
-  document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
+  document.querySelector('.drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
