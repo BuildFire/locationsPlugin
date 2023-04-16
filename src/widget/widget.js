@@ -37,6 +37,7 @@ import stringsConfig from '../shared/stringsConfig';
 import editView from './js/views/editView';
 import mapView from './js/views/mapView';
 import introView from './js/views/introView';
+import mapSearchControl from './js/map/search-control';
 
 let SEARCH_TIMOUT;
 
@@ -181,6 +182,14 @@ const searchIntroLocations = () => {
 };
 
 const searchLocations = () => {
+  /**
+   * 1- New Load More button shown on map, if there is more data.
+   * 2- Always Mirror map and list locations, but replace in map only when exceeds 200
+   * 2- Fix list pagination (UI)
+   * 3- Replace pins when there is more than 200
+   * 4- find more should be added to translation
+   * */
+
   const { showIntroductoryListView } = state.settings;
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
   if (activeTemplate === 'intro' && showIntroductoryListView) {
@@ -195,6 +204,7 @@ const searchLocations = () => {
     return Promise.resolve([]);
   }
 
+  mapSearchControl.resetState();
   const $match = { ...query };
   $match["_buildfire.geo"] = {
     $geoWithin: {
@@ -281,11 +291,13 @@ const searchLocations = () => {
         }
       }
 
+      mapSearchControl.refresh();
+
       // Render Map listLocations
       mapView.renderListingLocations(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
-      if (!state.fetchingEndReached && state.listLocations.length <= 200) {
+      if (!state.fetchingEndReached && state.listLocations.length < 200) {
         state.searchCriteria.page += 1;
         return searchLocations();
       }
@@ -1286,14 +1298,19 @@ const triggerSearchOnMapIdle = () => {
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    clearLocations();
+    if (state.viewportHasChanged) {
+      clearLocations();
+    } else {
+      state.searchCriteria.page += 1;
+    }
+
     searchLocations().then((result) => {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
     });
   }, 300);
 
-  hideElement('#findLocationsBtn');
+  mapSearchControl.hide();
 };
 
 const initMainMap = () => {
@@ -1303,6 +1320,8 @@ const initMainMap = () => {
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = () => {
     state.isMapIdle = false;
+    state.viewportHasChanged = true;
+    mapSearchControl.setLabel('FIND_IN_AREA');
     resetResultsBookmark();
     // handle hiding opened location
     const locationSummary = document.querySelector('#locationSummary');
@@ -1314,10 +1333,10 @@ const initMainMap = () => {
 
   state.maps.map.onMapIdle = () => {
     state.isMapIdle = true;
-    showElement('#findLocationsBtn');
+    mapSearchControl.show();
   };
 
-  state.maps.map.initSearchAreaBtn(findViewPortLocations);
+  mapSearchControl.init(findViewPortLocations);
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea

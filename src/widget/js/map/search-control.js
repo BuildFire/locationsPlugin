@@ -1,41 +1,25 @@
 import state from '../state';
 
+const _getControlElementContainer = () => document.querySelector('#custom-top-center');
 const _getControlElement = () => document.querySelector('#findLocationsBtn');
 const _getControlTextElement = () => document.querySelector('#findLocationsBtn div');
 
-/**
- * ~ Edge handling~
- * When searching reset the button
- * Re-initialize after each search
- * */
-
-/**
- * ~Label Visibility~
- *   should be changed to Find More and shown, when there is more locations can be fetched
- *   should be shown when there is more locations can be fetched (after search locations is triggered)
- *   should be hidden when there are no more locations can be fetched
- *   should be hidden during the fetch process
- * */
-
-/**
- * ~Label Reset and make it hidden~
- *  when the viewport has changed
- *  when the zoom has changed
- *  when there are no more locations can be fetched
- * */
-
 export default {
   setLabel(state) {
-    const labelDiv = _getControlTextElement();
+    const controlElementContainer = _getControlElementContainer();
+    const controlTextElement = _getControlTextElement();
+
     switch (state) {
       case 'FIND_MORE':
-        labelDiv.innerHTML = 'Find More';
+        controlTextElement.innerHTML = 'Find More';
+        controlElementContainer.classList.add('sm-label');
         break;
       case 'FIND_IN_AREA':
-        labelDiv.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
+        controlTextElement.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
+        controlElementContainer.classList.remove('sm-label');
         break;
       default:
-        labelDiv.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
+        controlTextElement.innerHTML = window.strings?.get('general.findWithinThisArea')?.v;
         break;
     }
   },
