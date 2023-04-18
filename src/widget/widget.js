@@ -336,6 +336,7 @@ const refreshQuickFilter = () => {
   const hideQFBtn = document.querySelector('#hideQFBtn');
   let html = '';
   if (chipSet) {
+    chipSet.unlisten("MDCChip:interaction", initChipSetInteractionListener)
     chipSet.destroy();
     chipSet = null;
   }
@@ -385,7 +386,18 @@ const refreshQuickFilter = () => {
   container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
-  chipSet.listen('MDCChip:interaction', (event) => {
+  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener); 
+  setTimeout(() => {
+    chipSet.chips.forEach((a) => {
+      if (state.filterElements[a.id]?.checked) {
+        a.selected = true;
+      }
+    });
+  }, 200);
+};
+
+
+const initChipSetInteractionListener = (event) => {
     const { chipId } = event.detail;
     if (chipId === 'bookmarksFilterBtn') {
       state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
@@ -396,15 +408,7 @@ const refreshQuickFilter = () => {
     }
     resetResultsBookmark();
     clearAndSearchAllLocation();
-  });
-  setTimeout(() => {
-    chipSet.chips.forEach((a) => {
-      if (state.filterElements[a.id]?.checked) {
-        a.selected = true;
-      }
-    });
-  }, 200);
-};
+}
 
 const clearAndSearchAllLocation = () => {
   clearLocations();
@@ -461,11 +465,13 @@ const renderIntroductoryLocations = () => {
   const { showIntroductoryListView } = state.settings;
   if (showIntroductoryListView) {
     introView.clearIntroViewList();
-    fetchPinnedLocations(() => {
-      introView.renderIntroductoryLocations(state.listLocations, true);
-      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
-        showElement("div.empty-page");
-      }
+    searchIntroLocations().then(() => {
+      fetchPinnedLocations(() => {
+        introView.renderIntroductoryLocations(state.listLocations, true);
+        if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
+          showElement("div.empty-page");
+        }
+      });
     });
   }
 }
@@ -1940,7 +1946,8 @@ const onPopHandler = (breadcrumb) => {
   } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
-      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
+      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked ||
+        JSON.stringify(state.filterElements[key].subcategories) !== JSON.stringify(state.currentFilterElements[key].subcategories)) {
         clearAndSearchAllLocation();
         break;
       }
