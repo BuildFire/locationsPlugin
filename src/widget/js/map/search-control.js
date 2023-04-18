@@ -54,8 +54,6 @@ export default {
     // Setup the click event listeners: simply set the map to Chicago.
     controlUI.addEventListener('click', onClick);
     controlUI.style.display = 'none';
-    console.log('state.maps.map: ', state.maps);
-    console.log('state.maps.map: ', state.maps.map);
     state.maps.map.addControlToMap(controlDiv);
   },
   resetState() {

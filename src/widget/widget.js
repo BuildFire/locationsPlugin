@@ -182,14 +182,6 @@ const searchIntroLocations = () => {
 };
 
 const searchLocations = () => {
-  /**
-   * 1- New Load More button shown on map, if there is more data.
-   * 2- Always Mirror map and list locations, but replace in map only when exceeds 200
-   * 2- Fix list pagination (UI)
-   * 3- Replace pins when there is more than 200
-   * 4- find more should be added to translation
-   * */
-
   const { showIntroductoryListView } = state.settings;
   const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
   if (activeTemplate === 'intro' && showIntroductoryListView) {
