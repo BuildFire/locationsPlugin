@@ -424,7 +424,7 @@ const clearAndSearchAllLocation = () => {
     const categoryFilterElement = state.filterElements[key];
     if (categoryFilterElement.checked) {
       const selectedSubcategories = categoryFilterElement.subcategories;
-      const existedCategory = state.categories.find(x => x.id == key);
+      const existedCategory = state.categories.find(category => category.id == key);
       if(existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
         categoryIds.push(key);
       } else if(selectedSubcategories.length > 0){
@@ -449,11 +449,14 @@ const clearAndSearchAllLocation = () => {
   };
   if (Object.entries(query).length === 0) {
     mapView.clearMapViewList();
-    renderLocationsIntro();
+    const { showIntroductoryListView } = state.settings;
+    if(showIntroductoryListView){
+      searchIntroLocations().then(() => prepareIntroViewList());
+    }
   } else {
     WidgetController.searchLocations(options).then((response) => {
       state.listLocations = response.result;
-      renderLocations();
+      prepareIntroViewList();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
@@ -461,16 +464,7 @@ const clearAndSearchAllLocation = () => {
   }
 };
 
-const renderLocationsIntro = () => {
-  const { showIntroductoryListView } = state.settings;
-  if (showIntroductoryListView) {
-    searchIntroLocations().then(() => renderLocations());
-  } else {
-    renderLocations();
-  }
-};
-
-const renderLocations = () => {
+const prepareIntroViewList = () => {
   introView.clearIntroViewList();
   introView.renderIntroductoryLocations(state.listLocations, true);
   if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
@@ -817,7 +811,7 @@ const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
     .then(() => {
-      renderLocations();
+      prepareIntroViewList();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
     });
@@ -1780,7 +1774,7 @@ const handleCPSync = (message) => {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
           setDefaultSorting();
-          clearAndSearchWithDelay();
+          fetchPinnedLocations(()=>clearAndSearchWithDelay());
           refreshIntroductoryDescription();
           hideOverlays();
           navigateTo('home');
@@ -1955,7 +1949,10 @@ const onPopHandler = (breadcrumb) => {
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    renderLocationsIntro();
+    const { showIntroductoryListView } = state.settings;
+    if(showIntroductoryListView){
+      searchIntroLocations().then(() => prepareIntroViewList());
+    }
   }
 
   state.breadcrumbs.pop();
