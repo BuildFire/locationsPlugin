@@ -29,7 +29,7 @@ import {
   deepObjectDiff,
   transformCategoriesToText,
   cdnImage,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen
+  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual
 } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
@@ -398,17 +398,17 @@ const refreshQuickFilter = () => {
 
 
 const initChipSetInteractionListener = (event) => {
-    const { chipId } = event.detail;
-    if (chipId === 'bookmarksFilterBtn') {
-      state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
-    } else if (state.filterElements[chipId]) {
-      state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
-    } else {
-      state.filterElements[chipId] = { checked: true, subcategories: [] };
-    }
-    resetResultsBookmark();
-    clearAndSearchAllLocation();
-}
+  const { chipId } = event.detail;
+  if (chipId === 'bookmarksFilterBtn') {
+    state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
+  } else if (state.filterElements[chipId]) {
+    state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
+  } else {
+    state.filterElements[chipId] = { checked: true, subcategories: [] };
+  }
+  resetResultsBookmark();
+  clearAndSearchAllLocation();
+};
 
 const clearAndSearchAllLocation = () => {
   clearLocations();
@@ -419,9 +419,9 @@ const clearAndSearchAllLocation = () => {
   for (const key in state.filterElements) {
     const categoryFilterElement = state.filterElements[key];
     if (categoryFilterElement.checked) {
-
       const selectedSubcategories = categoryFilterElement.subcategories;
-      if(categoryFilterElement.isAllSubCategoriesChecked || selectedSubcategories.length === 0){
+      const existedCategory = state.categories.find(x => x.id == key);
+      if(existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
         categoryIds.push(key);
       } else if(selectedSubcategories.length > 0){
         subcategoryIds.push(...selectedSubcategories);
@@ -435,47 +435,44 @@ const clearAndSearchAllLocation = () => {
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0) {
-    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
-  let options = {
+  const options = {
     filter: {
       ...query
     }
-  }
-  if(Object.entries(query).length == 0){
+  };
+  if (Object.entries(query).length === 0) {
     mapView.clearMapViewList();
-    renderIntroductoryLocations();
+    renderLocationsIntro();
   } else {
-    WidgetController.searchLocations(options).then((response)=>{
+    WidgetController.searchLocations(options).then((response) => {
       state.listLocations = response.result;
-      renderIntroductoryLocations();
-      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
-        showElement("div.empty-page");
-      }
+      renderLocations();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-    })
-  }
-
-}
-
-const renderIntroductoryLocations = () => {
-  const { showIntroductoryListView } = state.settings;
-  if (showIntroductoryListView) {
-    introView.clearIntroViewList();
-    searchIntroLocations().then(() => {
-      fetchPinnedLocations(() => {
-        introView.renderIntroductoryLocations(state.listLocations, true);
-        if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
-          showElement("div.empty-page");
-        }
-      });
     });
   }
-}
+};
 
+const renderLocationsIntro = () => {
+  const { showIntroductoryListView } = state.settings;
+  if (showIntroductoryListView) {
+    searchIntroLocations().then(() => renderLocations());
+  } else {
+    renderLocations();
+  }
+};
+
+const renderLocations = () => {
+  introView.clearIntroViewList();
+  introView.renderIntroductoryLocations(state.listLocations, true);
+  if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
+    showElement("div.empty-page");
+  }
+};
 
 const refreshIntroductoryDescription = () => {
   if (state.settings.introductoryListView.description) {
@@ -815,15 +812,9 @@ const fetchPinnedLocations = (done) => {
 };
 const clearAndSearchLocations = () => {
   clearLocations();
-  const { showIntroductoryListView } = state.settings;
   searchLocations()
     .then(() => {
-      if (showIntroductoryListView) {
-        introView.clearIntroViewList();
-        fetchPinnedLocations(() => {
-          introView.renderIntroductoryLocations(state.listLocations, true);
-        });
-      }
+      renderLocations();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
     });
@@ -1036,11 +1027,11 @@ const initEventListeners = () => {
 };
 
 const initFilterOverlay = (isInitialized, newcategories) => {
-  var categories;
-  if(isInitialized){
-    categories = state.categories
+  let categories;
+  if (isInitialized) {
+    categories = state.categories;
   } else {
-    categories = newcategories
+    categories = newcategories;
   }
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
@@ -1049,7 +1040,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     if (category.iconUrl) {
       categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
     }
-    state.filterElements[category.id] = { checked: false, subcategories: [], isAllSubCategoriesChecked: false };
+    state.filterElements[category.id] = { checked: false, subcategories: [] };
     html += `<div class="expansion-panel" data-cid="${category.id}">
         <button class="expansion-panel-header mdc-ripple-surface">
           <div class="expansion-panel-header-content">
@@ -1081,7 +1072,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
         </button>
         <div class="expansion-panel-body">
         ${category.subcategories.length > 0 ? `<div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-        ${ category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
+        ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
             <div class="mdc-chip__ripple"></div>
             <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
             <span class="mdc-chip__checkmark">
@@ -1099,7 +1090,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
       </div>
       </div>`;
   });
-  if(isInitialized){
+  if (isInitialized) {
     container.innerHTML = html;
   } else {
     container.innerHTML += html;
@@ -1124,10 +1115,9 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
     if (!target.checked) {
-      state.filterElements[categoryId] = { checked: false, subcategories: [], isAllSubCategoriesChecked: false };
+      state.filterElements[categoryId] = { checked: false, subcategories: [] };
     } else {
       state.filterElements[categoryId].checked = true;
-      state.filterElements[categoryId].isAllSubCategoriesChecked = true;
     }
 
     chipSets[categoryId].chips.forEach((c) => {
@@ -1173,16 +1163,13 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     if (state.filterElements[categoryId].subcategories.length === 0) {
       input.checked = false;
       state.filterElements[categoryId].checked = false;
-      state.filterElements[categoryId].isAllSubCategoriesChecked = false;
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
-      state.filterElements[categoryId].isAllSubCategoriesChecked = true;
 
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
-      state.filterElements[categoryId].isAllSubCategoriesChecked = false;
     }
 
     mdcChip.classList.add('disabled');
@@ -1946,23 +1933,21 @@ const onPopHandler = (breadcrumb) => {
   } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
-      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked ||
-        JSON.stringify(state.filterElements[key].subcategories) !== JSON.stringify(state.currentFilterElements[key].subcategories)) {
+      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked
+        || !areArraysEqual(state.filterElements[key].subcategories, state.currentFilterElements[key].subcategories)) {
         clearAndSearchAllLocation();
         break;
       }
     }
-  }
-   else if (
-    state.breadcrumbs.length &&
-    (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
+  } else if (
+    state.breadcrumbs.length
+    && (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
     state.breadcrumbs[state.breadcrumbs.length - 1].name === "home") &&
     state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    introView.clearIntroViewList();
-    introView.renderIntroductoryLocations(state.listLocations, true);
+    renderLocationsIntro();
   }
 
   state.breadcrumbs.pop();

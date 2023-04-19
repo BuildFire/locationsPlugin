@@ -2,6 +2,7 @@ import isObject from 'lodash.isobject';
 import forEach from 'lodash.foreach';
 import { convertTimeToDate, getCurrentDayName, openingNowDate } from '../../../utils/datetime';
 import state from '../state';
+import isEqual from 'lodash.isequal';
 
 export const deepObjectDiff = (a, b, reversible) => {
   const r = {};
@@ -115,3 +116,8 @@ export const isLocationOpen = (location) => {
   return isOpen;
 };
 
+export const areArraysEqual = (array1, array2) => {
+  const array1Sorted = array1.slice().sort();
+  const array2Sorted = array2.slice().sort();
+  return isEqual(array1Sorted, array2Sorted);
+};
