@@ -42,5 +42,6 @@ export default {
   isMapIdle: false,
   firstRender: true,
   bookmarks: [],
-  deepLinkData: null
+  deepLinkData: null,
+  viewportHasChanged: false,
 };

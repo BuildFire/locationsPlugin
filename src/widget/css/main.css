@@ -984,6 +984,9 @@ body section#home {
   top: 6rem !important;
   left: calc(50% - 74px) !important;
 }
+#custom-top-center.sm-label {
+  left: calc(50% - 52px) !important;
+}
 .drawer-empty-state {
   background-image: url("../images/empty_page.svg");
   height: 300px;
