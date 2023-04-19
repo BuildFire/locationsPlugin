@@ -90,6 +90,13 @@ export default {
         required: true,
         maxLength: 25,
       },
+      findMore: {
+        title: 'Find More',
+        placeholder: 'Enter text here',
+        defaultValue: 'Find More',
+        required: true,
+        maxLength: 20,
+      },
       distanceUnitKm: {
         title: 'KM',
         placeholder: 'Enter text here',

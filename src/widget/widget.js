@@ -6,7 +6,7 @@ import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Location from '../entities/Location';
 import Accordion from './js/Accordion';
-import MainMap from './js/Map';
+import MainMap from './js/map/Map';
 import drawer from './js/drawer';
 import state from './js/state';
 import constants from './js/constants';
@@ -37,6 +37,7 @@ import stringsConfig from '../shared/stringsConfig';
 import editView from './js/views/editView';
 import mapView from './js/views/mapView';
 import introView from './js/views/introView';
+import mapSearchControl from './js/map/search-control';
 
 let SEARCH_TIMOUT;
 
@@ -195,6 +196,7 @@ const searchLocations = () => {
     return Promise.resolve([]);
   }
 
+  mapSearchControl.resetState();
   const $match = { ...query };
   $match["_buildfire.geo"] = {
     $geoWithin: {
@@ -281,11 +283,13 @@ const searchLocations = () => {
         }
       }
 
+      mapSearchControl.refresh();
+
       // Render Map listLocations
       mapView.renderListingLocations(result);
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
 
-      if (!state.fetchingEndReached && state.listLocations.length <= 200) {
+      if (!state.fetchingEndReached && state.listLocations.length < 200) {
         state.searchCriteria.page += 1;
         return searchLocations();
       }
@@ -742,13 +746,12 @@ const fetchMoreIntroductoryLocations = (e) => {
 };
 
 const fetchMoreListLocations = (e) => {
+  if (state.fetchingNextPage || state.fetchingEndReached) return;
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    if (!state.fetchingNextPage && !state.fetchingEndReached) {
-      state.fetchingNextPage = true;
-      state.searchCriteria.page += 1;
-      searchLocations();
-    }
+    state.fetchingNextPage = true;
+    state.searchCriteria.page += 1;
+    searchLocations();
   }
 };
 
@@ -907,7 +910,7 @@ const bookmarkLocation = (locationId, e) => {
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
-  document.querySelector('.drawer').addEventListener('scroll', fetchMoreListLocations, false);
+  document.querySelector('.drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -1286,14 +1289,19 @@ const triggerSearchOnMapIdle = () => {
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
-    clearLocations();
+    if (state.viewportHasChanged) {
+      clearLocations();
+    } else {
+      state.searchCriteria.page += 1;
+    }
+
     searchLocations().then((result) => {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
     });
   }, 300);
 
-  hideElement('#findLocationsBtn');
+  mapSearchControl.hide();
 };
 
 const initMainMap = () => {
@@ -1303,6 +1311,8 @@ const initMainMap = () => {
   state.maps.map = new MainMap(selector, options);
   state.maps.map.onBoundsChange = () => {
     state.isMapIdle = false;
+    state.viewportHasChanged = true;
+    mapSearchControl.setLabel('FIND_IN_AREA');
     resetResultsBookmark();
     // handle hiding opened location
     const locationSummary = document.querySelector('#locationSummary');
@@ -1314,10 +1324,10 @@ const initMainMap = () => {
 
   state.maps.map.onMapIdle = () => {
     state.isMapIdle = true;
-    showElement('#findLocationsBtn');
+    mapSearchControl.show();
   };
 
-  state.maps.map.initSearchAreaBtn(findViewPortLocations);
+  mapSearchControl.init(findViewPortLocations);
   if (userPosition) {
     state.maps.map.addUserPosition(userPosition);
     if (!state.settings.map.initialArea
