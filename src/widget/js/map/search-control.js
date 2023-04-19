@@ -9,6 +9,8 @@ export default {
     const controlElementContainer = _getControlElementContainer();
     const controlTextElement = _getControlTextElement();
 
+    if (!controlElementContainer || !controlTextElement) return;
+
     switch (state) {
       case 'FIND_MORE':
         controlTextElement.innerHTML = window.strings?.get('general.findMore')?.v;

@@ -1291,14 +1291,12 @@ const findViewPortLocations = () => {
   SEARCH_TIMOUT = setTimeout(() => {
     if (state.viewportHasChanged) {
       clearLocations();
+      mapView.clearMapViewList();
     } else {
       state.searchCriteria.page += 1;
     }
 
-    searchLocations().then((result) => {
-      mapView.clearMapViewList();
-      mapView.renderListingLocations(state.listLocations);
-    });
+    searchLocations().then((result) => {});
   }, 300);
 
   mapSearchControl.hide();
