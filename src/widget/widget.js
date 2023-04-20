@@ -1116,14 +1116,16 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else {
       state.filterElements[categoryId].checked = true;
     }
-
-    chipSets[categoryId].chips.forEach((c) => {
-      const { sid } = c.root_.dataset;
-      if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
-        state.filterElements[categoryId].subcategories.push(sid);
-      }
-      c.selected = target.checked;
-    });
+    if(chipSets[categoryId]){
+      chipSets[categoryId].chips.forEach((c) => {
+        const { sid } = c.root_.dataset;
+        if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
+          state.filterElements[categoryId].subcategories.push(sid);
+        }
+        c.selected = target.checked;
+      });
+    }
+    
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     resetResultsBookmark();
