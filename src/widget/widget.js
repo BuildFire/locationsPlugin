@@ -29,7 +29,7 @@ import {
   deepObjectDiff,
   transformCategoriesToText,
   cdnImage,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen
+  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual
 } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
@@ -340,6 +340,7 @@ const refreshQuickFilter = () => {
   const hideQFBtn = document.querySelector('#hideQFBtn');
   let html = '';
   if (chipSet) {
+    chipSet.unlisten("MDCChip:interaction", initChipSetInteractionListener)
     chipSet.destroy();
     chipSet = null;
   }
@@ -389,18 +390,7 @@ const refreshQuickFilter = () => {
   container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
-  chipSet.listen('MDCChip:interaction', (event) => {
-    const { chipId } = event.detail;
-    if (chipId === 'bookmarksFilterBtn') {
-      state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
-    } else if (state.filterElements[chipId]) {
-      state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
-    } else {
-      state.filterElements[chipId] = { checked: true, subcategories: [] };
-    }
-    resetResultsBookmark();
-    clearAndSearchAllLocation();
-  });
+  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener); 
   setTimeout(() => {
     chipSet.chips.forEach((a) => {
       if (state.filterElements[a.id]?.checked) {
@@ -410,6 +400,20 @@ const refreshQuickFilter = () => {
   }, 200);
 };
 
+
+const initChipSetInteractionListener = (event) => {
+  const { chipId } = event.detail;
+  if (chipId === 'bookmarksFilterBtn') {
+    state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
+  } else if (state.filterElements[chipId]) {
+    state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
+  } else {
+    state.filterElements[chipId] = { checked: true, subcategories: [] };
+  }
+  resetResultsBookmark();
+  clearAndSearchAllLocation();
+};
+
 const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
@@ -417,10 +421,15 @@ const clearAndSearchAllLocation = () => {
   const subcategoryIds = [];
   const categoryIds = [];
   for (const key in state.filterElements) {
-    if (state.filterElements[key].checked) {
-      categoryIds.push(key);
-      const selectedSubcategories = state.filterElements[key].subcategories;
-      subcategoryIds.push(...selectedSubcategories);
+    const categoryFilterElement = state.filterElements[key];
+    if (categoryFilterElement.checked) {
+      const selectedSubcategories = categoryFilterElement.subcategories;
+      const existedCategory = state.categories.find(category => category.id == key);
+      if(existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
+        categoryIds.push(key);
+      } else if(selectedSubcategories.length > 0){
+        subcategoryIds.push(...selectedSubcategories);
+      }
       const category = state.categories.find((elem) => elem.id === key);
       Analytics.categorySelected(category.id);
       const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
@@ -430,46 +439,38 @@ const clearAndSearchAllLocation = () => {
     }
   }
   if (categoryIds.length > 0 || subcategoryIds.length > 0) {
-    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
+    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     query["_buildfire.index.array1.string1"] = { $in: array1Index };
   }
-  let options = {
+  const options = {
     filter: {
       ...query
     }
-  }
-  if(Object.entries(query).length == 0){
+  };
+  if (Object.entries(query).length === 0) {
     mapView.clearMapViewList();
-    renderIntroductoryLocations();
+    const { showIntroductoryListView } = state.settings;
+    if(showIntroductoryListView){
+      searchIntroLocations().then(() => prepareIntroViewList());
+    }
   } else {
-    WidgetController.searchLocations(options).then((response)=>{
+    WidgetController.searchLocations(options).then((response) => {
       state.listLocations = response.result;
-      renderIntroductoryLocations();
-      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
-        showElement("div.empty-page");
-      }
+      prepareIntroViewList();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
       state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-
-    })
-  }
-
-}
-
-const renderIntroductoryLocations = () => {
-  const { showIntroductoryListView } = state.settings;
-  if (showIntroductoryListView) {
-    introView.clearIntroViewList();
-    fetchPinnedLocations(() => {
-      introView.renderIntroductoryLocations(state.listLocations, true);
-      if(state.listLocations.length == 0 && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)){
-        showElement("div.empty-page");
-      }
     });
   }
-}
+};
 
+const prepareIntroViewList = () => {
+  introView.clearIntroViewList();
+  introView.renderIntroductoryLocations(state.listLocations, true);
+  if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
+    showElement("div.empty-page");
+  }
+};
 
 const refreshIntroductoryDescription = () => {
   if (state.settings.introductoryListView.description) {
@@ -808,15 +809,9 @@ const fetchPinnedLocations = (done) => {
 };
 const clearAndSearchLocations = () => {
   clearLocations();
-  const { showIntroductoryListView } = state.settings;
   searchLocations()
     .then(() => {
-      if (showIntroductoryListView) {
-        introView.clearIntroViewList();
-        fetchPinnedLocations(() => {
-          introView.renderIntroductoryLocations(state.listLocations, true);
-        });
-      }
+      prepareIntroViewList();
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
     });
@@ -1029,11 +1024,11 @@ const initEventListeners = () => {
 };
 
 const initFilterOverlay = (isInitialized, newcategories) => {
-  var categories;
-  if(isInitialized){
-    categories = state.categories
+  let categories;
+  if (isInitialized) {
+    categories = state.categories;
   } else {
-    categories = newcategories
+    categories = newcategories;
   }
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
@@ -1074,7 +1069,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
         </button>
         <div class="expansion-panel-body">
         ${category.subcategories.length > 0 ? `<div class="mdc-chip-set mdc-chip-set--filter expansion-panel-body-content" role="grid">
-        ${ category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
+        ${category.subcategories.map((subcategory) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-sid="${subcategory.id}">
             <div class="mdc-chip__ripple"></div>
             <i class="material-icons-outlined mdc-chip__icon mdc-chip__icon--leading mdc-theme--text-primary-on-background">fmd_good</i>
             <span class="mdc-chip__checkmark">
@@ -1092,7 +1087,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
       </div>
       </div>`;
   });
-  if(isInitialized){
+  if (isInitialized) {
     container.innerHTML = html;
   } else {
     container.innerHTML += html;
@@ -1121,14 +1116,16 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else {
       state.filterElements[categoryId].checked = true;
     }
-
-    chipSets[categoryId].chips.forEach((c) => {
-      const { sid } = c.root_.dataset;
-      if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
-        state.filterElements[categoryId].subcategories.push(sid);
-      }
-      c.selected = target.checked;
-    });
+    if(chipSets[categoryId]){
+      chipSets[categoryId].chips.forEach((c) => {
+        const { sid } = c.root_.dataset;
+        if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
+          state.filterElements[categoryId].subcategories.push(sid);
+        }
+        c.selected = target.checked;
+      });
+    }
+    
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     resetResultsBookmark();
@@ -1168,6 +1165,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
+      
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
@@ -1778,7 +1776,7 @@ const handleCPSync = (message) => {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
           setDefaultSorting();
-          clearAndSearchWithDelay();
+          fetchPinnedLocations(()=>clearAndSearchWithDelay());
           refreshIntroductoryDescription();
           hideOverlays();
           navigateTo('home');
@@ -1939,22 +1937,24 @@ const onPopHandler = (breadcrumb) => {
   } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
-      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked) {
+      if (state.filterElements[key].checked !== state.currentFilterElements[key].checked
+        || !areArraysEqual(state.filterElements[key].subcategories, state.currentFilterElements[key].subcategories)) {
         clearAndSearchAllLocation();
         break;
       }
     }
-  }
-   else if (
-    state.breadcrumbs.length &&
-    (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
+  } else if (
+    state.breadcrumbs.length
+    && (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
     state.breadcrumbs[state.breadcrumbs.length - 1].name === "home") &&
     state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    introView.clearIntroViewList();
-    introView.renderIntroductoryLocations(state.listLocations, true);
+    const { showIntroductoryListView } = state.settings;
+    if(showIntroductoryListView){
+      searchIntroLocations().then(() => prepareIntroViewList());
+    }
   }
 
   state.breadcrumbs.pop();
