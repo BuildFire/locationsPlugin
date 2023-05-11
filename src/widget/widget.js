@@ -390,7 +390,7 @@ const refreshQuickFilter = () => {
   container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
-  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener); 
+  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener);
   setTimeout(() => {
     chipSet.chips.forEach((a) => {
       if (state.filterElements[a.id]?.checked) {
@@ -498,6 +498,7 @@ const showFilterOverlay = () => {
   overlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af' });
   state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
+  refreshAdvancedFilterUI();
 };
 
 const toggleFilterOverlay = () => {
@@ -508,11 +509,18 @@ const toggleFilterOverlay = () => {
     homeView.classList.add('active');
     filterOverlay.classList.remove('overlay');
   } else {
-    filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
-    addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
-    state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
+    showFilterOverlay();
   }
+};
+
+const refreshAdvancedFilterUI = () => {
+  const expansionPanelCheckBox = document.querySelectorAll('#filter .mdc-checkbox input');
+  Array.from(expansionPanelCheckBox).forEach((target) => {
+    const parent = target.closest('div.expansion-panel');
+    const categoryId = parent.dataset.cid;
+    target.checked = state.filterElements[categoryId]?.checked || false;
+  });
 };
 
 const showLocationDetail = () => {
@@ -1125,7 +1133,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
         c.selected = target.checked;
       });
     }
-    
+
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     resetResultsBookmark();
@@ -1165,7 +1173,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
-      
+
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
