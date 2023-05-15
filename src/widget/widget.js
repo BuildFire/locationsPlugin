@@ -390,7 +390,7 @@ const refreshQuickFilter = () => {
   container.innerHTML = html;
   const chipSetSelector = document.querySelector('#home .mdc-chip-set');
   chipSet = new mdc.chips.MDCChipSet(chipSetSelector);
-  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener); 
+  chipSet.listen('MDCChip:interaction', initChipSetInteractionListener);
   setTimeout(() => {
     chipSet.chips.forEach((a) => {
       if (state.filterElements[a.id]?.checked) {
@@ -407,7 +407,9 @@ const initChipSetInteractionListener = (event) => {
     state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
   } else if (state.filterElements[chipId]) {
     state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
+    refreshAdvancedFilterUI(chipId);
   } else {
+    refreshAdvancedFilterUI(chipId);
     state.filterElements[chipId] = { checked: true, subcategories: [] };
   }
   resetResultsBookmark();
@@ -508,11 +510,28 @@ const toggleFilterOverlay = () => {
     homeView.classList.add('active');
     filterOverlay.classList.remove('overlay');
   } else {
-    filterOverlay.classList.add('overlay');
     homeView.classList.remove('active');
-    addBreadcrumb({ pageName: 'af', title: 'Advanced Filter' });
-    state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
+    showFilterOverlay();
   }
+};
+
+const refreshAdvancedFilterUI = (chipId) => {
+  const expansionPanelCheckBox = document.querySelectorAll('#filter .mdc-checkbox input');
+  Array.from(expansionPanelCheckBox).forEach((target) => {
+    const parent = target.closest('div.expansion-panel');
+    const categoryId = parent.dataset.cid;
+
+    if (categoryId === chipId) {
+      const category = state.categories.find((c) => c.id === categoryId);
+      const checked = state.filterElements[categoryId]?.checked || false;
+      target.checked = checked;
+      target.indeterminate = false;
+      state.filterElements[categoryId].subcategories = checked ? category.subcategories.map((c) => c.id) : [];
+      if (chipSets[categoryId]) {
+        chipSets[categoryId].chips.forEach((c) => c.selected = checked);
+      }
+    }
+  });
 };
 
 const showLocationDetail = () => {
@@ -1022,7 +1041,7 @@ const initEventListeners = () => {
     clearAndSearchWithDelay();
   };
 };
-
+const chipSets = {};
 const initFilterOverlay = (isInitialized, newcategories) => {
   let categories;
   if (isInitialized) {
@@ -1093,13 +1112,13 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     container.innerHTML += html;
   }
 
-    new Accordion({
-      element: container,
-      multi: true
-    });
+  new Accordion({
+    element: container,
+    multi: true
+  });
 
   const chipSetsElements = document.querySelectorAll('#filter .mdc-chip-set');
-  const chipSets = {};
+
   Array.from(chipSetsElements).forEach((c) => {
     const parent = c.closest('div.expansion-panel');
     chipSets[parent.dataset.cid] = new mdc.chips.MDCChipSet(c);
@@ -1125,7 +1144,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
         c.selected = target.checked;
       });
     }
-    
+
     target.disabled = true;
     mdcCheckBox.classList.add('mdc-checkbox--disabled');
     resetResultsBookmark();
@@ -1165,7 +1184,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
-      
+
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
