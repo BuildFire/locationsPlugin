@@ -407,7 +407,9 @@ const initChipSetInteractionListener = (event) => {
     state.searchCriteria.bookmarked = !state.searchCriteria.bookmarked;
   } else if (state.filterElements[chipId]) {
     state.filterElements[chipId].checked = !state.filterElements[chipId].checked;
+    refreshAdvancedFilterUI(chipId);
   } else {
+    refreshAdvancedFilterUI(chipId);
     state.filterElements[chipId] = { checked: true, subcategories: [] };
   }
   resetResultsBookmark();
@@ -498,7 +500,6 @@ const showFilterOverlay = () => {
   overlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af' });
   state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
-  refreshAdvancedFilterUI();
 };
 
 const toggleFilterOverlay = () => {
@@ -514,12 +515,22 @@ const toggleFilterOverlay = () => {
   }
 };
 
-const refreshAdvancedFilterUI = () => {
+const refreshAdvancedFilterUI = (chipId) => {
   const expansionPanelCheckBox = document.querySelectorAll('#filter .mdc-checkbox input');
   Array.from(expansionPanelCheckBox).forEach((target) => {
     const parent = target.closest('div.expansion-panel');
     const categoryId = parent.dataset.cid;
-    target.checked = state.filterElements[categoryId]?.checked || false;
+
+    if (categoryId === chipId) {
+      const category = state.categories.find((c) => c.id === categoryId);
+      const checked = state.filterElements[categoryId]?.checked || false;
+      target.checked = checked;
+      target.indeterminate = false;
+      state.filterElements[categoryId].subcategories = checked ? category.subcategories.map((c) => c.id) : [];
+      if (chipSets[categoryId]) {
+        chipSets[categoryId].chips.forEach((c) => c.selected = checked);
+      }
+    }
   });
 };
 
@@ -1030,7 +1041,7 @@ const initEventListeners = () => {
     clearAndSearchWithDelay();
   };
 };
-
+const chipSets = {};
 const initFilterOverlay = (isInitialized, newcategories) => {
   let categories;
   if (isInitialized) {
@@ -1101,13 +1112,13 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     container.innerHTML += html;
   }
 
-    new Accordion({
-      element: container,
-      multi: true
-    });
+  new Accordion({
+    element: container,
+    multi: true
+  });
 
   const chipSetsElements = document.querySelectorAll('#filter .mdc-chip-set');
-  const chipSets = {};
+
   Array.from(chipSetsElements).forEach((c) => {
     const parent = c.closest('div.expansion-panel');
     chipSets[parent.dataset.cid] = new mdc.chips.MDCChipSet(c);
