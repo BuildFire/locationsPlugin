@@ -481,17 +481,6 @@ const refreshIntroductoryDescription = () => {
   }
 };
 
-const refreshIntroductoryCarousel = () => {
-  const { introductoryListView } = state.settings;
-  if (state.introCarousel) {
-    state.introCarousel.clear();
-    state.introCarousel.loadItems(introductoryListView.images);
-  } else if (introductoryListView.images.length > 0) {
-    state.introCarousel = new buildfire.components.carousel.view('.carousel');
-    state.introCarousel.loadItems(introductoryListView.images);
-  }
-};
-
 const showFilterOverlay = () => {
   const overlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
@@ -1589,7 +1578,7 @@ const initIntroLocations = () => {
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
       listSkeleton.stop();
-      refreshIntroductoryCarousel();
+      introView.refreshIntroductoryCarousel();
       carouselSkeleton.stop();
       refreshIntroductoryDescription();
 
@@ -1801,7 +1790,7 @@ const handleCPSync = (message) => {
           navigateTo('home');
           showElement('section#intro');
           hideElement('section#listing');
-          refreshIntroductoryCarousel();
+          introView.refreshIntroductoryCarousel();
           if (state.settings.introductoryListView.images.length === 0
             && state.listLocations.length === 0
             && !state.settings.introductoryListView.description
@@ -1950,10 +1939,10 @@ const navigateToLocationId = (locationId) => {
 
 const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
-  console.log(state.breadcrumbs[state.breadcrumbs.length - 1].name)
-  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'categoriesEdit') {
+  console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name)
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesEdit') {
     editView.refreshCategoriesText();
-  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
+  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
       if (state.filterElements[key].checked !== state.currentFilterElements[key].checked
@@ -1964,8 +1953,8 @@ const onPopHandler = (breadcrumb) => {
     }
   } else if (
     state.breadcrumbs.length
-    && (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
-    state.breadcrumbs[state.breadcrumbs.length - 1].name === "home") &&
+    && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map" ||
+    state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home") &&
     state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
@@ -1982,12 +1971,12 @@ const onPopHandler = (breadcrumb) => {
     navigateTo('home');
   } else {
     const page = state.breadcrumbs[state.breadcrumbs.length - 1];
-    if (page.name === 'af') {
+    if (page?.name === 'af') {
       showFilterOverlay();
-    } else if (page.name === 'detail') {
+    } else if (page?.name === 'detail') {
       hideOverlays();
       showLocationDetail();
-    } else if (page.name === 'edit') {
+    } else if (page?.name === 'edit') {
       console.log('its edit');
       hideOverlays();
       showLocationEdit();

@@ -68,7 +68,7 @@ export default {
         title: 'Bookmark Results',
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark Results',
-        maxLength: 12,
+        maxLength: 16,
       },
       enterBookmarkTitleHere: {
         title: 'Enter bookmark title here',

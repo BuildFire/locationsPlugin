@@ -76,5 +76,17 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
 
 const clearIntroViewList = () => { document.querySelector('#introLocationsList').innerHTML = ''; };
 
+const refreshIntroductoryCarousel = () => {
+  const { introductoryListView } = state.settings;
+  setTimeout(() => {
+    if (state.introCarousel) {
+      state.introCarousel.clear();
+      state.introCarousel.loadItems(introductoryListView.images);
+    } else if (introductoryListView.images.length > 0) {
+      state.introCarousel = new buildfire.components.carousel.view('.carousel');
+      state.introCarousel.loadItems(introductoryListView.images);
+    }
+  }, 100);
+};
 
-export default { renderIntroductoryLocations, clearIntroViewList };
+export default { refreshIntroductoryCarousel, renderIntroductoryLocations, clearIntroViewList };

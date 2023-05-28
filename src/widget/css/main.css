@@ -664,12 +664,14 @@ button span {
   align-items: center;
 }
 .location-detail__top-header h1 {
+  white-space: nowrap;
   margin: 0;
 }
 .location-detail__top-header h5 {
   font-weight: normal;
   margin: 2px 0 0;
   font-size: 15px;
+  white-space: nowrap;
 }
 .location-detail__top-header span:nth-child(2) {
   display: flex;

@@ -113,6 +113,7 @@ const _validateLocationSave = () => {
 };
 
 const showLocationEdit = () => {
+  state.breadcrumbs = [];
   resetBodyScroll();
   navigateTo('edit');
   addBreadcrumb({ pageName: 'edit', title: 'Location Edit' });
@@ -191,6 +192,7 @@ const _saveChanges = (e) => {
       showToastMessage('locationSaved', 5000);
       _reflectChanges();
       buildfire.history.pop();
+      introView.refreshIntroductoryCarousel();
     })
     .catch((err) => {
       e.target.disabled = false;
