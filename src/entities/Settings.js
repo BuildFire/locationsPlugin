@@ -60,6 +60,16 @@ export default class Settings {
       showDetailsCategory: true
     };
     this.owner = data.owner || {};
+    this.globalEntries = data.globalEntries || {
+      locations: {
+        allowAdding:  'all', // all || none || limited
+        tags: [],
+      },
+      photos: {
+        allowAdding: 'all', // all || none || limited
+        tags: [],
+      }
+    };
     this.globalEditors = data.globalEditors || {
       enabled: true,
       tags: [],
@@ -67,7 +77,7 @@ export default class Settings {
     };
     this.locationEditors = data.locationEditors || {
       enabled: true,
-      time: "12H" 
+      time: "12H"
     };
     this.categoriesSortBy =  data.categoriesSortBy || "Asc";
     this.createdOn = data.createdOn || new Date();
