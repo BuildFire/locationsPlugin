@@ -68,7 +68,9 @@ export default class Settings {
       photos: {
         allowAdding: 'all', // all || none || limited
         tags: [],
-      }
+      },
+      allowOpenHours: true,
+      allowPriceRange: true,
     };
     this.globalEditors = data.globalEditors || {
       enabled: true,
@@ -101,6 +103,7 @@ export default class Settings {
       bookmarks: this.bookmarks,
       design: this.design,
       owner: this.owner,
+      globalEntries: this.globalEntries,
       globalEditors: this.globalEditors,
       locationEditors: this.locationEditors,
       categoriesSortBy: this.categoriesSortBy,

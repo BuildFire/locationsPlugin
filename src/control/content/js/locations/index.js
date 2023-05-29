@@ -211,7 +211,7 @@ const checkInputErrorOnChange = (element, errorElement)=> {
       errorElement.classList.add('hidden');
     } else {
       errorElement.classList.remove('hidden');
-      errorElement.innerHTML = message || 'Required';
+      errorElement.innerHTML = 'Required';
       errorElement.parentNode.classList.add('has-error');
     }
   }
@@ -404,12 +404,12 @@ window.addEditLocation = (location) => {
       if(state.saveBtnClicked ){
         if (!address || !coordinates.lat || !coordinates.lng) {
           addLocationControls.locationTitleError.classList.remove('hidden');
-          addLocationControls.locationTitleError.innerHTML = message || 'Required';
+          addLocationControls.locationTitleError.innerHTML = 'Required';
           addLocationControls.locationTitleError.parentNode.classList.add('has-error');
         } else {
           addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
           addLocationControls.locationTitleError.classList.add('hidden');
-          
+
         }
       }
   }
@@ -852,7 +852,7 @@ const openSelectCategoriesDialog = (action) => {
     const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchValue.toLowerCase()));
     createDialogCategoriesList(data, categoriesListContainer, state.locationObj.categories);
   };
-  
+
   selectCategoryDialog = new DialogComponent("dialogComponent", dialogContent);
 
   selectCategoryDialog.showDialog(
@@ -1334,14 +1334,14 @@ const validateLocationCsv = (items) => {
         });
         return false;
       }
-  
+
       if (!isLatitude(item.lat) || !isLongitude(item.lng)) {
         showImportErrorMessage({
           message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
         });
         return false;
       }
-    } 
+    }
   }
 
   return true;
@@ -1370,7 +1370,7 @@ window.importLocations = () =>  {
 };
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
-    CategoriesController.getAllCategories((allCategories1)=>{ 
+    CategoriesController.getAllCategories((allCategories1)=>{
           for(const category of allCategories1){
             state.categoriesLookup[category.id] = category;
           }
@@ -1384,7 +1384,7 @@ const insertData = (jsonResult, callback, fileInput, dialogRef) => {
             } else {
               CategoriesController._bulkCreateCategories(newCategories).then((res) => {
                 CategoriesController.registerCategoryAnalytics(res.data.length);
-                CategoriesController.getAllCategories((allCategories2)=>{ 
+                CategoriesController.getAllCategories((allCategories2)=>{
                   for(const category of allCategories2){
                     state.categoriesLookup[category.id] = category;
                   }
@@ -1439,7 +1439,7 @@ const upsertCategories = (result, allCategories) => {
                 selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim()})
               }
             }
-    
+
           } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
             var savedSubCategories = savedCategory.subcategories.map(x => x.title);
             var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
@@ -1454,13 +1454,13 @@ const upsertCategories = (result, allCategories) => {
               CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
             }
 
-          }   
+          }
         });
       }
     })
     resolve(categories)
   });
-  
+
 }
 
 const insertLocations = (result, callback) => {
@@ -1496,7 +1496,7 @@ const insertLocations = (result, callback) => {
           var isCategoryAdded = categories.find(x=>x == savedCategory.id)
           if(!isCategoryAdded){
             categories.push(savedCategory.id)
-  
+
           }
           if(selectedSubCategories){
             var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
@@ -1558,13 +1558,13 @@ window.exportLocations = () => {
             subcategories.forEach(e => {
               categories.push({
                 title: category.title + " -> " + e.title
-              } ) 
+              } )
             })
           } else {
-            categories.push({title: category.title}) 
+            categories.push({title: category.title})
           }
         } else {
-          categories.push({title: category.title}) 
+          categories.push({title: category.title})
         }
       });
       elem.categories = categories
@@ -1780,7 +1780,7 @@ window.initLocations = () => {
   );
   handleLocationEmptyState(true);
   state.filter = {};
- 
+
   var _loadCategoriesTimer = setInterval(()=>{
     loadCategories((err ,result)=>{
       if(result.length < 30){
@@ -1788,7 +1788,7 @@ window.initLocations = () => {
         refreshLocations();
       }
     })
-   
+
   },500)
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {

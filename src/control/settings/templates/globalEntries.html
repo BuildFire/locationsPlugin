@@ -1,0 +1,111 @@
+<template>
+	<div class="section-title">Global Entry Permissions</div>
+	<hr class="none" />
+
+	<div class="form-group main clearfix">
+		<div class="col-md-5 pull-left padding-left-zero">
+			<label class="">Allow Adding New Locations
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-icon primary-bg">!</div>
+					<div class="tooltip-content to-bottom">
+						Specify who can add new locations through the app
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-7 pull-right padding-right-zero flex-row">
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewEntries" id="allowAddingLocationsAll" value="all" checked />
+				<label for="allowAddingLocationsAll">All Users</label>
+			</div>
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewEntries" id="allowAddingLocationsNone" value="none" />
+				<label for="allowAddingLocationsNone">No Users</label>
+			</div>
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewEntries" id="allowAddingLocationsLimited" value="limited" />
+				<label for="allowAddingLocationsLimited">Users With</label>
+			</div>
+		</div>
+	</div>
+	<div class="flex-row">
+		<div class="col-md-7 col-xs-offset-5">
+			<div id="addingLocationsUserTags"></div>
+		</div>
+
+	</div>
+	<hr class="none" />
+
+	<div class="form-group main clearfix">
+		<div class="col-md-5 pull-left padding-left-zero">
+			<label class="">Allow Adding Photos
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-icon primary-bg">!</div>
+					<div class="tooltip-content to-bottom">
+						Specify who can add new photos to existing locations through the app
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-7 pull-right padding-right-zero flex-row">
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosAll" value="all" checked />
+				<label for="allowAddingPhotosAll">All Users</label>
+			</div>
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosNone" value="none" />
+				<label for="allowAddingPhotosNone">No Users</label>
+			</div>
+			<div class="col-md-4 margin-top-zero radio radio-primary">
+				<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosLimited" value="limited" />
+				<label for="allowAddingPhotosLimited">Users With</label>
+			</div>
+		</div>
+	</div>
+	<div class="flex-row">
+		<div class="col-md-7 col-xs-offset-5">
+			<div id="addingPhotosUserTags"></div>
+		</div>
+
+	</div>
+	<hr class="none" />
+
+	<div class="form-group main clearfix">
+		<div class="col-md-5 pull-left padding-left-zero">
+			<label class="btn-description">Open Hours
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-icon primary-bg">!</div>
+					<div class="tooltip-content to-top">
+						Enable users to specify business hours when adding a new location through the Control Panel or the app
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-7 pull-right padding-right-zero">
+			<div class="button-switch">
+				<input id="allowAddingOpenHours" type="checkbox" />
+				<label for="allowAddingOpenHours" class="label-success"></label>
+			</div>
+		</div>
+	</div>
+	<hr class="none" />
+
+	<div class="form-group main clearfix">
+		<div class="col-md-5 pull-left padding-left-zero">
+			<label class="btn-description">Price Range
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-icon primary-bg">!</div>
+					<div class="tooltip-content to-top">
+						Enable users to specify price range when adding a new location through the Control Panel or the app
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-7 pull-right padding-right-zero">
+			<div class="button-switch">
+				<input id="allowAddingPriceRange" type="checkbox" />
+				<label for="allowAddingPriceRange" class="label-success"></label>
+			</div>
+		</div>
+	</div>
+</template>

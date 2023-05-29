@@ -1,4 +1,6 @@
 @import "../../../../../../styles/helper.css";
+@import "../../../../../../styles/siteIcons.css";
+@import "../../../../../../styles/components/control/tagsInput/tagsInput.min.css";
 @import "../../assets/bf_base.css";
 @import "../../assets/style.css";
 @import "../../assets/linearicons/cpIcons.css";
@@ -67,6 +69,9 @@
 
 .bf-tooltip .tooltip-content {
   top: 75px;
+}
+.bf-tooltip .tooltip-content.to-top {
+  top: -75px;
 }
 
 .bf-tooltip .tooltip-content img {
