@@ -59,7 +59,6 @@ export default class Settings {
       detailsMapPosition: 'top',
       showDetailsCategory: true
     };
-    this.owner = data.owner || {};
     this.globalEntries = data.globalEntries || {
       locations: {
         allowAdding:  'all', // all || none || limited
@@ -102,7 +101,6 @@ export default class Settings {
       map: this.map,
       bookmarks: this.bookmarks,
       design: this.design,
-      owner: this.owner,
       globalEntries: this.globalEntries,
       globalEditors: this.globalEditors,
       locationEditors: this.locationEditors,

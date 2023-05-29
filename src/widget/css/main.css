@@ -564,11 +564,6 @@ button span {
   background-repeat: no-repeat;
   cursor: pointer;
 }
-.location-detail #chatWithOwnerBtn {
-  width: 100%;
-  margin-top: 15px;
-  font-weight: bold;
-}
 .location-detail .action-item {
   /*width: 31%;*/
   padding: 5px;

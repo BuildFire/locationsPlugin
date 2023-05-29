@@ -165,9 +165,6 @@ const renderAddLocationsPage = () => {
     locationDescription: inputLocationForm.querySelector("#location-description-wysiwyg"),
     locationDescriptionError: inputLocationForm.querySelector("#location-description-error"),
     addActionItemsBtn: inputLocationForm.querySelector("#location-add-actions-btn"),
-    addOwnerBtn: inputLocationForm.querySelector("#location-add-owner-btn"),
-    deleteOwnerBtn: inputLocationForm.querySelector("#location-delete-owner-btn"),
-    ownerTxt: inputLocationForm.querySelector("#location-owner-txt"),
     saveBtn: inputLocationForm.querySelector("#location-save-btn"),
     cancelBtn: inputLocationForm.querySelector("#location-cancel-btn"),
     navigateToIntroLink: inputLocationForm.querySelector("#location-navigate-to-listview-link"),
@@ -241,11 +238,6 @@ window.addEditLocation = (location) => {
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
     setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
-
-    if (state.locationObj.owner && Object.keys(state.locationObj.owner).length > 0) {
-      addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
-      addLocationControls.deleteOwnerBtn.classList.remove('hidden');
-    }
   }
   renderBreadcrumbs();
   loadMap();
@@ -487,26 +479,6 @@ window.addEditLocation = (location) => {
       actionItemsUI.addItem(actionItem);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     });
-  };
-
-  addLocationControls.addOwnerBtn.onclick = () => {
-    buildfire.auth.showUsersSearchDialog(null, (err, result) => {
-      if (err) return console.log(err);
-
-      if (!result) return;
-      const { users } = result;
-      if (users && users.length > 0) {
-        state.locationObj.owner = result.users[0];
-        addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
-        addLocationControls.deleteOwnerBtn.classList.remove('hidden');
-      }
-    });
-  };
-
-  addLocationControls.deleteOwnerBtn.onclick = () => {
-    state.locationObj.owner = null;
-    addLocationControls.ownerTxt.innerHTML = '';
-    addLocationControls.deleteOwnerBtn.classList.add('hidden');
   };
 
   locationImagesUI.onDeleteItem = (item, index, callback) => {

@@ -41,7 +41,6 @@ export default class Location {
     this.images = data.images || [];
     this.listImage = data.listImage || null;
     this.description = data.description || null;
-    this.owner = data.owner || null;
     this.views = isNaN(parseInt(data.views)) ?  0  : parseInt(data.views);
     this.price = data.price || { range: 1, currency: '$' };
     this.rating = data.rating || { total: 0, count: 0, average: 0 };
@@ -78,7 +77,6 @@ export default class Location {
       images: this.images,
       listImage: this.listImage,
       description: this.description,
-      owner: this.owner,
       views: this.views,
       price: this.price,
       rating: this.rating,
