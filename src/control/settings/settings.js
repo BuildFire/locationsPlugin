@@ -809,7 +809,6 @@ const initGlobalEntries = () => {
         }
       });
 
-      tagsInput.set(tags);
       tagsInput.onUpdate = (data) => {
         if (data && data.tags) {
           tags.length = 0;
@@ -821,6 +820,7 @@ const initGlobalEntries = () => {
           saveSettingsWithDelay();
         }
       };
+      tagsInput.set(tags);
     },
     clear(element) {
       element.innerHTML = '';

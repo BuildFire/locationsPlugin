@@ -153,6 +153,8 @@ const renderAddLocationsPage = () => {
     locationCategoriesError: inputLocationForm.querySelector("#location-categories-error"),
     showOpeningHoursBtn: inputLocationForm.querySelector("#location-show-opening-hours-btn"),
     openingHoursContainer: inputLocationForm.querySelector("#location-opening-hours-container"),
+    openingHoursFormGroup: inputLocationForm.querySelector("#locationOpeningHoursFormGroup"),
+    priceRangeFormGroup: inputLocationForm.querySelector("#locationPriceRangeFormGroup"),
     showPriceRangeBtn: inputLocationForm.querySelector("#location-show-price-range-btn"),
     priceRangeRadioBtns: inputLocationForm.querySelectorAll('input[name="priceRangeValue"]'),
     selectPriceCurrency: inputLocationForm.querySelector("#location-select-price-currency"),
@@ -218,12 +220,7 @@ const checkInputErrorOnChange = (element, errorElement)=> {
 }
 
 window.addEditLocation = (location) => {
-  // categories are no more mandatory now so the following is not needed anymore
-  // if (state.categories.length === 0) {
-  //   openRequiredCategoriesDialog();
-  //   return;
-  // }
-
+  const { settings } = globalState;
   renderAddLocationsPage();
 
   if (!location) {
@@ -270,6 +267,14 @@ window.addEditLocation = (location) => {
       });
     }
   });
+
+  if (settings.globalEntries.allowOpenHours) {
+    addLocationControls.openingHoursFormGroup.classList.remove('hidden');
+  }
+
+  if (settings.globalEntries.allowPriceRange) {
+    addLocationControls.priceRangeFormGroup.classList.remove('hidden');
+  }
 
   if (state.pinnedLocations.length >= 3 && state.locationObj.pinIndex === null) {
     addLocationControls.pinTopBtn.disabled = true;
