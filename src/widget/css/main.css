@@ -81,12 +81,6 @@ section#categories.overlay {
 .mdc-theme--text-header {
   color: var(--bf-theme-header-text);
 }
-.mdc-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1000;
-}
 
 #home header .mdc-chip {
   margin-bottom: 0;
@@ -999,6 +993,12 @@ body section#home {
 #showMapView .mdc-fab__icon {
   color: var(--mdc-theme-on-primary) !important;
 }
+#createNewLocationBtn {
+  background-color: var(--bf-theme-success, #018786);
+}
+#createNewLocationBtn .mdc-fab__icon {
+  color: var(--mdc-theme-on-primary) !important;
+}
 #locationDirectionsBtn {
   cursor: pointer;
 }
@@ -1291,4 +1291,14 @@ section#edit {
 	border-radius: 4px;
 	width: 64px;
 	height: 64px;
+}
+
+.floating-buttons-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }

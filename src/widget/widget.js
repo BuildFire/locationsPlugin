@@ -1572,6 +1572,8 @@ const initIntroLocations = () => {
   const { introductoryListView } = state.settings;
   const carouselSkeleton = new buildfire.components.skeleton('.skeleton-carousel', { type: 'image, sentence' }).start();
   const listSkeleton = new buildfire.components.skeleton('.skeleton-wrapper', { type: 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line' }).start();
+
+  introView.initCreateLocationButton();
   showElement('section#intro');
 
   searchIntroLocations().then((result) => {
@@ -2173,13 +2175,15 @@ const initAppStrings = () => {
   window.strings = new buildfire.services.Strings('en-us', stringsConfig);
   return window.strings.init();
 };
-const getCurrentUser = () => {
+
+const getCurrentUser = () => new Promise((resolve) => {
   buildfire.auth.getCurrentUser((err, currentUser) => {
     if (!err && currentUser) {
       state.currentUser = currentUser;
     }
+    resolve();
   });
-};
+});
 
 var skipFilter = 1;
 var isLoading = false;
@@ -2191,7 +2195,8 @@ const initApp = () => {
     getAllBookmarks(),
     handleDeepLinkData(),
     initAppStrings(),
-    refreshCategories()
+    refreshCategories(),
+    getCurrentUser(),
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
@@ -2203,7 +2208,6 @@ const initApp = () => {
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
-        getCurrentUser();
         watchUserPositionChanges();
         setTimeout(()=>{
           var t = document.querySelector('#filter')

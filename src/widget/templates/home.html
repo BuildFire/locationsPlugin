@@ -17,10 +17,17 @@
   </header>
 
   <section id="intro" class="margin-top-twenty">
-    <button id="showMapView" class="mdc-fab mdc-theme--secondary" aria-label="Map">
-      <div class="mdc-fab__ripple"></div>
-      <span class="mdc-fab__icon material-icons mdc-theme--on-secondary">map</span>
-    </button>
+	  <div class="floating-buttons-container">
+		  <button id="showMapView" class="mdc-fab mdc-theme--secondary" aria-label="Map">
+			  <div class="mdc-fab__ripple"></div>
+			  <span class="mdc-fab__icon material-icons mdc-theme--on-secondary">map</span>
+		  </button>
+
+		  <button id="createNewLocationBtn" class="mdc-fab mdc-theme--secondary hidden" aria-label="Add">
+			  <div class="mdc-fab__ripple"></div>
+			  <span class="mdc-fab__icon material-icons mdc-theme--on-secondary">add</span>
+		  </button>
+	  </div>
 
     <div class="skeleton-carousel"></div>
     <div class="carousel-wrapper">

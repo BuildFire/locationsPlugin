@@ -1,5 +1,5 @@
 import state from '../state';
-import { cdnImage } from '../util/helpers';
+import accessManager from '../accessManager';
 
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
@@ -89,4 +89,20 @@ const refreshIntroductoryCarousel = () => {
   }, 100);
 };
 
-export default { refreshIntroductoryCarousel, renderIntroductoryLocations, clearIntroViewList };
+const initCreateLocationButton = () => {
+  const userHasAccess = accessManager.canCreateLocations();
+  const selector = document.querySelector('#createNewLocationBtn');
+
+  if (userHasAccess) {
+    selector.classList.remove('hidden');
+  } else {
+    selector.classList.add('hidden');
+  }
+};
+
+export default {
+  initCreateLocationButton,
+  refreshIntroductoryCarousel,
+  renderIntroductoryLocations,
+  clearIntroViewList,
+};
