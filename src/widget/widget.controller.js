@@ -3,8 +3,12 @@ import Categories from '../repository/Categories';
 import Settings from '../repository/Settings';
 import searchEngine from '../repository/searchEngine';
 import Location from '../repository/Locations';
-// import Location from '../../entities/Location';
-// import authManager from '../../UserAccessControl/authManager';
+import { generateUUID } from '../control/content/utils/helpers';
+import state from './js/state';
+import Analytics from '../utils/analytics';
+import DeepLink from '../utils/deeplink';
+import SearchEngine from '../repository/searchEngine';
+
 const DEFAULT_PAGE = 0;
 
 export default {
@@ -63,4 +67,15 @@ export default {
   updateLocation(id, payload) {
     return Location.update(id, payload);
   },
+  createLocation(location) { // location should be a model
+    location.clientId = generateUUID();
+    location.createdOn = new Date();
+    location.createdBy = state.currentUser._id;
+
+    return Location.add(location.toJSON()).then((result) => {
+      Analytics.registerLocationViewedEvent(result.id, result.title);
+      DeepLink.registerDeeplink(result);
+      return SearchEngine.add(Location.TAG, result.id, result);
+    });
+  }
 };
