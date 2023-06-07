@@ -123,7 +123,7 @@ const locationInfoRowHeader = {
   priceCurrency: "If price range is enabled select the currency type $ or €",
   bookmarksCount: "",
   phoneNumber:"Phone Number is an optional field, if provided will create a Call Phone Number Action Item with the provided Phone number.",
-  website:"Website is an optional field, if provided will create a Web Content Action Item with the provided URL."
+  website:"Website is an optional field, if provided will create a Web Content Action Item with the provided URL. The URL should starts with http or https, when possible use secure websites (https) some operating systems require it."
 };
 
 const renderAddLocationsPage = () => {
