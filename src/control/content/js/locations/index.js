@@ -1515,32 +1515,29 @@ const insertLocations = (result, callback) => {
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
     elem.createdBy = authManager.currentUser;
-		// add location actionItems
-		let actionItems =[];
-		if(elem.phoneNumber){
-			actionItems.push(
-				{
-					"title": "Phone",
-					"action": "callNumber",
-					"phoneNumber": elem.phoneNumber,
-					"id": generateUUID(),
-				}
-			)
-		}
-		if(elem.website){
-			actionItems.push(
-				{
-					"title": "Website",
-					"action": "linkToWeb",
-					"openIn": "_blank",
-					"url": elem.website,
-					"id": generateUUID(),
-				}
-			)
-		}
-		if(actionItems.length >0){
-			elem.actionItems = actionItems
-		}
+    // add location actionItems
+    let actionItems =[];
+    if(elem.phoneNumber){
+      actionItems.push({
+        "title": "Phone",
+        "action": "callNumber",
+        "phoneNumber": elem.phoneNumber,
+      "id": generateUUID()})
+    }
+    if(elem.website){
+      if (!elem.website.startsWith('https://') ) {
+        elem.website = 'https://'+elem.website;
+      }
+      actionItems.push({
+        "title": "Website",
+        "action": "linkToWeb",
+        "openIn": "_blank",
+        "url": elem.website,
+        "id": generateUUID() });
+    }
+    if(actionItems.length >0){
+        elem.actionItems = actionItems
+    }
 
     return new Location(elem).toJSON();
     });
