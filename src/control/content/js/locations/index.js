@@ -1575,9 +1575,9 @@ window.exportLocations = () => {
       elem.markerColorRGBA= elem.marker.color?.color;
       elem.priceRange= elem.price.range;
       elem.priceCurrency= elem.price.currency;
-			// action item / phone number and website
-			elem.phoneNumber= "";
-			elem.website = "";
+      // action item / phone number and website
+      elem.phoneNumber= "";
+      elem.website = "";
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
