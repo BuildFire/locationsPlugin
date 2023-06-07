@@ -94,8 +94,8 @@ const locationTemplateHeader = {
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
   bookmarksCount: "bookmarksCount",
-	phoneNumber:"phoneNumber",
-	website:"website"
+  phoneNumber:"phoneNumber",
+  website:"website"
 };
 
 const locationInfoRowHeader = {
@@ -122,8 +122,8 @@ const locationInfoRowHeader = {
   priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
   priceCurrency: "If price range is enabled select the currency type $ or €",
   bookmarksCount: "",
-	phoneNumber:"",
-	website:""
+  phoneNumber:"",
+  website:""
 };
 
 const renderAddLocationsPage = () => {
@@ -1577,9 +1577,9 @@ window.exportLocations = () => {
       elem.markerColorRGBA= elem.marker.color?.color;
       elem.priceRange= elem.price.range;
       elem.priceCurrency= elem.price.currency;
-			// action item / phone number and website
-			elem.phoneNumber= "";
-			elem.website = "";
+      // action item / phone number and website
+      elem.phoneNumber= "";
+      elem.website = "";
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
