@@ -1525,8 +1525,8 @@ const insertLocations = (result, callback) => {
         "id": generateUUID() });
     }
     if(elem.website){
-      if (!elem.website.startsWith('https://') ) {
-        elem.website = 'https://'+elem.website;
+      if (!elem.website.startsWith('https://') && !elem.website.startsWith('http://')) {
+        elem.website = 'http://'+elem.website;
       }
       actionItems.push({
         "title": "Website",
