@@ -122,8 +122,8 @@ const locationInfoRowHeader = {
   priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
   priceCurrency: "If price range is enabled select the currency type $ or €",
   bookmarksCount: "",
-  phoneNumber:"",
-  website:""
+  phoneNumber:"Phone Number is an optional field, if provided will create a Call Phone Number Action Item with the provided Phone number.",
+  website:"Website is an optional field, if provided will create a Web Content Action Item with the provided URL."
 };
 
 const renderAddLocationsPage = () => {
