@@ -93,7 +93,9 @@ const locationTemplateHeader = {
   views: "views",
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
-  bookmarksCount: "bookmarksCount"
+  bookmarksCount: "bookmarksCount",
+	phoneNumber:"phoneNumber",
+	website:"website"
 };
 
 const locationInfoRowHeader = {
@@ -119,7 +121,9 @@ const locationInfoRowHeader = {
   views: "",
   priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
   priceCurrency: "If price range is enabled select the currency type $ or €",
-  bookmarksCount: ""
+  bookmarksCount: "",
+	phoneNumber:"",
+	website:""
 };
 
 const renderAddLocationsPage = () => {
@@ -1511,6 +1515,33 @@ const insertLocations = (result, callback) => {
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
     elem.createdBy = authManager.currentUser;
+		// add location actionItems
+		let actionItems =[];
+		if(elem.phoneNumber){
+			actionItems.push(
+				{
+					"title": "Phone",
+					"action": "callNumber",
+					"phoneNumber": elem.phoneNumber,
+					"id": generateUUID(),
+				}
+			)
+		}
+		if(elem.website){
+			actionItems.push(
+				{
+					"title": "Website",
+					"action": "linkToWeb",
+					"openIn": "_blank",
+					"url": elem.website,
+					"id": generateUUID(),
+				}
+			)
+		}
+		if(actionItems.length >0){
+			elem.actionItems = actionItems
+		}
+
     return new Location(elem).toJSON();
     });
     LocationsController.bulkCreateLocation(locations).then((result) => {
@@ -1549,6 +1580,9 @@ window.exportLocations = () => {
       elem.markerColorRGBA= elem.marker.color?.color;
       elem.priceRange= elem.price.range;
       elem.priceCurrency= elem.price.currency;
+			// action item / phone number and website
+			elem.phoneNumber= "";
+			elem.website = "";
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
