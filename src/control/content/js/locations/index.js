@@ -1522,7 +1522,7 @@ const insertLocations = (result, callback) => {
         "title": "Phone",
         "action": "callNumber",
         "phoneNumber": elem.phoneNumber,
-      "id": generateUUID()})
+        "id": generateUUID() });
     }
     if(elem.website){
       if (!elem.website.startsWith('https://') ) {
