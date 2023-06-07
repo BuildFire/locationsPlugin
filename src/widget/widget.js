@@ -38,6 +38,7 @@ import editView from './js/views/editView';
 import mapView from './js/views/mapView';
 import introView from './js/views/introView';
 import mapSearchControl from './js/map/search-control';
+import createView from './js/views/createView';
 
 let SEARCH_TIMOUT;
 
@@ -938,6 +939,8 @@ const initEventListeners = () => {
       editView.init();
     } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
+    } else if (e.target.id === 'createNewLocationBtn') {
+      createView.navigateTo();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
@@ -1944,6 +1947,8 @@ const onPopHandler = (breadcrumb) => {
   console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name)
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesEdit') {
     editView.refreshCategoriesText();
+  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesCreate') {
+    createView.refreshCategoriesOverviewSubtitle();
   } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
@@ -1982,6 +1987,9 @@ const onPopHandler = (breadcrumb) => {
       console.log('its edit');
       hideOverlays();
       showLocationEdit();
+    } else if (page?.name === 'create') {
+      hideOverlays();
+      createView.show();
     } else {
       hideOverlays();
       navigateTo('home');

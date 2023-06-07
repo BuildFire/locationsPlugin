@@ -36,6 +36,7 @@ section#categories.overlay {
 
 #home:not(.active),
 #detail:not(.active),
+#create:not(.active),
 #edit:not(.active) {
   display: none;
 }
@@ -1060,6 +1061,7 @@ body section#home {
   margin-left: auto;
 }
 
+#create .fixed-footer button,
 #edit .fixed-footer button {
   padding-left: 32px;
   padding-right: 32px;
@@ -1069,13 +1071,16 @@ html[safe-area="true"] .fixed-footer {
   padding-bottom: 40px;
 }
 
+.create-location-accordion .expansion-panel-body-content,
 .edit-location-accordion .expansion-panel-body-content {
   padding: 15px;
 }
+.create-location-accordion,
 .edit-location-accordion {
   margin-left: -15px;
   margin-right: -15px;
 }
+.create-location-accordion .mdc-text-field,
 .edit-location-accordion .mdc-text-field {
   display: flex;
 }
@@ -1092,6 +1097,7 @@ button.mdc-button > *,
   overflow: visible;
 }
 
+.create-location-accordion .img-select,
 .edit-location-accordion .img-select {
   width: 4rem;
   height: 4rem;
@@ -1204,14 +1210,20 @@ button.mdc-button > *,
   height: 50px;
   justify-content: center;
 }
-.star-rating {
+.switch-button-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 16px;
 }
 
-.star-rating h4,
+.switch-button-container h4 {
+  max-width: 70%;
+  overflow: hidden;
+  white-space: pre-wrap;
+  font-size: 18px;
+  font-weight: 700;
+}
 .location-images h4,
 #locationListImageInput h4 {
   white-space: nowrap;
@@ -1223,7 +1235,7 @@ button.mdc-button > *,
   margin-right: 48px;
 }
 
-#locationPriceCurrencySelect,
+#locationCurrencySelect,
 #locationPriceRangeSelect {
   width: calc(50% - 10px);
 }
@@ -1269,6 +1281,7 @@ button.mdc-button > *,
 .interval-error {
   color: var(--mdc-theme-error, #b00020) !important;
 }
+section#create,
 section#edit {
   padding-bottom: 80px;
 }
@@ -1301,4 +1314,17 @@ section#edit {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.px-0 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.text-field-helper-text {
+  font-size: 14px;
+}
+
+.resize-none {
+  resize: none;
 }

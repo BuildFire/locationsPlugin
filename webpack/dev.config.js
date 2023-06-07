@@ -194,10 +194,10 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
-      filename: 'widget/templates/edit.html',
+      filename: 'widget/templates/create.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
-      template: path.join(__dirname, '../src/widget/templates/edit.html'),
+      template: path.join(__dirname, '../src/widget/templates/create.html'),
       chunks: ['devServer']
     }),
     new CopyWebpackPlugin([{

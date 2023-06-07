@@ -1,0 +1,323 @@
+<template>
+	<div class="create-location-accordion">
+		<!-- begin: Location Details expansion-->
+		<div class="expansion-panel">
+			<button class="expansion-panel-header mdc-ripple-surface">
+				<div class="expansion-panel-header-content">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
+              <span bfString="locationEditing.locationDetails">Location Details</span>
+            </span>
+					<div class="expansion-panel-actions margin-right-ten">
+						<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+					</div>
+				</div>
+			</button>
+			<div class="expansion-panel-body">
+				<div class="expansion-panel-body-content" role="grid">
+					<!-- begin: Location Title text field-->
+					<div class="text-field-container margin-bottom-ten">
+						<div class="mdc-text-field" id="locationTitleTextField">
+							<input class="mdc-text-field__input mdc-theme--text-primary-on-background" maxlength="100" type="text">
+							<div class="mdc-line-ripple"></div>
+							<label bfString="locationEditing.locationName" class="mdc-floating-label">Location Title</label>
+						</div>
+						<div class="mdc-text-field-helper-line">
+							<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+						</div>
+					</div>
+					<!-- end: Location Title text field-->
+
+					<!-- begin: Location Subtitle text field-->
+					<div class="text-field-container margin-bottom-twenty">
+						<div class="mdc-text-field" id="locationSubtitleTextField">
+							<input class="mdc-text-field__input mdc-theme--text-primary-on-background">
+							<div class="mdc-line-ripple"></div>
+							<label bfString="locationEditing.locationSubtitle" class="mdc-floating-label">Location Subtitle</label>
+						</div>
+					</div>
+					<!-- end: Location Subtitle text field-->
+
+					<!-- begin: Location Description text area-->
+					<div class="text-field-container">
+						<div class="mdc-text-field mdc-text-field--textarea" id="locationDescriptionTextField">
+							<textarea class="mdc-text-field__input resize-none" rows="5"></textarea>
+							<div class="mdc-notched-outline">
+								<div class="mdc-notched-outline__leading"></div>
+								<div class="mdc-notched-outline__notch">
+									<label bfString="locationEditing.locationSubtitle" for="textarea" class="mdc-floating-label">Location Description</label>
+								</div>
+								<div class="mdc-notched-outline__trailing"></div>
+							</div>
+						</div>
+						<div class="mdc-text-field-helper-line" id="locationTitleFieldHelper">
+							<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+						</div>
+					</div>
+					<!-- end: Location Description text area-->
+
+				</div>
+			</div>
+		</div>
+		<!-- end: Location Details expansion-->
+
+		<!-- begin: Location Address expansion-->
+		<div class="expansion-panel">
+			<button class="expansion-panel-header mdc-ripple-surface">
+				<div class="expansion-panel-header-content">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
+              <span bfString="locationEditing.locationDetails">Location Address</span>
+            </span>
+					<div class="expansion-panel-actions margin-right-ten">
+						<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+					</div>
+				</div>
+			</button>
+			<div class="expansion-panel-body">
+				<div class="expansion-panel-body-content" role="grid">
+					<!-- begin: Location Address text field-->
+					<div class="text-field-container margin-bottom-twenty">
+						<div class="mdc-text-field" id="locationAddressTextField">
+							<input autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" spellcheck="false" type="text">
+							<div class="mdc-line-ripple"></div>
+							<label bfString="locationEditing.locationAddress" class="mdc-floating-label">Location Address</label>
+						</div>
+						<div class="mdc-text-field-helper-line" id="locationAddressFieldHelper">
+							<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+						</div>
+					</div>
+					<!-- end: Location Address text field-->
+
+					<!-- begin: Location Custom Name text field-->
+					<div class="text-field-container margin-bottom-twenty">
+						<div class="mdc-text-field" id="locationCustomNameTextField">
+							<input class="mdc-text-field__input mdc-theme--text-primary-on-background">
+							<div class="mdc-line-ripple"></div>
+							<label bfString="locationEditing.locationCustomName" class="mdc-floating-label">Location Custom Name</label>
+						</div>
+					</div>
+					<!-- end: Location Custom Name text field-->
+
+					<div style="height: 200px; border: 1px solid gray;">
+						Map goes here
+					</div>
+					<p bfString="locationEditing.mapNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">If you need adjustments, drag the map so the pin matches the exact location of your place.</p>
+				</div>
+			</div>
+		</div>
+		<!-- end: Location Details expansion-->
+
+		<!-- begin: Categories expansion-->
+		<div class="expansion-panel">
+			<button class="expansion-panel-header mdc-ripple-surface">
+				<div class="expansion-panel-header-content">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
+              <span bfString="locationEditing.categories">Categories</span>
+            </span>
+					<div class="expansion-panel-actions margin-right-ten">
+						<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+					</div>
+				</div>
+			</button>
+			<div class="expansion-panel-body">
+				<div class="expansion-panel-body-content" role="grid">
+					<div class="categories-overview pointer" id="locationCategoriesOverview">
+						<div class="flex-grow-1 mdc-theme--text-primary-on-background categories-overview__text pointer-none">
+							<h4 bfString="locationEditing.chooseCategory" class="margin-top-zero margin-bottom-zero">Choose Category</h4>
+							<h5 class="margin-bottom-zero margin-top-ten hidden"></h5>
+						</div>
+						<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-none" role="button" tabindex="0">arrow_forward_ios</i>
+					</div>
+
+					<div class="switch-button-container px-0">
+						<h4 bfString="locationEditing.showCategory" class="mdc-theme--text-primary-on-background margin-bottom-zero">Show Category on Location Screen</h4>
+						<div class="mdc-switch" id="locationShowCategoryCheckbox">
+							<div class="mdc-switch__track"></div>
+							<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+								<div class="mdc-switch__thumb">
+									<input aria-checked="false" class="mdc-switch__native-control" id="showCategoryCheckbox" role="switch" type="checkbox">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end: Categories expansion-->
+
+		<!-- begin: Price Range expansion-->
+		<div class="expansion-panel overflow-visible">
+			<button class="expansion-panel-header mdc-ripple-surface">
+				<div class="expansion-panel-header-content">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
+              <span bfString="locationEditing.priceRange">Price Range</span>
+            </span>
+					<div class="expansion-panel-actions margin-right-ten">
+						<div class="mdc-switch margin-right-thirty" id="locationShowPriceRangeCheckbox">
+							<div class="mdc-switch__track"></div>
+							<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+								<div class="mdc-switch__thumb">
+									<input aria-checked="false" class="mdc-switch__native-control" id="showPriceRangeCheckbox" role="switch" type="checkbox">
+								</div>
+							</div>
+						</div>
+						<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+					</div>
+				</div>
+			</button>
+			<div class="expansion-panel-body overflow-visible">
+				<div class="expansion-panel-body-content" role="grid">
+
+					<div class="d-flex justify-space-between">
+						<div class="mdc-select" id="locationCurrencySelect">
+							<div class="mdc-select__anchor custom-enhanced-select-width mdc-ripple-upgraded w-100">
+								<i class="mdc-select__dropdown-icon"></i>
+								<div aria-disabled="false" aria-expanded="false" class="mdc-select__selected-text min-width-unset" tabindex="0"></div>
+								<span bfString="general.currency" class="mdc-floating-label">Currency</span>
+								<div class="mdc-line-ripple"></div>
+							</div>
+							<div class="mdc-select__menu mdc-menu mdc-menu-surface demo-enhanced-select custom-enhanced-select-width">
+								<ul class="mdc-list mdc-theme--text-primary-on-background">
+									<li aria-selected="false" class="mdc-list-item" data-value="€" role="option" tabindex="-1">€</li>
+									<li aria-selected="false" class="mdc-list-item" data-value="$" role="option" tabindex="-1">$</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="mdc-select" id="locationPriceRangeSelect">
+							<div class="mdc-select__anchor custom-enhanced-select-width mdc-ripple-upgraded w-100">
+								<i class="mdc-select__dropdown-icon"></i>
+								<div aria-disabled="false" aria-expanded="false" class="mdc-select__selected-text min-width-unset" tabindex="0"></div>
+								<span bfString="general.price" class="mdc-floating-label">Price</span>
+								<div class="mdc-line-ripple"></div>
+							</div>
+							<div class="mdc-select__menu mdc-menu mdc-menu-surface demo-enhanced-select custom-enhanced-select-width">
+								<ul class="mdc-list mdc-theme--text-primary-on-background">
+									<li aria-selected="false" class="mdc-list-item" data-value="1" role="option" tabindex="-1">$</li>
+									<li aria-selected="false" class="mdc-list-item" data-value="2" role="option" tabindex="-1">$$</li>
+									<li aria-selected="false" class="mdc-list-item" data-value="3" role="option" tabindex="-1">$$$</li>
+									<li aria-selected="false" class="mdc-list-item" data-value="4" role="option" tabindex="-1">$$$$</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end: Price Range expansion-->
+
+		<!-- begin: Star Rating container-->
+		<div class="switch-button-container">
+			<h4 bfString="locationEditing.starRating" class="mdc-theme--text-primary-on-background">Star Rating</h4>
+			<div class="mdc-switch" id="locationShowStarRatingCheckbox">
+				<div class="mdc-switch__track"></div>
+				<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+					<div class="mdc-switch__thumb">
+						<input aria-checked="false" class="mdc-switch__native-control" id="showStarRatingCheckbox" role="switch" type="checkbox">
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end: Star Rating expansion-->
+
+		<!-- begin: Location List Image container-->
+		<div class="text-field-container" id="locationListImageInput">
+			<h4 bfString="locationEditing.listImage" class="margin-bottom-zero mdc-theme--text-primary-on-background">List Image</h4>
+			<p bfString="locationEditing.listImageNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">This is the main location image displayed next to the location info in a list view.</p>
+			<div class="img-select-holder">
+				<button class="img-select">
+					<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn" role="button" tabIndex="0">close</i>
+					<img alt="" src="">
+				</button>
+			</div>
+			<div class="mdc-text-field-helper-line" id="locationListImageFieldHelper">
+				<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+			</div>
+		</div>
+		<!-- end: Location List Image container-->
+
+		<!-- begin: Location Images container-->
+		<div class="location-images">
+			<h4 bfString="locationEditing.locationImages" class="margin-bottom-zero mdc-theme--text-primary-on-background">Location Images</h4>
+			<p bfString="locationEditing.locationImages" class="mdc-theme--text-body margin-top-five text-field-helper-text">These are the location details images. First image in the list will be displayed as location’s main image.</p>
+
+			<div id="locationListImagesContainer"></div>
+		</div>
+		<!-- end: Location Images container-->
+
+		<!-- end: Open Hours expansion-->
+		<div class="expansion-panel">
+			<button class="expansion-panel-header mdc-ripple-surface">
+				<div class="expansion-panel-header-content">
+            <span class="expansion-panel-title mdc-theme--text-primary-on-background">
+              <span bfString="general.openHours">Open Hours</span>
+            </span>
+					<div class="expansion-panel-actions margin-right-ten">
+						<div class="mdc-switch margin-right-thirty" id="locationShowOpeningHoursCheckbox">
+							<div class="mdc-switch__track"></div>
+							<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+								<div class="mdc-switch__thumb">
+									<input aria-checked="false" class="mdc-switch__native-control"  id="showOpeningHoursCheckbox" role="switch" type="checkbox">
+								</div>
+							</div>
+						</div>
+						<div class="expansion-panel-indicator mdc-theme--text-primary-on-background"></div>
+					</div>
+				</div>
+			</button>
+			<div class="expansion-panel-body">
+				<div class="expansion-panel-body-content" role="grid">
+					<div id="locationOpeningHoursContainer"></div>
+				</div>
+			</div>
+		</div>
+		<!-- end: Open Hours expansion-->
+	</div>
+	<div class="fixed-footer mdc-theme--background">
+		<button class="mdc-button mdc-button--raised mdc-ripple-upgraded mdc-theme--text-disabled-on-dark" id="submitBtn">
+			<span class="mdc-button__label">SAVE</span>
+			<div class="mdc-button__ripple"></div>
+		</button>
+	</div>
+
+	<template id="openingHoursDayItemTemplate">
+		<div class="opening-hours-day-item margin-top-ten">
+			<div class="enable-day-checkbox margin-bottom-ten">
+				<h4 class="mdc-theme--text-primary-on-background margin-bottom-zero margin-top-zero">Monday</h4>
+				<div class="mdc-switch">
+					<div class="mdc-switch__track"></div>
+					<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+						<div class="mdc-switch__thumb">
+							<input aria-checked="false" class="mdc-switch__native-control enable-day-input" id="sunday" role="switch" type="checkbox">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="day-intervals d-flex-column">
+
+			</div>
+		</div>
+	</template>
+	<template id="dayIntervalTemplate">
+		<div class="day-intervals-item margin-bottom-ten">
+			<div class="d-flex justify-space-between align-items-center">
+				<div class="mdc-text-field text-field mdc-text-field--no-label mdc-ripple-upgraded flex-grow-1">
+					<input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label"  class="mdc-text-field__input form-control from mdc-theme--text-primary-on-background" type="time" value="08:00">
+					<div class="mdc-line-ripple"></div>
+				</div>
+				<span style="font-weight: 700; font-size: 20px; margin: 0 10px;"> - </span>
+				<div class="mdc-text-field text-field mdc-text-field--no-label mdc-ripple-upgraded flex-grow-1">
+					<input aria-describedby="text-field-filled-no-label-helper-text" aria-label="Text field aria label" class="mdc-text-field__input form-control to mdc-theme--text-primary-on-background" type="time" value="20:00">
+					<div class="mdc-line-ripple"></div>
+				</div>
+				<div class="actions">
+					<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer add-hours-btn hidden" role="button" tabindex="0">add</i>
+					<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer delete-interval-btn hidden" role="button" tabindex="0">close</i>
+				</div>
+			</div>
+			<div bfString="locationEditing.invalidTime" class="interval-error mdc-text-field-helper-text--persistent mdc-text-field-helper-text padding-bottom-five hidden">
+				Choose an end time later than the start time.
+			</div>
+		</div>
+	</template>
+</template>

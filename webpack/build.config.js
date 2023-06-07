@@ -148,6 +148,12 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/widget/templates/edit.html')
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/create.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/create.html')
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/home.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

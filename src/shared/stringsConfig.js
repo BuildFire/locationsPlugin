@@ -237,7 +237,7 @@ export default {
     }
   },
   locationEditing: {
-    title: 'Location Editing',
+    title: 'Location Creating/Editing',
     labels: {
       controlNote: {
         title: 'For full customization options go to the admin Control Panel.',
@@ -253,16 +253,23 @@ export default {
         maxLength: 25,
       },
       locationName: {
-        title: 'Location Name',
+        title: 'Location Title',
         placeholder: 'Enter text here',
-        defaultValue: 'Location Name',
+        defaultValue: 'Location Title',
         required: true,
         maxLength: 35,
       },
       locationAddress: {
-        title: 'Location Address',
+        title: 'Street Name and Number',
         placeholder: 'Enter text here',
-        defaultValue: 'Location Address',
+        defaultValue: 'Street Name and Number',
+        required: true,
+        maxLength: 35,
+      },
+      locationCustomName: {
+        title: 'Location Custom Name',
+        placeholder: 'Enter text here',
+        defaultValue: 'Location Custom Name',
         required: true,
         maxLength: 35,
       },
@@ -272,6 +279,34 @@ export default {
         defaultValue: 'Location Subtitle',
         required: true,
         maxLength: 35,
+      },
+      locationDescription: {
+        title: 'Location Description',
+        placeholder: 'Enter text here',
+        defaultValue: 'Location Description',
+        required: true,
+        maxLength: 300,
+      },
+      descriptionDialogPlaceholder: {
+        title: 'Enter your description here',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enter your description here',
+        required: true,
+        maxLength: 30,
+      },
+      descriptionDialogSave: {
+        title: 'Save',
+        placeholder: 'Enter text here',
+        defaultValue: 'Save',
+        required: true,
+        maxLength: 9,
+      },
+      descriptionDialogCancel: {
+        title: 'Cancel',
+        placeholder: 'Enter text here',
+        defaultValue: 'Cancel',
+        required: true,
+        maxLength: 9,
       },
       categories: {
         title: 'Categories',
@@ -292,6 +327,13 @@ export default {
         required: true,
         maxLength: 25,
       },
+      showCategory: {
+        title: 'Show Category on Location Screen',
+        placeholder: 'Enter text here',
+        defaultValue: 'Show Category on Location Screen',
+        required: true,
+        maxLength: 25,
+      },
       priceRange: {
         title: 'Price Range',
         placeholder: 'Enter text here',
@@ -306,12 +348,33 @@ export default {
         required: true,
         maxLength: 25,
       },
+      listImageNote: {
+        title: 'This is the main location image displayed next to the location info in a list view.',
+        placeholder: 'Enter text here',
+        defaultValue: 'This is the main location image displayed next to the location info in a list view.',
+        required: true,
+        maxLength: 110,
+      },
+      mapNote: {
+        title: 'If you need adjustments, drag the map so the pin matches the exact location of your place.',
+        placeholder: 'Enter text here',
+        defaultValue: 'If you need adjustments, drag the map so the pin matches the exact location of your place.',
+        required: true,
+        maxLength: 110,
+      },
       locationImages: {
         title: 'Location Images',
         placeholder: 'Enter text here',
         defaultValue: 'Location Images',
         required: true,
         maxLength: 25,
+      },
+      locationImagesNote: {
+        title: 'These are the location details images. First image in the list will be displayed as location’s main image.',
+        placeholder: 'Enter text here',
+        defaultValue: 'These are the location details images. First image in the list will be displayed as location’s main image.',
+        required: true,
+        maxLength: 110,
       },
       monday: {
         title: 'Mon',
