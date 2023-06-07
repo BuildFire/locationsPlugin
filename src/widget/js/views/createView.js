@@ -23,6 +23,7 @@ import {
   validateTimeInterval,
   uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
 } from '../util/forms';
+import constants from '../constants';
 
 export default {
   get _defaultFieldsInfo() {
@@ -102,6 +103,7 @@ export default {
     };
   },
   _accordion: null,
+  _map: null,
   _isCurrentlyUploading: false,
   _isCurrentlyImagesUploading: false,
   payload: null,
@@ -645,6 +647,8 @@ export default {
       this.payload.coordinates.lat = place.geometry.location.lat();
       this.payload.coordinates.lng = place.geometry.location.lng();
       this.payload.formattedAddress = place.formatted_address;
+      this.payload.address = place.formatted_address;
+      this._map.setCenter(this.payload.coordinates);
     });
   },
   _handleDescriptionInput() {
@@ -690,6 +694,62 @@ export default {
 
     descriptionTextArea.addEventListener('focus', this._handleDescriptionInput.bind(this));
   },
+  _reverseAddress() {
+    const geoCoder = new google.maps.Geocoder();
+    geoCoder.geocode(
+      {
+        location: {
+          lat: this._map.getCenter().lat(),
+          lng: this._map.getCenter().lng(),
+        }
+      },
+      (results, status) => {
+        if (status === 'OK') {
+          if (results[0]) {
+            this._formFieldsInstances.address.instance.value = results[0].formatted_address;
+            this.payload.formattedAddress = results[0].formatted_address;
+            this.payload.address = results[0].formatted_address;
+            this.payload.coordinates.lat = this._map.getCenter().lat();
+            this.payload.coordinates.lng = this._map.getCenter().lng();
+          } else {
+            console.log("No results found");
+          }
+        } else {
+          console.log("Geocoder failed due to: " + status);
+        }
+      }
+    );
+  },
+  _geocodeTimeout: null,
+  buildMap() {
+    const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
+    const options = {
+      minZoom: 3,
+      maxZoom: 19,
+      streetViewControl: false,
+      fullscreenControl: false,
+      mapTypeControl: false,
+      gestureHandling: "greedy",
+      zoomControlOptions: {
+        position: zoomPosition,
+      },
+      disableDefaultUI: true,
+      // center: new google.maps.LatLng(52.5498783, 13.425209099999961),
+      center: constants.getDefaultLocation(),
+      zoom: 14,
+    };
+    this._map = new google.maps.Map(document.getElementById('locationMapContainer'), options);
+    google.maps.event.addListener(this._map, 'center_changed', function() {
+      if (this._geocodeTimeout) clearTimeout(this._geocodeTimeout);
+      this._geocodeTimeout = setTimeout(this._reverseAddress.bind(this), 500);
+    }.bind(this));
+
+    const marker = document.createElement('div');
+    marker.classList.add('centered-marker');
+
+    const mapContainer = this._map.getDiv();
+    mapContainer.appendChild(marker);
+  },
   // each time the user want to create!
   navigateTo() {
     const userHasAccess = accessManager.canCreateLocations();
@@ -706,6 +766,7 @@ export default {
         this.payload = new Location();
         this.buildForm();
         this.buildEventsHandlers();
+        this.buildMap();
         this.show();
         window.strings.inject(document.querySelector('section#create'), false);
       });
