@@ -785,6 +785,10 @@ const init = () => {
       instance: null,
       value: pendingLocation.settings.showStarRating
     },
+    locationShowCategorySwitch: {
+      instance: null,
+      value: pendingLocation.settings.showCategory
+    },
     locationEnableEditingSwitch: {
       instance: null,
       value: false
@@ -797,7 +801,7 @@ const init = () => {
       instance: null,
       value: pendingLocation.settings.showOpeningHours
     },
-    locationPriceCurrencySelect: {
+    locationCurrencySelect: {
       instance: null,
       value: pendingLocation.price.currency,
       set(val) {
@@ -828,6 +832,7 @@ const init = () => {
       const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
       const descriptionTextArea = document.querySelector('#locationDescriptionField textarea');
       const enableEditingContainer = document.querySelector('#locationEnableEditingContainer');
+      const descriptionNote = document.querySelector('#descriptionNote');
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();
@@ -875,17 +880,19 @@ const init = () => {
       editView.addEventListener('change', (e) => {
         if (e.target.id === 'locationStarRatingInput') {
           pendingLocation.settings.showStarRating = e.target.checked;
+        } else if (e.target.id === 'locationShowCategoryInput') {
+          pendingLocation.settings.showCategory = e.target.checked;
         } else if (e.target.id === 'locationPriceRangeInput') {
           pendingLocation.settings.showPriceRange = e.target.checked;
         } else if (e.target.id === 'locationOpeningHoursInput') {
           pendingLocation.settings.showOpeningHours = e.target.checked;
         } else if (e.target.id === 'locationEnableEditingInput') {
           if (e.target.checked) {
-            _toggleDescriptionTextarea(true);
+            _toggleDescriptionTextarea(false);
             formTextFields.locationDescriptionField.instance.value = '';
             pendingLocation.description = '';
           } else {
-            _toggleDescriptionTextarea(false);
+            _toggleDescriptionTextarea(true);
             formTextFields.locationDescriptionField.instance.value = state.selectedLocation.description;
             pendingLocation.description = state.selectedLocation.description;
             pendingLocation.wysiwygSource = 'control';
@@ -904,6 +911,7 @@ const init = () => {
       descriptionTextArea.addEventListener('focus', _handleDescriptionInput);
       if (pendingLocation.wysiwygSource === 'control') {
         enableEditingContainer.classList.remove('hidden');
+        descriptionNote.classList.remove('hidden');
       } else if (pendingLocation.wysiwygSource === 'widget') {
         _toggleDescriptionTextarea(true);
       }

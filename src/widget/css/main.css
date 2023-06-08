@@ -1035,6 +1035,9 @@ body section#home {
 .mdc-theme--warning-bg {
   background-color: var(--bf-theme-warning);
 }
+.mdc-theme--warning-text {
+  color: var(--bf-theme-warning);
+}
 .borderless {
   border: none;
 }
@@ -1231,7 +1234,10 @@ button.mdc-button > *,
   font-weight: 700;
 }
 
-#locationStarRatingSwitch {
+#locationStarRatingSwitch,
+#locationEnableEditingSwitch,
+#locationShowCategoryCheckbox,
+#locationShowCategorySwitch {
   margin-right: 48px;
 }
 
@@ -1341,4 +1347,8 @@ section#edit {
   height: 37px;
   width: 26px;
   cursor: pointer;
+}
+h4.light-text {
+  font-size: 15px !important;
+  font-weight: 400 !important;
 }

@@ -54,14 +54,15 @@
 						<div class="mdc-notched-outline__trailing"></div>
 					</div>
 				</div>
-				<div class="mdc-text-field-helper-line">
+				<div class="mdc-text-field-helper-line hidden">
 					<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
 				</div>
+				<p id="descriptionNote" bfString="locationEditing.descriptionNote" class="hidden mdc-theme--text-body margin-top-five text-field-helper-text mdc-theme--warning-text">The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description.</p>
 			</div>
 			<!-- end: Location Description text area-->
 
 			<div class="switch-button-container px-0 hidden" id="locationEnableEditingContainer">
-				<h4 bfString="locationEditing.enableEditing" class="mdc-theme--text-primary-on-background margin-bottom-zero">Enable Editing</h4>
+				<h4 bfString="locationEditing.enableEditing" class="margin-top-zero mdc-theme--text-primary-on-background margin-bottom-zero light-text">Enable Editing</h4>
 				<div class="mdc-switch" id="locationEnableEditingSwitch">
 					<div class="mdc-switch__track"></div>
 					<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
@@ -138,6 +139,18 @@
             </div>
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-none" role="button" tabindex="0">arrow_forward_ios</i>
           </div>
+
+			<div class="switch-button-container px-0">
+				<h4 bfString="locationEditing.showCategory" class="mdc-theme--text-primary-on-background margin-bottom-zero">Show Category on Location Screen</h4>
+				<div class="mdc-switch" id="locationShowCategorySwitch">
+					<div class="mdc-switch__track"></div>
+					<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+						<div class="mdc-switch__thumb">
+							<input aria-checked="false" class="mdc-switch__native-control" id="locationShowCategoryInput" role="switch" type="checkbox">
+						</div>
+					</div>
+				</div>
+			</div>
         </div>
       </div>
     </div>
@@ -177,7 +190,7 @@
         <div class="expansion-panel-body-content" role="grid">
 
           <div class="d-flex justify-space-between">
-          <div class="mdc-select" id="locationPriceCurrencySelect">
+          <div class="mdc-select" id="locationCurrencySelect">
             <div class="mdc-select__anchor custom-enhanced-select-width mdc-ripple-upgraded w-100">
               <i class="mdc-select__dropdown-icon"></i>
               <div aria-disabled="false" aria-expanded="false" class="mdc-select__selected-text min-width-unset" tabindex="0"></div>
@@ -214,8 +227,9 @@
     </div>
 
     <div class="text-field-container" id="locationListImageInput">
-      <h4 bfString="locationEditing.listImage" class="mdc-theme--text-primary-on-background">List Image</h4>
-      <div class="img-select-holder">
+      <h4 bfString="locationEditing.listImage" class="margin-bottom-zero mdc-theme--text-primary-on-background">List Image</h4>
+		<p bfString="locationEditing.listImageNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">This is the main location image displayed next to the location info in a list view.</p>
+		<div class="img-select-holder">
         <button class="img-select has-img">
           <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn" role="button" tabIndex="0">close</i>
           <img alt="" src="">
@@ -227,8 +241,10 @@
     </div>
 
     <div class="location-images">
-      <h4 bfString="locationEditing.locationImages" class="mdc-theme--text-primary-on-background">Location Images</h4>
-      <div id="locationImagesList">
+      <h4 bfString="locationEditing.locationImages" class="margin-bottom-zero mdc-theme--text-primary-on-background">Location Images</h4>
+		<p bfString="locationEditing.locationImagesNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">These are the location details images. First image in the list will be displayed as location’s main image.</p>
+
+		<div id="locationImagesList">
       </div>
     </div>
 
