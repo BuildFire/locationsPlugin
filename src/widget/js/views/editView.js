@@ -21,17 +21,19 @@ import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
+import constants from '../constants';
 
 const localState = {
   pendingLocation: null,
   selectedOpeningHours: getDefaultOpeningHours(),
   imageUploadPending: false,
-  carouselUploadPending: false
+  carouselUploadPending: false,
+  map: null,
+  geocodeTimeout: null,
 };
 
 let editViewAccordion;
 let formTextFields;
-
 
 const _toggleDescriptionTextarea = (isDisabled) => {
   const descriptionTextField = document.querySelector('#locationDescriptionField');
@@ -210,11 +212,77 @@ const _reflectChanges = () => {
   }
 };
 
+const _reverseAddress = () => {
+  const { pendingLocation } = localState;
+  const geoCoder = new google.maps.Geocoder();
+  const lat = localState.map.getCenter().lat();
+  const lng = localState.map.getCenter().lng();
+
+  geoCoder.geocode(
+    {
+      location: { lat, lng, }
+    },
+    (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          formTextFields.locationAddressField.instance.value = results[0].formatted_address;
+          pendingLocation.formattedAddress = results[0].formatted_address;
+          pendingLocation.address = results[0].formatted_address;
+          pendingLocation.coordinates.lat = lat;
+          pendingLocation.coordinates.lng = lng;
+        } else {
+          console.log("No results found");
+        }
+      } else {
+        console.log(`Geocoder failed due to: ${status}`);
+      }
+    }
+  );
+};
+
+const _buildMap = () => {
+  const { pendingLocation } = localState;
+  const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
+  const options = {
+    minZoom: 3,
+    maxZoom: 19,
+    streetViewControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false,
+    gestureHandling: 'greedy',
+    zoomControlOptions: {
+      position: zoomPosition,
+    },
+    disableDefaultUI: true,
+    // center: new google.maps.LatLng(52.5498783, 13.425209099999961),
+    center: constants.getDefaultLocation(),
+    zoom: 14,
+  };
+
+  if (pendingLocation.coordinates.lat && pendingLocation.coordinates.lng) {
+    options.center = {
+      lat: pendingLocation.coordinates.lat, lng: pendingLocation.coordinates.lng
+    };
+  }
+  localState.map = new google.maps.Map(document.getElementById('locationMapContainer'), options);
+  google.maps.event.addListener(localState.map, 'center_changed', () => {
+    if (localState.geocodeTimeout) clearTimeout(localState.geocodeTimeout);
+    localState.geocodeTimeout = setTimeout(_reverseAddress, 500);
+  });
+
+  const marker = document.createElement('div');
+  marker.classList.add('centered-marker');
+
+  const mapContainer = localState.map.getDiv();
+  mapContainer.appendChild(marker);
+};
+
 const _saveChanges = (e) => {
   const { pendingLocation } = localState;
   pendingLocation.title = formTextFields.locationTitleField.instance.value;
   pendingLocation.subtitle = formTextFields.locationSubtitleField.instance.value;
   pendingLocation.address = formTextFields.locationAddressField.instance.value;
+  pendingLocation.addressAlias = formTextFields.locationAddressAliasField.instance.value;
   pendingLocation.openingHours = { ...pendingLocation.openingHours, ...localState.selectedOpeningHours };
 
   const { days } = pendingLocation.openingHours;
@@ -363,6 +431,7 @@ const _initAddressAutocompleteField = (textfield) => {
     pendingLocation.coordinates.lat = place.geometry.location.lat();
     pendingLocation.coordinates.lng = place.geometry.location.lng();
     pendingLocation.formattedAddress = place.formatted_address;
+    localState.map.setCenter(pendingLocation.coordinates);
   });
 };
 
@@ -556,7 +625,7 @@ const _renderDayIntervals = (day, dayIntervalsContainer) => {
       const start = convertTimeToDate(e.target.value);
       interval.from = start;
       if (!_validateTimeInterval(start, interval.to, intervalError)) {
-        return;
+
       }
     };
 
@@ -564,7 +633,7 @@ const _renderDayIntervals = (day, dayIntervalsContainer) => {
       const end = convertTimeToDate(e.target.value);
       interval.to = end;
       if (!_validateTimeInterval(interval.from, end, intervalError)) {
-        return;
+
       }
     };
 
@@ -701,6 +770,11 @@ const init = () => {
       value: pendingLocation.address,
       required: true
     },
+    locationAddressAliasField: {
+      instance: null,
+      value: pendingLocation.addressAlias,
+      required: false
+    },
     locationDescriptionField: {
       id: 'locationDescriptionField',
       instance: null,
@@ -764,6 +838,7 @@ const init = () => {
       listImageSelectBtn.onclick = _uploadListImage;
       listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, });
 
+      _buildMap();
       refreshCategoriesText();
       _refreshLocationImages();
       _renderOpeningHours();
