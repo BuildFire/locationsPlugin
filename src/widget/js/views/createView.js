@@ -763,7 +763,7 @@ export default {
         views.inject('create');
         views.inject('categories');
 
-        this.payload = new Location();
+        this.payload = new Location({ wysiwygSource: 'widget' });
         this.buildForm();
         this.buildEventsHandlers();
         this.buildMap();

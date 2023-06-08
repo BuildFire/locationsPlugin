@@ -334,6 +334,13 @@ export default {
         required: true,
         maxLength: 25,
       },
+      enableEditing: {
+        title: 'Enable Editing',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enable Editing',
+        required: true,
+        maxLength: 25,
+      },
       priceRange: {
         title: 'Price Range',
         placeholder: 'Enter text here',

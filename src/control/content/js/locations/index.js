@@ -254,6 +254,7 @@ window.addEditLocation = (location) => {
     setup: (ed) => {
       ed.on('keyup change', () => {
         state.locationObj.description = tinymce.activeEditor.getContent();
+        state.locationObj.wysiwygSource = 'control';
         triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
         checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
       });

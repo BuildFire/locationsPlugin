@@ -42,6 +42,36 @@
             </div>
           </div>
 
+			<!-- begin: Location Description text area-->
+			<div class="text-field-container">
+				<div class="mdc-text-field mdc-text-field--disabled mdc-text-field--textarea" id="locationDescriptionField">
+					<textarea class="mdc-text-field__input resize-none" rows="5" disabled></textarea>
+					<div class="mdc-notched-outline">
+						<div class="mdc-notched-outline__leading"></div>
+						<div class="mdc-notched-outline__notch">
+							<label bfString="locationEditing.locationDescription" for="textarea" class="mdc-floating-label">Location Description</label>
+						</div>
+						<div class="mdc-notched-outline__trailing"></div>
+					</div>
+				</div>
+				<div class="mdc-text-field-helper-line">
+					<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+				</div>
+			</div>
+			<!-- end: Location Description text area-->
+
+			<div class="switch-button-container px-0 hidden" id="locationEnableEditingContainer">
+				<h4 bfString="locationEditing.enableEditing" class="mdc-theme--text-primary-on-background margin-bottom-zero">Enable Editing</h4>
+				<div class="mdc-switch" id="locationEnableEditingSwitch">
+					<div class="mdc-switch__track"></div>
+					<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
+						<div class="mdc-switch__thumb">
+							<input aria-checked="false" class="mdc-switch__native-control" id="locationEnableEditingInput" role="switch" type="checkbox">
+						</div>
+					</div>
+				</div>
+			</div>
+
           <div class="text-field-container">
             <div class="mdc-text-field" id="locationAddressField">
               <input autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" id="locationAddressFieldInput" spellcheck="false" type="text">

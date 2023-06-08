@@ -32,6 +32,41 @@ const localState = {
 let editViewAccordion;
 let formTextFields;
 
+
+const _toggleDescriptionTextarea = (isDisabled) => {
+  const descriptionTextField = document.querySelector('#locationDescriptionField');
+  const descriptionTextArea = document.querySelector('#locationDescriptionField textarea');
+
+  if (!isDisabled) {
+    descriptionTextField.classList.remove('mdc-text-field--disabled');
+    descriptionTextArea.disabled = false;
+  } else {
+    descriptionTextField.classList.add('mdc-text-field--disabled');
+    descriptionTextArea.disabled = true;
+  }
+};
+
+const _handleDescriptionInput = () => {
+  const { pendingLocation } = localState;
+
+  buildfire.input.showTextDialog(
+    {
+      placeholder: window.strings.get('locationEditing.descriptionDialogPlaceholder').v,
+      saveText: window.strings.get('locationEditing.descriptionDialogSave').v,
+      cancelText: window.strings.get('locationEditing.descriptionDialogCancel').v,
+      defaultValue: pendingLocation.description,
+      wysiwyg: true,
+    },
+    (err, response) => {
+      if (err) return console.error(err);
+      if (response.cancelled) return;
+      formTextFields.locationDescriptionField.instance.value =  response.results[0].textValue;
+      pendingLocation.description = response.results[0].wysiwygValue;
+      pendingLocation.wysiwygSource = 'widget';
+    }
+  );
+};
+
 const _toggleInputError = (element, hasError) => {
   if (typeof element === 'string') {
     element = document.querySelector(`#${element}`);
@@ -80,7 +115,7 @@ const _validateOpeningHours = (openingHours) => {
 
 const _validateLocationSave = () => {
   const {
-    title, address, coordinates, listImage, openingHours
+    title, address, coordinates, listImage, openingHours, description
   } = localState.pendingLocation;
   let isValid = true;
 
@@ -89,6 +124,13 @@ const _validateLocationSave = () => {
     _toggleInputError('locationTitleField', true);
   } else {
     _toggleInputError('locationTitleField', false);
+  }
+
+  if (!description) {
+    isValid = false;
+    _toggleInputError('locationDescriptionField', true);
+  } else {
+    _toggleInputError('locationDescriptionField', false);
   }
 
   if (!address || !coordinates.lat || !coordinates.lng) {
@@ -659,9 +701,19 @@ const init = () => {
       value: pendingLocation.address,
       required: true
     },
+    locationDescriptionField: {
+      id: 'locationDescriptionField',
+      instance: null,
+      value: pendingLocation.description,
+      required: true
+    },
     locationStarRatingSwitch: {
       instance: null,
       value: pendingLocation.settings.showStarRating
+    },
+    locationEnableEditingSwitch: {
+      instance: null,
+      value: false
     },
     locationPriceRangeSwitch: {
       instance: null,
@@ -700,6 +752,8 @@ const init = () => {
       const listImageImg = locationListImageInput.querySelector('img');
       const listImageSelectBtn = locationListImageInput.querySelector('button');
       const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
+      const descriptionTextArea = document.querySelector('#locationDescriptionField textarea');
+      const enableEditingContainer = document.querySelector('#locationEnableEditingContainer');
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();
@@ -750,6 +804,17 @@ const init = () => {
           pendingLocation.settings.showPriceRange = e.target.checked;
         } else if (e.target.id === 'locationOpeningHoursInput') {
           pendingLocation.settings.showOpeningHours = e.target.checked;
+        } else if (e.target.id === 'locationEnableEditingInput') {
+          if (e.target.checked) {
+            _toggleDescriptionTextarea(true);
+            formTextFields.locationDescriptionField.instance.value = '';
+            pendingLocation.description = '';
+          } else {
+            _toggleDescriptionTextarea(false);
+            formTextFields.locationDescriptionField.instance.value = state.selectedLocation.description;
+            pendingLocation.description = state.selectedLocation.description;
+            pendingLocation.wysiwygSource = 'control';
+          }
         }
       });
       editView.querySelectorAll('.mdc-switch').forEach(((i) => {
@@ -760,6 +825,13 @@ const init = () => {
           field.instance = instance;
         }
       }));
+
+      descriptionTextArea.addEventListener('focus', _handleDescriptionInput);
+      if (pendingLocation.wysiwygSource === 'control') {
+        enableEditingContainer.classList.remove('hidden');
+      } else if (pendingLocation.wysiwygSource === 'widget') {
+        _toggleDescriptionTextarea(true);
+      }
 
       window.strings.inject(document.querySelector('section#edit'), false);
       showLocationEdit();
