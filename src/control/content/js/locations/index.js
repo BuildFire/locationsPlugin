@@ -1521,6 +1521,7 @@ const insertLocations = (result, callback) => {
       actionItems.push({
         "title": "Phone",
         "action": "callNumber",
+        "iconClassName": "glyphicon glyphicon-earphone",
         "phoneNumber": elem.phoneNumber,
         "id": generateUUID() });
     }
@@ -1531,6 +1532,7 @@ const insertLocations = (result, callback) => {
       actionItems.push({
         "title": "Website",
         "action": "linkToWeb",
+        "iconClassName": "glyphicon glyphicon-globe",
         "openIn": "_blank",
         "url": elem.website,
         "id": generateUUID() });
