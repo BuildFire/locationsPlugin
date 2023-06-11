@@ -108,10 +108,14 @@ export default {
   _isCurrentlyImagesUploading: false,
   payload: null,
   _formFieldsInstances: null,
+  _querySelect(selector) {
+    const createView = document.querySelector('section#create');
+    return createView.querySelector(selector);
+  },
   _handleChangeLocationImages() {
     if (this._isCurrentlyImagesUploading) return;
     const uploadOptions = { allowMultipleFilesUpload: true };
-    const locationImagesList = document.querySelector('#locationListImagesContainer');
+    const locationImagesList = this._querySelect('#locationListImagesContainer');
     const locationImagesSelectBtn = locationImagesList.querySelector('button');
 
     uploadImages(
@@ -135,7 +139,7 @@ export default {
     );
   },
   _buildLocationImages() {
-    const locationImagesList = document.querySelector('#locationListImagesContainer');
+    const locationImagesList = this._querySelect('#locationListImagesContainer');
     locationImagesList.innerHTML = '';
     locationImagesList.appendChild(
       createImageHolder({ hasImage: false }, this._handleChangeLocationImages.bind(this))
@@ -286,21 +290,21 @@ export default {
 
     if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) return;
 
-    e.target.disabled = true;
+    e.target.disabled = true; //todo double check not working
 
     widgetController.createLocation(this.payload)
-      .then(() => {
+      .then((result) => {
         showToastMessage('locationSaved', 5000);
-        this._appendToLocationsList();
+        this._appendToLocationsList(result);
         buildfire.history.pop();
         introView.refreshIntroductoryCarousel();
       })
-      .catch((e) => {
+      .catch((err) => {
+        console.error(err);
         e.target.disabled = false;
       });
   },
-  _appendToLocationsList() {
-    const createdLocation = this.payload.toJSON();
+  _appendToLocationsList(createdLocation) {
     const activeTemplate = getActiveTemplate();
 
     state.listLocations.push(createdLocation);
@@ -322,7 +326,7 @@ export default {
   },
   buildForm() {
     this._accordion = new Accordion({
-      element: document.querySelector('.create-location-accordion'),
+      element: this._querySelect('.create-location-accordion'),
       multi: true,
       expanded: true
     });
@@ -376,7 +380,7 @@ export default {
     }));
   },
   _buildOpeningSchedule() {
-    const openingHoursContainer = document.querySelector('#locationOpeningHoursContainer');
+    const openingHoursContainer = this._querySelect('#locationOpeningHoursContainer');
 
     this.payload.openingHours = getDefaultOpeningHours();
     const { days } = this.payload.openingHours;
@@ -419,7 +423,7 @@ export default {
     listImageImg.src = cropImage(this.payload.listImage, { width: 64, height: 64, });
   },
   _uploadListImage() {
-    const listImageInput = document.querySelector('#locationListImageInput');
+    const listImageInput = this._querySelect('#locationListImageInput');
     const listImageImg = listImageInput.querySelector('img');
     const listImageSelectBtn = listImageInput.querySelector('button');
 
@@ -598,7 +602,7 @@ export default {
     }));
   },
   refreshCategoriesOverviewSubtitle() {
-    const locationCategoriesOverview = document.querySelector('#locationCategoriesOverview');
+    const locationCategoriesOverview = this._querySelect('#locationCategoriesOverview');
     const locationCategoriesText = locationCategoriesOverview.querySelector('h5');
     const categoriesText = transformCategoriesToText(this.payload.categories, state.categories);
 
@@ -618,7 +622,7 @@ export default {
     addBreadcrumb({ pageName: 'categoriesCreate' });
   },
   _handleAddressInput() {
-    const addressInput = document.querySelector('#locationAddressTextField input');
+    const addressInput = this._querySelect('#locationAddressTextField input');
     const autocomplete = new google.maps.places.SearchBox(
       addressInput,
       {
@@ -670,7 +674,7 @@ export default {
   },
   buildEventsHandlers() {
     const createView = document.querySelector('section#create');
-    const descriptionTextArea = document.querySelector('#locationDescriptionTextField textarea');
+    const descriptionTextArea = this._querySelect('#locationDescriptionTextField textarea');
     createView.addEventListener('click', (e) => {
       if (e.target.id === 'submitBtn') {
         this.submit(e);

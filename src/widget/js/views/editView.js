@@ -913,7 +913,7 @@ const init = () => {
         enableEditingContainer.classList.remove('hidden');
         descriptionNote.classList.remove('hidden');
       } else if (pendingLocation.wysiwygSource === 'widget') {
-        _toggleDescriptionTextarea(true);
+        _toggleDescriptionTextarea(false);
       }
 
       window.strings.inject(document.querySelector('section#edit'), false);

@@ -1255,6 +1255,7 @@ button.mdc-button > *,
 .location-images {
   padding: 4px 16px;
 }
+#locationListImagesContainer,
 #locationImagesList {
   display: flex;
   overflow-y: auto;

@@ -71,11 +71,10 @@ export default {
     location.clientId = generateUUID();
     location.createdOn = new Date();
     location.createdBy = state.currentUser._id;
-
     return Location.add(location.toJSON()).then((result) => {
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
-      return SearchEngine.add(Location.TAG, result.id, result);
+      return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
     });
   }
 };
