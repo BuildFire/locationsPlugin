@@ -1,4 +1,5 @@
 export default {
+  bookmarkLoading: false,
   currentUser: null,
   maps: {
     map: null,

@@ -22,6 +22,7 @@ import mapView from './mapView';
 import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
 import constants from '../constants';
+import accessManager from '../accessManager';
 
 const localState = {
   pendingLocation: null,
@@ -681,40 +682,6 @@ const _renderOpeningHours = () => {
   }
 };
 
-const isAuthorized = () => {
-  let authed = false;
-  const { currentUser, selectedLocation } = state;
-  if (!currentUser) return authed;
-
-  const { globalEditors, locationEditors } = state.settings;
-  const userId = currentUser._id;
-
-  let userTags = [];
-  let tags = [];
-  let editors = [];
-
-  if (globalEditors.enabled) {
-    editors = globalEditors.users;
-    tags = globalEditors.tags.map((t) => t.tagName);
-  }
-
-  if (locationEditors.enabled && selectedLocation.editingPermissions?.active) {
-    editors = [...editors, ...selectedLocation.editingPermissions.editors];
-    tags = [...tags, ...selectedLocation.editingPermissions.tags.map((t) => t.tagName)];
-  }
-
-  for (const key in currentUser.tags) {
-    if (currentUser.tags[key]) {
-      userTags = userTags.concat(currentUser.tags[key].map((t) => t.tagName));
-    }
-  }
-
-  if (editors.indexOf(userId) > -1 || userTags.some((r) => tags.includes(r))) {
-    authed = true;
-  }
-  return authed;
-};
-
 const _uploadListImage = () => {
   const locationListImageInput = document.querySelector('#locationListImageInput');
   const listImageImg = locationListImageInput.querySelector('img');
@@ -748,7 +715,7 @@ const _uploadListImage = () => {
 };
 
 const init = () => {
-  if (!state.selectedLocation || !isAuthorized()) return;
+  if (!state.selectedLocation || !accessManager.canEditLocations()) return;
 
   localState.pendingLocation =  new Location(state.selectedLocation);
   const { pendingLocation } = localState;
@@ -929,4 +896,4 @@ const init = () => {
     });
 };
 
-export default { init, isAuthorized, refreshCategoriesText };
+export default { init, refreshCategoriesText };

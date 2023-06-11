@@ -502,6 +502,46 @@ export default {
       }
     }
   },
+  details: {
+    title: 'Details Page',
+    labels: {
+      bookmark: {
+        title: 'Bookmark',
+        placeholder: 'Enter text here',
+        defaultValue: 'Bookmark',
+        required: true,
+        maxLength: 25,
+      },
+      reportAbuse: {
+        title: 'Report Abuse',
+        placeholder: 'Enter text here',
+        defaultValue: 'Report Abuse',
+        required: true,
+        maxLength: 25,
+      },
+      share: {
+        title: 'Share',
+        placeholder: 'Enter text here',
+        defaultValue: 'Share',
+        required: true,
+        maxLength: 25,
+      },
+      edit: {
+        title: 'Edit',
+        placeholder: 'Enter text here',
+        defaultValue: 'Edit',
+        required: true,
+        maxLength: 25,
+      },
+      addPhotos: {
+        title: 'Add Photos',
+        placeholder: 'Enter text here',
+        defaultValue: 'Add Photos',
+        required: true,
+        maxLength: 25,
+      },
+    }
+  },
   emptyState: {
     title: 'Empty State',
     labels: {

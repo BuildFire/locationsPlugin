@@ -3,6 +3,9 @@ import forEach from 'lodash.foreach';
 import { convertTimeToDate, getCurrentDayName, openingNowDate } from '../../../utils/datetime';
 import state from '../state';
 import isEqual from 'lodash.isequal';
+import Analytics from '../../../utils/analytics';
+import WidgetController from '../../widget.controller';
+import Location from '../../../entities/Location';
 
 export const deepObjectDiff = (a, b, reversible) => {
   const r = {};
@@ -120,4 +123,79 @@ export const areArraysEqual = (array1, array2) => {
   const array1Sorted = array1.slice().sort();
   const array2Sorted = array2.slice().sort();
   return isEqual(array1Sorted, array2Sorted);
+};
+
+export const shareLocation = () => {
+  buildfire.deeplink.generateUrl(
+    {
+      title: state.selectedLocation.title,
+      description: state.selectedLocation.subtitle || undefined,
+      imageUrl: cdnImage(state.selectedLocation.listImage),
+      data: { locationId: state.selectedLocation.id },
+    },
+    (err, result) => {
+      if (err) return console.error(err);
+      buildfire.device.share({
+        subject: state.selectedLocation.title,
+        text: state.selectedLocation.title,
+        link: result.url
+      }, (err, result) => {
+        if (err) console.error(err);
+        if (result) console.log(result);
+        Analytics.locationShareUsed();
+      });
+    }
+  );
+};
+
+export const bookmarkLocation = (locationId, e) => {
+  const location = state.listLocations.find((i) => i.id === locationId);
+  const { bookmarks } = state.settings;
+
+  if (state.bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+
+  state.bookmarkLoading = true;
+  setTimeout(() => { state.bookmarkLoading = false; }, 1000);
+
+  if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
+    buildfire.bookmarks.delete(location.clientId, () => {
+      showToastMessage('bookmarksRemoved');
+    });
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
+    e.target.textContent = 'star_outline';
+  } else {
+    showToastMessage('bookmarksAdded');
+    console.log('location: ', location);
+    if (!location.clientId) {
+      console.log('updating location: ', location);
+      location.clientId = generateUUID();
+      WidgetController.updateLocation(location.id, new Location(location).toJSON());
+    }
+    buildfire.bookmarks.add(
+      {
+        id: location.clientId,
+        title: location.title,
+        icon: location.listImage,
+        payload: {
+          locationId: location.id
+        },
+      },
+      (err, bookmark) => {
+        if (err) {
+          console.error(err);
+          showToastMessage('bookmarksError');
+          return;
+        }
+        Analytics.locationBookmarkUsed();
+        state.bookmarks.push({
+          id: location.clientId,
+          title: location.title
+        });
+        if (e && e.target) {
+          e.target.textContent = 'star';
+        }
+        console.log("Bookmark added", bookmark);
+      }
+    );
+  }
 };

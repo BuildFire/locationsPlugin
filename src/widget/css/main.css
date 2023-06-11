@@ -501,16 +501,15 @@ button span {
   font-weight: bold;
   font-size: 11px;
 }
-.location-detail__cover #bookmarkLocationBtn {
+.location-detail__cover .icon-0 {
   position: absolute;
-  bottom: 20px;
+  right: 100px;
+}
+.location-detail__cover .icon-1 {
+  position: absolute;
   right: 20px;
 }
-.location-detail__cover #shareLocationBtn {
-  position: absolute;
-  right: 20px;
-}
-.location-detail__cover #editLocationBtn {
+.location-detail__cover .icon-2 {
   position: absolute;
   right: 60px;
 }
