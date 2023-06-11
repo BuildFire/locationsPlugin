@@ -70,11 +70,19 @@ export default {
   createLocation(location) { // location should be a model
     location.clientId = generateUUID();
     location.createdOn = new Date();
-    location.createdBy = state.currentUser._id;
+    location.createdBy = state.currentUser;
     return Location.add(location.toJSON()).then((result) => {
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
       return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
     });
+  },
+  deleteLocation(locationId) {
+    const promiseChain = [
+      Location.delete(locationId),
+      DeepLink.unregisterDeeplink(locationId),
+      SearchEngine.delete(Location.TAG, locationId)
+    ];
+    return Promise.allSettled(promiseChain);
   }
 };

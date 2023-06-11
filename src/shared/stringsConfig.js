@@ -499,6 +499,20 @@ export default {
         defaultValue: 'Location Saved',
         required: true,
         maxLength: 50,
+      },
+      alreadyReported: {
+        title: 'This item is already reported',
+        placeholder: 'Enter text here',
+        defaultValue: 'This item is already reported',
+        required: true,
+        maxLength: 50,
+      },
+      reportedSuccessfully: {
+        title: 'Reported successfully',
+        placeholder: 'Enter text here',
+        defaultValue: 'Reported successfully',
+        required: true,
+        maxLength: 50,
       }
     }
   },

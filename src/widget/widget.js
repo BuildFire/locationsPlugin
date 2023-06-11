@@ -42,6 +42,7 @@ import introView from './js/views/introView';
 import mapSearchControl from './js/map/search-control';
 import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
+import reportAbuse from './js/reportAbuse';
 
 let SEARCH_TIMOUT;
 
@@ -852,7 +853,9 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'moreOptionsBtn') {
+    if (e.target.id === 'reportAbuseBtn') {
+      reportAbuse.report({ id: state.selectedLocation.id, createdBy: state.selectedLocation.createdBy._id });
+    } if (e.target.id === 'moreOptionsBtn') {
       showLocationDetailDrawer(e);
     } if (e.target.id === 'bookmarkResultsBtn') {
       bookmarkSearchResults(e);
@@ -1902,6 +1905,7 @@ const onPopHandler = (breadcrumb) => {
   if (!state.breadcrumbs.length) {
     hideOverlays();
     navigateTo('home');
+    introView.refreshIntroductoryCarousel();
   } else {
     const page = state.breadcrumbs[state.breadcrumbs.length - 1];
     if (page?.name === 'af') {
@@ -1919,6 +1923,7 @@ const onPopHandler = (breadcrumb) => {
     } else {
       hideOverlays();
       navigateTo('home');
+      introView.refreshIntroductoryCarousel();
     }
     // state.breadcrumbs.pop();
   }
@@ -2136,6 +2141,7 @@ const initApp = () => {
   window.googleMapOnLoad = () => {
     Promise.all(bootstrap)
       .then(() => {
+        reportAbuse.init();
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
