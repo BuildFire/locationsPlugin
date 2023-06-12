@@ -544,9 +544,9 @@ export default {
         maxLength: 50,
       },
       uploadedSuccessfully: {
-        title: 'Uploaded successfully',
+        title: 'Thanks for sharing your photos',
         placeholder: 'Enter text here',
-        defaultValue: 'Uploaded successfully',
+        defaultValue: 'Thanks for sharing your photos',
         required: true,
         maxLength: 50,
       }

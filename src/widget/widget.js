@@ -43,6 +43,7 @@ import mapSearchControl from './js/map/search-control';
 import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
+import authManager from '../UserAccessControl/authManager';
 
 let SEARCH_TIMOUT;
 
@@ -864,6 +865,8 @@ const initEventListeners = () => {
       bookmarkLocation(locationId, e);
     } else if (e.target.id === 'bookmarkLocationBtn') {
       bookmarkLocation(state.selectedLocation.id, e);
+    } else if (e.target.id === 'addPhotosBtn') {
+      detailsView.addLocationPhotos();
     } else if (e.target.id === 'editLocationBtn') {
       Analytics.inAppEditUsed();
       editView.init();
@@ -2084,6 +2087,7 @@ const initApp = () => {
     Promise.all(bootstrap)
       .then(() => {
         reportAbuse.init();
+        authManager.onUserChange();
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);

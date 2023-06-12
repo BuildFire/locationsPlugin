@@ -40,12 +40,6 @@ export default {
         value: '',
         required: false
       },
-      description: {
-        id: 'locationDescriptionTextField',
-        instance: null,
-        value: '',
-        required: true
-      },
       address: {
         id: 'locationAddressTextField',
         instance: null,
@@ -249,11 +243,11 @@ export default {
 
     if (!description) {
       isValid = false;
-      toggleFieldError(this._formFieldsInstances.description.id, true);
-      toggleFieldError(`${this._formFieldsInstances.description.id} ~ .mdc-text-field-helper-line`, true);
+      toggleFieldError('locationDescriptionTextField', true);
+      toggleFieldError('locationDescriptionTextField ~ .mdc-text-field-helper-line', true);
     } else {
-      toggleFieldError(this._formFieldsInstances.description.id, false);
-      toggleFieldError(`${this._formFieldsInstances.description.id} ~ .mdc-text-field-helper-line`, false);
+      toggleFieldError('locationDescriptionTextField', false);
+      toggleFieldError('locationDescriptionTextField ~ .mdc-text-field-helper-line', false);
     }
 
     if (!address || !coordinates.lat || !coordinates.lng) {
@@ -296,7 +290,7 @@ export default {
 
     if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) return;
 
-    e.target.disabled = true; //todo double check not working
+    e.target.disabled = true; // todo double check not working
 
     widgetController.createLocation(this.payload)
       .then((result) => {
@@ -661,7 +655,8 @@ export default {
       this._map.setCenter(this.payload.coordinates);
     });
   },
-  _handleDescriptionInput() {
+  _handleDescriptionInput(e) {
+    e.target.classList.add('disabled');
     buildfire.input.showTextDialog(
       {
         placeholder: window.strings.get('locationEditing.descriptionDialogPlaceholder').v,
@@ -671,18 +666,20 @@ export default {
         wysiwyg: true,
       },
       (err, response) => {
+        e.target.classList.remove('disabled');
         if (err) return console.error(err);
         if (response.cancelled) return;
         this.payload.description = response.results[0].wysiwygValue;
-        this._formFieldsInstances.description.instance.value =  response.results[0].textValue;
+        e.target.innerHTML = response.results[0].wysiwygValue || `<label class="mdc-floating-label">${window.strings.get('locationEditing.locationDescription').v}</label>`;
       }
     );
   },
   buildEventsHandlers() {
     const createView = document.querySelector('section#create');
-    const descriptionTextArea = this._querySelect('#locationDescriptionTextField textarea');
     createView.addEventListener('click', (e) => {
-      if (e.target.id === 'submitBtn') {
+      if (e.target.id === 'locationDescriptionTextField') {
+        this._handleDescriptionInput(e);
+      } else if (e.target.id === 'submitBtn') {
         this.submit(e);
       } else if (e.target.id === 'locationCategoriesOverview') {
         this._buildCategoriesOverview();
@@ -701,8 +698,6 @@ export default {
         this.payload.settings.showStarRating = e.target.checked;
       }
     });
-
-    descriptionTextArea.addEventListener('focus', this._handleDescriptionInput.bind(this));
   },
   _reverseAddress() {
     const geoCoder = new google.maps.Geocoder();
@@ -725,7 +720,7 @@ export default {
             console.log("No results found");
           }
         } else {
-          console.log("Geocoder failed due to: " + status);
+          console.log(`Geocoder failed due to: ${status}`);
         }
       }
     );
@@ -749,10 +744,10 @@ export default {
       zoom: 14,
     };
     this._map = new google.maps.Map(document.getElementById('locationMapContainer'), options);
-    google.maps.event.addListener(this._map, 'center_changed', function() {
+    google.maps.event.addListener(this._map, 'center_changed', () => {
       if (this._geocodeTimeout) clearTimeout(this._geocodeTimeout);
       this._geocodeTimeout = setTimeout(this._reverseAddress.bind(this), 500);
-    }.bind(this));
+    });
 
     const marker = document.createElement('div');
     marker.classList.add('centered-marker');

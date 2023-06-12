@@ -5,7 +5,6 @@ const authManager = {
   },
   set currentUser(user) {
     authManager._currentUser = user;
-    authManager.onUserChange(user);
   },
   enforceLogin(callback) {
     buildfire.auth.getCurrentUser((err, currentUser) => {
@@ -25,7 +24,15 @@ const authManager = {
     });
   },
   onUserChange() {
-    console.warn("You must handle on user changed");
+    buildfire.auth.onLogin((user) => {
+      authManager.currentUser = user;
+      window.location.reload();
+    }, true);
+
+    buildfire.auth.onLogout(() => {
+      authManager.currentUser = null;
+      window.location.reload();
+    }, true);
   }
 };
 buildfire.auth.onLogout(authManager.enforceLogin, true);

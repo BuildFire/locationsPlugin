@@ -1358,6 +1358,7 @@ h4.light-text {
   font-size: .7rem;
   font-weight: bold;
 }
+#locationDescriptionTextField,
 #locationDescriptionContainer {
   background-color: rgba(150,150,150,.1);
   height: 165px;
@@ -1368,24 +1369,29 @@ h4.light-text {
   border-radius: 4px 4px 0 0;
   position: relative;
 }
+#locationDescriptionTextField.has-error,
 #locationDescriptionContainer.has-error {
   border-bottom-color:   var(--mdc-theme-error, #EB4747) !important;
 }
+#locationDescriptionTextField *,
 #locationDescriptionContainer * {
   pointer-events: none;
 }
+#locationDescriptionTextField:not(.disabled),
 #locationDescriptionContainer:not(.disabled) {
   cursor: text;
 }
+#locationDescriptionTextField.disabled,
 #locationDescriptionContainer.disabled {
-  border-bottom: none;
   cursor: not-allowed;
   opacity: 0.5;
 }
+#locationDescriptionTextField .mdc-floating-label,
 #locationDescriptionContainer .mdc-floating-label {
   left: 16px;
   top: 20px;
 }
+#locationDescriptionTextField .mdc-floating-label::after,
 #locationDescriptionContainer .mdc-floating-label::after {
   margin-left: 1px;
   content: "*"
@@ -1395,4 +1401,7 @@ h4.light-text {
 }
 .mdc-text-field-helper-line.has-error {
   visibility: visible;
+}
+.bf-theme-success {
+  background-color: var(--bf-theme-success, #018786) !important;
 }

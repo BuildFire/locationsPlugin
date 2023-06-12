@@ -61,11 +61,11 @@ export default class Settings {
     };
     this.globalEntries = data.globalEntries || {
       locations: {
-        allowAdding:  'all', // all || none || limited
+        allowAdding:  'none', // all || none || limited
         tags: [],
       },
       photos: {
-        allowAdding: 'all', // all || none || limited
+        allowAdding: 'none', // all || none || limited
         tags: [],
       },
       allowOpenHours: true,

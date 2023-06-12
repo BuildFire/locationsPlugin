@@ -39,15 +39,8 @@
 
 					<!-- begin: Location Description text area-->
 					<div class="text-field-container">
-						<div class="mdc-text-field mdc-text-field--textarea" id="locationDescriptionTextField">
-							<textarea class="mdc-text-field__input resize-none" rows="5"></textarea>
-							<div class="mdc-notched-outline">
-								<div class="mdc-notched-outline__leading"></div>
-								<div class="mdc-notched-outline__notch">
-									<label bfString="locationEditing.locationDescription" for="textarea" class="mdc-floating-label">Location Description</label>
-								</div>
-								<div class="mdc-notched-outline__trailing"></div>
-							</div>
+						<div id="locationDescriptionTextField">
+							<label bfString="locationEditing.locationDescription" class="mdc-floating-label"></label>
 						</div>
 						<div class="mdc-text-field-helper-line">
 							<p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg"></p>
@@ -271,7 +264,7 @@
 		<!-- end: Open Hours expansion-->
 	</div>
 	<div class="fixed-footer mdc-theme--background">
-		<button class="mdc-button mdc-button--raised mdc-ripple-upgraded mdc-theme--text-disabled-on-dark" id="submitBtn">
+		<button class="mdc-button mdc-button--raised mdc-ripple-upgraded mdc-theme--text-disabled-on-dark bf-theme-success" id="submitBtn">
 			<span class="mdc-button__label">SAVE</span>
 			<div class="mdc-button__ripple"></div>
 		</button>

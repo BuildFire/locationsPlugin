@@ -91,15 +91,12 @@ const _toggleInputError = (element, hasError) => {
   if (typeof element === 'string') {
     element = document.querySelector(`#${element}`);
   }
-
+  const fn = hasError ? 'add' : 'remove';
   if (element.classList.contains('mdc-text-field')) {
-    const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('mdc-text-field--invalid');
   } else if (element.classList.contains('mdc-text-field-helper-line')) {
-    const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('has-error');
   } else {
-    const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('has-error');
   }
 };
