@@ -1652,65 +1652,7 @@ const handleCPSync = (message) => {
         }
       });
   } else if (scope === 'settings') {
-    refreshSettings()
-      .then(() => {
-        const f = state.settings.filter;
-        const of = outdatedSettings.filter;
-        const ms = state.settings.map;
-        const oms = outdatedSettings.map;
-        // current design
-        const d = state.settings.design;
-        if (Object.keys(deepObjectDiff(state.settings.bookmarks, outdatedSettings.bookmarks)).length) {
-          if (state.settings.bookmarks.enabled !== outdatedSettings.bookmarks.enabled) {
-            mapView.clearMapViewList();
-            mapView.renderListingLocations(state.listLocations);
-            initDrawerFilterOptions();
-            refreshQuickFilter();
-            drawer.reset(state.settings.design.listViewPosition);
-          } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
-            mapView.clearMapViewList();
-            mapView.renderListingLocations(state.listLocations);
-          } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
-            initDrawerFilterOptions();
-            drawer.reset(state.settings.design.listViewPosition);
-          }
-        } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          initDrawerFilterOptions();
-          drawer.reset(state.settings.design.listViewPosition);
-        } else if (f.hideOpeningHoursFilter !== of.hideOpeningHoursFilter || f.hidePriceFilter !== of.hidePriceFilter) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          initDrawerFilterOptions();
-          drawer.reset(state.settings.design.listViewPosition);
-        } else if (f.allowFilterByBookmarks !== of.allowFilterByBookmarks) {
-          refreshQuickFilter();
-        } else if (f.allowFilterByArea !== of.allowFilterByArea) {
-          const headerQF = document.querySelector('.header-qf');
-          hideElement('#areaSearchLabel');
-          if (f.allowFilterByArea && d.hideQuickFilter) {
-            showElement('#areaSearchLabel');
-          } else if (!d.hideQuickFilter && headerQF?.style.display === 'none') {
-            showElement(headerQF);
-          } else {
-            hideElement('#areaSearchLabel');
-          }
-          adjustMapHeight();
-        } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
-          setLocationsDistance();
-        } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
-          || ms.initialArea !== oms.initialArea
-          || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
-          || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          refreshMapOptions();
-        }
-      });
+    window.location.reload();
   } else if (scope === 'intro') {
     refreshSettings()
       .then(() => {
