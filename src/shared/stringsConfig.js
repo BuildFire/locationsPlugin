@@ -369,13 +369,6 @@ export default {
         required: true,
         maxLength: 110,
       },
-      descriptionNote: {
-        title: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description.',
-        placeholder: 'Enter text here',
-        defaultValue: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description.',
-        required: true,
-        maxLength: 175,
-      },
       locationImages: {
         title: 'Location Images',
         placeholder: 'Enter text here',
@@ -452,7 +445,36 @@ export default {
         defaultValue: 'Choose an end time later than the start time.',
         required: true,
         maxLength: 45,
-      }
+      },
+      confirmEditingTitle: {
+        title: 'Enable Editing',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enable Editing',
+        required: true,
+        maxLength: 25,
+      },
+      confirmEditingMessage: {
+        title: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?',
+        placeholder: 'Enter text here',
+        defaultValue: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?',
+        required: true,
+        maxLength: 210,
+      },
+      confirmEditingConfirm: {
+        title: 'Confirm',
+        placeholder: 'Enter text here',
+        defaultValue: 'Confirm',
+        required: true,
+        maxLength: 15,
+      },
+
+      confirmEditingCancel: {
+        title: 'Cancel',
+        placeholder: 'Enter text here',
+        defaultValue: 'Cancel',
+        required: true,
+        maxLength: 15,
+      },
     }
   },
   toast: {

@@ -82,7 +82,6 @@ export default {
         if (files) {
           state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
           this.updateLocation();
-          // _refreshLocationImages();
         }
       }
     );
@@ -149,7 +148,7 @@ export default {
         name: 'addPhotos',
         order: 2,
         classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon mdc-theme--text-icon-on-background pointer',
-        textContent: 'add_to_photos',
+        textContent: 'add_a_photo',
         id: 'addPhotosBtn',
       });
     }

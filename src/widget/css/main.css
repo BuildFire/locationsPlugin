@@ -1352,3 +1352,38 @@ h4.light-text {
   font-size: 15px !important;
   font-weight: 400 !important;
 }
+
+#locationEnableEditingButton {
+  float: right;
+  font-size: .7rem;
+  font-weight: bold;
+}
+#locationDescriptionContainer {
+  background-color: rgba(150,150,150,.1);
+  height: 165px;
+  padding: 4px 16px 6px;
+  overflow: hidden;
+  overflow-y: scroll;
+  border-bottom: 1px solid rgba(0,0,0,.42);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+}
+#locationDescriptionContainer * {
+  pointer-events: none;
+}
+#locationDescriptionContainer:not(.disabled) {
+  cursor: text;
+}
+#locationDescriptionContainer.disabled {
+  border-bottom: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+#locationDescriptionContainer .mdc-floating-label {
+  left: 16px;
+  top: 20px;
+}
+#locationDescriptionContainer .mdc-floating-label::after {
+  margin-left: 1px;
+  content: "*"
+}

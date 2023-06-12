@@ -37,20 +37,36 @@ const localState = {
 let editViewAccordion;
 let formTextFields;
 
-const _toggleDescriptionTextarea = (isDisabled) => {
-  const descriptionTextField = document.querySelector('#locationDescriptionField');
-  const descriptionTextArea = document.querySelector('#locationDescriptionField textarea');
+const _handleEnableEditing = (e) => {
+  const { pendingLocation } = localState;
+  const descriptionContainer = document.querySelector('#locationDescriptionContainer');
 
-  if (!isDisabled) {
-    descriptionTextField.classList.remove('mdc-text-field--disabled');
-    descriptionTextArea.disabled = false;
-  } else {
-    descriptionTextField.classList.add('mdc-text-field--disabled');
-    descriptionTextArea.disabled = true;
-  }
+  e.target.disabled = true;
+  buildfire.dialog.confirm(
+    {
+      title: window.strings.get('locationEditing.confirmEditingTitle').v,
+      message: window.strings.get('locationEditing.confirmEditingMessage').v,
+      confirmButton: { type: 'primary', text: window.strings.get('locationEditing.confirmEditingConfirm').v, },
+      cancelButtonText: window.strings.get('locationEditing.confirmEditingCancel').v,
+    },
+    (err, isConfirmed) => {
+      if (err) console.error(err);
+      if (isConfirmed) {
+        descriptionContainer.classList.remove('disabled');
+        descriptionContainer.innerHTML = `<label class="mdc-floating-label">${window.strings.get('locationEditing.locationDescription').v}</label>`;
+        pendingLocation.description = '';
+        pendingLocation.wysiwygSource = 'widget';
+      } else {
+        e.target.disabled = false;
+      }
+    }
+  );
 };
 
-const _handleDescriptionInput = () => {
+const _handleDescriptionInput = (e) => {
+  if (e.target.classList.contains('disabled')) return;
+
+  e.target.classList.add('disabled');
   const { pendingLocation } = localState;
 
   buildfire.input.showTextDialog(
@@ -62,11 +78,11 @@ const _handleDescriptionInput = () => {
       wysiwyg: true,
     },
     (err, response) => {
+      e.target.classList.remove('disabled');
       if (err) return console.error(err);
       if (response.cancelled) return;
-      formTextFields.locationDescriptionField.instance.value =  response.results[0].textValue;
       pendingLocation.description = response.results[0].wysiwygValue;
-      pendingLocation.wysiwygSource = 'widget';
+      e.target.innerHTML = response.results[0].wysiwygValue || `<label class="mdc-floating-label">${window.strings.get('locationEditing.locationDescription').v}</label>`;
     }
   );
 };
@@ -725,12 +741,6 @@ const init = () => {
       value: pendingLocation.addressAlias,
       required: false
     },
-    locationDescriptionField: {
-      id: 'locationDescriptionField',
-      instance: null,
-      value: pendingLocation.description,
-      required: true
-    },
     locationStarRatingSwitch: {
       instance: null,
       value: pendingLocation.settings.showStarRating
@@ -780,9 +790,8 @@ const init = () => {
       const listImageImg = locationListImageInput.querySelector('img');
       const listImageSelectBtn = locationListImageInput.querySelector('button');
       const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
-      const descriptionTextArea = document.querySelector('#locationDescriptionField textarea');
-      const enableEditingContainer = document.querySelector('#locationEnableEditingContainer');
-      const descriptionNote = document.querySelector('#descriptionNote');
+      const enableEditingBtn = document.querySelector('#locationEnableEditingButton');
+      const descriptionContainer = document.querySelector('#locationDescriptionContainer');
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();
@@ -800,7 +809,11 @@ const init = () => {
       _initAddressAutocompleteField('locationAddressFieldInput');
 
       editView.addEventListener('click', (e) => {
-        if (e.target.id === 'saveChangesBtn') {
+        if (e.target.id === 'locationEnableEditingButton') {
+          _handleEnableEditing(e);
+        } else if (e.target.id === 'locationDescriptionContainer') {
+          _handleDescriptionInput(e);
+        } else if (e.target.id === 'saveChangesBtn') {
           _saveChanges(e);
         } else if (e.target.id === 'hideEditNoteBtn') {
           e.target.closest('.mdc-card').remove();
@@ -836,17 +849,6 @@ const init = () => {
           pendingLocation.settings.showPriceRange = e.target.checked;
         } else if (e.target.id === 'locationOpeningHoursInput') {
           pendingLocation.settings.showOpeningHours = e.target.checked;
-        } else if (e.target.id === 'locationEnableEditingInput') {
-          if (e.target.checked) {
-            _toggleDescriptionTextarea(false);
-            formTextFields.locationDescriptionField.instance.value = '';
-            pendingLocation.description = '';
-          } else {
-            _toggleDescriptionTextarea(true);
-            formTextFields.locationDescriptionField.instance.value = state.selectedLocation.description;
-            pendingLocation.description = state.selectedLocation.description;
-            pendingLocation.wysiwygSource = 'control';
-          }
         }
       });
       editView.querySelectorAll('.mdc-switch').forEach(((i) => {
@@ -858,12 +860,10 @@ const init = () => {
         }
       }));
 
-      descriptionTextArea.addEventListener('focus', _handleDescriptionInput);
-      if (pendingLocation.wysiwygSource === 'control') {
-        enableEditingContainer.classList.remove('hidden');
-        descriptionNote.classList.remove('hidden');
-      } else if (pendingLocation.wysiwygSource === 'widget') {
-        _toggleDescriptionTextarea(false);
+      descriptionContainer.innerHTML = pendingLocation.description;
+      if (pendingLocation.wysiwygSource === 'widget') {
+        enableEditingBtn.classList.add('hidden');
+        descriptionContainer.classList.remove('disabled');
       }
 
       window.strings.inject(document.querySelector('section#edit'), false);
