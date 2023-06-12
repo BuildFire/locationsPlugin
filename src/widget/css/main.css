@@ -1285,7 +1285,7 @@ button.mdc-button > *,
 }
 .mdc-text-field-helper-line.has-error p,
 .interval-error {
-  color: var(--mdc-theme-error, #b00020) !important;
+  color: var(--mdc-theme-error, #EB4747) !important;
 }
 section#create,
 section#edit {
@@ -1368,6 +1368,9 @@ h4.light-text {
   border-radius: 4px 4px 0 0;
   position: relative;
 }
+#locationDescriptionContainer.has-error {
+  border-bottom-color:   var(--mdc-theme-error, #EB4747) !important;
+}
 #locationDescriptionContainer * {
   pointer-events: none;
 }
@@ -1386,4 +1389,10 @@ h4.light-text {
 #locationDescriptionContainer .mdc-floating-label::after {
   margin-left: 1px;
   content: "*"
+}
+.mdc-text-field-helper-line {
+  visibility: hidden;
+}
+.mdc-text-field-helper-line.has-error {
+  visibility: visible;
 }

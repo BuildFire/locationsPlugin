@@ -99,8 +99,8 @@ const _toggleInputError = (element, hasError) => {
     const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('has-error');
   } else {
-    const fn = hasError ? 'remove' : 'add';
-    element.classList[fn]('hidden');
+    const fn = hasError ? 'add' : 'remove';
+    element.classList[fn]('has-error');
   }
 };
 
@@ -142,22 +142,28 @@ const _validateLocationSave = () => {
   if (!title) {
     isValid = false;
     _toggleInputError('locationTitleField', true);
+    _toggleInputError('locationTitleField ~ .mdc-text-field-helper-line', true);
   } else {
     _toggleInputError('locationTitleField', false);
+    _toggleInputError('locationTitleField ~ .mdc-text-field-helper-line', false);
   }
 
   if (!description) {
     isValid = false;
-    _toggleInputError('locationDescriptionField', true);
+    _toggleInputError('locationDescriptionContainer', true);
+    _toggleInputError('locationDescriptionContainer ~ .mdc-text-field-helper-line', true);
   } else {
-    _toggleInputError('locationDescriptionField', false);
+    _toggleInputError('locationDescriptionContainer', false);
+    _toggleInputError('locationDescriptionContainer ~ .mdc-text-field-helper-line', false);
   }
 
   if (!address || !coordinates.lat || !coordinates.lng) {
     isValid = false;
     _toggleInputError('locationAddressField', true);
+    _toggleInputError('locationAddressField ~ .mdc-text-field-helper-line', true);
   } else {
     _toggleInputError('locationAddressField', false);
+    _toggleInputError('locationAddressField ~ .mdc-text-field-helper-line', false);
   }
 
   if (!listImage) {

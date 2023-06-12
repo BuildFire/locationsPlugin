@@ -241,22 +241,28 @@ export default {
     if (!title) {
       isValid = false;
       toggleFieldError(this._formFieldsInstances.title.id, true);
+      toggleFieldError(`${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`, true);
     } else {
       toggleFieldError(this._formFieldsInstances.title.id, false);
+      toggleFieldError(`${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`, false);
     }
 
     if (!description) {
       isValid = false;
       toggleFieldError(this._formFieldsInstances.description.id, true);
+      toggleFieldError(`${this._formFieldsInstances.description.id} ~ .mdc-text-field-helper-line`, true);
     } else {
       toggleFieldError(this._formFieldsInstances.description.id, false);
+      toggleFieldError(`${this._formFieldsInstances.description.id} ~ .mdc-text-field-helper-line`, false);
     }
 
     if (!address || !coordinates.lat || !coordinates.lng) {
       isValid = false;
       toggleFieldError(this._formFieldsInstances.address.id, true);
+      toggleFieldError(`${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`, true);
     } else {
       toggleFieldError(this._formFieldsInstances.address.id, false);
+      toggleFieldError(`${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`, false);
     }
 
     if (!listImage) {

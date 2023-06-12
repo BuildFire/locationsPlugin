@@ -23,14 +23,14 @@
       </button>
       <div class="expansion-panel-body">
         <div class="expansion-panel-body-content" role="grid">
-          <div class="text-field-container margin-bottom-ten">
+          <div class="text-field-container margin-bottom-five">
             <div class="mdc-text-field" id="locationTitleField">
               <input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationTitleFieldInput" maxlength="100" type="text">
               <div class="mdc-line-ripple"></div>
               <label bfString="locationEditing.locationName" class="mdc-floating-label" for="locationTitleFieldInput">Location Name</label>
             </div>
             <div class="mdc-text-field-helper-line" id="locationTitleFieldHelper">
-              <p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+              <p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
             </div>
           </div>
 
@@ -45,8 +45,8 @@
 			<!-- begin: Location Description text area-->
 			<div class="text-field-container">
 				<div id="locationDescriptionContainer" class="disabled"></div>
-				<div class="mdc-text-field-helper-line hidden">
-					<p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+				<div class="mdc-text-field-helper-line">
+					<p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
 				</div>
 				<button class="mdc-button mdc-button--outlined margin-top-fifteen margin-bottom-fifteen" id="locationEnableEditingButton">
 					<div class="mdc-button__ripple"></div>
@@ -79,8 +79,8 @@
 						  <div class="mdc-line-ripple"></div>
 						  <label bfString="locationEditing.locationAddress" class="mdc-floating-label">Location Address</label>
 					  </div>
-					  <div class="mdc-text-field-helper-line" id="locationAddressFieldHelper">
-						  <p bfString="locationEditing.required" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+					  <div class="mdc-text-field-helper-line">
+						  <p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
 					  </div>
 				  </div>
 				  <!-- end: Location Address text field-->
