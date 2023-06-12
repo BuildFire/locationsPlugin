@@ -513,6 +513,13 @@ export default {
         defaultValue: 'Reported successfully',
         required: true,
         maxLength: 50,
+      },
+      uploadedSuccessfully: {
+        title: 'Uploaded successfully',
+        placeholder: 'Enter text here',
+        defaultValue: 'Uploaded successfully',
+        required: true,
+        maxLength: 50,
       }
     }
   },

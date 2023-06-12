@@ -13,8 +13,9 @@ import {
   transformCategoriesToText,
   addBreadcrumb,
   getActiveTemplate,
-  cropImage
+  cropImage,
 } from '../util/helpers';
+import { uploadImages } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
@@ -310,24 +311,6 @@ const _saveChanges = (e) => {
     });
 };
 
-const _uploadImages = (options, onProgress, callback) => {
-  const { allowMultipleFilesUpload } = options;
-  buildfire.services.publicFiles.showDialog(
-    { filter: ["image/*"], allowMultipleFilesUpload },
-    onProgress,
-    (onComplete) => {
-      console.log(`onComplete${JSON.stringify(onComplete)}`);
-    },
-    (err, files) => {
-      if (err) {
-        console.error(err);
-        return callback(err);
-      }
-      callback(null, files);
-    }
-  );
-};
-
 const _createImageHolder = (options, onClick, onDelete) => {
   const { hasImage, imageUrl } = options;
 
@@ -384,7 +367,7 @@ const _addLocationCarousel = () => {
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
-  _uploadImages(
+  uploadImages(
     uploadOptions,
     (onProgress) => {
       state.carouselUploadPending = true;
@@ -690,7 +673,7 @@ const _uploadListImage = () => {
   const { pendingLocation } = localState;
   if (localState.imageUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: false };
-  _uploadImages(
+  uploadImages(
     uploadOptions,
     (onProgress) => {
       localState.imageUploadPending = true;
