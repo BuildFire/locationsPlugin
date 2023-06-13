@@ -119,7 +119,7 @@ export default {
         text: window.strings?.get('details.reportAbuse')?.v,
         name: 'reportAbuse',
         order: 0,
-        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon mdc-theme--text-icon-on-background pointer',
+        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'report',
         id: 'reportAbuseBtn',
       },
@@ -127,7 +127,7 @@ export default {
         text: window.strings?.get('details.share')?.v,
         name: 'share',
         order: 1,
-        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer mdc-theme--text-icon-on-background',
+        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'share',
         id: 'shareLocationBtn',
       },
@@ -138,7 +138,7 @@ export default {
         text: window.strings?.get('details.edit')?.v,
         name: 'edit',
         order: 2,
-        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon mdc-theme--text-icon-on-background pointer',
+        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'edit',
         id: 'editLocationBtn',
       });
@@ -147,7 +147,7 @@ export default {
         text: window.strings?.get('details.addPhotos')?.v,
         name: 'addPhotos',
         order: 2,
-        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon mdc-theme--text-icon-on-background pointer',
+        classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'add_a_photo',
         id: 'addPhotosBtn',
       });
@@ -158,7 +158,7 @@ export default {
         text: window.strings?.get('details.bookmark')?.v,
         name: 'bookmark',
         order: 2,
-        classNames: 'material-icons-outlined mdc-text-field__icon margin-left-fifteen mdc-theme--text-icon-on-background pointer',
+        classNames: 'material-icons-outlined mdc-text-field__icon margin-left-fifteen pointer',
         textContent: 'star_outline',
         id: 'bookmarkLocationBtn',
       });
@@ -178,10 +178,11 @@ export default {
 
     const actions = this.getEnabledActions();
 
+    // mdc-theme--text-icon-on-background
     if (actions.length > 3) {
       const i = document.createElement('i');
       i.textContent = 'more_horiz';
-      i.className = 'icon-1 material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer';
+      i.className = 'icon-1 material-icons-outlined mdc-text-field__icon pointer';
       i.tabIndex = '0';
       i.role = 'button';
       i.id = 'moreOptionsBtn';

@@ -472,7 +472,7 @@ button span {
   align-items: flex-start;
   padding: 25px 15px 20px;
   margin: -15px -15px 0;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 .location-detail__bottom-cover {
   display: none;
@@ -1041,7 +1041,7 @@ body section#home {
   border: none;
 }
 .mdc-theme--white {
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .warning-note p {
