@@ -166,6 +166,15 @@ export default {
 
     return actions;
   },
+  showLocationDetailDrawer() {
+    const actions = this.getEnabledActions();
+    buildfire.components.drawer.open(
+      {
+        listItems: actions
+      },
+      this.handleLocationDetailDrawerClick.bind(this)
+    );
+  },
   renderLocationActions() {
     const { bookmarks } = state.settings;
     const isTopMapPosition = state.settings.design.detailsMapPosition === 'top';
@@ -182,7 +191,7 @@ export default {
     if (actions.length > 3) {
       const i = document.createElement('i');
       i.textContent = 'more_horiz';
-      i.className = 'icon-1 material-icons-outlined mdc-text-field__icon pointer';
+      i.className = 'action-btn-1 material-icons-outlined mdc-text-field__icon pointer';
       i.tabIndex = '0';
       i.role = 'button';
       i.id = 'moreOptionsBtn';
@@ -191,7 +200,7 @@ export default {
       actions.forEach((action) => {
         const i = document.createElement('i');
         i.textContent = action.textContent;
-        i.className = `${action.classNames} icon-${action.order}`;
+        i.className = `${action.classNames} action-btn-${action.order}`;
         i.tabIndex = '0';
         i.role = 'button';
         i.id = action.id;

@@ -501,15 +501,15 @@ button span {
   font-weight: bold;
   font-size: 11px;
 }
-.location-detail__cover .icon-0 {
+.location-detail__cover .action-btn-0 {
   position: absolute;
   right: 100px;
 }
-.location-detail__cover .icon-1 {
+.location-detail__cover .action-btn-1 {
   position: absolute;
   right: 20px;
 }
-.location-detail__cover .icon-2 {
+.location-detail__cover .action-btn-2 {
   position: absolute;
   right: 60px;
 }
@@ -1390,6 +1390,7 @@ h4.light-text {
 #locationDescriptionContainer .mdc-floating-label {
   left: 16px;
   top: 20px;
+  color: var(--mdc-theme-on-background, #000000);
 }
 #locationDescriptionTextField .mdc-floating-label::after,
 #locationDescriptionContainer .mdc-floating-label::after {
@@ -1404,4 +1405,21 @@ h4.light-text {
 }
 .bf-theme-success {
   background-color: var(--bf-theme-success, #018786) !important;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .fields-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .fields-group > div {
+    flex-grow: 1;
+  }
+
+  #locationOpeningHoursContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+  }
 }

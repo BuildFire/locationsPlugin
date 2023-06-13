@@ -178,7 +178,6 @@ const _validateLocationSave = () => {
 };
 
 const showLocationEdit = () => {
-  state.breadcrumbs = [];
   resetBodyScroll();
   navigateTo('edit');
   addBreadcrumb({ pageName: 'edit', title: 'Location Edit' });
@@ -285,7 +284,7 @@ const _buildMap = () => {
       lat: pendingLocation.coordinates.lat, lng: pendingLocation.coordinates.lng
     };
   }
-  localState.map = new google.maps.Map(document.getElementById('locationMapContainer'), options);
+  localState.map = new google.maps.Map(document.querySelector('section#edit #locationMapContainer'), options);
   google.maps.event.addListener(localState.map, 'center_changed', () => {
     if (localState.geocodeTimeout) clearTimeout(localState.geocodeTimeout);
     localState.geocodeTimeout = setTimeout(_reverseAddress, 500);
@@ -597,6 +596,9 @@ const _showCategoriesOverlay = () => {
   addBreadcrumb({ pageName: 'categoriesEdit' });
 };
 
+const _hideElement = (element) => {
+  element.classList.add('hidden');
+};
 const _renderDayIntervals = (day, dayIntervalsContainer) => {
   dayIntervalsContainer.innerHTML = '';
   day.intervals?.forEach((interval, intervalIndex) => {
@@ -795,6 +797,16 @@ const init = () => {
       const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
       const enableEditingBtn = document.querySelector('#locationEnableEditingButton');
       const descriptionContainer = document.querySelector('#locationDescriptionContainer');
+
+
+      const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
+
+      if (!allowOpenHours) {
+        _hideElement(document.querySelector('section#edit #openHoursExpansion'));
+      }
+      if (!allowPriceRange) {
+        _hideElement(document.querySelector('section#edit #priceRangeExpansion'));
+      }
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();

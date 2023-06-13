@@ -288,9 +288,10 @@ export default {
     console.log('Submitted Payload: ', this.payload);
     const { isValid } = this.validate();
 
-    if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) return;
-
-    e.target.disabled = true; // todo double check not working
+    if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) {
+      e.target.disabled = false;
+      return;
+    }
 
     widgetController.createLocation(this.payload)
       .then((result) => {
@@ -318,6 +319,9 @@ export default {
       mapView.renderListingLocations(state.listLocations);
     }
   },
+  _hideElement(element) {
+    element.classList.add('hidden');
+  },
   show() {
     state.breadcrumbs = [];
     resetBodyScroll();
@@ -332,6 +336,15 @@ export default {
     });
 
     this._formFieldsInstances = this._defaultFieldsInfo;
+
+    const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
+
+    if (!allowOpenHours) {
+      this._hideElement(this._querySelect('#openHoursExpansion'));
+    }
+    if (!allowPriceRange) {
+      this._hideElement(this._querySelect('#priceRangeExpansion'));
+    }
 
     this._buildOpeningSchedule();
     this._buildListImage();
@@ -680,6 +693,7 @@ export default {
       if (e.target.id === 'locationDescriptionTextField') {
         this._handleDescriptionInput(e);
       } else if (e.target.id === 'submitBtn') {
+        e.target.disabled = true;
         this.submit(e);
       } else if (e.target.id === 'locationCategoriesOverview') {
         this._buildCategoriesOverview();
@@ -743,7 +757,7 @@ export default {
       center: constants.getDefaultLocation(),
       zoom: 14,
     };
-    this._map = new google.maps.Map(document.getElementById('locationMapContainer'), options);
+    this._map = new google.maps.Map(document.querySelector('section#create #locationMapContainer'), options);
     google.maps.event.addListener(this._map, 'center_changed', () => {
       if (this._geocodeTimeout) clearTimeout(this._geocodeTimeout);
       this._geocodeTimeout = setTimeout(this._reverseAddress.bind(this), 500);

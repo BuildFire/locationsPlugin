@@ -525,16 +525,6 @@ const refreshAdvancedFilterUI = (chipId) => {
   });
 };
 
-const showLocationDetailDrawer = () => {
-  const actions = detailsView.getEnabledActions();
-  buildfire.components.drawer.open(
-    {
-      listItems: actions
-    },
-    detailsView.handleLocationDetailDrawerClick
-  );
-};
-
 const showLocationDetail = () => {
   const { selectedLocation } = state;
 
@@ -857,7 +847,7 @@ const initEventListeners = () => {
     if (e.target.id === 'reportAbuseBtn') {
       reportAbuse.report({ id: state.selectedLocation.id, createdBy: state.selectedLocation.createdBy._id });
     } if (e.target.id === 'moreOptionsBtn') {
-      showLocationDetailDrawer(e);
+      detailsView.showLocationDetailDrawer(e);
     } if (e.target.id === 'bookmarkResultsBtn') {
       bookmarkSearchResults(e);
     } else if (e.target.classList.contains('bookmark-location-btn')) {

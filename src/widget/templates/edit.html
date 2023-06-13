@@ -23,24 +23,25 @@
       </button>
       <div class="expansion-panel-body">
         <div class="expansion-panel-body-content" role="grid">
-          <div class="text-field-container margin-bottom-five">
-            <div class="mdc-text-field" id="locationTitleField">
-              <input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationTitleFieldInput" maxlength="100" type="text">
-              <div class="mdc-line-ripple"></div>
-              <label bfString="locationEditing.locationName" class="mdc-floating-label" for="locationTitleFieldInput">Location Title</label>
-            </div>
-            <div class="mdc-text-field-helper-line" id="locationTitleFieldHelper">
-              <p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
-            </div>
-          </div>
-
-          <div class="text-field-container margin-bottom-twenty">
-            <div class="mdc-text-field" id="locationSubtitleField">
-              <input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationSubtitleFieldInput">
-              <div class="mdc-line-ripple"></div>
-              <label bfString="locationEditing.locationSubtitle" class="mdc-floating-label" for="locationSubtitleFieldInput">Location Subtitle</label>
-            </div>
-          </div>
+			<div class="fields-group">
+				<div class="text-field-container margin-bottom-five">
+					<div class="mdc-text-field" id="locationTitleField">
+						<input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationTitleFieldInput" maxlength="100" type="text">
+						<div class="mdc-line-ripple"></div>
+						<label bfString="locationEditing.locationName" class="mdc-floating-label" for="locationTitleFieldInput">Location Title</label>
+					</div>
+					<div class="mdc-text-field-helper-line" id="locationTitleFieldHelper">
+						<p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+					</div>
+				</div>
+				<div class="text-field-container margin-bottom-twenty">
+					<div class="mdc-text-field" id="locationSubtitleField">
+						<input class="mdc-text-field__input mdc-theme--text-primary-on-background" id="locationSubtitleFieldInput">
+						<div class="mdc-line-ripple"></div>
+						<label bfString="locationEditing.locationSubtitle" class="mdc-floating-label" for="locationSubtitleFieldInput">Location Subtitle</label>
+					</div>
+				</div>
+			</div>
 
 			<!-- begin: Location Description text area-->
 			<div class="text-field-container">
@@ -72,28 +73,30 @@
 		  </button>
 		  <div class="expansion-panel-body">
 			  <div class="expansion-panel-body-content" role="grid">
-				  <!-- begin: Location Address text field-->
-				  <div class="text-field-container margin-bottom-twenty">
-					  <div class="mdc-text-field" id="locationAddressField">
-						  <input id="locationAddressFieldInput" autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" spellcheck="false" type="text">
-						  <div class="mdc-line-ripple"></div>
-						  <label bfString="locationEditing.locationAddress" class="mdc-floating-label">Location Address</label>
+				  <div class="fields-group">
+					  <!-- begin: Location Address text field-->
+					  <div class="text-field-container margin-bottom-twenty">
+						  <div class="mdc-text-field" id="locationAddressField">
+							  <input id="locationAddressFieldInput" autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" spellcheck="false" type="text">
+							  <div class="mdc-line-ripple"></div>
+							  <label bfString="locationEditing.locationAddress" class="mdc-floating-label">Location Address</label>
+						  </div>
+						  <div class="mdc-text-field-helper-line">
+							  <p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
+						  </div>
 					  </div>
-					  <div class="mdc-text-field-helper-line">
-						  <p bfString="locationEditing.fieldRequired" class="mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg">Required</p>
-					  </div>
-				  </div>
-				  <!-- end: Location Address text field-->
+					  <!-- end: Location Address text field-->
 
-				  <!-- begin: Location Custom Name text field-->
-				  <div class="text-field-container margin-bottom-twenty">
-					  <div class="mdc-text-field" id="locationAddressAliasField">
-						  <input class="mdc-text-field__input mdc-theme--text-primary-on-background">
-						  <div class="mdc-line-ripple"></div>
-						  <label bfString="locationEditing.locationCustomName" class="mdc-floating-label">Location Custom Name</label>
+					  <!-- begin: Location Custom Name text field-->
+					  <div class="text-field-container margin-bottom-twenty">
+						  <div class="mdc-text-field" id="locationAddressAliasField">
+							  <input class="mdc-text-field__input mdc-theme--text-primary-on-background">
+							  <div class="mdc-line-ripple"></div>
+							  <label bfString="locationEditing.locationCustomName" class="mdc-floating-label">Location Custom Name</label>
+						  </div>
 					  </div>
+					  <!-- end: Location Custom Name text field-->
 				  </div>
-				  <!-- end: Location Custom Name text field-->
 
 				  <div id="locationMapContainer"></div>
 				  <p bfString="locationEditing.mapNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">If you need adjustments, drag the map so the pin matches the exact location of your place.</p>
@@ -149,7 +152,7 @@
       </div>
     </div>
 
-    <div class="expansion-panel overflow-visible">
+    <div class="expansion-panel overflow-visible" id="priceRangeExpansion">
       <button class="expansion-panel-header mdc-ripple-surface">
         <div class="expansion-panel-header-content">
             <span class="expansion-panel-title mdc-theme--text-primary-on-background">
@@ -230,7 +233,7 @@
       </div>
     </div>
 
-    <div class="expansion-panel">
+    <div class="expansion-panel" id="openHoursExpansion">
       <button class="expansion-panel-header mdc-ripple-surface">
         <div class="expansion-panel-header-content">
             <span class="expansion-panel-title mdc-theme--text-primary-on-background">
