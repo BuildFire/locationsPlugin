@@ -1,5 +1,6 @@
 import state from '../state';
 import accessManager from '../accessManager';
+import { truncateString } from '../util/helpers';
 
 const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
@@ -15,9 +16,9 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
+            <p class="mdc-theme--text-header">${truncateString(n.title, 18)}</p>
+            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ? truncateString(n.subtitle, 18) : ''}</p>
+            <p class="mdc-theme--text-body">${truncateString(n.address, 25)}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -46,9 +47,9 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         <div class="d-flex">
           <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, {size: "full_width", aspect:"1:1"}) : "./images/empty_image.PNG"} alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header">${n.title}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${n.address}</p>
+            <p class="mdc-theme--text-header">${truncateString(n.title, 18)}</p>
+            <p class="mdc-theme--text-body" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ? truncateString(n.subtitle, 18) : ''}</p>
+            <p class="mdc-theme--text-body">${truncateString(n.address, 25)}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>

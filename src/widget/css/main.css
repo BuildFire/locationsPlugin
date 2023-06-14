@@ -1067,6 +1067,7 @@ body section#home {
 #edit .fixed-footer button {
   padding-left: 32px;
   padding-right: 32px;
+  text-transform: unset;
 }
 
 html[safe-area="true"] .fixed-footer {
@@ -1357,6 +1358,7 @@ h4.light-text {
   float: right;
   font-size: .7rem;
   font-weight: bold;
+  text-transform: unset;
 }
 #locationDescriptionTextField,
 #locationDescriptionContainer {

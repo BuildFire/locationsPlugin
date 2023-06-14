@@ -26,6 +26,7 @@ import {
   hideOverlays
 } from './js/util/ui';
 import {
+  truncateString,
   bookmarkLocation,
   shareLocation,
   deepObjectDiff,
@@ -602,8 +603,8 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      selectors.title.textContent = selectedLocation.title;
-      selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+      selectors.title.textContent = truncateString(selectedLocation.title, 15);
+      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 25);
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;

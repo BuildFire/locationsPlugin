@@ -180,7 +180,6 @@ export default {
     const isTopMapPosition = state.settings.design.detailsMapPosition === 'top';
     const { selectedLocation } = state;
     const isLocationBookmarked = state.bookmarks.find((l) => l.id === selectedLocation.clientId);
-    const bookmarkLocationBtn = document.querySelector('#bookmarkLocationBtn');
     const actionsContainer = document.querySelector(
       isTopMapPosition ? '.location-detail__top-header-icons' : '.location-detail__cover'
     );
@@ -206,8 +205,8 @@ export default {
         i.id = action.id;
         actionsContainer.appendChild(i);
       });
-
-      if (bookmarks.enabled && bookmarks.allowForLocations && isLocationBookmarked) {
+      const bookmarkLocationBtn = document.querySelector('#bookmarkLocationBtn');
+      if (bookmarks.enabled && bookmarks.allowForLocations && isLocationBookmarked && bookmarkLocationBtn) {
         bookmarkLocationBtn.textContent = 'star';
       }
     }
