@@ -501,15 +501,15 @@ button span {
   font-weight: bold;
   font-size: 11px;
 }
-.location-detail__cover .action-btn-0 {
+.location-detail__cover .action-btn-2 {
   position: absolute;
   right: 100px;
 }
-.location-detail__cover .action-btn-1 {
+.location-detail__cover .action-btn-0 {
   position: absolute;
   right: 20px;
 }
-.location-detail__cover .action-btn-2 {
+.location-detail__cover .action-btn-1 {
   position: absolute;
   right: 60px;
 }

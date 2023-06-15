@@ -118,7 +118,6 @@ export default {
       {
         text: window.strings?.get('details.reportAbuse')?.v,
         name: 'reportAbuse',
-        order: 0,
         classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'report',
         id: 'reportAbuseBtn',
@@ -126,7 +125,6 @@ export default {
       {
         text: window.strings?.get('details.share')?.v,
         name: 'share',
-        order: 1,
         classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'share',
         id: 'shareLocationBtn',
@@ -137,7 +135,6 @@ export default {
       actions.push({
         text: window.strings?.get('details.edit')?.v,
         name: 'edit',
-        order: 2,
         classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'edit',
         id: 'editLocationBtn',
@@ -146,7 +143,6 @@ export default {
       actions.push({
         text: window.strings?.get('details.addPhotos')?.v,
         name: 'addPhotos',
-        order: 2,
         classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
         textContent: 'add_a_photo',
         id: 'addPhotosBtn',
@@ -157,7 +153,6 @@ export default {
       actions.push({
         text: window.strings?.get('details.bookmark')?.v,
         name: 'bookmark',
-        order: 2,
         classNames: 'material-icons-outlined mdc-text-field__icon margin-left-fifteen pointer',
         textContent: 'star_outline',
         id: 'bookmarkLocationBtn',
@@ -167,7 +162,19 @@ export default {
     return actions;
   },
   showLocationDetailDrawer() {
-    const actions = this.getEnabledActions();
+    let actions = this.getEnabledActions();
+    const addPhotoEnabled = actions.find((a) => a.name === 'addPhotos');
+    const editLocationEnabled = actions.find((a) => a.name === 'edit');
+    actions = actions.filter((action) => {
+      let isQualified = true;
+      if (action.name === 'share' || action.name === 'addPhotos' || action.name === 'edit') {
+        isQualified = false;
+      } else if (action.name === 'reportAbuse' && !(addPhotoEnabled || editLocationEnabled)) {
+        isQualified = false;
+      }
+      return isQualified;
+    });
+
     buildfire.components.drawer.open(
       {
         listItems: actions
@@ -186,29 +193,67 @@ export default {
 
     const actions = this.getEnabledActions();
 
-    // mdc-theme--text-icon-on-background
+    // Render 2 base icons and show more icon
     if (actions.length > 3) {
-      const i = document.createElement('i');
-      i.textContent = 'more_horiz';
-      i.className = 'action-btn-1 material-icons-outlined mdc-text-field__icon pointer';
-      i.tabIndex = '0';
-      i.role = 'button';
-      i.id = 'moreOptionsBtn';
-      actionsContainer.appendChild(i);
-    } else {
-      actions.forEach((action) => {
+      const primaryActions = [
+        {
+          classNames: 'action-btn-0 material-icons-outlined mdc-text-field__icon pointer',
+          textContent: 'more_horiz',
+          id: 'moreOptionsBtn',
+        },
+        {
+          classNames: 'action-btn-1 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+          textContent: 'share',
+          id: 'shareLocationBtn',
+        },
+      ];
+      const addPhotoEnabled = actions.find((a) => a.name === 'addPhotos');
+      const editLocationEnabled = actions.find((a) => a.name === 'edit');
+
+      if (addPhotoEnabled) {
+        primaryActions.push({
+          classNames: 'action-btn-2 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+          textContent: 'add_a_photo',
+          id: 'addPhotosBtn',
+        });
+      } else if (editLocationEnabled) {
+        primaryActions.push({
+          classNames: 'action-btn-2 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+          textContent: 'edit',
+          id: 'editLocationBtn',
+        });
+      } else {
+        primaryActions.push({
+          classNames: 'action-btn-2 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+          textContent: 'report',
+          id: 'reportAbuseBtn',
+        });
+      }
+
+      primaryActions.forEach((action) => {
         const i = document.createElement('i');
         i.textContent = action.textContent;
-        i.className = `${action.classNames} action-btn-${action.order}`;
+        i.className = action.classNames;
         i.tabIndex = '0';
         i.role = 'button';
         i.id = action.id;
         actionsContainer.appendChild(i);
       });
-      const bookmarkLocationBtn = document.querySelector('#bookmarkLocationBtn');
-      if (bookmarks.enabled && bookmarks.allowForLocations && isLocationBookmarked && bookmarkLocationBtn) {
-        bookmarkLocationBtn.textContent = 'star';
-      }
+    } else {
+      actions.forEach((action, index) => {
+        const i = document.createElement('i');
+        i.textContent = action.textContent;
+        i.className = `${action.classNames} action-btn-${index}`;
+        i.tabIndex = '0';
+        i.role = 'button';
+        i.id = action.id;
+        actionsContainer.appendChild(i);
+      });
+    }
+
+    const bookmarkLocationBtn = document.querySelector('#bookmarkLocationBtn');
+    if (bookmarks.enabled && bookmarks.allowForLocations && isLocationBookmarked && bookmarkLocationBtn) {
+      bookmarkLocationBtn.textContent = 'star';
     }
   },
 };
