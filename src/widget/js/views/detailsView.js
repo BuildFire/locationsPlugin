@@ -91,7 +91,7 @@ export default {
     buildfire.components.drawer.closeDrawer();
     switch (result.name) {
       case 'reportAbuse':
-        reportAbuse.report({ id: state.selectedLocation.id, createdBy: state.selectedLocation.createdBy._id });
+        reportAbuse.report({ id: state.selectedLocation.id, createdBy: state.selectedLocation.createdBy?._id });
         break;
       case 'share':
         shareLocation();

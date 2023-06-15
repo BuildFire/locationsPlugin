@@ -234,36 +234,36 @@ export default {
 
     if (!title) {
       isValid = false;
-      toggleFieldError(this._formFieldsInstances.title.id, true);
-      toggleFieldError(`${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`, true);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.title.id}`), true);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`), true);
     } else {
-      toggleFieldError(this._formFieldsInstances.title.id, false);
-      toggleFieldError(`${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`, false);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.title.id}`), false);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.title.id} ~ .mdc-text-field-helper-line`), false);
     }
 
     if (!description) {
       isValid = false;
-      toggleFieldError('locationDescriptionTextField', true);
-      toggleFieldError('locationDescriptionTextField ~ .mdc-text-field-helper-line', true);
+      toggleFieldError(this._querySelect('#locationDescriptionTextField'), true);
+      toggleFieldError(this._querySelect('#locationDescriptionTextField ~ .mdc-text-field-helper-line'), true);
     } else {
-      toggleFieldError('locationDescriptionTextField', false);
-      toggleFieldError('locationDescriptionTextField ~ .mdc-text-field-helper-line', false);
+      toggleFieldError(this._querySelect('#locationDescriptionTextField'), false);
+      toggleFieldError(this._querySelect('#locationDescriptionTextField ~ .mdc-text-field-helper-line'), false);
     }
 
     if (!address || !coordinates.lat || !coordinates.lng) {
       isValid = false;
-      toggleFieldError(this._formFieldsInstances.address.id, true);
-      toggleFieldError(`${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`, true);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.address.id}`), true);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`), true);
     } else {
-      toggleFieldError(this._formFieldsInstances.address.id, false);
-      toggleFieldError(`${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`, false);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.address.id}`), false);
+      toggleFieldError(this._querySelect(`#${this._formFieldsInstances.address.id} ~ .mdc-text-field-helper-line`), false);
     }
 
     if (!listImage) {
-      toggleFieldError('locationListImageFieldHelper', true);
+      toggleFieldError(this._querySelect('#locationListImageFieldHelper'), true);
       isValid = false;
     } else {
-      toggleFieldError('locationListImageFieldHelper', false);
+      toggleFieldError(this._querySelect('#locationListImageFieldHelper'), false);
     }
 
     if (!validateOpeningHours(openingHours)) {

@@ -38,6 +38,7 @@ let editViewAccordion;
 let formTextFields;
 
 const _handleEnableEditing = (e) => {
+  e.preventDefault();
   const { pendingLocation } = localState;
   const descriptionContainer = document.querySelector('#locationDescriptionContainer');
 
@@ -718,6 +719,21 @@ const _uploadListImage = () => {
   );
 };
 
+const onViewClick = (e) => {
+  if (e.target.id === 'locationEnableEditingButton') {
+    console.log('event triggered!');
+    _handleEnableEditing(e);
+  } else if (e.target.id === 'locationDescriptionContainer') {
+    _handleDescriptionInput(e);
+  } else if (e.target.id === 'saveChangesBtn') {
+    _saveChanges(e);
+  } else if (e.target.id === 'hideEditNoteBtn') {
+    e.target.closest('.mdc-card').remove();
+  } else if (e.target.id === 'locationCategoriesOverview') {
+    _initCategoriesOverlay();
+    _showCategoriesOverlay();
+  }
+}
 const init = () => {
   if (!state.selectedLocation || !accessManager.canEditLocations()) return;
 
@@ -725,6 +741,7 @@ const init = () => {
   const { pendingLocation } = localState;
   const editView = document.querySelector('section#edit');
 
+  editView.removeEventListener('click', onViewClick);
   formTextFields = {
     locationTitleField: {
       instance: null,
@@ -753,10 +770,6 @@ const init = () => {
     locationShowCategorySwitch: {
       instance: null,
       value: pendingLocation.settings.showCategory
-    },
-    locationEnableEditingSwitch: {
-      instance: null,
-      value: false
     },
     locationPriceRangeSwitch: {
       instance: null,
@@ -823,20 +836,7 @@ const init = () => {
       _renderOpeningHours();
       _initAddressAutocompleteField('locationAddressFieldInput');
 
-      editView.addEventListener('click', (e) => {
-        if (e.target.id === 'locationEnableEditingButton') {
-          _handleEnableEditing(e);
-        } else if (e.target.id === 'locationDescriptionContainer') {
-          _handleDescriptionInput(e);
-        } else if (e.target.id === 'saveChangesBtn') {
-          _saveChanges(e);
-        } else if (e.target.id === 'hideEditNoteBtn') {
-          e.target.closest('.mdc-card').remove();
-        } else if (e.target.id === 'locationCategoriesOverview') {
-          _initCategoriesOverlay();
-          _showCategoriesOverlay();
-        }
-      });
+      editView.addEventListener('click', onViewClick);
       editView.querySelectorAll('.mdc-text-field').forEach((i) => {
         const instance = new mdc.textField.MDCTextField(i);
         if (formTextFields[i.id]) {

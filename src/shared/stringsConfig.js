@@ -260,6 +260,13 @@ export default {
         maxLength: 35,
       },
       locationAddress: {
+        title: 'Location Address',
+        placeholder: 'Enter text here',
+        defaultValue: 'Location Address',
+        required: true,
+        maxLength: 35,
+      },
+      locationStreetNameAndNumber: {
         title: 'Street Name and Number',
         placeholder: 'Enter text here',
         defaultValue: 'Street Name and Number',

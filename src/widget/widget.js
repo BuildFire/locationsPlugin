@@ -1950,6 +1950,16 @@ const handleDeepLinkData = () => new Promise((resolve) => {
     state.deepLinkData = deepLinkData;
     resolve();
   });
+  buildfire.deeplink.onUpdate((deeplinkData) => {
+    if (deeplinkData) {
+      console.log('deeplinkData onUpdate: ', deeplinkData);
+      state.deepLinkData = deeplinkData;
+      if (state.deepLinkData?.locationId) {
+        buildfire.services.reportAbuse.triggerWidgetReadyForAdminResponse();
+        navigateToLocationId(state.deepLinkData.locationId);
+      }
+    }
+  }, true);
 });
 
 const resetResultsBookmark = () => {
