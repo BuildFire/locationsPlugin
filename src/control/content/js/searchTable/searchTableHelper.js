@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import DataMocks from "../../../../DataMocks";
 import buildfire from "buildfire";
 
 export default class SearchTableHelper {
@@ -109,32 +108,6 @@ export default class SearchTableHelper {
   clearData() {
     this.tbody.innerHTML = "";
     this.items = [];
-  }
-
-  _fetchNextPage() {
-    if (this.fetchingNextPage) return;
-    this.fetchingNextPage = true;
-    let t = this;
-    this._fetchPageOfData(this.filter, this.pageIndex + 1, () => {
-      t.fetchingNextPage = false;
-    });
-  }
-
-  _fetchPageOfData(filter, pageIndex, callback) {
-    if (pageIndex > 0 && this.endReached) return;
-    let pageSize = 50;
-    this.pageIndex = pageIndex;
-    let options = {
-      filter: filter,
-      sort: this.sort,
-      page: pageIndex,
-      pageSize: pageSize,
-    };
-
-    const results = DataMocks.generate("LOCATION", 10);
-    this.searchOptions = options;
-    this.tbody.innerHTML = "";
-    results.forEach((r) => this.renderRow(r));
   }
 
   _onCommand(obj, tr, command) {

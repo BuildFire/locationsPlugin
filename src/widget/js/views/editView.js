@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird';
 import state from '../state';
 import Location from '../../../entities/Location';
 import Locations from '../../../repository/Locations';

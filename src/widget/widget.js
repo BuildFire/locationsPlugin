@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
-import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Location from '../entities/Location';
