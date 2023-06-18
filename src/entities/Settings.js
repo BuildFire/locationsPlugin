@@ -73,6 +73,7 @@ export default class Settings {
     };
     this.globalEditors = data.globalEditors || {
       enabled: true,
+      allowLocationCreatorsToEdit: true,
       tags: [],
       users: []
     };
@@ -88,6 +89,10 @@ export default class Settings {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
+
+    if (typeof this.globalEditors.allowLocationCreatorsToEdit === 'undefined') {
+      this.globalEditors.allowLocationCreatorsToEdit = true;
+    }
   }
 
   toJSON() {

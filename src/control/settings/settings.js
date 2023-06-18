@@ -901,7 +901,16 @@ const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
+  const allowLocationCreatorsCheckbox = document.querySelector('#allowLocationCreatorsToEdit');
+
   const { tags, users } = state.settings.globalEditors;
+  const { globalEditors } = state.settings;
+
+  allowLocationCreatorsCheckbox.checked = globalEditors.allowLocationCreatorsToEdit;
+  allowLocationCreatorsCheckbox.onchange = (e) => {
+    globalEditors.allowLocationCreatorsToEdit = e.target.checked;
+    saveSettingsWithDelay();
+  };
 
   addGlobalTagsButton.addEventListener('click', addGlobalTags);
   addGlobalEditorsButton.addEventListener('click', addGlobalEditors);

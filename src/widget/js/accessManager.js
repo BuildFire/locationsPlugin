@@ -43,6 +43,11 @@ export default {
     const { globalEditors, locationEditors } = state.settings;
     const userId = currentUser._id;
 
+    if (globalEditors.enabled && globalEditors.allowLocationCreatorsToEdit && selectedLocation.createdBy?._id === userId) {
+      authed = true;
+      return authed;
+    }
+
     let userTags = [];
     let tags = [];
     let editors = [];
