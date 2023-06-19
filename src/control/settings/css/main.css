@@ -73,6 +73,9 @@
 .bf-tooltip .tooltip-content.to-top {
   top: -75px;
 }
+.bf-tooltip .tooltip-content.to-center {
+  top: 0;
+}
 
 .bf-tooltip .tooltip-content img {
   border-radius: 4px;

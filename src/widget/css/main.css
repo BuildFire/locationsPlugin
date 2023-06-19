@@ -1235,6 +1235,7 @@ button.mdc-button > *,
 }
 
 #locationStarRatingSwitch,
+#locationShowStarRatingCheckbox,
 #locationEnableEditingSwitch,
 #locationShowCategoryCheckbox,
 #locationShowCategorySwitch {

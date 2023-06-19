@@ -285,7 +285,6 @@ export default {
       }
     }
 
-    console.log('Submitted Payload: ', this.payload);
     const { isValid } = this.validate();
 
     if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) {
@@ -669,6 +668,7 @@ export default {
     });
   },
   _handleDescriptionInput(e) {
+    if (e.target.classList.contains('disabled')) return;
     e.target.classList.add('disabled');
     buildfire.input.showTextDialog(
       {
@@ -687,31 +687,41 @@ export default {
       }
     );
   },
+  onViewClick(e) {
+    if (e.target.id === 'locationDescriptionTextField') {
+      this._handleDescriptionInput(e);
+    } else if (e.target.id === 'submitBtn') {
+      e.target.disabled = true;
+      this.submit(e);
+    } else if (e.target.id === 'locationCategoriesOverview') {
+      this._buildCategoriesOverview();
+      this._showCategoriesOverlay();
+    }
+  },
+  onViewChange(e) {
+    if (e.target.id === 'showCategoryCheckbox') {
+      this.payload.settings.showCategory = e.target.checked;
+    } else if (e.target.id === 'showPriceRangeCheckbox') {
+      this.payload.settings.showPriceRange = e.target.checked;
+    } else if (e.target.id === 'showOpeningHoursCheckbox') {
+      this.payload.settings.showOpeningHours = e.target.checked;
+    } else if (e.target.id === 'showStarRatingCheckbox') {
+      this.payload.settings.showStarRating = e.target.checked;
+    }
+  },
+  destroyEventsHandlers() {},
   buildEventsHandlers() {
     const createView = document.querySelector('section#create');
-    createView.addEventListener('click', (e) => {
-      if (e.target.id === 'locationDescriptionTextField') {
-        this._handleDescriptionInput(e);
-      } else if (e.target.id === 'submitBtn') {
-        e.target.disabled = true;
-        this.submit(e);
-      } else if (e.target.id === 'locationCategoriesOverview') {
-        this._buildCategoriesOverview();
-        this._showCategoriesOverlay();
-      }
-    });
+    const onViewHandler =  this.onViewClick.bind(this);
+    const onChangeHandler =  this.onViewChange.bind(this);
 
-    createView.addEventListener('change', (e) => {
-      if (e.target.id === 'showCategoryCheckbox') {
-        this.payload.settings.showCategory = e.target.checked;
-      } else if (e.target.id === 'showPriceRangeCheckbox') {
-        this.payload.settings.showPriceRange = e.target.checked;
-      } else if (e.target.id === 'showOpeningHoursCheckbox') {
-        this.payload.settings.showOpeningHours = e.target.checked;
-      } else if (e.target.id === 'showStarRatingCheckbox') {
-        this.payload.settings.showStarRating = e.target.checked;
-      }
-    });
+    createView.addEventListener('click', onViewHandler);
+    createView.addEventListener('change', onChangeHandler);
+
+    this.destroyEventsHandlers = () => {
+      createView.removeEventListener('click', onViewHandler);
+      createView.removeEventListener('change', onChangeHandler);
+    };
   },
   _reverseAddress() {
     const geoCoder = new google.maps.Geocoder();
@@ -784,6 +794,7 @@ export default {
 
         this.payload = new Location({ wysiwygSource: 'widget' });
         this.buildForm();
+        this.destroyEventsHandlers();
         this.buildEventsHandlers();
         this.buildMap();
         this.show();
