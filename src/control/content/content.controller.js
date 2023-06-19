@@ -1,9 +1,10 @@
-import Locations from '../../repository/Locations';
 import Categories from '../../repository/Categories';
-// import Location from '../../entities/Location';
-// import authManager from '../../UserAccessControl/authManager';
+import Settings from '../../repository/Settings';
 
 export default {
+  getSettings() {
+    return Settings.get();
+  },
   getCategories(search, sort, page = 0, limit = 50) {
     const options = {
       sort: { title: 1 },

@@ -1,8 +1,11 @@
 import isObject from 'lodash.isobject';
 import forEach from 'lodash.foreach';
+import isEqual from 'lodash.isequal';
 import { convertTimeToDate, getCurrentDayName, openingNowDate } from '../../../utils/datetime';
 import state from '../state';
-import isEqual from 'lodash.isequal';
+import Analytics from '../../../utils/analytics';
+import WidgetController from '../../widget.controller';
+import Location from '../../../entities/Location';
 
 export const deepObjectDiff = (a, b, reversible) => {
   const r = {};
@@ -65,15 +68,15 @@ export const getDefaultOpeningHours = () => {
   const intervals = [{ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") }];
   return {
     days: {
-      monday: {index: 0, active: true, intervals: [...intervals]},
-      tuesday: {index: 1, active: true, intervals: [...intervals]},
-      wednesday: {index: 2, active: true, intervals: [...intervals]},
-      thursday: {index: 3, active: true, intervals: [...intervals]},
-      friday: {index: 4, active: true, intervals: [...intervals]},
-      saturday: {index: 5, active: true, intervals: [...intervals]},
-      sunday: {index: 6, active: true, intervals: [...intervals]},
+      monday: { index: 0, active: true, intervals: [...intervals] },
+      tuesday: { index: 1, active: true, intervals: [...intervals] },
+      wednesday: { index: 2, active: true, intervals: [...intervals] },
+      thursday: { index: 3, active: true, intervals: [...intervals] },
+      friday: { index: 4, active: true, intervals: [...intervals] },
+      saturday: { index: 5, active: true, intervals: [...intervals] },
+      sunday: { index: 6, active: true, intervals: [...intervals] },
     }
-  }
+  };
 };
 
 export const createTemplate = (templateId) => {
@@ -95,7 +98,7 @@ export const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
   });
 };
 
-export const getActiveTemplate = () => getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+export const getActiveTemplate = () => (getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro');
 
 export const cropImage = (url, options) => {
   if (!url) {
@@ -121,3 +124,82 @@ export const areArraysEqual = (array1, array2) => {
   const array2Sorted = array2.slice().sort();
   return isEqual(array1Sorted, array2Sorted);
 };
+
+export const shareLocation = () => {
+  buildfire.deeplink.generateUrl(
+    {
+      title: state.selectedLocation.title,
+      description: state.selectedLocation.subtitle || undefined,
+      imageUrl: cdnImage(state.selectedLocation.listImage),
+      data: { locationId: state.selectedLocation.id },
+    },
+    (err, result) => {
+      if (err) return console.error(err);
+      buildfire.device.share({
+        subject: state.selectedLocation.title,
+        text: state.selectedLocation.title,
+        link: result.url
+      }, (err, result) => {
+        if (err) console.error(err);
+        if (result) console.log(result);
+        Analytics.locationShareUsed();
+      });
+    }
+  );
+};
+
+export const bookmarkLocation = (locationId, e) => {
+  const location = state.listLocations.find((i) => i.id === locationId);
+  const { bookmarks } = state.settings;
+
+  if (state.bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
+
+  state.bookmarkLoading = true;
+  setTimeout(() => { state.bookmarkLoading = false; }, 1000);
+
+  if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
+    buildfire.bookmarks.delete(location.clientId, () => {
+      showToastMessage('bookmarksRemoved');
+    });
+    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
+    e.target.textContent = 'star_outline';
+  } else {
+    showToastMessage('bookmarksAdded');
+    console.log('location: ', location);
+    if (!location.clientId) {
+      console.log('updating location: ', location);
+      location.clientId = generateUUID();
+      WidgetController.updateLocation(location.id, new Location(location).toJSON());
+    }
+    buildfire.bookmarks.add(
+      {
+        id: location.clientId,
+        title: location.title,
+        icon: location.listImage,
+        payload: {
+          locationId: location.id
+        },
+      },
+      (err, bookmark) => {
+        if (err) {
+          console.error(err);
+          showToastMessage('bookmarksError');
+          return;
+        }
+        Analytics.locationBookmarkUsed();
+        state.bookmarks.push({
+          id: location.clientId,
+          title: location.title
+        });
+        if (e && e.target) {
+          e.target.textContent = 'star';
+        }
+        console.log("Bookmark added", bookmark);
+      }
+    );
+  }
+};
+
+export const truncateString = (string = '', maxLength = 50) => (string.length > maxLength
+  ? `${string.substring(0, maxLength)}…`
+  : string);

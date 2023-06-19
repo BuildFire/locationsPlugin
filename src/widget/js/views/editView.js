@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird';
 import state from '../state';
 import Location from '../../../entities/Location';
 import Locations from '../../../repository/Locations';
@@ -13,39 +12,92 @@ import {
   transformCategoriesToText,
   addBreadcrumb,
   getActiveTemplate,
-  cropImage
+  cropImage,
 } from '../util/helpers';
+import { uploadImages } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
+import constants from '../constants';
+import accessManager from '../accessManager';
 
 const localState = {
   pendingLocation: null,
   selectedOpeningHours: getDefaultOpeningHours(),
   imageUploadPending: false,
-  carouselUploadPending: false
+  carouselUploadPending: false,
+  map: null,
+  geocodeTimeout: null,
 };
 
 let editViewAccordion;
 let formTextFields;
 
+const _handleEnableEditing = (e) => {
+  e.preventDefault();
+  const { pendingLocation } = localState;
+  const descriptionContainer = document.querySelector('#locationDescriptionContainer');
+
+  e.target.disabled = true;
+  buildfire.dialog.confirm(
+    {
+      title: window.strings.get('locationEditing.confirmEditingTitle').v,
+      message: window.strings.get('locationEditing.confirmEditingMessage').v,
+      confirmButton: { type: 'primary', text: window.strings.get('locationEditing.confirmEditingConfirm').v, },
+      cancelButtonText: window.strings.get('locationEditing.confirmEditingCancel').v,
+    },
+    (err, isConfirmed) => {
+      if (err) console.error(err);
+      if (isConfirmed) {
+        descriptionContainer.classList.remove('disabled');
+        descriptionContainer.innerHTML = `<label class="mdc-floating-label">${window.strings.get('locationEditing.locationDescription').v}</label>`;
+        pendingLocation.description = '';
+        pendingLocation.wysiwygSource = 'widget';
+      } else {
+        e.target.disabled = false;
+      }
+    }
+  );
+};
+
+const _handleDescriptionInput = (e) => {
+  if (e.target.classList.contains('disabled')) return;
+
+  e.target.classList.add('disabled');
+  const { pendingLocation } = localState;
+
+  buildfire.input.showTextDialog(
+    {
+      placeholder: window.strings.get('locationEditing.descriptionDialogPlaceholder').v,
+      saveText: window.strings.get('locationEditing.descriptionDialogSave').v,
+      cancelText: window.strings.get('locationEditing.descriptionDialogCancel').v,
+      defaultValue: pendingLocation.description,
+      wysiwyg: true,
+    },
+    (err, response) => {
+      e.target.classList.remove('disabled');
+      if (err) return console.error(err);
+      if (response.cancelled) return;
+      pendingLocation.description = response.results[0].wysiwygValue;
+      e.target.innerHTML = response.results[0].wysiwygValue || `<label class="mdc-floating-label">${window.strings.get('locationEditing.locationDescription').v}</label>`;
+    }
+  );
+};
+
 const _toggleInputError = (element, hasError) => {
   if (typeof element === 'string') {
     element = document.querySelector(`#${element}`);
   }
-
+  const fn = hasError ? 'add' : 'remove';
   if (element.classList.contains('mdc-text-field')) {
-    const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('mdc-text-field--invalid');
   } else if (element.classList.contains('mdc-text-field-helper-line')) {
-    const fn = hasError ? 'add' : 'remove';
     element.classList[fn]('has-error');
   } else {
-    const fn = hasError ? 'remove' : 'add';
-    element.classList[fn]('hidden');
+    element.classList[fn]('has-error');
   }
 };
 
@@ -80,22 +132,35 @@ const _validateOpeningHours = (openingHours) => {
 
 const _validateLocationSave = () => {
   const {
-    title, address, coordinates, listImage, openingHours
+    title, address, coordinates, listImage, openingHours, description
   } = localState.pendingLocation;
   let isValid = true;
 
   if (!title) {
     isValid = false;
     _toggleInputError('locationTitleField', true);
+    _toggleInputError('locationTitleField ~ .mdc-text-field-helper-line', true);
   } else {
     _toggleInputError('locationTitleField', false);
+    _toggleInputError('locationTitleField ~ .mdc-text-field-helper-line', false);
+  }
+
+  if (!description) {
+    isValid = false;
+    _toggleInputError('locationDescriptionContainer', true);
+    _toggleInputError('locationDescriptionContainer ~ .mdc-text-field-helper-line', true);
+  } else {
+    _toggleInputError('locationDescriptionContainer', false);
+    _toggleInputError('locationDescriptionContainer ~ .mdc-text-field-helper-line', false);
   }
 
   if (!address || !coordinates.lat || !coordinates.lng) {
     isValid = false;
     _toggleInputError('locationAddressField', true);
+    _toggleInputError('locationAddressField ~ .mdc-text-field-helper-line', true);
   } else {
     _toggleInputError('locationAddressField', false);
+    _toggleInputError('locationAddressField ~ .mdc-text-field-helper-line', false);
   }
 
   if (!listImage) {
@@ -167,11 +232,77 @@ const _reflectChanges = () => {
   }
 };
 
+const _reverseAddress = () => {
+  const { pendingLocation } = localState;
+  const geoCoder = new google.maps.Geocoder();
+  const lat = localState.map.getCenter().lat();
+  const lng = localState.map.getCenter().lng();
+
+  geoCoder.geocode(
+    {
+      location: { lat, lng, }
+    },
+    (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          formTextFields.locationAddressField.instance.value = results[0].formatted_address;
+          pendingLocation.formattedAddress = results[0].formatted_address;
+          pendingLocation.address = results[0].formatted_address;
+          pendingLocation.coordinates.lat = lat;
+          pendingLocation.coordinates.lng = lng;
+        } else {
+          console.log("No results found");
+        }
+      } else {
+        console.log(`Geocoder failed due to: ${status}`);
+      }
+    }
+  );
+};
+
+const _buildMap = () => {
+  const { pendingLocation } = localState;
+  const zoomPosition = google.maps.ControlPosition.RIGHT_TOP;
+  const options = {
+    minZoom: 3,
+    maxZoom: 19,
+    streetViewControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false,
+    gestureHandling: 'greedy',
+    zoomControlOptions: {
+      position: zoomPosition,
+    },
+    disableDefaultUI: true,
+    // center: new google.maps.LatLng(52.5498783, 13.425209099999961),
+    center: constants.getDefaultLocation(),
+    zoom: 14,
+  };
+
+  if (pendingLocation.coordinates.lat && pendingLocation.coordinates.lng) {
+    options.center = {
+      lat: pendingLocation.coordinates.lat, lng: pendingLocation.coordinates.lng
+    };
+  }
+  localState.map = new google.maps.Map(document.querySelector('section#edit #locationMapContainer'), options);
+  google.maps.event.addListener(localState.map, 'center_changed', () => {
+    if (localState.geocodeTimeout) clearTimeout(localState.geocodeTimeout);
+    localState.geocodeTimeout = setTimeout(_reverseAddress, 500);
+  });
+
+  const marker = document.createElement('div');
+  marker.classList.add('centered-marker');
+
+  const mapContainer = localState.map.getDiv();
+  mapContainer.appendChild(marker);
+};
+
 const _saveChanges = (e) => {
   const { pendingLocation } = localState;
   pendingLocation.title = formTextFields.locationTitleField.instance.value;
   pendingLocation.subtitle = formTextFields.locationSubtitleField.instance.value;
   pendingLocation.address = formTextFields.locationAddressField.instance.value;
+  pendingLocation.addressAlias = formTextFields.locationAddressAliasField.instance.value;
   pendingLocation.openingHours = { ...pendingLocation.openingHours, ...localState.selectedOpeningHours };
 
   const { days } = pendingLocation.openingHours;
@@ -191,28 +322,11 @@ const _saveChanges = (e) => {
       showToastMessage('locationSaved', 5000);
       _reflectChanges();
       buildfire.history.pop();
+      introView.refreshIntroductoryCarousel();
     })
     .catch((err) => {
       e.target.disabled = false;
     });
-};
-
-const _uploadImages = (options, onProgress, callback) => {
-  const { allowMultipleFilesUpload } = options;
-  buildfire.services.publicFiles.showDialog(
-    { filter: ["image/*"], allowMultipleFilesUpload },
-    onProgress,
-    (onComplete) => {
-      console.log(`onComplete${JSON.stringify(onComplete)}`);
-    },
-    (err, files) => {
-      if (err) {
-        console.error(err);
-        return callback(err);
-      }
-      callback(null, files);
-    }
-  );
 };
 
 const _createImageHolder = (options, onClick, onDelete) => {
@@ -271,7 +385,7 @@ const _addLocationCarousel = () => {
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
-  _uploadImages(
+  uploadImages(
     uploadOptions,
     (onProgress) => {
       state.carouselUploadPending = true;
@@ -319,6 +433,7 @@ const _initAddressAutocompleteField = (textfield) => {
     pendingLocation.coordinates.lat = place.geometry.location.lat();
     pendingLocation.coordinates.lng = place.geometry.location.lng();
     pendingLocation.formattedAddress = place.formatted_address;
+    localState.map.setCenter(pendingLocation.coordinates);
   });
 };
 
@@ -481,6 +596,9 @@ const _showCategoriesOverlay = () => {
   addBreadcrumb({ pageName: 'categoriesEdit' });
 };
 
+const _hideElement = (element) => {
+  element.classList.add('hidden');
+};
 const _renderDayIntervals = (day, dayIntervalsContainer) => {
   dayIntervalsContainer.innerHTML = '';
   day.intervals?.forEach((interval, intervalIndex) => {
@@ -512,7 +630,7 @@ const _renderDayIntervals = (day, dayIntervalsContainer) => {
       const start = convertTimeToDate(e.target.value);
       interval.from = start;
       if (!_validateTimeInterval(start, interval.to, intervalError)) {
-        return;
+
       }
     };
 
@@ -520,7 +638,7 @@ const _renderDayIntervals = (day, dayIntervalsContainer) => {
       const end = convertTimeToDate(e.target.value);
       interval.to = end;
       if (!_validateTimeInterval(interval.from, end, intervalError)) {
-        return;
+
       }
     };
 
@@ -568,40 +686,6 @@ const _renderOpeningHours = () => {
   }
 };
 
-const isAuthorized = () => {
-  let authed = false;
-  const { currentUser, selectedLocation } = state;
-  if (!currentUser) return authed;
-
-  const { globalEditors, locationEditors } = state.settings;
-  const userId = currentUser._id;
-
-  let userTags = [];
-  let tags = [];
-  let editors = [];
-
-  if (globalEditors.enabled) {
-    editors = globalEditors.users;
-    tags = globalEditors.tags.map((t) => t.tagName);
-  }
-
-  if (locationEditors.enabled && selectedLocation.editingPermissions?.active) {
-    editors = [...editors, ...selectedLocation.editingPermissions.editors];
-    tags = [...tags, ...selectedLocation.editingPermissions.tags.map((t) => t.tagName)];
-  }
-
-  for (const key in currentUser.tags) {
-    if (currentUser.tags[key]) {
-      userTags = userTags.concat(currentUser.tags[key].map((t) => t.tagName));
-    }
-  }
-
-  if (editors.indexOf(userId) > -1 || userTags.some((r) => tags.includes(r))) {
-    authed = true;
-  }
-  return authed;
-};
-
 const _uploadListImage = () => {
   const locationListImageInput = document.querySelector('#locationListImageInput');
   const listImageImg = locationListImageInput.querySelector('img');
@@ -610,7 +694,7 @@ const _uploadListImage = () => {
   const { pendingLocation } = localState;
   if (localState.imageUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: false };
-  _uploadImages(
+  uploadImages(
     uploadOptions,
     (onProgress) => {
       localState.imageUploadPending = true;
@@ -634,13 +718,29 @@ const _uploadListImage = () => {
   );
 };
 
+const onViewClick = (e) => {
+  if (e.target.id === 'locationEnableEditingButton') {
+    console.log('event triggered!');
+    _handleEnableEditing(e);
+  } else if (e.target.id === 'locationDescriptionContainer') {
+    _handleDescriptionInput(e);
+  } else if (e.target.id === 'saveChangesBtn') {
+    _saveChanges(e);
+  } else if (e.target.id === 'hideEditNoteBtn') {
+    e.target.closest('.mdc-card').remove();
+  } else if (e.target.id === 'locationCategoriesOverview') {
+    _initCategoriesOverlay();
+    _showCategoriesOverlay();
+  }
+}
 const init = () => {
-  if (!state.selectedLocation || !isAuthorized()) return;
+  if (!state.selectedLocation || !accessManager.canEditLocations()) return;
 
   localState.pendingLocation =  new Location(state.selectedLocation);
   const { pendingLocation } = localState;
   const editView = document.querySelector('section#edit');
 
+  editView.removeEventListener('click', onViewClick);
   formTextFields = {
     locationTitleField: {
       instance: null,
@@ -657,9 +757,18 @@ const init = () => {
       value: pendingLocation.address,
       required: true
     },
+    locationAddressAliasField: {
+      instance: null,
+      value: pendingLocation.addressAlias,
+      required: false
+    },
     locationStarRatingSwitch: {
       instance: null,
       value: pendingLocation.settings.showStarRating
+    },
+    locationShowCategorySwitch: {
+      instance: null,
+      value: pendingLocation.settings.showCategory
     },
     locationPriceRangeSwitch: {
       instance: null,
@@ -669,7 +778,7 @@ const init = () => {
       instance: null,
       value: pendingLocation.settings.showOpeningHours
     },
-    locationPriceCurrencySelect: {
+    locationCurrencySelect: {
       instance: null,
       value: pendingLocation.price.currency,
       set(val) {
@@ -698,6 +807,18 @@ const init = () => {
       const listImageImg = locationListImageInput.querySelector('img');
       const listImageSelectBtn = locationListImageInput.querySelector('button');
       const listImageDeleteBtn = locationListImageInput.querySelector('.delete-img-btn');
+      const enableEditingBtn = document.querySelector('#locationEnableEditingButton');
+      const descriptionContainer = document.querySelector('#locationDescriptionContainer');
+
+
+      const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
+
+      if (!allowOpenHours) {
+        _hideElement(document.querySelector('section#edit #openHoursExpansion'));
+      }
+      if (!allowPriceRange) {
+        _hideElement(document.querySelector('section#edit #priceRangeExpansion'));
+      }
 
       listImageDeleteBtn.onclick = (e) => {
         e.stopPropagation();
@@ -708,21 +829,13 @@ const init = () => {
       listImageSelectBtn.onclick = _uploadListImage;
       listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, });
 
+      _buildMap();
       refreshCategoriesText();
       _refreshLocationImages();
       _renderOpeningHours();
       _initAddressAutocompleteField('locationAddressFieldInput');
 
-      editView.addEventListener('click', (e) => {
-        if (e.target.id === 'saveChangesBtn') {
-          _saveChanges(e);
-        } else if (e.target.id === 'hideEditNoteBtn') {
-          e.target.closest('.mdc-card').remove();
-        } else if (e.target.id === 'locationCategoriesOverview') {
-          _initCategoriesOverlay();
-          _showCategoriesOverlay();
-        }
-      });
+      editView.addEventListener('click', onViewClick);
       editView.querySelectorAll('.mdc-text-field').forEach((i) => {
         const instance = new mdc.textField.MDCTextField(i);
         if (formTextFields[i.id]) {
@@ -744,6 +857,8 @@ const init = () => {
       editView.addEventListener('change', (e) => {
         if (e.target.id === 'locationStarRatingInput') {
           pendingLocation.settings.showStarRating = e.target.checked;
+        } else if (e.target.id === 'locationShowCategoryInput') {
+          pendingLocation.settings.showCategory = e.target.checked;
         } else if (e.target.id === 'locationPriceRangeInput') {
           pendingLocation.settings.showPriceRange = e.target.checked;
         } else if (e.target.id === 'locationOpeningHoursInput') {
@@ -759,6 +874,12 @@ const init = () => {
         }
       }));
 
+      descriptionContainer.innerHTML = pendingLocation.description;
+      if (pendingLocation.wysiwygSource === 'widget') {
+        enableEditingBtn.classList.add('hidden');
+        descriptionContainer.classList.remove('disabled');
+      }
+
       window.strings.inject(document.querySelector('section#edit'), false);
       showLocationEdit();
       editViewAccordion = new Accordion({
@@ -772,4 +893,4 @@ const init = () => {
     });
 };
 
-export default { init, isAuthorized, refreshCategoriesText };
+export default { init, refreshCategoriesText };

@@ -24,7 +24,6 @@ function instance() {
     images: [faker.image.image(), faker.image.image()],
     listImage: faker.image.avatar(),
     description: faker.random.words(),
-    owner: {},
     views: faker.datatype.number(),
     priceRange: faker.random.arrayElement([1, 2, 3, 4]),
     rating: {

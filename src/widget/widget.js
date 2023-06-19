@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
-import * as Promise from 'bluebird';
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
 import Location from '../entities/Location';
@@ -26,6 +25,9 @@ import {
   hideOverlays
 } from './js/util/ui';
 import {
+  truncateString,
+  bookmarkLocation,
+  shareLocation,
   deepObjectDiff,
   transformCategoriesToText,
   cdnImage,
@@ -38,12 +40,15 @@ import editView from './js/views/editView';
 import mapView from './js/views/mapView';
 import introView from './js/views/introView';
 import mapSearchControl from './js/map/search-control';
+import createView from './js/views/createView';
+import detailsView from './js/views/detailsView';
+import reportAbuse from './js/reportAbuse';
+import authManager from '../UserAccessControl/authManager';
 
 let SEARCH_TIMOUT;
 
 let mdcSortingMenu;
 let mdcPriceMenu;
-let bookmarkLoading = false;
 let chipSet;
 
 if (!buildfire.components.carousel.view.prototype.clear) {
@@ -263,7 +268,7 @@ const searchLocations = () => {
       result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
         .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
       state.listLocations = state.listLocations.concat(result);
-      if(state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition && state.userPosition.latitude && state.userPosition.longitude){
+      if (state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
         result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
         state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
       }
@@ -319,9 +324,7 @@ const getNearestLocation = () => {
   const $sort = { distance: 1 };
   pipelines.push({ $sort });
 
-  return WidgetController.searchLocationsV2(pipelines, 0, 1).then((results) => {
-    return results[0];
-  });
+  return WidgetController.searchLocationsV2(pipelines, 0, 1).then((results) => results[0]);
 };
 
 const refreshSettings = () => WidgetController
@@ -340,7 +343,7 @@ const refreshQuickFilter = () => {
   const hideQFBtn = document.querySelector('#hideQFBtn');
   let html = '';
   if (chipSet) {
-    chipSet.unlisten("MDCChip:interaction", initChipSetInteractionListener)
+    chipSet.unlisten("MDCChip:interaction", initChipSetInteractionListener);
     chipSet.destroy();
     chipSet = null;
   }
@@ -400,7 +403,6 @@ const refreshQuickFilter = () => {
   }, 200);
 };
 
-
 const initChipSetInteractionListener = (event) => {
   const { chipId } = event.detail;
   if (chipId === 'bookmarksFilterBtn') {
@@ -426,10 +428,10 @@ const clearAndSearchAllLocation = () => {
     const categoryFilterElement = state.filterElements[key];
     if (categoryFilterElement.checked) {
       const selectedSubcategories = categoryFilterElement.subcategories;
-      const existedCategory = state.categories.find(category => category.id == key);
-      if(existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
+      const existedCategory = state.categories.find((category) => category.id == key);
+      if (existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
         categoryIds.push(key);
-      } else if(selectedSubcategories.length > 0){
+      } else if (selectedSubcategories.length > 0) {
         subcategoryIds.push(...selectedSubcategories);
       }
       const category = state.categories.find((elem) => elem.id === key);
@@ -452,7 +454,7 @@ const clearAndSearchAllLocation = () => {
   if (Object.entries(query).length === 0) {
     mapView.clearMapViewList();
     const { showIntroductoryListView } = state.settings;
-    if(showIntroductoryListView){
+    if (showIntroductoryListView) {
       searchIntroLocations().then(() => prepareIntroViewList());
     }
   } else {
@@ -478,17 +480,6 @@ const refreshIntroductoryDescription = () => {
   if (state.settings.introductoryListView.description) {
     const container = document.querySelector('.intro-details');
     container.innerHTML = state.settings.introductoryListView.description;
-  }
-};
-
-const refreshIntroductoryCarousel = () => {
-  const { introductoryListView } = state.settings;
-  if (state.introCarousel) {
-    state.introCarousel.clear();
-    state.introCarousel.loadItems(introductoryListView.images);
-  } else if (introductoryListView.images.length > 0) {
-    state.introCarousel = new buildfire.components.carousel.view('.carousel');
-    state.introCarousel.loadItems(introductoryListView.images);
   }
 };
 
@@ -536,8 +527,6 @@ const refreshAdvancedFilterUI = (chipId) => {
 
 const showLocationDetail = () => {
   const { selectedLocation } = state;
-  const { bookmarks } = state.settings;
-  const isAuthorizedToEdit = editView.isAuthorized();
 
   views
     .fetch('detail')
@@ -568,8 +557,6 @@ const showLocationDetail = () => {
             map: document.querySelector('.location-detail__map--top-view'),
             workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
             workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
-            bookmarkLocationBtn: document.querySelector('#topBookmarkLocationBtn'),
-            editLocationBtn: document.querySelector('#topEditLocationBtn')
           }
         };
         selectors.main.style.display = 'block';
@@ -585,24 +572,20 @@ const showLocationDetail = () => {
             map: document.querySelector('.location-detail__map'),
             workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
             workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
-            bookmarkLocationBtn: document.querySelector('#bookmarkLocationBtn'),
-            editLocationBtn: document.querySelector('#editLocationBtn')
           }
         };
         selectors.main.style.display = 'flex';
         selectors.rating.classList.add('location-detail__rating--dual-shadow');
       }
 
-      if (selectedLocation.id && isAuthorizedToEdit) {
-        selectors.editLocationBtn.classList.remove('hidden');
-      }
+      detailsView.renderLocationActions();
 
       if (selectedLocation.images?.length > 0) {
         if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"} )}')`;
+          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
           selectors.cover.style.display = 'block';
         } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl,{ size: "full_width", aspect: "16:9"})}')`;
+          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
         }
       }
 
@@ -619,8 +602,8 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      selectors.title.textContent = selectedLocation.title;
-      selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+      selectors.title.textContent = truncateString(selectedLocation.title, 15);
+      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 25);
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
@@ -645,12 +628,6 @@ const showLocationDetail = () => {
         buildfire.components.ratingSystem.injectRatings();
       }
 
-      if (bookmarks.enabled && bookmarks.allowForLocations) {
-        selectors.bookmarkLocationBtn.style.display = 'inline-block';
-        if (state.bookmarks.find((l) => l.id === selectedLocation.clientId)) {
-          selectors.bookmarkLocationBtn.textContent = 'star';
-        }
-      }
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
       ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="${a.iconClassName}"></i>` : ''}
         <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
@@ -662,7 +639,7 @@ const showLocationDetail = () => {
           </span>
         </div>
       </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl,{ size: "full_width", aspect: "1:1"})}');" data-id="${n.id}"></div>`).join('\n');
+      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
       addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       resetBodyScroll();
       navigateTo('detail');
@@ -675,7 +652,7 @@ const showLocationDetail = () => {
 
 const showWorkingHoursDrawer = () => {
   const { days } = state.selectedLocation.openingHours;
-  const {time} = state.settings.locationEditors;
+  const { time } = state.settings.locationEditors;
   buildfire.components.drawer.open(
     {
       header: window.strings.get('general.openHours').v,
@@ -684,35 +661,13 @@ const showWorkingHoursDrawer = () => {
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
-            t.to) : convertDateToTime(t.to)}</p>`).join('\n')}
+    t.to
+  ) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
       isHTML: true,
       enableFilter: false
-    }
-  );
-};
-
-const shareLocation = () => {
-  buildfire.deeplink.generateUrl(
-    {
-      title: state.selectedLocation.title,
-      description: state.selectedLocation.subtitle || undefined,
-      imageUrl: cdnImage(state.selectedLocation.listImage),
-      data: { locationId: state.selectedLocation.id },
-    },
-    (err, result) => {
-      if (err) return console.error(err);
-      buildfire.device.share({
-        subject: state.selectedLocation.title,
-        text: state.selectedLocation.title,
-        link: result.url
-      }, (err, result) => {
-        if (err) console.error(err);
-        if (result) console.log(result);
-        Analytics.locationShareUsed();
-      });
     }
   );
 };
@@ -731,14 +686,14 @@ const handleDetailActionItem = (e) => {
 };
 const handleListActionItem = (e) => {
   const actionItemId = e.target.dataset.actionId;
-  var actionItem = state.listLocations
+  let actionItem = state.listLocations
     .reduce((prev, next) => prev.concat(next.actionItems), [])
     .find((entity) => entity.id === actionItemId);
 
-  if(!actionItem){
-     actionItem = state.pinnedLocations
-    .reduce((prev, next) => prev.concat(next.actionItems), [])
-    .find((entity) => entity.id === actionItemId);
+  if (!actionItem) {
+    actionItem = state.pinnedLocations
+      .reduce((prev, next) => prev.concat(next.actionItems), [])
+      .find((entity) => entity.id === actionItemId);
   }
   buildfire.actionItems.execute(
     actionItem,
@@ -776,12 +731,12 @@ const fetchMoreListLocations = (e) => {
 };
 
 const viewFullImage = (url, selectedId) => {
-  let images = [];
-  let index = url.findIndex(x => x.id === selectedId);
-  url.forEach(image => {
+  const images = [];
+  const index = url.findIndex((x) => x.id === selectedId);
+  url.forEach((image) => {
     images.push(image.imageUrl);
-  })
-  buildfire.imagePreviewer.show({ images: images, index: index });
+  });
+  buildfire.imagePreviewer.show({ images, index });
 };
 
 const setDefaultSorting = () => {
@@ -852,7 +807,7 @@ const getFormattedAddress = (coords, cb) => {
           console.log("No results found");
         }
       } else {
-        console.log("Geocoder failed due to: " + status);
+        console.log(`Geocoder failed due to: ${status}`);
       }
     }
   );
@@ -872,55 +827,7 @@ const getDirections = () => {
   }
 };
 
-const bookmarkLocation = (locationId, e) => {
-  const location = state.listLocations.find((i) => i.id === locationId);
-  const { bookmarks } = state.settings;
 
-  if (bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
-
-  bookmarkLoading = true;
-  setTimeout(() => { bookmarkLoading = false; }, 1000);
-
-  if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
-    buildfire.bookmarks.delete(location.clientId, () => {
-      showToastMessage('bookmarksRemoved');
-    });
-    state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
-    e.target.textContent = 'star_outline';
-  } else {
-    showToastMessage('bookmarksAdded');
-    console.log('location: ', location);
-    if (!location.clientId) {
-      console.log('updating location: ', location);
-      location.clientId = generateUUID();
-      WidgetController.updateLocation(location.id, new Location(location).toJSON());
-    }
-    buildfire.bookmarks.add(
-      {
-        id: location.clientId,
-        title: location.title,
-        icon: location.listImage,
-        payload: {
-          locationId: location.id
-        },
-      },
-      (err, bookmark) => {
-        if (err) {
-          console.error(err);
-          showToastMessage('bookmarksError');
-          return;
-        }
-        Analytics.locationBookmarkUsed();
-        state.bookmarks.push({
-          id: location.clientId,
-          title: location.title
-        });
-        e.target.textContent = 'star';
-        console.log("Bookmark added", bookmark);
-      }
-    );
-  }
-};
 const initEventListeners = () => {
   window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -937,18 +844,26 @@ const initEventListeners = () => {
   document.addEventListener('click', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'bookmarkResultsBtn') {
+    if (e.target.id === 'reportAbuseBtn') {
+      reportAbuse.report({ id: state.selectedLocation.id, createdBy: state.selectedLocation.createdBy._id });
+    } if (e.target.id === 'moreOptionsBtn') {
+      detailsView.showLocationDetailDrawer(e);
+    } if (e.target.id === 'bookmarkResultsBtn') {
       bookmarkSearchResults(e);
     } else if (e.target.classList.contains('bookmark-location-btn')) {
       const locationId = e.target.closest('[data-id]')?.dataset?.id;
       bookmarkLocation(locationId, e);
-    } else if (['topBookmarkLocationBtn', 'bookmarkLocationBtn'].includes(e.target.id)) {
+    } else if (e.target.id === 'bookmarkLocationBtn') {
       bookmarkLocation(state.selectedLocation.id, e);
-    } else if (['topEditLocationBtn', 'editLocationBtn'].includes(e.target.id)) {
+    } else if (e.target.id === 'addPhotosBtn') {
+      detailsView.addLocationPhotos();
+    } else if (e.target.id === 'editLocationBtn') {
       Analytics.inAppEditUsed();
       editView.init();
     } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
+    } else if (e.target.id === 'createNewLocationBtn') {
+      createView.navigateTo();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
@@ -976,7 +891,7 @@ const initEventListeners = () => {
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {
-      var selectedId = e.target.getAttribute("data-id");
+      const selectedId = e.target.getAttribute("data-id");
       viewFullImage(state.selectedLocation.images, selectedId);
     } else if (e.target.parentNode?.classList?.contains('action-item')) {
       handleDetailActionItem(e);
@@ -1135,7 +1050,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else {
       state.filterElements[categoryId].checked = true;
     }
-    if(chipSets[categoryId]){
+    if (chipSets[categoryId]) {
       chipSets[categoryId].chips.forEach((c) => {
         const { sid } = c.root_.dataset;
         if (target.checked && !state.filterElements[categoryId]?.subcategories.includes(sid)) {
@@ -1184,7 +1099,6 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     } else if (state.filterElements[categoryId].subcategories.length === category.subcategories.length) {
       input.checked = true;
       state.filterElements[categoryId].checked = true;
-
     } else {
       input.indeterminate = true;
       state.filterElements[categoryId].checked = true;
@@ -1361,8 +1275,8 @@ const refreshMapOptions = () => {
   }
 };
 
-window.addEventListener("click", function removeLocationContainerOutsideBox(e) {
-  const locationContainer = document.querySelector('#locationSummary')
+window.addEventListener("click", (e) => {
+  const locationContainer = document.querySelector('#locationSummary');
 
   if (!locationContainer.contains(e.target) && !locationContainer.classList.contains('transition-in-progress')) {
     locationContainer.classList.add('slide-out');
@@ -1373,7 +1287,7 @@ window.addEventListener("click", function removeLocationContainerOutsideBox(e) {
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   const { bookmarks } = state.settings;
-  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage,{ size: "xl", aspect: "16:9"}): './images/default-location-cover.png'}');">
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage, { size: "xl", aspect: "16:9" }) : './images/default-location-cover.png'}');">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.clientId) ? 'star' : 'star_outline'}</i>
@@ -1400,9 +1314,9 @@ const handleMarkerClick = (location) => {
   summaryContainer.classList.remove('slide-out');
   // transition-in-progress class is added to track css transitioning start/stop
   summaryContainer.classList.add('slide-in', 'transition-in-progress');
-  setTimeout(()=>{
+  setTimeout(() => {
     summaryContainer.classList.remove('transition-in-progress');
-  }, 500)
+  }, 500);
 };
 const initDrawerFilterOptions = () => {
   const { sorting, bookmarks, filter } = state.settings;
@@ -1583,13 +1497,15 @@ const initIntroLocations = () => {
   const { introductoryListView } = state.settings;
   const carouselSkeleton = new buildfire.components.skeleton('.skeleton-carousel', { type: 'image, sentence' }).start();
   const listSkeleton = new buildfire.components.skeleton('.skeleton-wrapper', { type: 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line' }).start();
+
+  introView.initCreateLocationButton();
   showElement('section#intro');
 
   searchIntroLocations().then((result) => {
     fetchPinnedLocations(() => {
       introView.renderIntroductoryLocations(state.listLocations, true);
       listSkeleton.stop();
-      refreshIntroductoryCarousel();
+      introView.refreshIntroductoryCarousel();
       carouselSkeleton.stop();
       refreshIntroductoryDescription();
 
@@ -1619,7 +1535,7 @@ const initMapLocations = () => {
   mapView.clearMapViewList();
   const type = state.settings.design.listViewStyle === 'backgroundImage'
     ? 'image, image, image, image'
-    : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line'
+    : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line';
   const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
   searchLocations()
     .then(() => {
@@ -1729,65 +1645,7 @@ const handleCPSync = (message) => {
         }
       });
   } else if (scope === 'settings') {
-    refreshSettings()
-      .then(() => {
-        const f = state.settings.filter;
-        const of = outdatedSettings.filter;
-        const ms = state.settings.map;
-        const oms = outdatedSettings.map;
-        // current design
-        const d = state.settings.design;
-        if (Object.keys(deepObjectDiff(state.settings.bookmarks, outdatedSettings.bookmarks)).length) {
-          if (state.settings.bookmarks.enabled !== outdatedSettings.bookmarks.enabled) {
-            mapView.clearMapViewList();
-            mapView.renderListingLocations(state.listLocations);
-            initDrawerFilterOptions();
-            refreshQuickFilter();
-            drawer.reset(state.settings.design.listViewPosition);
-          } else if (state.settings.bookmarks.allowForLocations !== outdatedSettings.bookmarks.allowForLocations) {
-            mapView.clearMapViewList();
-            mapView.renderListingLocations(state.listLocations);
-          } else if (state.settings.bookmarks.allowForFilters !== outdatedSettings.bookmarks.allowForFilters) {
-            initDrawerFilterOptions();
-            drawer.reset(state.settings.design.listViewPosition);
-          }
-        } else if (Object.keys(deepObjectDiff(state.settings.sorting, outdatedSettings.sorting)).length) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          initDrawerFilterOptions();
-          drawer.reset(state.settings.design.listViewPosition);
-        } else if (f.hideOpeningHoursFilter !== of.hideOpeningHoursFilter || f.hidePriceFilter !== of.hidePriceFilter) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          initDrawerFilterOptions();
-          drawer.reset(state.settings.design.listViewPosition);
-        } else if (f.allowFilterByBookmarks !== of.allowFilterByBookmarks) {
-          refreshQuickFilter();
-        } else if (f.allowFilterByArea !== of.allowFilterByArea) {
-          const headerQF = document.querySelector('.header-qf');
-          hideElement('#areaSearchLabel');
-          if (f.allowFilterByArea && d.hideQuickFilter) {
-            showElement('#areaSearchLabel');
-          } else if (!d.hideQuickFilter && headerQF?.style.display === 'none') {
-            showElement(headerQF);
-          } else {
-            hideElement('#areaSearchLabel');
-          }
-          adjustMapHeight();
-        } else if (state.settings.measurementUnit !== outdatedSettings.measurementUnit) {
-          setLocationsDistance();
-        } else if (ms.showPointsOfInterest !== oms.showPointsOfInterest
-          || ms.initialArea !== oms.initialArea
-          || ms.initialAreaCoordinates.lat !== oms.initialAreaCoordinates.lat
-          || ms.initialAreaCoordinates.lng !== oms.initialAreaCoordinates.lng) {
-          hideOverlays();
-          navigateTo('home');
-          showMapView();
-          refreshMapOptions();
-        }
-      });
+    window.location.reload();
   } else if (scope === 'intro') {
     refreshSettings()
       .then(() => {
@@ -1795,13 +1653,13 @@ const handleCPSync = (message) => {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
           setDefaultSorting();
-          fetchPinnedLocations(()=>clearAndSearchWithDelay());
+          fetchPinnedLocations(() => clearAndSearchWithDelay());
           refreshIntroductoryDescription();
           hideOverlays();
           navigateTo('home');
           showElement('section#intro');
           hideElement('section#listing');
-          refreshIntroductoryCarousel();
+          introView.refreshIntroductoryCarousel();
           if (state.settings.introductoryListView.images.length === 0
             && state.listLocations.length === 0
             && !state.settings.introductoryListView.description
@@ -1950,10 +1808,12 @@ const navigateToLocationId = (locationId) => {
 
 const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
-  console.log(state.breadcrumbs[state.breadcrumbs.length - 1].name)
-  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'categoriesEdit') {
+  console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name);
+  if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesEdit') {
     editView.refreshCategoriesText();
-  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1].name === 'af') {
+  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesCreate') {
+    createView.refreshCategoriesOverviewSubtitle();
+  } else if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'af') {
     refreshQuickFilter();
     for (const key in state.currentFilterElements) {
       if (state.filterElements[key].checked !== state.currentFilterElements[key].checked
@@ -1964,14 +1824,14 @@ const onPopHandler = (breadcrumb) => {
     }
   } else if (
     state.breadcrumbs.length
-    && (state.breadcrumbs[state.breadcrumbs.length - 1].name === "Map" ||
-    state.breadcrumbs[state.breadcrumbs.length - 1].name === "home") &&
-    state.settings.showIntroductoryListView
+    && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
+    || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
+    && state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
-    if(showIntroductoryListView){
+    if (showIntroductoryListView) {
       searchIntroLocations().then(() => prepareIntroViewList());
     }
   }
@@ -1980,20 +1840,25 @@ const onPopHandler = (breadcrumb) => {
   if (!state.breadcrumbs.length) {
     hideOverlays();
     navigateTo('home');
+    introView.refreshIntroductoryCarousel();
   } else {
     const page = state.breadcrumbs[state.breadcrumbs.length - 1];
-    if (page.name === 'af') {
+    if (page?.name === 'af') {
       showFilterOverlay();
-    } else if (page.name === 'detail') {
+    } else if (page?.name === 'detail') {
       hideOverlays();
       showLocationDetail();
-    } else if (page.name === 'edit') {
+    } else if (page?.name === 'edit') {
       console.log('its edit');
       hideOverlays();
       showLocationEdit();
+    } else if (page?.name === 'create') {
+      hideOverlays();
+      createView.show();
     } else {
       hideOverlays();
       navigateTo('home');
+      introView.refreshIntroductoryCarousel();
     }
     // state.breadcrumbs.pop();
   }
@@ -2084,6 +1949,16 @@ const handleDeepLinkData = () => new Promise((resolve) => {
     state.deepLinkData = deepLinkData;
     resolve();
   });
+  buildfire.deeplink.onUpdate((deeplinkData) => {
+    if (deeplinkData) {
+      console.log('deeplinkData onUpdate: ', deeplinkData);
+      state.deepLinkData = deeplinkData;
+      if (state.deepLinkData?.locationId) {
+        buildfire.services.reportAbuse.triggerWidgetReadyForAdminResponse();
+        navigateToLocationId(state.deepLinkData.locationId);
+      }
+    }
+  }, true);
 });
 
 const resetResultsBookmark = () => {
@@ -2093,7 +1968,7 @@ const resetResultsBookmark = () => {
 };
 
 const bookmarkSearchResults = (e) => {
-  if (bookmarkLoading) return;
+  if (state.bookmarkLoading) return;
 
   const targetBookmarkId = e.target.getAttribute('bookmarkId');
   if (targetBookmarkId) {
@@ -2149,8 +2024,8 @@ const bookmarkSearchResults = (e) => {
 
       if (response.cancelled || !results.length || !response.results[0].textValue) return;
 
-      bookmarkLoading = true;
-      setTimeout(() => { bookmarkLoading = false; }, 1000);
+      state.bookmarkLoading = true;
+      setTimeout(() => { state.bookmarkLoading = false; }, 1000);
       buildfire.bookmarks.add(
         {
           id: bookmarkId,
@@ -2184,16 +2059,18 @@ const initAppStrings = () => {
   window.strings = new buildfire.services.Strings('en-us', stringsConfig);
   return window.strings.init();
 };
-const getCurrentUser = () => {
+
+const getCurrentUser = () => new Promise((resolve) => {
   buildfire.auth.getCurrentUser((err, currentUser) => {
     if (!err && currentUser) {
       state.currentUser = currentUser;
     }
+    resolve();
   });
-};
+});
 
-var skipFilter = 1;
-var isLoading = false;
+let skipFilter = 1;
+let isLoading = false;
 
 const initApp = () => {
   const bootstrap = [
@@ -2202,26 +2079,28 @@ const initApp = () => {
     getAllBookmarks(),
     handleDeepLinkData(),
     initAppStrings(),
-    refreshCategories()
+    refreshCategories(),
+    getCurrentUser(),
   ];
   initGoogleMapsSDK();
   window.googleMapOnLoad = () => {
     Promise.all(bootstrap)
       .then(() => {
+        reportAbuse.init();
+        authManager.onUserChange();
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
         buildfire.appearance.titlebar.show();
-        getCurrentUser();
         watchUserPositionChanges();
-        setTimeout(()=>{
-          var t = document.querySelector('#filter')
+        setTimeout(() => {
+          const t = document.querySelector('#filter');
           t.onscroll = (e) => {
             if (
-              (t.scrollTop + t.clientHeight) / t.scrollHeight >
-              0.8 && !isLoading
+              (t.scrollTop + t.clientHeight) / t.scrollHeight
+              > 0.8 && !isLoading
             ) {
               isLoading = true;
               skipFilter += 1;
@@ -2229,20 +2108,20 @@ const initApp = () => {
                 filter: {},
                 page: skipFilter,
                 pageSize: 20,
-                sort: {title: 1}
+                sort: { title: 1 }
               };
 
               WidgetController
-              .searchCategories(options)
-              .then((result) => {
-                if(result && result.length > 0){
-                  isLoading = false;
-                  initFilterOverlay(false, result);
-                }
-              });
+                .searchCategories(options)
+                .then((result) => {
+                  if (result && result.length > 0) {
+                    isLoading = false;
+                    initFilterOverlay(false, result);
+                  }
+                });
             }
           };
-        },3000)
+        }, 3000);
       })
       .catch((err) => {
         console.error(`init error ${err}`);

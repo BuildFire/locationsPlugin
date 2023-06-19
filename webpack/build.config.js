@@ -75,12 +75,6 @@ const WebpackConfig = {
       chunks: ['control/settings/settings']
     }),
     new HtmlWebpackPlugin({
-      filename: 'control/settings/templates/chat.html',
-      inject: true,
-      minify: { removeComments: true, collapseWhitespace: true },
-      template: path.join(__dirname, '../src/control/settings/templates/chat.html'),
-    }),
-    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
@@ -109,6 +103,12 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/control/settings/templates/globalEditing.html'),
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalEntries.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalEntries.html'),
     }),
     new HtmlWebpackPlugin({
       filename: 'control/settings/templates/locationEditing.html',
@@ -140,6 +140,18 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/detail.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/edit.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/edit.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/create.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/create.html')
     }),
     new HtmlWebpackPlugin({
       filename: 'widget/templates/edit.html',
