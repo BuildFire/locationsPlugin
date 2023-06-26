@@ -94,8 +94,8 @@ const locationTemplateHeader = {
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
   bookmarksCount: "bookmarksCount",
-	phoneNumber:"phoneNumber",
-	website:"website"
+  phoneNumber:"phoneNumber",
+  website:"website"
 };
 
 const locationInfoRowHeader = {
@@ -122,8 +122,8 @@ const locationInfoRowHeader = {
   priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
   priceCurrency: "If price range is enabled select the currency type $ or €",
   bookmarksCount: "",
-	phoneNumber:"",
-	website:""
+  phoneNumber:"Phone Number is an optional field, if provided will create a Call Phone Number Action Item with the provided Phone number.",
+  website:"Website is an optional field, if provided will create a Web Content Action Item with the provided URL. The URL should starts with http or https, when possible use secure websites (https) some operating systems require it."
 };
 
 const renderAddLocationsPage = () => {
@@ -157,6 +157,8 @@ const renderAddLocationsPage = () => {
     locationCategoriesError: inputLocationForm.querySelector("#location-categories-error"),
     showOpeningHoursBtn: inputLocationForm.querySelector("#location-show-opening-hours-btn"),
     openingHoursContainer: inputLocationForm.querySelector("#location-opening-hours-container"),
+    openingHoursFormGroup: inputLocationForm.querySelector("#locationOpeningHoursFormGroup"),
+    priceRangeFormGroup: inputLocationForm.querySelector("#locationPriceRangeFormGroup"),
     showPriceRangeBtn: inputLocationForm.querySelector("#location-show-price-range-btn"),
     priceRangeRadioBtns: inputLocationForm.querySelectorAll('input[name="priceRangeValue"]'),
     selectPriceCurrency: inputLocationForm.querySelector("#location-select-price-currency"),
@@ -167,9 +169,6 @@ const renderAddLocationsPage = () => {
     locationDescription: inputLocationForm.querySelector("#location-description-wysiwyg"),
     locationDescriptionError: inputLocationForm.querySelector("#location-description-error"),
     addActionItemsBtn: inputLocationForm.querySelector("#location-add-actions-btn"),
-    addOwnerBtn: inputLocationForm.querySelector("#location-add-owner-btn"),
-    deleteOwnerBtn: inputLocationForm.querySelector("#location-delete-owner-btn"),
-    ownerTxt: inputLocationForm.querySelector("#location-owner-txt"),
     saveBtn: inputLocationForm.querySelector("#location-save-btn"),
     cancelBtn: inputLocationForm.querySelector("#location-cancel-btn"),
     navigateToIntroLink: inputLocationForm.querySelector("#location-navigate-to-listview-link"),
@@ -215,19 +214,14 @@ const checkInputErrorOnChange = (element, errorElement)=> {
       errorElement.classList.add('hidden');
     } else {
       errorElement.classList.remove('hidden');
-      errorElement.innerHTML = message || 'Required';
+      errorElement.innerHTML = 'Required';
       errorElement.parentNode.classList.add('has-error');
     }
   }
 }
 
 window.addEditLocation = (location) => {
-  // categories are no more mandatory now so the following is not needed anymore
-  // if (state.categories.length === 0) {
-  //   openRequiredCategoriesDialog();
-  //   return;
-  // }
-
+  const { settings } = globalState;
   renderAddLocationsPage();
 
   if (!location) {
@@ -248,11 +242,6 @@ window.addEditLocation = (location) => {
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
     setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
-
-    if (state.locationObj.owner && Object.keys(state.locationObj.owner).length > 0) {
-      addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
-      addLocationControls.deleteOwnerBtn.classList.remove('hidden');
-    }
   }
   renderBreadcrumbs();
   loadMap();
@@ -269,11 +258,20 @@ window.addEditLocation = (location) => {
     setup: (ed) => {
       ed.on('keyup change', () => {
         state.locationObj.description = tinymce.activeEditor.getContent();
+        state.locationObj.wysiwygSource = 'control';
         triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
         checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
       });
     }
   });
+
+  if (settings.globalEntries.allowOpenHours) {
+    addLocationControls.openingHoursFormGroup.classList.remove('hidden');
+  }
+
+  if (settings.globalEntries.allowPriceRange) {
+    addLocationControls.priceRangeFormGroup.classList.remove('hidden');
+  }
 
   if (state.pinnedLocations.length >= 3 && state.locationObj.pinIndex === null) {
     addLocationControls.pinTopBtn.disabled = true;
@@ -408,12 +406,12 @@ window.addEditLocation = (location) => {
       if(state.saveBtnClicked ){
         if (!address || !coordinates.lat || !coordinates.lng) {
           addLocationControls.locationTitleError.classList.remove('hidden');
-          addLocationControls.locationTitleError.innerHTML = message || 'Required';
+          addLocationControls.locationTitleError.innerHTML = 'Required';
           addLocationControls.locationTitleError.parentNode.classList.add('has-error');
         } else {
           addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
           addLocationControls.locationTitleError.classList.add('hidden');
-          
+
         }
       }
   }
@@ -486,26 +484,6 @@ window.addEditLocation = (location) => {
       actionItemsUI.addItem(actionItem);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     });
-  };
-
-  addLocationControls.addOwnerBtn.onclick = () => {
-    buildfire.auth.showUsersSearchDialog(null, (err, result) => {
-      if (err) return console.log(err);
-
-      if (!result) return;
-      const { users } = result;
-      if (users && users.length > 0) {
-        state.locationObj.owner = result.users[0];
-        addLocationControls.ownerTxt.innerHTML = state.locationObj.owner.displayName;
-        addLocationControls.deleteOwnerBtn.classList.remove('hidden');
-      }
-    });
-  };
-
-  addLocationControls.deleteOwnerBtn.onclick = () => {
-    state.locationObj.owner = null;
-    addLocationControls.ownerTxt.innerHTML = '';
-    addLocationControls.deleteOwnerBtn.classList.add('hidden');
   };
 
   locationImagesUI.onDeleteItem = (item, index, callback) => {
@@ -856,7 +834,7 @@ const openSelectCategoriesDialog = (action) => {
     const data = state.categories.filter((elem) => elem.title.toLowerCase().includes(searchValue.toLowerCase()));
     createDialogCategoriesList(data, categoriesListContainer, state.locationObj.categories);
   };
-  
+
   selectCategoryDialog = new DialogComponent("dialogComponent", dialogContent);
 
   selectCategoryDialog.showDialog(
@@ -1338,14 +1316,14 @@ const validateLocationCsv = (items) => {
         });
         return false;
       }
-  
+
       if (!isLatitude(item.lat) || !isLongitude(item.lng)) {
         showImportErrorMessage({
           message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
         });
         return false;
       }
-    } 
+    }
   }
 
   return true;
@@ -1374,7 +1352,7 @@ window.importLocations = () =>  {
 };
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
-    CategoriesController.getAllCategories((allCategories1)=>{ 
+    CategoriesController.getAllCategories((allCategories1)=>{
           for(const category of allCategories1){
             state.categoriesLookup[category.id] = category;
           }
@@ -1388,7 +1366,7 @@ const insertData = (jsonResult, callback, fileInput, dialogRef) => {
             } else {
               CategoriesController._bulkCreateCategories(newCategories).then((res) => {
                 CategoriesController.registerCategoryAnalytics(res.data.length);
-                CategoriesController.getAllCategories((allCategories2)=>{ 
+                CategoriesController.getAllCategories((allCategories2)=>{
                   for(const category of allCategories2){
                     state.categoriesLookup[category.id] = category;
                   }
@@ -1443,7 +1421,7 @@ const upsertCategories = (result, allCategories) => {
                 selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim()})
               }
             }
-    
+
           } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
             var savedSubCategories = savedCategory.subcategories.map(x => x.title);
             var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
@@ -1458,13 +1436,13 @@ const upsertCategories = (result, allCategories) => {
               CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
             }
 
-          }   
+          }
         });
       }
     })
     resolve(categories)
   });
-  
+
 }
 
 const insertLocations = (result, callback) => {
@@ -1500,7 +1478,7 @@ const insertLocations = (result, callback) => {
           var isCategoryAdded = categories.find(x=>x == savedCategory.id)
           if(!isCategoryAdded){
             categories.push(savedCategory.id)
-  
+
           }
           if(selectedSubCategories){
             var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
@@ -1515,32 +1493,31 @@ const insertLocations = (result, callback) => {
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
     elem.createdBy = authManager.currentUser;
-		// add location actionItems
-		let actionItems =[];
-		if(elem.phoneNumber){
-			actionItems.push(
-				{
-					"title": "Phone",
-					"action": "callNumber",
-					"phoneNumber": elem.phoneNumber,
-					"id": generateUUID(),
-				}
-			)
-		}
-		if(elem.website){
-			actionItems.push(
-				{
-					"title": "Website",
-					"action": "linkToWeb",
-					"openIn": "_blank",
-					"url": elem.website,
-					"id": generateUUID(),
-				}
-			)
-		}
-		if(actionItems.length >0){
-			elem.actionItems = actionItems
-		}
+    // add location actionItems
+    let actionItems =[];
+    if(elem.phoneNumber){
+      actionItems.push({
+        "title": "Phone",
+        "action": "callNumber",
+        "iconClassName": "glyphicon glyphicon-earphone",
+        "phoneNumber": elem.phoneNumber,
+        "id": generateUUID() });
+    }
+    if(elem.website){
+      if (!elem.website.startsWith('https://') && !elem.website.startsWith('http://')) {
+        elem.website = 'http://'+elem.website;
+      }
+      actionItems.push({
+        "title": "Website",
+        "action": "linkToWeb",
+        "iconClassName": "glyphicon glyphicon-globe",
+        "openIn": "_blank",
+        "url": elem.website,
+        "id": generateUUID() });
+    }
+    if(actionItems.length >0){
+        elem.actionItems = actionItems
+    }
 
     return new Location(elem).toJSON();
     });
@@ -1580,9 +1557,9 @@ window.exportLocations = () => {
       elem.markerColorRGBA= elem.marker.color?.color;
       elem.priceRange= elem.price.range;
       elem.priceCurrency= elem.price.currency;
-			// action item / phone number and website
-			elem.phoneNumber= "";
-			elem.website = "";
+      // action item / phone number and website
+      elem.phoneNumber= "";
+      elem.website = "";
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
@@ -1592,13 +1569,13 @@ window.exportLocations = () => {
             subcategories.forEach(e => {
               categories.push({
                 title: category.title + " -> " + e.title
-              } ) 
+              } )
             })
           } else {
-            categories.push({title: category.title}) 
+            categories.push({title: category.title})
           }
         } else {
-          categories.push({title: category.title}) 
+          categories.push({title: category.title})
         }
       });
       elem.categories = categories
@@ -1814,7 +1791,7 @@ window.initLocations = () => {
   );
   handleLocationEmptyState(true);
   state.filter = {};
- 
+
   var _loadCategoriesTimer = setInterval(()=>{
     loadCategories((err ,result)=>{
       if(result.length < 30){
@@ -1822,7 +1799,7 @@ window.initLocations = () => {
         refreshLocations();
       }
     })
-   
+
   },500)
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {

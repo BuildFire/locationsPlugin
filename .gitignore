@@ -108,3 +108,6 @@ dist
 
 # plugin build
 plugin.zip
+
+macOS .DS_Store
+.DS_Store

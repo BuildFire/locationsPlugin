@@ -14,7 +14,7 @@ export default (function () {
   CustomMarker.prototype.draw = function () {
     let div = this.div_;
     const panes = this.getPanes();
-    let labelText = this.location.addressAlias ?? this.location.title;
+    let labelText = this.location.addressAlias || this.location.title;
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (!div) {

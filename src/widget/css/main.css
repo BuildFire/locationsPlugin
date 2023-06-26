@@ -36,6 +36,7 @@ section#categories.overlay {
 
 #home:not(.active),
 #detail:not(.active),
+#create:not(.active),
 #edit:not(.active) {
   display: none;
 }
@@ -80,12 +81,6 @@ section#categories.overlay {
 }
 .mdc-theme--text-header {
   color: var(--bf-theme-header-text);
-}
-.mdc-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1000;
 }
 
 #home header .mdc-chip {
@@ -477,7 +472,7 @@ button span {
   align-items: flex-start;
   padding: 25px 15px 20px;
   margin: -15px -15px 0;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 .location-detail__bottom-cover {
   display: none;
@@ -506,16 +501,15 @@ button span {
   font-weight: bold;
   font-size: 11px;
 }
-.location-detail__cover #bookmarkLocationBtn {
+.location-detail__cover .action-btn-2 {
   position: absolute;
-  bottom: 20px;
+  right: 100px;
+}
+.location-detail__cover .action-btn-0 {
+  position: absolute;
   right: 20px;
 }
-.location-detail__cover #shareLocationBtn {
-  position: absolute;
-  right: 20px;
-}
-.location-detail__cover #editLocationBtn {
+.location-detail__cover .action-btn-1 {
   position: absolute;
   right: 60px;
 }
@@ -563,11 +557,6 @@ button span {
   background-size: cover;
   background-repeat: no-repeat;
   cursor: pointer;
-}
-.location-detail #chatWithOwnerBtn {
-  width: 100%;
-  margin-top: 15px;
-  font-weight: bold;
 }
 .location-detail .action-item {
   /*width: 31%;*/
@@ -664,12 +653,14 @@ button span {
   align-items: center;
 }
 .location-detail__top-header h1 {
+  white-space: nowrap;
   margin: 0;
 }
 .location-detail__top-header h5 {
   font-weight: normal;
   margin: 2px 0 0;
   font-size: 15px;
+  white-space: nowrap;
 }
 .location-detail__top-header span:nth-child(2) {
   display: flex;
@@ -1002,6 +993,12 @@ body section#home {
 #showMapView .mdc-fab__icon {
   color: var(--mdc-theme-on-primary) !important;
 }
+#createNewLocationBtn {
+  background-color: var(--bf-theme-success, #018786);
+}
+#createNewLocationBtn .mdc-fab__icon {
+  color: var(--mdc-theme-on-primary) !important;
+}
 #locationDirectionsBtn {
   cursor: pointer;
 }
@@ -1037,11 +1034,14 @@ body section#home {
 .mdc-theme--warning-bg {
   background-color: var(--bf-theme-warning);
 }
+.mdc-theme--warning-text {
+  color: var(--bf-theme-warning);
+}
 .borderless {
   border: none;
 }
 .mdc-theme--white {
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .warning-note p {
@@ -1063,22 +1063,27 @@ body section#home {
   margin-left: auto;
 }
 
+#create .fixed-footer button,
 #edit .fixed-footer button {
   padding-left: 32px;
   padding-right: 32px;
+  text-transform: unset;
 }
 
 html[safe-area="true"] .fixed-footer {
   padding-bottom: 40px;
 }
 
+.create-location-accordion .expansion-panel-body-content,
 .edit-location-accordion .expansion-panel-body-content {
   padding: 15px;
 }
+.create-location-accordion,
 .edit-location-accordion {
   margin-left: -15px;
   margin-right: -15px;
 }
+.create-location-accordion .mdc-text-field,
 .edit-location-accordion .mdc-text-field {
   display: flex;
 }
@@ -1088,13 +1093,14 @@ button.mdc-button > *,
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .overflow-visible {
   overflow: visible;
 }
 
+.create-location-accordion .img-select,
 .edit-location-accordion .img-select {
   width: 4rem;
   height: 4rem;
@@ -1207,14 +1213,20 @@ button.mdc-button > *,
   height: 50px;
   justify-content: center;
 }
-.star-rating {
+.switch-button-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 16px;
 }
 
-.star-rating h4,
+.switch-button-container h4 {
+  max-width: 70%;
+  overflow: hidden;
+  white-space: pre-wrap;
+  font-size: 18px;
+  font-weight: 700;
+}
 .location-images h4,
 #locationListImageInput h4 {
   white-space: nowrap;
@@ -1222,11 +1234,15 @@ button.mdc-button > *,
   font-weight: 700;
 }
 
-#locationStarRatingSwitch {
+#locationStarRatingSwitch,
+#locationShowStarRatingCheckbox,
+#locationEnableEditingSwitch,
+#locationShowCategoryCheckbox,
+#locationShowCategorySwitch {
   margin-right: 48px;
 }
 
-#locationPriceCurrencySelect,
+#locationCurrencySelect,
 #locationPriceRangeSelect {
   width: calc(50% - 10px);
 }
@@ -1240,6 +1256,7 @@ button.mdc-button > *,
 .location-images {
   padding: 4px 16px;
 }
+#locationListImagesContainer,
 #locationImagesList {
   display: flex;
   overflow-y: auto;
@@ -1270,8 +1287,9 @@ button.mdc-button > *,
 }
 .mdc-text-field-helper-line.has-error p,
 .interval-error {
-  color: var(--mdc-theme-error, #b00020) !important;
+  color: var(--mdc-theme-error, #EB4747) !important;
 }
+section#create,
 section#edit {
   padding-bottom: 80px;
 }
@@ -1294,4 +1312,117 @@ section#edit {
 	border-radius: 4px;
 	width: 64px;
 	height: 64px;
+}
+
+.floating-buttons-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.px-0 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.text-field-helper-text {
+  font-size: 14px;
+}
+
+.resize-none {
+  resize: none;
+}
+#locationMapContainer {
+  height: 300px;
+}
+#locationMapContainer .centered-marker {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image: url(https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi-dotless3_hdpi.png);
+  top: calc(50% - 18.5px);
+  left: calc(50% - 13px);
+  height: 37px;
+  width: 26px;
+  cursor: pointer;
+}
+h4.light-text {
+  font-size: 15px !important;
+  font-weight: 400 !important;
+}
+
+#locationEnableEditingButton {
+  float: right;
+  font-size: .7rem;
+  font-weight: bold;
+  text-transform: unset;
+}
+#locationDescriptionTextField,
+#locationDescriptionContainer {
+  background-color: rgba(150,150,150,.1);
+  height: 165px;
+  padding: 4px 16px 6px;
+  overflow: hidden;
+  overflow-y: scroll;
+  border-bottom: 1px solid rgba(0,0,0,.42);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+}
+#locationDescriptionTextField.has-error,
+#locationDescriptionContainer.has-error {
+  border-bottom-color:   var(--mdc-theme-error, #EB4747) !important;
+}
+#locationDescriptionTextField *,
+#locationDescriptionContainer * {
+  pointer-events: none;
+}
+#locationDescriptionTextField:not(.disabled),
+#locationDescriptionContainer:not(.disabled) {
+  cursor: text;
+}
+#locationDescriptionTextField.disabled,
+#locationDescriptionContainer.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+#locationDescriptionTextField .mdc-floating-label,
+#locationDescriptionContainer .mdc-floating-label {
+  left: 16px;
+  top: 20px;
+  color: var(--mdc-theme-on-background, #000000);
+}
+#locationDescriptionTextField .mdc-floating-label::after,
+#locationDescriptionContainer .mdc-floating-label::after {
+  margin-left: 1px;
+  content: "*"
+}
+.mdc-text-field-helper-line {
+  visibility: hidden;
+}
+.mdc-text-field-helper-line.has-error {
+  visibility: visible;
+}
+.bf-theme-success {
+  background-color: var(--bf-theme-success, #018786) !important;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .fields-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .fields-group > div {
+    flex-grow: 1;
+  }
+
+  #locationOpeningHoursContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+  }
 }

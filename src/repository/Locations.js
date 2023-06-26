@@ -30,7 +30,7 @@ export default class Locations {
    * Insert a new location data object
    * @param {object} data
    * @static
-   * @return {promise} query result
+   * @return {Promise} query result
    */
   static add(data) {
     return new Promise((resolve, reject) => {

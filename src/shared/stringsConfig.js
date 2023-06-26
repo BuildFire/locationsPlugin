@@ -68,7 +68,7 @@ export default {
         title: 'Bookmark Results',
         placeholder: 'Enter text here',
         defaultValue: 'Bookmark Results',
-        maxLength: 12,
+        maxLength: 16,
       },
       enterBookmarkTitleHere: {
         title: 'Enter bookmark title here',
@@ -237,7 +237,7 @@ export default {
     }
   },
   locationEditing: {
-    title: 'Location Editing',
+    title: 'Location Creating/Editing',
     labels: {
       controlNote: {
         title: 'For full customization options go to the admin Control Panel.',
@@ -253,9 +253,9 @@ export default {
         maxLength: 25,
       },
       locationName: {
-        title: 'Location Name',
+        title: 'Location Title',
         placeholder: 'Enter text here',
-        defaultValue: 'Location Name',
+        defaultValue: 'Location Title',
         required: true,
         maxLength: 35,
       },
@@ -266,12 +266,54 @@ export default {
         required: true,
         maxLength: 35,
       },
+      locationStreetNameAndNumber: {
+        title: 'Street Name and Number',
+        placeholder: 'Enter text here',
+        defaultValue: 'Street Name and Number',
+        required: true,
+        maxLength: 35,
+      },
+      locationCustomName: {
+        title: 'Location Custom Name',
+        placeholder: 'Enter text here',
+        defaultValue: 'Location Custom Name',
+        required: true,
+        maxLength: 35,
+      },
       locationSubtitle: {
         title: 'Location Subtitle',
         placeholder: 'Enter text here',
         defaultValue: 'Location Subtitle',
         required: true,
         maxLength: 35,
+      },
+      locationDescription: {
+        title: 'Location Description',
+        placeholder: 'Enter text here',
+        defaultValue: 'Location Description',
+        required: true,
+        maxLength: 300,
+      },
+      descriptionDialogPlaceholder: {
+        title: 'Enter your description here',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enter your description here',
+        required: true,
+        maxLength: 30,
+      },
+      descriptionDialogSave: {
+        title: 'Save',
+        placeholder: 'Enter text here',
+        defaultValue: 'Save',
+        required: true,
+        maxLength: 9,
+      },
+      descriptionDialogCancel: {
+        title: 'Cancel',
+        placeholder: 'Enter text here',
+        defaultValue: 'Cancel',
+        required: true,
+        maxLength: 9,
       },
       categories: {
         title: 'Categories',
@@ -292,6 +334,20 @@ export default {
         required: true,
         maxLength: 25,
       },
+      showCategory: {
+        title: 'Show Category on Location Screen',
+        placeholder: 'Enter text here',
+        defaultValue: 'Show Category on Location Screen',
+        required: true,
+        maxLength: 25,
+      },
+      enableEditing: {
+        title: 'Enable Editing',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enable Editing',
+        required: true,
+        maxLength: 25,
+      },
       priceRange: {
         title: 'Price Range',
         placeholder: 'Enter text here',
@@ -306,12 +362,33 @@ export default {
         required: true,
         maxLength: 25,
       },
+      listImageNote: {
+        title: 'This is the main location image displayed next to the location info in a list view.',
+        placeholder: 'Enter text here',
+        defaultValue: 'This is the main location image displayed next to the location info in a list view.',
+        required: true,
+        maxLength: 110,
+      },
+      mapNote: {
+        title: 'If you need adjustments, drag the map so the pin matches the exact location of your place.',
+        placeholder: 'Enter text here',
+        defaultValue: 'If you need adjustments, drag the map so the pin matches the exact location of your place.',
+        required: true,
+        maxLength: 110,
+      },
       locationImages: {
         title: 'Location Images',
         placeholder: 'Enter text here',
         defaultValue: 'Location Images',
         required: true,
         maxLength: 25,
+      },
+      locationImagesNote: {
+        title: 'These are the location details images. First image in the list will be displayed as location’s main image.',
+        placeholder: 'Enter text here',
+        defaultValue: 'These are the location details images. First image in the list will be displayed as location’s main image.',
+        required: true,
+        maxLength: 110,
       },
       monday: {
         title: 'Mon',
@@ -362,6 +439,13 @@ export default {
         required: true,
         maxLength: 10,
       },
+      fieldRequired: {
+        title: 'This Field is Required',
+        placeholder: 'Enter text here',
+        defaultValue: 'This Field is Required',
+        required: true,
+        maxLength: 25,
+      },
       required: {
         title: 'Required',
         placeholder: 'Enter text here',
@@ -375,7 +459,36 @@ export default {
         defaultValue: 'Choose an end time later than the start time.',
         required: true,
         maxLength: 45,
-      }
+      },
+      confirmEditingTitle: {
+        title: 'Enable Editing',
+        placeholder: 'Enter text here',
+        defaultValue: 'Enable Editing',
+        required: true,
+        maxLength: 25,
+      },
+      confirmEditingMessage: {
+        title: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?',
+        placeholder: 'Enter text here',
+        defaultValue: 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?',
+        required: true,
+        maxLength: 210,
+      },
+      confirmEditingConfirm: {
+        title: 'Confirm',
+        placeholder: 'Enter text here',
+        defaultValue: 'Confirm',
+        required: true,
+        maxLength: 15,
+      },
+
+      confirmEditingCancel: {
+        title: 'Cancel',
+        placeholder: 'Enter text here',
+        defaultValue: 'Cancel',
+        required: true,
+        maxLength: 15,
+      },
     }
   },
   toast: {
@@ -422,7 +535,68 @@ export default {
         defaultValue: 'Location Saved',
         required: true,
         maxLength: 50,
+      },
+      alreadyReported: {
+        title: 'This item is already reported',
+        placeholder: 'Enter text here',
+        defaultValue: 'This item is already reported',
+        required: true,
+        maxLength: 50,
+      },
+      reportedSuccessfully: {
+        title: 'Reported successfully',
+        placeholder: 'Enter text here',
+        defaultValue: 'Reported successfully',
+        required: true,
+        maxLength: 50,
+      },
+      uploadedSuccessfully: {
+        title: 'Thanks for sharing your photos',
+        placeholder: 'Enter text here',
+        defaultValue: 'Thanks for sharing your photos',
+        required: true,
+        maxLength: 50,
       }
+    }
+  },
+  details: {
+    title: 'Details Page',
+    labels: {
+      bookmark: {
+        title: 'Bookmark',
+        placeholder: 'Enter text here',
+        defaultValue: 'Bookmark',
+        required: true,
+        maxLength: 25,
+      },
+      reportAbuse: {
+        title: 'Report Abuse',
+        placeholder: 'Enter text here',
+        defaultValue: 'Report Abuse',
+        required: true,
+        maxLength: 25,
+      },
+      share: {
+        title: 'Share',
+        placeholder: 'Enter text here',
+        defaultValue: 'Share',
+        required: true,
+        maxLength: 25,
+      },
+      edit: {
+        title: 'Edit',
+        placeholder: 'Enter text here',
+        defaultValue: 'Edit',
+        required: true,
+        maxLength: 25,
+      },
+      addPhotos: {
+        title: 'Add Photos',
+        placeholder: 'Enter text here',
+        defaultValue: 'Add Photos',
+        required: true,
+        maxLength: 25,
+      },
     }
   },
   emptyState: {

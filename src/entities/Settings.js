@@ -59,15 +59,27 @@ export default class Settings {
       detailsMapPosition: 'top',
       showDetailsCategory: true
     };
-    this.owner = data.owner || {};
+    this.globalEntries = data.globalEntries || {
+      locations: {
+        allowAdding:  'none', // all || none || limited
+        tags: [],
+      },
+      photos: {
+        allowAdding: 'none', // all || none || limited
+        tags: [],
+      },
+      allowOpenHours: true,
+      allowPriceRange: true,
+    };
     this.globalEditors = data.globalEditors || {
       enabled: true,
+      allowLocationCreatorsToEdit: true,
       tags: [],
       users: []
     };
     this.locationEditors = data.locationEditors || {
       enabled: true,
-      time: "12H" 
+      time: "12H"
     };
     this.categoriesSortBy =  data.categoriesSortBy || "Asc";
     this.createdOn = data.createdOn || new Date();
@@ -77,6 +89,10 @@ export default class Settings {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
+
+    if (typeof this.globalEditors.allowLocationCreatorsToEdit === 'undefined') {
+      this.globalEditors.allowLocationCreatorsToEdit = true;
+    }
   }
 
   toJSON() {
@@ -90,7 +106,7 @@ export default class Settings {
       map: this.map,
       bookmarks: this.bookmarks,
       design: this.design,
-      owner: this.owner,
+      globalEntries: this.globalEntries,
       globalEditors: this.globalEditors,
       locationEditors: this.locationEditors,
       categoriesSortBy: this.categoriesSortBy,

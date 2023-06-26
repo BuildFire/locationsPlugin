@@ -1,16 +1,12 @@
-// This is the entry point of your plugin's content control.
-// Feel free to require any local or npm modules you've installed.
-//
 import buildfire from 'buildfire';
-import ContentController from './content.controller';
-import DataMocks from '../../DataMocks';
 import authManager from '../../UserAccessControl/authManager';
 import Analytics from '../../utils/analytics';
 
 import './js/categories';
 import './js/locations';
 import './js/listView';
-
+import contentController from './content.controller';
+import state from './state';
 
 const templates = {};
 
@@ -114,10 +110,17 @@ window.onSidenavChange = (section) => {
   }
 };
 
+const getSettings = () => {
+  contentController.getSettings().then((settings) => {
+    state.settings = settings;
+  }).catch(console.error);
+};
+
 const init = () => {
   onSidenavChange('categories');
   validateGoogleApiKey();
   Analytics.init();
+  getSettings();
 };
 
 authManager.enforceLogin(init);

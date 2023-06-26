@@ -74,7 +74,10 @@ export default class Map {
 
     const { lat, lng } = location.coordinates;
     let marker;
-    let labelText = location.addressAlias ?? location.title;
+    let labelText = location.addressAlias || location.title;
+
+
+
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (

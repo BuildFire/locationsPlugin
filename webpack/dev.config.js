@@ -96,13 +96,6 @@ const WebpackConfig = {
       chunks: ['devServer', 'control/settings/settings']
     }),
     new HtmlWebpackPlugin({
-      filename: 'control/settings/templates/chat.html',
-      inject: true,
-      minify: { removeComments: true, collapseWhitespace: true },
-      template: path.join(__dirname, '../src/control/settings/templates/chat.html'),
-      chunks: ['devServer']
-    }),
-    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
@@ -135,6 +128,13 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/control/settings/templates/globalEditing.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalEntries.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalEntries.html'),
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
@@ -191,6 +191,13 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/detail.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/create.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/create.html'),
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({

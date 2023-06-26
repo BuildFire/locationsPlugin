@@ -12,10 +12,10 @@
   -->
 
   <link rel="stylesheet" href="./css/main.css">
-
   <!-- JS -->
   <script src="../../../../../scripts/buildfire.min.js"></script>
   <script src="../../../../../scripts/sortable.min.js"></script>
+	<script src="../../../../scripts/buildfire/components/control/tagsInput/tagsInput.min.js"></script>
 </head>
 
 <body>
@@ -24,11 +24,6 @@
   </div>
   <div id="sidenav-container" class="sidenav-container hidden">
     <ul id="sidenav" class="sidenav">
-      <li id="chat-tab" class="hidden">
-        <a onclick="onSidenavChange('chat')" class="active">
-          <p>Chat with Owner</p>
-        </a>
-      </li>
       <li id="sorting-tab">
         <a onclick="onSidenavChange('sorting')">
           <p>Sorting</p>
@@ -47,6 +42,11 @@
       <li id="bookmarks-tab">
         <a onclick="onSidenavChange('bookmarks')">
           <p>Bookmarks</p>
+        </a>
+      </li>
+      <li id="global-entries-tab">
+        <a onclick="onSidenavChange('globalEntries')">
+          <p>Global Entry Permissions</p>
         </a>
       </li>
       <li id="global-editing-tab">
