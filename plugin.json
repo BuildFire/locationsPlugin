@@ -1,7 +1,7 @@
 {
   "author":"BuildFire",
   "pluginName": "Locations",
-  "pluginDescription": "Create locations on the map and categorize them; add details, open hours, price range, custom actions, and other settings.",
+  "pluginDescription": "Empower your app with powerful location-based capabilities, allowing users to discover, explore, and connect with places effortlessly.",
   "pluginKeywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "requireLogin": false,
   "supportEmail":"support@buildfire.com",
@@ -31,5 +31,15 @@
   "webpack": "8080",
   "keywords": "Location,Map,Mapping,Places,Area,Site,Spot,Pin,Things to do,Satellite,Street,Addresses,Address",
   "supportSite": "https://learn.appdocumentation.com/en/articles/5979361-locations-feature",
-  "languages" : ["en"]
+  "languages" : ["en"],
+	"media": [
+		{ "type": "image-resource", "path": "1-Plugin.png" },
+		{ "type": "image-resource", "path": "2-Benefits.png" },
+		{ "type": "image-resource", "path": "3-Features.png" },
+		{ "type": "image-resource", "path": "4-Use-Cases.png" },
+		{ "type": "image-resource", "path": "5-Sales-Pitch.png" },
+		{ "type": "image-resource", "path": "6-Content-Tab.png" },
+		{ "type": "image-resource", "path": "7-Settings-Tab.png" },
+		{ "type": "image-resource", "path": "8-Analytics-Tab.png" }
+	]
 }
