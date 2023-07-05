@@ -1329,8 +1329,6 @@ const initDrawer = () => {
     buildfire.components.swipeableDrawer.setBodyContent(bodyContentTemplateClone);
     initDrawerFilterOptions();
 
-    document.querySelector('.swipeable-drawer').classList.add("mdc-theme--background");
-    document.querySelector('.swipeable-drawer-header').classList.add("mdc-theme--background");
     document.querySelector('.swipeable-drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
 
     const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
