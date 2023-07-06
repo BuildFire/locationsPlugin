@@ -45,17 +45,18 @@ const _swipeableDrawerUtils = {
         return margin;
     },
     calcMiddlePosition: () => {
+        let defaultMaximumHeight = _swipeableDrawerConstants.screenHeight - _swipeableDrawerConstants.topMargin;
         if (!_swipeableDrawerState.minHeight && !_swipeableDrawerState.maxHeight)
             return (_swipeableDrawerConstants.screenHeight / 2);
-
-        if (!_swipeableDrawerState.minHeight && _swipeableDrawerState.maxHeight)
-            return (_swipeableDrawerState.maxHeight / 2);
-
-        if (_swipeableDrawerState.minHeight && !_swipeableDrawerState.maxHeight)
-            return (_swipeableDrawerConstants.screenHeight / 2);
-            
-        if (_swipeableDrawerState.minHeight && _swipeableDrawerState.maxHeight)
-            return (_swipeableDrawerState.maxHeight - _swipeableDrawerState.minHeight / 2);
+        if (!_swipeableDrawerState.minHeight && _swipeableDrawerState.maxHeight) {
+            return (_swipeableDrawerState.defaultMaximumHeight / 2);
+        }
+        if (_swipeableDrawerState.minHeight && !_swipeableDrawerState.maxHeight) {
+            return Math.round((defaultMaximumHeight + _swipeableDrawerState.minHeight) / 2);
+        }
+        if (_swipeableDrawerState.minHeight && _swipeableDrawerState.maxHeight) {
+            return Math.round((_swipeableDrawerState.maxHeight + _swipeableDrawerState.minHeight) / 2);
+        }
     },
     calcPositions: () => {
         let maxHeight = _swipeableDrawerConstants.screenHeight - _swipeableDrawerConstants.topMargin;
@@ -143,6 +144,19 @@ const _swipeableDrawerUtils = {
         }
         return false;
     },
+    findParentNode: (el, tag) => {
+        while (el.parentNode) {
+            if (el && el.classList && el.classList.contains(tag)) {
+                return el;
+            }
+
+            el = el.parentNode;
+            if (el && el.classList && el.classList.contains(tag)) {
+                return el;
+            }
+        }
+        return null;
+    },
     buildDrawer: () => {
         let drawerDiv = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer"),
             drawerHeader = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-header"),
@@ -192,16 +206,10 @@ const _swipeableDrawerEvents = {
         if (_swipeableDrawerState.mode !== "free")
             _swipeableDrawerUtils.adjustDrawer(e);
     },
-    touchStart: (e) => {
-        _swipeableDrawerConstants.originalHeight = parseFloat(getComputedStyle(_swipeableDrawerElements.drawerContainer, null).getPropertyValue('height').replace('px', ''));
-        _swipeableDrawerConstants.originalY = _swipeableDrawerElements.drawerContainer.getBoundingClientRect().top;
-        _swipeableDrawerConstants.originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
-        document.addEventListener('touchmove', _swipeableDrawerUtils.resize);
-        document.addEventListener('touchend', _swipeableDrawerEvents.stopTouchResize);
-    },
     initialize: () => {
         _swipeableDrawerElements.drawerContainer.addEventListener('mousedown', (e) => {
             if (_swipeableDrawerUtils.isDraggableElement(e.target.tagName)) return;
+
             _swipeableDrawerConstants.originalHeight = parseFloat(getComputedStyle(_swipeableDrawerElements.drawerContainer, null).getPropertyValue('height').replace('px', ''));
             _swipeableDrawerConstants.originalY = _swipeableDrawerElements.drawerContainer.getBoundingClientRect().top;
             _swipeableDrawerConstants.originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
@@ -209,14 +217,22 @@ const _swipeableDrawerEvents = {
             document.addEventListener('mouseup', _swipeableDrawerEvents.stopResize);
         });
 
-        document.body.addEventListener('touchstart', _swipeableDrawerEvents.touchStart);
+        document.addEventListener('touchstart', (e) => {
+            if (!_swipeableDrawerUtils.findParentNode(e.target, "swipeable-drawer-header")) return;
+
+            _swipeableDrawerConstants.originalHeight = parseFloat(getComputedStyle(_swipeableDrawerElements.drawerContainer, null).getPropertyValue('height').replace('px', ''));
+            _swipeableDrawerConstants.originalY = _swipeableDrawerElements.drawerContainer.getBoundingClientRect().top;
+            _swipeableDrawerConstants.originalMouseY = e.pageY || e.changedTouches[0]?.pageY;
+            document.addEventListener('touchmove', _swipeableDrawerUtils.resize);
+            document.addEventListener('touchend', _swipeableDrawerEvents.stopTouchResize);
+        });
     },
     destroy: () => {
         _swipeableDrawerElements.drawerContainer.removeEventListener('mousedown', () => { });
         document.removeEventListener('mousemove', () => { });
         document.removeEventListener('mouseup', () => { });
 
-        document.body.removeEventListener('touchstart', _swipeableDrawerEvents.touchStart);
+        document.removeEventListener('touchstart', () => { });
         document.removeEventListener('touchmove', () => { });
         document.removeEventListener('touchend', () => { });
     }
@@ -225,12 +241,11 @@ const _swipeableDrawerEvents = {
 buildfire.components.swipeableDrawer = {
     initialize(options, callback) {
         _swipeableDrawerState = options ? Object.assign(_swipeableDrawerState, options) : _swipeableDrawerState;
-        console.log(options);
         if (_swipeableDrawerElements.drawerContainer) {
             this.destroy();
         }
+        _swipeableDrawerConstants.screenHeight =  window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
         _swipeableDrawerUtils.buildDrawer();
-        console.log("tu sam")
         _swipeableDrawerEvents.initialize();
         callback();
     },
@@ -271,7 +286,6 @@ buildfire.components.swipeableDrawer = {
     },
     destroy() {
         _swipeableDrawerEvents.destroy();
-        console.log("ee", _swipeableDrawerElements.drawerContainer);
         _swipeableDrawerElements.drawerContainer.remove();
     },
     onStepChange() { }

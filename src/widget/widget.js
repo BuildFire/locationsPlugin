@@ -832,6 +832,7 @@ const getDirections = () => {
 
 
 const initEventListeners = () => {
+  window.addEventListener('resize', () => { initDrawer(false); }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
@@ -1309,14 +1310,14 @@ const handleMarkerClick = (location) => {
   }, 500);
 };
 
-const initDrawer = () => {
-  console.log(state.settings.design?.listViewPosition);
+const initDrawer = (hide = true) => {
   let position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
   buildfire.components.swipeableDrawer.initialize({
     startingStep: position,
     mode: "steps",
+    transitionDuration: 125
   }, () => {
-    buildfire.components.swipeableDrawer.hide();
+    if(hide) buildfire.components.swipeableDrawer.hide();
     let bookmarksTemplate = document.getElementById("bookmarksTemplate");
     let bookmarksTemplateClone = bookmarksTemplate.cloneNode(true);
 
