@@ -1249,15 +1249,90 @@ const deleteLocation = (item, row, callback = () => {}) => {
   );
 };
 
+const aiSeederManager = {
+  instance: null,
+  selector: '#locations-state-seeder',
+  userMessage: 'List a dummy [business-type] locations in [target-region].',
+  systemMessage: 'Location\'s listImage is a 300x200 image URL using source.unsplash.com, title is a real-world name, description is a brief description. Each location is a Javascript object within an array of size 10.',
+  init() {
+    this.instance = new buildfire.components.aiStateSeeder({
+      userMessage: this.userMessage,
+      systemMessage: this.systemMessage,
+      jsonTemplate: [{
+        title: '',
+        subtitle: '',
+        address: '',
+        listImage: '',
+        description: '',
+        latitude: '',
+        longitude: '',
+      }],
+    })
+      .showEmptyState({ selector: this.selector, }, this._handleInsertion.bind(this));
+  },
+  deleteAll() {
+    const promises = state.locations.map((item) => LocationsController.deleteLocation(item.id));
+    return Promise.all(promises);
+  },
+  _insertData(data) {
+    return LocationsController.bulkCreateLocation(data).then((result) => {
+      refreshLocations();
+      triggerWidgetOnLocationsUpdate({});
+    }).catch((err) => {
+      console.error(err);
+    });
+  },
+  _handleInsertion(err, data) {
+    if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
+      return;
+    }
+    let list = Object.values(data)[0];
+    if (!Array.isArray(list)) {
+      return;
+    }
+    list = list.map((item) => {
+      item.clientId = generateUUID();
+      item.formattedAddress = item.address;
+      item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
+      item.createdOn = new Date();
+      item.createdBy = authManager.currentUser;
+      return new Location(item).toJSON();
+    });
+
+    if (state.locations.length) {
+      this.deleteAll().then(() => this._insertData(list)).then(() => this.instance.requestResult.complete());
+    } else {
+      this._insertData(list).then(() => this.instance.requestResult.complete());
+    }
+  },
+  hide() {
+    const container = document.querySelector(this.selector);
+    container.classList.add('hidden');
+  },
+  show() {
+    const container = document.querySelector(this.selector);
+    if (!this.instance || !container.childNodes.length) this.init();
+    container.classList.remove('hidden');
+  }
+};
+
 const handleLocationEmptyState = (isLoading) => {
   const emptyState = locationsSection.querySelector('#location-empty-list');
   if (isLoading) {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
+    aiSeederManager.hide();
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    emptyState.innerHTML = `<h4>No Locations Found</h4>`;
-    emptyState.classList.remove('hidden');
+    if (!Object.keys(state.filter).length) {
+      aiSeederManager.show();
+      emptyState.classList.add('hidden');
+    } else {
+      aiSeederManager.hide();
+      emptyState.classList.remove('hidden');
+      emptyState.innerHTML = `<h4>No Locations Found</h4>`;
+    }
   } else {
+    aiSeederManager.hide();
     emptyState.classList.add('hidden');
   }
 };
