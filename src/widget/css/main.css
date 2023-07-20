@@ -1413,12 +1413,20 @@ h4.light-text {
   padding: 15px;
 }
 
+.swipeable-drawer {
+  padding-top: 0;
+}
+
 .swipeable-drawer-header {
   width: 100%;
   position: sticky;
   top: 0;
   z-index: 1;
   cursor: grab;
+}
+
+.swipeable-drawer-resizer-container {
+  padding: 20px 0;
 }
 
 .swipeable-drawer-resizer {
@@ -1428,7 +1436,6 @@ h4.light-text {
   background: #e0e0e0;
   margin-right: auto;
   margin-left: auto;
-  margin-bottom: 20px;
 }
 
 .swipeable-drawer-content {

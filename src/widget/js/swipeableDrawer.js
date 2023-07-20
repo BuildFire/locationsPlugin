@@ -8,7 +8,7 @@ let _swipeableDrawerState = {
     header: null,
     footer: null,
     content: null,
-    transitionDuration: 300,
+    transitionDuration: 125,
     mode: "free",
     minHeight: null,
     maxHeight: null
@@ -161,6 +161,7 @@ const _swipeableDrawerUtils = {
         let drawerDiv = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer"),
             drawerHeader = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-header"),
             drawerHeaderContent = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-header-content"),
+            resizerHolder = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-resizer-container"),
             resizer = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-resizer"),
             drawerContent = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-content"),
             drawerFooter = _swipeableDrawerUtils.createUIElement("div", "swipeable-drawer-footer");
@@ -169,7 +170,8 @@ const _swipeableDrawerUtils = {
         _swipeableDrawerState.content ? _swipeableDrawerUtils.setContent(drawerContent, _swipeableDrawerState.content) : drawerContent.classList.add("swipeable-drawer-hidden");
         _swipeableDrawerState.footer ? _swipeableDrawerUtils.setContent(drawerFooter, _swipeableDrawerState.footer) : drawerFooter.classList.add("swipeable-drawer-hidden");
 
-        drawerHeader.insertBefore(resizer, drawerHeader.firstChild);
+        resizerHolder.appendChild(resizer);
+        drawerHeader.insertBefore(resizerHolder, drawerHeader.firstChild);
         drawerHeader.appendChild(drawerHeaderContent);
 
         drawerDiv.appendChild(drawerHeader);
@@ -281,7 +283,6 @@ buildfire.components.swipeableDrawer = {
         _swipeableDrawerElements.drawerContainer.classList.remove("swipeable-drawer-hidden");
     },
     hide() {
-        _swipeableDrawerEvents.destroy();
         _swipeableDrawerElements.drawerContainer.classList.add("swipeable-drawer-hidden");
     },
     destroy() {
