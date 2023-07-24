@@ -1,6 +1,7 @@
 import buildfire from 'buildfire';
 import authManager from '../../UserAccessControl/authManager';
 import Analytics from '../../utils/analytics';
+import { locationsAiSeeder } from './js/locations';
 
 import './js/categories';
 import './js/locations';
@@ -117,6 +118,7 @@ const getSettings = () => {
 };
 
 const init = () => {
+  locationsAiSeeder.init();
   onSidenavChange('categories');
   validateGoogleApiKey();
   Analytics.init();

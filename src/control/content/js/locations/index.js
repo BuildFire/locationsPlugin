@@ -1249,26 +1249,33 @@ const deleteLocation = (item, row, callback = () => {}) => {
   );
 };
 
-const aiSeederManager = {
+export const locationsAiSeeder = {
   instance: null,
-  selector: '#locations-state-seeder',
-  userMessage: 'List a dummy [business-type] locations in [target-region].',
-  systemMessage: 'Location\'s listImage is a 300x200 image URL using source.unsplash.com, title is a real-world name, description is a brief description. Each location is a Javascript object within an array of size 10.',
+  jsonTemplate: [{
+    title: '',
+    subtitle: '',
+    address: '',
+    listImage: '',
+    description: '',
+    latitude: '',
+    longitude: '',
+  }],
   init() {
     this.instance = new buildfire.components.aiStateSeeder({
-      userMessage: this.userMessage,
-      systemMessage: this.systemMessage,
-      jsonTemplate: [{
-        title: '',
-        subtitle: '',
-        address: '',
-        listImage: '',
-        description: '',
-        latitude: '',
-        longitude: '',
-      }],
+      generateOptions: {
+        userMessage: 'List a sample [business-type] locations in [target-region].',
+        systemMessage: 'Location\'s listImage is a 300x200 image URL using source.unsplash.com, title is a real-world name, description is a brief description. Each location is a Javascript object, generate up to 10 items.', // within an array of size 10.
+        jsonTemplate: this.jsonTemplate,
+        callback: this._handleGenerate.bind(this)
+      },
+      importOptions: {
+        jsonTemplate: this.jsonTemplate,
+        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://i.imgur.com/llww6Sz.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\n\rBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://i.imgur.com/DoBY8Wb.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
+        systemMessage: `listImage is a URL, latitude is a coordinate, longitude is a coordinate, subtitle can be empty string, address is a location address`,
+        callback: this._handleImport.bind(this),
+      }
     })
-      .showEmptyState({ selector: this.selector, }, this._handleInsertion.bind(this));
+      .smartShowEmptyState(null);
   },
   deleteAll() {
     const promises = state.locations.map((item) => LocationsController.deleteLocation(item.id));
@@ -1282,15 +1289,17 @@ const aiSeederManager = {
       console.error(err);
     });
   },
-  _handleInsertion(err, data) {
+  _handleGenerate(err, data) {
     if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
       return;
     }
+
     let list = Object.values(data)[0];
     if (!Array.isArray(list)) {
       return;
     }
     list = list.map((item) => {
+      item.listImage = `${item.listImage}?v=${this._generateRandomNumber()}`;
       item.clientId = generateUUID();
       item.formattedAddress = item.address;
       item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
@@ -1299,40 +1308,52 @@ const aiSeederManager = {
       return new Location(item).toJSON();
     });
 
-    if (state.locations.length) {
+    this.deleteAll().then(() => this._insertData(list)).then(() => this.instance.requestResult.complete());
+  },
+  _handleImport(err, data) {
+    if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
+      return;
+    }
+
+    let list = Object.values(data)[0];
+    if (!Array.isArray(list)) {
+      return;
+    }
+    list = list.map((item) => {
+      item.listImage = `${item.listImage}?v=${this._generateRandomNumber()}`;
+      item.clientId = generateUUID();
+      item.formattedAddress = item.address;
+      item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
+      item.createdOn = new Date();
+      item.createdBy = authManager.currentUser;
+      return new Location(item).toJSON();
+    });
+
+    if (this.instance.requestResult.resetData) {
       this.deleteAll().then(() => this._insertData(list)).then(() => this.instance.requestResult.complete());
     } else {
       this._insertData(list).then(() => this.instance.requestResult.complete());
     }
   },
-  hide() {
-    const container = document.querySelector(this.selector);
-    container.classList.add('hidden');
-  },
-  show() {
-    const container = document.querySelector(this.selector);
-    if (!this.instance || !container.childNodes.length) this.init();
-    container.classList.remove('hidden');
+  _generateRandomNumber() {
+    const min = 1000000000000; // Smallest 13-digit number
+    const max = 9999999999999; // Largest 13-digit number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 };
 
 const handleLocationEmptyState = (isLoading) => {
   const emptyState = locationsSection.querySelector('#location-empty-list');
+
+  if (!emptyState) return;
+
   if (isLoading) {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
-    aiSeederManager.hide();
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    if (!Object.keys(state.filter).length) {
-      aiSeederManager.show();
-      emptyState.classList.add('hidden');
-    } else {
-      aiSeederManager.hide();
-      emptyState.classList.remove('hidden');
-      emptyState.innerHTML = `<h4>No Locations Found</h4>`;
-    }
+    emptyState.classList.remove('hidden');
+    emptyState.innerHTML = `<h4>No Locations Found</h4>`;
   } else {
-    aiSeederManager.hide();
     emptyState.classList.add('hidden');
   }
 };
