@@ -1283,8 +1283,8 @@ export const locationsAiSeeder = {
   },
   _insertData(data) {
     return LocationsController.bulkCreateLocation(data).then((result) => {
-      refreshLocations();
       triggerWidgetOnLocationsUpdate({});
+      if (locationsTable) refreshLocations();
     }).catch((err) => {
       console.error(err);
     });
@@ -1320,7 +1320,6 @@ export const locationsAiSeeder = {
       return;
     }
     list = list.map((item) => {
-      item.listImage = `${item.listImage}?v=${this._generateRandomNumber()}`;
       item.clientId = generateUUID();
       item.formattedAddress = item.address;
       item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
