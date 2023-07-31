@@ -441,7 +441,7 @@ const _initCategoriesOverlay = () => {
   let html = '';
   const container = document.querySelector('#categories .expansion-panel__container .accordion');
   state.categories.forEach((category) => {
-    let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
+    let categoryIcon = `<i class="custom-category-icon ${category.iconClassName ?? 'bf-icon bf-icon-geo-alt'}"></i>`;
     if (category.iconUrl) {
       categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
     }

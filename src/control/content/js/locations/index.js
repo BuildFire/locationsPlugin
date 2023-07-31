@@ -796,11 +796,11 @@ const setIcon = (icon, type, selector, options = {}) => {
   }
 
   const imageIcon = element.querySelector(".image-icon");
-  const glyphIcon = element.querySelector(".glyph-icon");
+  const listIcon = element.querySelector(".custom-icon-list");
   const defaultIcon = element.querySelector(".add-icon");
 
   if (type === "url") {
-    glyphIcon.classList.add("hidden");
+    listIcon.classList.add("hidden");
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
@@ -810,8 +810,8 @@ const setIcon = (icon, type, selector, options = {}) => {
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
     defaultIcon.classList.add("hidden");
-    glyphIcon.classList.remove("hidden");
-    glyphIcon.className = `glyph-icon ${icon}`;
+    listIcon.classList.remove("hidden");
+    listIcon.className = `custom-icon-list ${icon}`;
   }
 };
 

@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable class-methods-use-this */
 import buildfire from "buildfire";
-import SortableList from "./SortableList";
+import SortableList from "./sortableList";
 
 class SortableListUI {
   constructor(elementId, options = {}) {

@@ -275,12 +275,12 @@ div.empty-page {
   overflow: hidden;
   white-space: nowrap;
 }
-.expansion-panel-title .glyphicon {
+.expansion-panel-title .custom-category-icon {
   margin-right: 12px;
   background-color: rgba(150,150,150,.1);
   border-radius: 50%;
   padding: 10px;
-  font-size: 18px;
+  font-size: 18px !important;
 }
 .expansion-panel-title img {
   width: 38px;
@@ -583,7 +583,7 @@ button span {
   font-weight: bold;
   color: #000000;
 }
-.location-detail .action-item .glyphicon {
+.location-detail .action-item .custom-action-item-icon {
   font-size: 35px;
   margin: 8px 0 7px;
 }
