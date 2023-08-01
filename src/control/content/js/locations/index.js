@@ -1275,7 +1275,13 @@ export const locationsAiSeeder = {
         callback: this._handleImport.bind(this),
       }
     })
-      .smartShowEmptyState(null);
+      .smartShowEmptyState();
+  },
+  _updateCoords(coordinates) {
+    const { settings } = globalState;
+    settings.map.initialAreaCoordinates = coordinates;
+    return LocationsController.saveSettings(settings)
+      .then(triggerWidgetOnSettingsUpdate);
   },
   deleteAll() {
     const promises = state.locations.map((item) => LocationsController.deleteLocation(item.id));
@@ -1308,7 +1314,16 @@ export const locationsAiSeeder = {
       return new Location(item).toJSON();
     });
 
-    this.deleteAll().then(() => this._insertData(list)).then(() => this.instance.requestResult.complete());
+    const promises = [this.deleteAll().then(() => this._insertData(list))];
+
+    if (this.instance.actionSource === 'emptyState') {
+      const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
+      if (firstItemHasValidCoords) {
+        promises.push(this._updateCoords(firstItemHasValidCoords.coordinates));
+      }
+    }
+
+    Promise.all(promises).then(this.instance.requestResult.complete);
   },
   _handleImport(err, data) {
     if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
@@ -1328,17 +1343,34 @@ export const locationsAiSeeder = {
       return new Location(item).toJSON();
     });
 
+    const promises = [];
+
     if (this.instance.requestResult.resetData) {
-      this.deleteAll().then(() => this._insertData(list)).then(() => this.instance.requestResult.complete());
+      promises.push(this.deleteAll().then(() => this._insertData(list)));
     } else {
-      this._insertData(list).then(() => this.instance.requestResult.complete());
+      promises.push(this._insertData(list));
     }
+
+    if (this.instance.actionSource === 'emptyState') {
+      const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
+      if (firstItemHasValidCoords) {
+        promises.push(this._updateCoords(firstItemHasValidCoords.coordinates));
+      }
+    }
+
+    Promise.all(promises).then(this.instance.requestResult.complete);
   },
   _generateRandomNumber() {
     const min = 1000000000000; // Smallest 13-digit number
     const max = 9999999999999; // Largest 13-digit number
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+  },
+  _isValidCoordinates({ lat, lng }) {
+    const isValidLatitude = typeof lat === 'number' && !isNaN(lat) && lat >= -90 && lat <= 90;
+    const isValidLongitude = typeof lng === 'number' && !isNaN(lng) && lng >= -180 && lng <= 180;
+    return isValidLatitude && isValidLongitude;
+  },
+
 };
 
 const handleLocationEmptyState = (isLoading) => {
@@ -1876,6 +1908,13 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
       data
     });
   }, 500);
+};
+
+const triggerWidgetOnSettingsUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: 'sync',
+    scope: 'settings'
+  });
 };
 
 // this called in content.js;

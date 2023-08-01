@@ -119,7 +119,7 @@ const getSettings = () => {
 
 const init = () => {
   locationsAiSeeder.init();
-  onSidenavChange('categories');
+  onSidenavChange('locations');
   validateGoogleApiKey();
   Analytics.init();
   getSettings();
