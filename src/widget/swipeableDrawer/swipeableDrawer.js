@@ -182,6 +182,7 @@ const _swipeableDrawerUtils = {
 
         drawerDiv.classList.add("backgroundColorTheme");
         drawerDiv.classList.add("bodyTextTheme");
+        drawerDiv.classList.add("swipeable-drawer-hidden");
 
         _swipeableDrawerElements.drawerContainer = drawerDiv;
         _swipeableDrawerElements.drawerHeaderContent = drawerHeaderContent;
