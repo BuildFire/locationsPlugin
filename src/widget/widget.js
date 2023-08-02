@@ -43,7 +43,7 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
-import './js/swipeableDrawer';
+import './swipeableDrawer/swipeableDrawer';
 
 let SEARCH_TIMOUT;
 

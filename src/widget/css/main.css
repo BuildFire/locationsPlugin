@@ -351,11 +351,7 @@ div.empty-page {
   text-transform: unset;
   letter-spacing: normal;
 }
-.swipeable-drawer-content {
-  overflow: hidden;
-  overflow-y: scroll;
-  max-height: 100%;
-}
+
 .mdc-button.mdc-button--triangle .mdc-button__label {
   margin-right: 16px;
 }
@@ -1397,6 +1393,17 @@ h4.light-text {
   }
 }
 
+.swipeable-drawer-header {
+  padding: 0 15px;
+}
+
+.swipeable-drawer-resizer-container {
+  padding: 20px 0;
+}
+
+
+
+/*Swipeable drawer temp changes below*/
 .swipeable-drawer {
   position: absolute;
   box-shadow: rgb(150 150 150 / 20%) 0px -0.25rem 0.125rem;
@@ -1410,11 +1417,6 @@ h4.light-text {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 15px;
-}
-
-.swipeable-drawer {
-  padding-top: 0;
 }
 
 .swipeable-drawer-header {
@@ -1426,7 +1428,7 @@ h4.light-text {
 }
 
 .swipeable-drawer-resizer-container {
-  padding: 20px 0;
+  padding: 15px 0;
 }
 
 .swipeable-drawer-resizer {
