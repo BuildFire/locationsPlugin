@@ -1517,6 +1517,8 @@ const initHomeView = () => {
   initEventListeners();
   window.strings.inject(document, false);
 
+  initDrawer();
+
   if (state.deepLinkData?.isResultsBookmark) {
     handleResultsBookmark();
   } else if (showIntroductoryListView) {
@@ -1526,7 +1528,6 @@ const initHomeView = () => {
     showMapView();
     initMapLocations();
   }
-  initDrawer();
 
   if (state.deepLinkData?.locationId) {
     navigateToLocationId(state.deepLinkData.locationId);
