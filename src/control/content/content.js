@@ -4,6 +4,7 @@ import Analytics from '../../utils/analytics';
 import { locationsAiSeeder } from './js/locations';
 
 import './js/categories';
+import './js/locations';
 import './js/listView';
 import contentController from './content.controller';
 import state from './state';
