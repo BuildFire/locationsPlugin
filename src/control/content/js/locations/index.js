@@ -1277,9 +1277,10 @@ export const locationsAiSeeder = {
     })
       .smartShowEmptyState();
   },
-  _updateCoords(coordinates) {
+  _updateCoords(item) {
     const { settings } = globalState;
-    settings.map.initialAreaCoordinates = coordinates;
+    settings.map.initialAreaCoordinates = item.coordinates;
+    settings.map.initialAreaDisplayAddress = item.formattedAddress || 'N/A';
     return LocationsController.saveSettings(settings)
       .then(triggerWidgetOnSettingsUpdate);
   },
@@ -1319,7 +1320,7 @@ export const locationsAiSeeder = {
     if (this.instance.actionSource === 'emptyState') {
       const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
       if (firstItemHasValidCoords) {
-        promises.push(this._updateCoords(firstItemHasValidCoords.coordinates));
+        promises.push(this._updateCoords(firstItemHasValidCoords));
       }
     }
 
@@ -1354,7 +1355,7 @@ export const locationsAiSeeder = {
     if (this.instance.actionSource === 'emptyState') {
       const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
       if (firstItemHasValidCoords) {
-        promises.push(this._updateCoords(firstItemHasValidCoords.coordinates));
+        promises.push(this._updateCoords(firstItemHasValidCoords));
       }
     }
 

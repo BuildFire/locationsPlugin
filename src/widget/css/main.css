@@ -969,9 +969,6 @@ body section#home {
   cursor: pointer;
 }
 
-.swipeable-drawer #listingLocationsList > div:last-child {
-  margin-bottom: 90px;
-}
 #locationDirectionsBtn i {
   pointer-events: none;
 }
