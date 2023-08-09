@@ -69,6 +69,11 @@ export const navigateTo = (template) => {
   if (template === 'home' && state.breadcrumbs.length) {
     addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
   }
+  buildfire.components.swipeableDrawer.hide();
+
+  if (template === "home" && document.querySelector('section#intro').style.display === "none") {
+    buildfire.components.swipeableDrawer.show();
+  }
 };
 
 export const resetBodyScroll = () => { document.querySelector('body').scrollTop = 0; };

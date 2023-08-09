@@ -66,3 +66,7 @@
 	width : 2rem !important;
 	height: 2rem !important;
 }
+
+table#locations-items tbody {
+  max-height: 290px !important;
+}

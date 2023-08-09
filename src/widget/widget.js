@@ -6,7 +6,6 @@ import WidgetController from './widget.controller';
 import Location from '../entities/Location';
 import Accordion from './js/Accordion';
 import MainMap from './js/map/Map';
-import drawer from './js/drawer';
 import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
@@ -455,7 +454,10 @@ const clearAndSearchAllLocation = () => {
     mapView.clearMapViewList();
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      searchIntroLocations().then(() => prepareIntroViewList());
+      searchIntroLocations().then(() => {
+        prepareIntroViewList();
+        mapView.renderListingLocations(state.listLocations);
+      });
     }
   } else {
     WidgetController.searchLocations(options).then((response) => {
@@ -484,6 +486,7 @@ const refreshIntroductoryDescription = () => {
 };
 
 const showFilterOverlay = () => {
+  buildfire.components.swipeableDrawer.hide();
   const overlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
 
@@ -491,19 +494,6 @@ const showFilterOverlay = () => {
   overlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af' });
   state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
-};
-
-const toggleFilterOverlay = () => {
-  const filterOverlay = document.querySelector('section#filter');
-  const homeView = document.querySelector('section#home');
-
-  if (filterOverlay.classList.contains('overlay')) {
-    homeView.classList.add('active');
-    filterOverlay.classList.remove('overlay');
-  } else {
-    homeView.classList.remove('active');
-    showFilterOverlay();
-  }
 };
 
 const refreshAdvancedFilterUI = (chipId) => {
@@ -829,9 +819,16 @@ const getDirections = () => {
 
 
 const initEventListeners = () => {
-  window.addEventListener('resize', () => {   drawer.initialize(state.settings); }, true);
+  window.addEventListener('resize', () => {
+    initDrawer();
+    const currentActive = document.querySelector('section.active');
+
+    if (currentActive.id === 'home' && document.querySelector('section#intro').style.display === "none") {
+      buildfire.components.swipeableDrawer.show();
+    }
+
+  }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
-  document.querySelector('.drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
@@ -868,7 +865,7 @@ const initEventListeners = () => {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
-      toggleFilterOverlay();
+      showFilterOverlay();
     } else if (e.target.id === 'hideQFBtn' && !state.settings.design.hideQuickFilter) {
       hideElement('#areaSearchLabel');
       showElement('.header-qf');
@@ -876,10 +873,10 @@ const initEventListeners = () => {
       showMapView();
       initMapLocations();
     } else if (e.target.id === 'priceSortingBtn') {
-      drawer.reset('expanded');
+      buildfire.components.swipeableDrawer.setStep('max');
       setTimeout(() => { mdcPriceMenu.open = true; }, 200);
     } else if (e.target.id === 'otherSortingBtn') {
-      drawer.reset('expanded');
+      buildfire.components.swipeableDrawer.setStep('max');
       setTimeout(() => { mdcSortingMenu.open = true; }, 200);
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
       state.selectedLocation = state.pinnedLocations.concat(state.listLocations).find((i) => i.id === e.target.dataset.id);
@@ -943,18 +940,6 @@ const initEventListeners = () => {
     fillAreaSearchField(positionPoints);
   };
 
-  const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
-  openNowSortingBtn.onclick = () => {
-    state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
-    if (state.searchCriteria.openingNow) {
-      openNowSortingBtn.classList.add('selected');
-    } else {
-      openNowSortingBtn.classList.remove('selected');
-    }
-    state.checkNearLocation  = true;
-    resetResultsBookmark();
-    clearAndSearchWithDelay();
-  };
 };
 const chipSets = {};
 const initFilterOverlay = (isInitialized, newcategories) => {
@@ -1115,6 +1100,7 @@ const showMapView = () => {
   hideElement('section#intro');
   showElement('section#listing');
   clearAndSearchAllLocation();
+  buildfire.components.swipeableDrawer.show();
   Analytics.mapListUsed();
 };
 
@@ -1310,7 +1296,7 @@ const handleMarkerClick = (location) => {
               </div>`).join('\n')}
             </div>
           </div>`;
-  drawer.reset('collapsed');
+  buildfire.components.swipeableDrawer.setStep('min');
   summaryContainer.classList.remove('slide-out');
   // transition-in-progress class is added to track css transitioning start/stop
   summaryContainer.classList.add('slide-in', 'transition-in-progress');
@@ -1318,11 +1304,61 @@ const handleMarkerClick = (location) => {
     summaryContainer.classList.remove('transition-in-progress');
   }, 500);
 };
+
+const initDrawer = () => {
+  let position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+  buildfire.components.swipeableDrawer.initialize({
+    startingStep: position,
+    mode: "steps",
+    transitionDuration: 125
+  }, () => {
+
+    let bookmarksTemplate = document.getElementById("bookmarksTemplate");
+    let bookmarksTemplateClone = bookmarksTemplate.cloneNode(true);
+
+    let filterOptionsTemplate = document.getElementById("filterOptionsTemplate");
+    let filterOptionsTemplateClone = filterOptionsTemplate.cloneNode(true);
+
+    let bodyContentTemplate = document.getElementById("bodyContentTemplate");
+    let bodyContentTemplateClone = bodyContentTemplate.cloneNode(true);
+    buildfire.components.swipeableDrawer.setHeaderContent(bookmarksTemplateClone.innerHTML + filterOptionsTemplateClone.innerHTML);
+    buildfire.components.swipeableDrawer.setBodyContent(bodyContentTemplateClone);
+    initDrawerFilterOptions();
+
+    document.querySelector('.swipeable-drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
+
+    const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
+    openNowSortingBtn.onclick = () => {
+      state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
+      if (state.searchCriteria.openingNow) {
+        openNowSortingBtn.classList.add('selected');
+      } else {
+        openNowSortingBtn.classList.remove('selected');
+      }
+      state.checkNearLocation = true;
+      resetResultsBookmark();
+      clearAndSearchWithDelay();
+    };
+  });
+
+  buildfire.components.swipeableDrawer.onStepChange = (step) => {
+    const { sorting, filter } = state.settings;
+    const headerHasButtons = (!sorting.hideSorting || !filter.hidePriceFilter || !filter.hideOpeningHoursFilter);
+    if (step === "min" && headerHasButtons) {
+      document.querySelector('.bookmark-result').classList.remove('margin-bottom-twenty');
+      document.querySelector('.bookmark-result').classList.add('margin-bottom-thirty');
+    } else {
+      document.querySelector('.bookmark-result').classList.add('margin-bottom-twenty');
+      document.querySelector('.bookmark-result').classList.remove('margin-bottom-thirty');
+    }
+  };
+}
+
 const initDrawerFilterOptions = () => {
   const { sorting, bookmarks, filter } = state.settings;
   const otherSortingContainer = document.querySelector('.other-sorting-container');
   const priceFilterContainer = document.querySelector('.price-filter-container');
-  const drawerHeaderContainer = document.querySelector('.drawer-header');
+  const drawerHeaderContainer = document.querySelector('.swipeable-drawer-header');
   const openNowFilterBtn = document.querySelector('#openNowSortingBtn');
   const otherSortingMenuList = document.querySelector('.other-sorting-menu ul');
   const otherSortingMenuBtnLabel = document.querySelector('#otherSortingBtn .mdc-button__label');
@@ -1474,9 +1510,9 @@ const initHomeView = () => {
   });
   setDefaultSorting();
   initEventListeners();
-  drawer.initialize(state.settings);
-  initDrawerFilterOptions();
   window.strings.inject(document, false);
+
+  initDrawer();
 
   if (state.deepLinkData?.isResultsBookmark) {
     handleResultsBookmark();
@@ -1618,7 +1654,8 @@ const handleCPSync = (message) => {
           hideOverlays();
           navigateTo('home');
           showMapView();
-          drawer.reset(d.listViewPosition);
+          let position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+          buildfire.components.swipeableDrawer.setStep(position);
         } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
           [state.selectedLocation] = state.listLocations;
           showLocationDetail();

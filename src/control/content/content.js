@@ -1,6 +1,7 @@
 import buildfire from 'buildfire';
 import authManager from '../../UserAccessControl/authManager';
 import Analytics from '../../utils/analytics';
+import { locationsAiSeeder } from './js/locations';
 
 import './js/categories';
 import './js/locations';
@@ -26,7 +27,7 @@ const validateGoogleApiKey = () => {
       googleApiKeyMessage.classList.add('hidden');
     }
   });
-}
+};
 
 /** template management start */
 const fetchTemplate = (template, callback) => {
@@ -77,7 +78,7 @@ const setActiveSidenavTab = (section) => {
   const sidenav = document.querySelector('#sidenav');
   for (const tab of sidenav.childNodes) {
     tab.querySelector('a').classList.remove('active');
-  };
+  }
 
   sidenav.querySelector(`#${section}-tab`).firstChild.classList.add('active');
 };
@@ -110,17 +111,19 @@ window.onSidenavChange = (section) => {
   }
 };
 
-const getSettings = () => {
-  contentController.getSettings().then((settings) => {
-    state.settings = settings;
-  }).catch(console.error);
-};
+const getSettings = () => contentController.getSettings().then((settings) => {
+  state.settings = settings;
+}).catch(console.error);
 
 const init = () => {
-  onSidenavChange('categories');
+  locationsAiSeeder.init();
   validateGoogleApiKey();
-  Analytics.init();
-  getSettings();
+
+  getSettings()
+    .then(() => {
+      onSidenavChange('locations');
+      Analytics.init();
+    });
 };
 
 authManager.enforceLogin(init);

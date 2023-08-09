@@ -80,7 +80,7 @@ const renderListingLocations = (list) => {
 };
 
 const clearMapViewList = () => {
-  document.querySelector('.drawer').scrollTop = 0;
+  document.querySelector('.swipeable-drawer').scrollTop = 0;
   document.querySelector('#listingLocationsList').innerHTML = '';
 };
 

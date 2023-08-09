@@ -19,6 +19,7 @@ import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
+import constants from '../../../../widget/js/constants';
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -1249,14 +1250,167 @@ const deleteLocation = (item, row, callback = () => {}) => {
   );
 };
 
+export const locationsAiSeeder = {
+  instance: null,
+  jsonTemplate: [{
+    title: '', // todo mandotory
+    subtitle: '', // todo take the title
+    address: '',
+    listImage: '',
+    description: '',
+    latitude: '', // todo san diego
+    longitude: '', // todo san diego
+  }],
+  init() {
+    this.instance = new buildfire.components.aiStateSeeder({
+      generateOptions: {
+        userMessage: 'List a sample [business-type] locations in [target-region].',
+        systemMessage: 'Location\'s listImage is a 300x200 image URL using source.unsplash.com, title is a real-world name, description is a brief description. Each location is a Javascript object, generate up to 10 items.', // within an array of size 10.
+        jsonTemplate: this.jsonTemplate,
+        callback: this._handleGenerate.bind(this)
+      },
+      importOptions: {
+        jsonTemplate: this.jsonTemplate,
+        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://www.liblogo.com/img-logo/max/ad14a407-adidas-originals-logo-adidas-originals-logo-png-and-vector-logo-download.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\n\rBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://www.liblogo.com/img-logo/ba7902b6b0-bath-and-body-works-logo-bath-amp-body-works.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
+        systemMessage: `listImage is a URL, latitude is a coordinate, longitude is a coordinate, subtitle can be empty string, address is a location address`,
+        callback: this._handleImport.bind(this),
+      }
+    })
+      .smartShowEmptyState();
+  },
+  _updateCoords(item) {
+    const { settings } = globalState;
+    settings.map.initialAreaCoordinates = item.coordinates;
+    settings.map.initialAreaDisplayAddress = item.formattedAddress || 'N/A';
+    return LocationsController.saveSettings(settings)
+      .then(triggerWidgetOnSettingsUpdate);
+  },
+  deleteAll() {
+    const promises = state.locations.map((item) => LocationsController.deleteLocation(item.id));
+    return Promise.all(promises);
+  },
+  _insertData(data) {
+    return LocationsController.bulkCreateLocation(data).then((result) => {
+      triggerWidgetOnLocationsUpdate({});
+      if (locationsTable) refreshLocations();
+    }).catch((err) => {
+      console.error(err);
+    });
+  },
+  _applyDefaults(list) {
+    return list.filter((i) => typeof i && i.title !== 'undefined')
+      .map((item) => {
+        item.subtitle = item.subtitle || item.title;
+        item.description = item.description || 'N/A';
+        item.address = item.address || 'California, San Diego';
+        item.listImage = item.listImage || 'https://placehold.co/300x300';
+        item.clientId = generateUUID();
+        item.formattedAddress = item.address;
+        item.coordinates = item.latitude && item.longitude && this._isValidCoordinates({ lat: Number(item.latitude), lng: Number(item.longitude) }) ? { lat: Number(item.latitude), lng: Number(item.longitude) } : constants.getDefaultLocation();
+        item.createdOn = new Date();
+        item.createdBy = authManager.currentUser;
+        return new Location(item).toJSON();
+      });
+  },
+  _handleGenerate(err, data) {
+    if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
+
+    let list = Object.values(data)[0];
+    if (!Array.isArray(list)) {
+      return;
+    }
+    list = this._applyDefaults(list);
+    list = list.map((item) => {
+      item.listImage = `${item.listImage}?v=${this._generateRandomNumber()}`;
+      return item;
+    });
+
+    if (!list.length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
+
+    const promises = [this.deleteAll().then(() => this._insertData(list))];
+
+    if (this.instance.actionSource === 'emptyState') {
+      const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
+      if (firstItemHasValidCoords) {
+        promises.push(this._updateCoords(firstItemHasValidCoords));
+      }
+    }
+
+    Promise.all(promises).then(this.instance.requestResult.complete);
+  },
+  _handleImport(err, data) {
+    if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
+
+    let list = Object.values(data)[0];
+    if (!Array.isArray(list)) {
+      return;
+    }
+
+    list = this._applyDefaults(list);
+
+    if (!list.length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
+
+    const promises = [];
+
+    if (this.instance.requestResult.resetData) {
+      promises.push(this.deleteAll().then(() => this._insertData(list)));
+    } else {
+      promises.push(this._insertData(list));
+    }
+
+    if (this.instance.actionSource === 'emptyState') {
+      const firstItemHasValidCoords = list.find((item) => this._isValidCoordinates(item.coordinates));
+      if (firstItemHasValidCoords) {
+        promises.push(this._updateCoords(firstItemHasValidCoords));
+      }
+    }
+
+    Promise.all(promises).then(this.instance.requestResult.complete);
+  },
+  _generateRandomNumber() {
+    const min = 1000000000000; // Smallest 13-digit number
+    const max = 9999999999999; // Largest 13-digit number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+  _isValidCoordinates({ lat, lng }) {
+    const isValidLatitude = typeof lat === 'number' && !isNaN(lat) && lat >= -90 && lat <= 90;
+    const isValidLongitude = typeof lng === 'number' && !isNaN(lng) && lng >= -180 && lng <= 180;
+    return isValidLatitude && isValidLongitude;
+  },
+
+};
+
 const handleLocationEmptyState = (isLoading) => {
   const emptyState = locationsSection.querySelector('#location-empty-list');
+
+  if (!emptyState) return;
+
   if (isLoading) {
     emptyState.innerHTML = `<h4> Loading... </h4>`;
     emptyState.classList.remove('hidden');
   } else if (state.locations.length === 0) {
-    emptyState.innerHTML = `<h4>No Locations Found</h4>`;
     emptyState.classList.remove('hidden');
+    emptyState.innerHTML = `<h4>No Locations Found</h4>`;
   } else {
     emptyState.classList.add('hidden');
   }
@@ -1781,6 +1935,13 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
       data
     });
   }, 500);
+};
+
+const triggerWidgetOnSettingsUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: 'sync',
+    scope: 'settings'
+  });
 };
 
 // this called in content.js;
