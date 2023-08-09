@@ -43,7 +43,6 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
-import './swipeableDrawer/swipeableDrawer';
 
 let SEARCH_TIMOUT;
 
@@ -487,6 +486,7 @@ const refreshIntroductoryDescription = () => {
 };
 
 const showFilterOverlay = () => {
+  buildfire.components.swipeableDrawer.hide();
   const overlay = document.querySelector('section#filter');
   const currentActive = document.querySelector('section.active');
 
@@ -494,19 +494,6 @@ const showFilterOverlay = () => {
   overlay.classList.add('overlay');
   addBreadcrumb({ pageName: 'af' });
   state.currentFilterElements = JSON.parse(JSON.stringify(state.filterElements));
-};
-
-const toggleFilterOverlay = () => {
-  const filterOverlay = document.querySelector('section#filter');
-  const homeView = document.querySelector('section#home');
-
-  if (filterOverlay.classList.contains('overlay')) {
-    homeView.classList.add('active');
-    filterOverlay.classList.remove('overlay');
-  } else {
-    homeView.classList.remove('active');
-    showFilterOverlay();
-  }
 };
 
 const refreshAdvancedFilterUI = (chipId) => {
@@ -878,7 +865,7 @@ const initEventListeners = () => {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
     } else if (e.target.id === 'filterIconBtn') {
-      toggleFilterOverlay();
+      showFilterOverlay();
     } else if (e.target.id === 'hideQFBtn' && !state.settings.design.hideQuickFilter) {
       hideElement('#areaSearchLabel');
       showElement('.header-qf');

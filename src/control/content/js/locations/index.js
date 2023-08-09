@@ -19,6 +19,7 @@ import authManager from '../../../../UserAccessControl/authManager';
 import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
+import constants from '../../../../widget/js/constants';
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -1252,13 +1253,13 @@ const deleteLocation = (item, row, callback = () => {}) => {
 export const locationsAiSeeder = {
   instance: null,
   jsonTemplate: [{
-    title: '',
-    subtitle: '',
+    title: '', // todo mandotory
+    subtitle: '', // todo take the title
     address: '',
     listImage: '',
     description: '',
-    latitude: '',
-    longitude: '',
+    latitude: '', // todo san diego
+    longitude: '', // todo san diego
   }],
   init() {
     this.instance = new buildfire.components.aiStateSeeder({
@@ -1270,7 +1271,7 @@ export const locationsAiSeeder = {
       },
       importOptions: {
         jsonTemplate: this.jsonTemplate,
-        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://i.imgur.com/llww6Sz.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\n\rBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://i.imgur.com/DoBY8Wb.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
+        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://www.liblogo.com/img-logo/max/ad14a407-adidas-originals-logo-adidas-originals-logo-png-and-vector-logo-download.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\n\rBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://www.liblogo.com/img-logo/ba7902b6b0-bath-and-body-works-logo-bath-amp-body-works.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
         systemMessage: `listImage is a URL, latitude is a coordinate, longitude is a coordinate, subtitle can be empty string, address is a location address`,
         callback: this._handleImport.bind(this),
       }
@@ -1296,24 +1297,45 @@ export const locationsAiSeeder = {
       console.error(err);
     });
   },
+  _applyDefaults(list) {
+    return list.filter((i) => typeof i && i.title !== 'undefined')
+      .map((item) => {
+        item.subtitle = item.subtitle || item.title;
+        item.description = item.description || 'N/A';
+        item.address = item.address || 'California, San Diego';
+        item.listImage = item.listImage || 'https://placehold.co/300x300';
+        item.clientId = generateUUID();
+        item.formattedAddress = item.address;
+        item.coordinates = item.latitude && item.longitude && this._isValidCoordinates({ lat: Number(item.latitude), lng: Number(item.longitude) }) ? { lat: Number(item.latitude), lng: Number(item.longitude) } : constants.getDefaultLocation();
+        item.createdOn = new Date();
+        item.createdBy = authManager.currentUser;
+        return new Location(item).toJSON();
+      });
+  },
   _handleGenerate(err, data) {
     if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
-      return;
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
     }
 
     let list = Object.values(data)[0];
     if (!Array.isArray(list)) {
       return;
     }
+    list = this._applyDefaults(list);
     list = list.map((item) => {
       item.listImage = `${item.listImage}?v=${this._generateRandomNumber()}`;
-      item.clientId = generateUUID();
-      item.formattedAddress = item.address;
-      item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
-      item.createdOn = new Date();
-      item.createdBy = authManager.currentUser;
-      return new Location(item).toJSON();
+      return item;
     });
+
+    if (!list.length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
 
     const promises = [this.deleteAll().then(() => this._insertData(list))];
 
@@ -1328,21 +1350,25 @@ export const locationsAiSeeder = {
   },
   _handleImport(err, data) {
     if (err || !data || typeof data !== 'object' || !Object.keys(data).length) {
-      return;
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
     }
 
     let list = Object.values(data)[0];
     if (!Array.isArray(list)) {
       return;
     }
-    list = list.map((item) => {
-      item.clientId = generateUUID();
-      item.formattedAddress = item.address;
-      item.coordinates = { lat: Number(item.latitude), lng: Number(item.longitude) };
-      item.createdOn = new Date();
-      item.createdBy = authManager.currentUser;
-      return new Location(item).toJSON();
-    });
+
+    list = this._applyDefaults(list);
+
+    if (!list.length) {
+      return buildfire.dialog.toast({
+        message: "Bad AI request, please try changing your request.",
+        type: "danger",
+      });
+    }
 
     const promises = [];
 
