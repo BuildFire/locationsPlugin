@@ -1499,7 +1499,7 @@ const insertLocations = (result, callback) => {
       actionItems.push({
         "title": "Phone",
         "action": "callNumber",
-        "iconClassName": "glyphicon glyphicon-earphone",
+        "iconClassName": "bf-icon bf-icon-phone",
         "phoneNumber": elem.phoneNumber,
         "id": generateUUID() });
     }
@@ -1510,7 +1510,7 @@ const insertLocations = (result, callback) => {
       actionItems.push({
         "title": "Website",
         "action": "linkToWeb",
-        "iconClassName": "glyphicon glyphicon-globe",
+        "iconClassName": "bf-icon bf-icon-globe",
         "openIn": "_blank",
         "url": elem.website,
         "id": generateUUID() });

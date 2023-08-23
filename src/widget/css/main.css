@@ -1,8 +1,6 @@
 @import "../../../../styles/appStyle.css";
 @import "../../../../styles/helper.css";
 
-@import "./glyphicons.css";
-
 body {
   background: var(--bf-theme-background);
 }
