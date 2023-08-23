@@ -1271,7 +1271,7 @@ export const locationsAiSeeder = {
       },
       importOptions: {
         jsonTemplate: this.jsonTemplate,
-        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://www.liblogo.com/img-logo/max/ad14a407-adidas-originals-logo-adidas-originals-logo-png-and-vector-logo-download.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\n\rBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://www.liblogo.com/img-logo/ba7902b6b0-bath-and-body-works-logo-bath-amp-body-works.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
+        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://www.liblogo.com/img-logo/max/ad14a407-adidas-originals-logo-adidas-originals-logo-png-and-vector-logo-download.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\nBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://www.liblogo.com/img-logo/ba7902b6b0-bath-and-body-works-logo-bath-amp-body-works.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
         systemMessage: `listImage is a URL, latitude is a coordinate, longitude is a coordinate, subtitle can be empty string, address is a location address`,
         callback: this._handleImport.bind(this),
       }
