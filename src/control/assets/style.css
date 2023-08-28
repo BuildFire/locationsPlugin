@@ -159,6 +159,9 @@ p.info::before {
 	background-color: #efefef;
 	overflow: hidden;
 }
+.icon-holder .custom-icon-list {
+	font-size: 20px !important;
+}
 
 .list-image-holder {
 	width: 120px;

@@ -114,11 +114,11 @@ const setCategoryIcon = (icon, type) => {
   }
 
   const imageIcon = inputCategoryControls.categoryIconBtn.querySelector(".image-icon");
-  const glyphIcon = inputCategoryControls.categoryIconBtn.querySelector(".glyph-icon");
+  const listIcon = inputCategoryControls.categoryIconBtn.querySelector(".custom-icon-list");
   const defaultIcon = inputCategoryControls.categoryIconBtn.querySelector(".add-icon");
 
   if (type === "url") {
-    glyphIcon.classList.add("hidden");
+    listIcon.classList.add("hidden");
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
@@ -128,8 +128,8 @@ const setCategoryIcon = (icon, type) => {
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
     defaultIcon.classList.add("hidden");
-    glyphIcon.classList.remove("hidden");
-    glyphIcon.className = `glyph-icon ${icon}`;
+    listIcon.classList.remove("hidden");
+    listIcon.className = `custom-icon-list ${icon}`;
   }
 };
 

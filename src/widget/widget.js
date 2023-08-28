@@ -619,7 +619,7 @@ const showLocationDetail = () => {
       }
 
       selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="${a.iconClassName}"></i>` : ''}
+      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon ${a.iconClassName}"></i>` : ''}
         <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
           <div class="mdc-chip__ripple"></div>
           <span role="gridcell">
@@ -952,7 +952,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
   categories.forEach((category) => {
-    let categoryIcon = `<i class="${category.iconClassName ?? 'glyphicon glyphicon-map-marker'}"></i>`;
+    let categoryIcon = `<i class="custom-category-icon ${category.iconClassName ?? 'bf-icon bf-icon-geo-alt'}"></i>`;
     if (category.iconUrl) {
       categoryIcon = `<img src="${category.iconUrl}" alt="category icon">`;
     }
