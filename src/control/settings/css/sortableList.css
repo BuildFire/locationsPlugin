@@ -41,6 +41,9 @@
 	justify-content: center;
 	align-items: center;
 }
+.draggable-list-view .d-item .media-holder .custom-icon-list {
+    font-size: 20px !important;
+}
 
 .draggable-list-view .d-item .media-holder img {
     width: 100%;

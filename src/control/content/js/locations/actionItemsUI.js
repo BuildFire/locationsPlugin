@@ -44,7 +44,7 @@ class ActionItemsUI extends SortableListUI {
       mediaHolder.appendChild(img);
     } else if (item.iconClassName) {
       const span = document.createElement('span');
-      span.className = `glyph-icon ${item.iconClassName}`;
+      span.className = `custom-icon-list ${item.iconClassName}`;
       mediaHolder.appendChild(span);
     } else {
       const span = document.createElement('span');
