@@ -84,6 +84,13 @@ const setActiveSidenavTab = (section) => {
 };
 
 window.onSidenavChange = (section) => {
+  if (!Object.keys(state.settings).length) {
+    return;
+  }
+  // enable vertical navigation
+  const sidenav = document.querySelector('#sidenav-container ul#sidenav');
+  sidenav.classList.remove('disabled-links');
+
   switch (section) {
     case 'categories':
       setActiveSidenavTab(section);
