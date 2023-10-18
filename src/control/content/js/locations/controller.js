@@ -6,6 +6,7 @@ import DeepLink from '../../../../utils/deeplink';
 import SearchEngine from '../../../../repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
 import { generateUUID } from '../../utils/helpers';
+import Settings from '../../../../repository/Settings';
 
 export default {
   createLocation(location) {
@@ -63,5 +64,10 @@ export default {
       SearchEngine.delete(Location.TAG, locationId)
     ];
     return Promise.allSettled(promiseChain);
-  }
+  },
+  saveSettings(settings) {
+    settings.lastUpdatedOn = new Date();
+    settings.lastUpdatedBy = authManager.currentUser;
+    return Settings.save(settings.toJSON());
+  },
 };

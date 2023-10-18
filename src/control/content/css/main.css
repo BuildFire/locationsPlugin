@@ -66,3 +66,13 @@
 	width : 2rem !important;
 	height: 2rem !important;
 }
+
+table#locations-items tbody {
+  max-height: 290px !important;
+}
+
+#sidenav-container ul#sidenav.disabled-links a {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}

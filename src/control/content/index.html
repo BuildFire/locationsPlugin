@@ -15,13 +15,13 @@
     <link href="./css/main.css" rel="stylesheet" />
 
     <!-- JS -->
-    <script src="../../../../scripts/jquery/jquery-1.11.2.min.js"></script>
-    <script src="../../../../scripts/buildfire.min.js"></script>
-    <script src="../../../../scripts/sortable.min.js"></script>
-    <script src="../../../../scripts/tinymce/tinymce.min.js"></script>
-    <script src="../../../../scripts/buildfire/components/carousel/carousel.js"></script>
-    <script src="../../../../scripts/buildfire/services/searchEngine/searchEngine.js"></script>
-
+	  <script src="../../../../scripts/jquery/jquery-1.11.2.min.js"></script>
+	  <script src="../../../../scripts/buildfire.min.js"></script>
+	  <script src="../../../../scripts/sortable.min.js"></script>
+	  <script src="../../../../scripts/tinymce/tinymce.min.js"></script>
+	  <script src="../../../../scripts/buildfire/components/carousel/carousel.js"></script>
+	  <script src="../../../../scripts/buildfire/components/aiStateSeeder/aiStateSeeder.js"></script>
+	  <script src="../../../../scripts/buildfire/services/searchEngine/searchEngine.js"></script>
   </head>
   <body>
     <div id="google-api-key-message" class="warning-message-container hidden">
@@ -33,15 +33,15 @@
       </ul>
     </div>
     <div id="sidenav-container" class="sidenav-container">
-      <ul id="sidenav" class="sidenav">
+      <ul id="sidenav" class="sidenav disabled-links">
+		  <li id="locations-tab" class="active">
+			  <a onclick="onSidenavChange('locations')">
+				  <p>Locations</p>
+			  </a>
+		  </li>
         <li id="categories-tab">
-          <a onclick="onSidenavChange('categories')" class="active">
+          <a onclick="onSidenavChange('categories')">
             <p>Categories</p>
-          </a>
-        </li>
-        <li id="locations-tab">
-          <a onclick="onSidenavChange('locations')">
-            <p>Locations</p>
           </a>
         </li>
         <li id="listView-tab">
