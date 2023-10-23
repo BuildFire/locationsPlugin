@@ -111,15 +111,23 @@ export default {
     const uploadOptions = { allowMultipleFilesUpload: true };
     const locationImagesList = this._querySelect('#locationListImagesContainer');
     const locationImagesSelectBtn = locationImagesList.querySelector('button');
+    let skeletonObj = {};
 
     uploadImages(
       uploadOptions,
       (onProgress) => {
         this._isCurrentlyImagesUploading = true;
         locationImagesSelectBtn.disabled = true;
+        locationImagesSelectBtn.classList.add('hidden');
+        if(!skeletonObj[onProgress.file.fileId]){
+            skeletonObj[onProgress.file.fileId] = onProgress.file.filename;
+            this._buildUploadImageSkeleton('#locationListImagesContainer');
+        }
         console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
       (err, files) => {
+        skeletonObj = {};
+        locationImagesSelectBtn.classList.remove('hidden');
         this._isCurrentlyImagesUploading = false;
         locationImagesSelectBtn.disabled = false;
         if (files) {
@@ -131,6 +139,10 @@ export default {
         }
       }
     );
+  },
+  _buildUploadImageSkeleton(selector){
+    const locationImagesList = this._querySelect(selector);
+    locationImagesList.appendChild(createImageHolder({ hasSkeleton: true, hasImage: false }, null));
   },
   _buildLocationImages() {
     const locationImagesList = this._querySelect('#locationListImagesContainer');
@@ -438,6 +450,7 @@ export default {
     const listImageInput = this._querySelect('#locationListImageInput');
     const listImageImg = listImageInput.querySelector('img');
     const listImageSelectBtn = listImageInput.querySelector('button');
+    const listImageSkeletonContainer = locationListImageInput.querySelector('.img-skeleton-container');
 
     if (this._isCurrentlyUploading) return;
     const uploadOptions = { allowMultipleFilesUpload: false };
@@ -447,10 +460,14 @@ export default {
         this._isCurrentlyUploading = true;
         listImageSelectBtn.disabled = true;
         console.log(`onProgress${JSON.stringify(onProgress)}`);
+        listImageSkeletonContainer.classList.remove('hidden');
+        listImageSelectBtn.classList.add('hidden');
       },
       (err, files) => {
         this._isCurrentlyUploading = false;
         listImageSelectBtn.disabled = false;
+        listImageSkeletonContainer.classList.add('hidden');
+        listImageSelectBtn.classList.remove('hidden');
         if (files) {
           const { url } = files[0];
           this.payload.listImage = url;

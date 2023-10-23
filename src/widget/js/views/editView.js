@@ -330,7 +330,7 @@ const _saveChanges = (e) => {
 };
 
 const _createImageHolder = (options, onClick, onDelete) => {
-  const { hasImage, imageUrl } = options;
+  const { hasSkeleton, hasImage, imageUrl } = options;
 
   const div = document.createElement('div');
   div.className = 'img-select-holder';
@@ -338,18 +338,23 @@ const _createImageHolder = (options, onClick, onDelete) => {
   button.className = 'img-select margin-right-ten';
   if (hasImage) button.classList.add('has-img');
 
-  const i = document.createElement('i');
-  i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
-  i.textContent = 'close';
-  i.tabIndex = '0';
   div.appendChild(button);
-  const img = document.createElement('img');
-  img.src = imageUrl ?? '';
-  button.appendChild(i);
-  button.appendChild(img);
+  if(hasSkeleton){
+    button.className = "img-skeleton-container margin-right-ten bf-skeleton-loader grid-block";
+  }else{
+    const i = document.createElement('i');
+    i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
+    i.textContent = 'close';
+    i.tabIndex = '0';
 
-  if (onClick) button.onclick = onClick;
-  if (onDelete) i.onclick = onDelete;
+    const img = document.createElement('img');
+    img.src = imageUrl ?? '';
+    button.appendChild(i);
+    button.appendChild(img);
+
+    if (onClick) button.onclick = onClick;
+    if (onDelete) i.onclick = onDelete;
+  }
   return div;
 };
 
@@ -378,21 +383,33 @@ const _refreshLocationImages = () => {
     locationImagesList.appendChild(div);
   });
 };
-
+const _buildUploadImageSkeleton = () => {
+  const locationImagesList = document.querySelector('#locationImagesList');
+  locationImagesList.appendChild(_createImageHolder({ hasSkeleton: true, hasImage: false }, null));
+}
 const _addLocationCarousel = () => {
   const { pendingLocation } = localState;
   if (state.carouselUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
+  let skeletonObj = {};
+
   uploadImages(
     uploadOptions,
     (onProgress) => {
+        if(!skeletonObj[onProgress.file.fileId]){
+            skeletonObj[onProgress.file.fileId] = onProgress.file.filename;
+            _buildUploadImageSkeleton();
+        }
       state.carouselUploadPending = true;
       locationImagesSelectBtn.disabled = true;
+      locationImagesSelectBtn.classList.add('hidden');
       console.log(`onProgress${JSON.stringify(onProgress)}`);
     },
     (err, files) => {
+        skeletonObj = {};
+        locationImagesSelectBtn.classList.remove('hidden');
       state.carouselUploadPending = false;
       locationImagesSelectBtn.disabled = false;
       if (files) {
@@ -690,6 +707,7 @@ const _uploadListImage = () => {
   const locationListImageInput = document.querySelector('#locationListImageInput');
   const listImageImg = locationListImageInput.querySelector('img');
   const listImageSelectBtn = locationListImageInput.querySelector('button');
+  const listImageSkeletonContainer = locationListImageInput.querySelector('.img-skeleton-container');
 
   const { pendingLocation } = localState;
   if (localState.imageUploadPending) return;
@@ -700,10 +718,14 @@ const _uploadListImage = () => {
       localState.imageUploadPending = true;
       listImageSelectBtn.disabled = true;
       console.log(`onProgress${JSON.stringify(onProgress)}`);
+      listImageSelectBtn.classList.add('hidden');
+      listImageSkeletonContainer.classList.remove('hidden');
     },
     (err, files) => {
       localState.imageUploadPending = false;
       listImageSelectBtn.disabled = false;
+      listImageSelectBtn.classList.remove('hidden');
+      listImageSkeletonContainer.classList.add('hidden');
       if (files) {
         const { url } = files[0];
         pendingLocation.listImage = url;

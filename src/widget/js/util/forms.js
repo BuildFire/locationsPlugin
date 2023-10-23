@@ -32,7 +32,7 @@ export const toggleFieldError = (element, hasError) => {
 };
 
 export const createImageHolder = (options, onClick, onDelete) => {
-  const { hasImage, imageUrl } = options;
+  const { hasSkeleton, hasImage, imageUrl } = options;
 
   const div = document.createElement('div');
   div.className = 'img-select-holder';
@@ -40,18 +40,23 @@ export const createImageHolder = (options, onClick, onDelete) => {
   button.className = 'img-select margin-right-ten';
   if (hasImage) button.classList.add('has-img');
 
-  const i = document.createElement('i');
-  i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
-  i.textContent = 'close';
-  i.tabIndex = '0';
   div.appendChild(button);
-  const img = document.createElement('img');
-  img.src = imageUrl ?? '';
-  button.appendChild(i);
-  button.appendChild(img);
+  if(hasSkeleton){
+    button.className = "img-skeleton-container margin-right-ten bf-skeleton-loader grid-block";
+  }else{
+    const i = document.createElement('i');
+    i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
+    i.textContent = 'close';
+    i.tabIndex = '0';
 
-  if (onClick) button.onclick = onClick;
-  if (onDelete) i.onclick = onDelete;
+    const img = document.createElement('img');
+    img.src = imageUrl ?? '';
+    button.appendChild(i);
+    button.appendChild(img);
+
+    if (onClick) button.onclick = onClick;
+    if (onDelete) i.onclick = onDelete;
+  }
   return div;
 };
 
