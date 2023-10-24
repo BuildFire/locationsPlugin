@@ -135,7 +135,7 @@ export default {
 
         if(err || !files){
             showToastMessage('uploadingFailed', 5000);
-        }if (files) {
+        }else if(files) {
             files=files.filter(file=>file.status=='success');
             if(files.length){
                 showToastMessage('uploadingComplete', 5000);
@@ -488,7 +488,7 @@ export default {
 
         if(err || !files){
             showToastMessage('uploadingFailed', 5000);
-        }else if (files) {
+        }else if(files) {
             files=files.filter(file=>file.status=='success');
             if(files.length){
                 showToastMessage('uploadingComplete', 5000);
