@@ -146,7 +146,7 @@ export default {
             }else{
                 showToastMessage('uploadingFailed', 5000);
             }
-			this._buildLocationImages();
+            this._buildLocationImages();
         }
       }
     );
