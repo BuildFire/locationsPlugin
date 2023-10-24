@@ -529,6 +529,13 @@ export default {
         required: true,
         maxLength: 50,
       },
+      uploadingFailed: {
+        title: 'Uploading Images Failed',
+        placeholder: 'Enter text here',
+        defaultValue: 'Uploading Images Failed',
+        required: true,
+        maxLength: 50,
+      },
       locationSaved: {
         title: 'Location Saved',
         placeholder: 'Enter text here',

@@ -400,6 +400,7 @@ const _addLocationCarousel = () => {
     (onProgress) => {
         const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
         if(!existImage){
+            showToastMessage('uploadingImages', 5000);
             locationImagesSelectBtn.classList.add('hidden');
             state.carouselUploadPending = true;
             locationImagesSelectBtn.disabled = true;
@@ -415,8 +416,17 @@ const _addLocationCarousel = () => {
       locationImagesSelectBtn.classList.remove('hidden');
       state.carouselUploadPending = false;
       locationImagesSelectBtn.disabled = false;
-      if (files) {
-        pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
+
+      if(err || !files){
+          showToastMessage('uploadingFailed', 5000);
+      }else if (files) {
+        files=files.filter(file=>file.status=='success');
+        if(files.length){
+          showToastMessage('uploadingComplete', 5000);
+          pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
+        }else{
+          showToastMessage('uploadingFailed', 5000);
+        }
         _refreshLocationImages();
       }
     }
@@ -720,13 +730,14 @@ const _uploadListImage = () => {
     (onProgress) => {
        const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
        if(!existImage){
-         _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
-         localState.imageUploadPending = true;
-         listImageSelectBtn.disabled = true;
-         listImageSkeletonContainer.classList.remove('hidden');
-         listImageSelectBtn.classList.add('hidden');
+        showToastMessage('uploadingImages', 5000);
+        _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
+        localState.imageUploadPending = true;
+        listImageSelectBtn.disabled = true;
+        listImageSkeletonContainer.classList.remove('hidden');
+        listImageSelectBtn.classList.add('hidden');
        }else{
-         existImage.percentage= onProgress.file.percentage;
+        existImage.percentage= onProgress.file.percentage;
        }
        console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
@@ -735,14 +746,24 @@ const _uploadListImage = () => {
       listImageSelectBtn.disabled = false;
       listImageSelectBtn.classList.remove('hidden');
       listImageSkeletonContainer.classList.add('hidden');
-      if (files) {
-        const { url } = files[0];
-        pendingLocation.listImage = url;
-        listImageImg.src = cropImage(url, {
-          width: 64,
-          height: 64,
-        });
-        listImageSelectBtn.classList.add('has-img');
+
+      if(err || !successUploadingState){
+        showToastMessage('uploadingFailed', 5000);
+      }else if (files) {
+        files=files.filter(file=>file.status=='success');
+        if(files.length){
+          showToastMessage('uploadingComplete', 5000);
+          const { url } = files[0];
+          pendingLocation.listImage = url;
+          listImageImg.src = cropImage(url, {
+            width: 64,
+            height: 64,
+          });
+          listImageSelectBtn.classList.add('has-img');
+        }else{
+          showToastMessage('uploadingFailed', 5000);
+        }
+
         _toggleInputError('locationListImageFieldHelper', false);
       }
     }

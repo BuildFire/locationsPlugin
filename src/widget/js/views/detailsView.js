@@ -81,10 +81,11 @@ export default {
         buildfire.spinner.show();
         const existImage = this._currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
         if(!existImage){
-            this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
-            this._buildUploadImageSkeleton();
-            this._isCurrentlyUploading = true;
-            addPhotosBtn.classList.add('disabled');
+          showToastMessage('uploadingImages', 5000);
+          this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+          this._buildUploadImageSkeleton();
+          this._isCurrentlyUploading = true;
+          addPhotosBtn.classList.add('disabled');
         }
         console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
@@ -92,8 +93,17 @@ export default {
         this._isCurrentlyUploading = false;
         addPhotosBtn.classList.remove('disabled');
         this._currentImageOnProgress = this._currentImageOnProgress.filter(_imgObj=>_imgObj.source!=='carousel');
-        if (files) {
-          state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
+
+        if(err || !files){
+          showToastMessage('uploadingFailed', 5000);
+        }else if (files) {
+          files=files.filter(file=>file.status=='success');
+          if(files.length){
+            showToastMessage('uploadingComplete', 5000);
+            state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
+          }else{
+            showToastMessage('uploadingFailed', 5000);
+          }
           this.updateLocation();
         }
       }
