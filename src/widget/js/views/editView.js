@@ -719,17 +719,12 @@ const _uploadListImage = () => {
     uploadOptions,
     (onProgress) => {
        const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
-       if(!existImage && onProgress.file.fileId==0){
+       if(!existImage){
          _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
          localState.imageUploadPending = true;
          listImageSelectBtn.disabled = true;
          listImageSkeletonContainer.classList.remove('hidden');
          listImageSelectBtn.classList.add('hidden');
-       }else if(!existImage){
-         const locationImagesSelectBtn = locationImagesList.querySelector('button');
-         locationImagesSelectBtn.classList.add('hidden');
-         _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
-         _buildUploadImageSkeleton();
        }else{
          existImage.percentage= onProgress.file.percentage;
        }
