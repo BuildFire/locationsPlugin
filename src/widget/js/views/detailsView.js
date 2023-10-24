@@ -20,6 +20,7 @@ import mapView from './mapView';
 
 export default {
   _isCurrentlyUploading: false,
+  _currentImageOnProgress: [],
   _reflectUpdatedLocationOnUI() {
     const location = state.selectedLocation;
     const carouselContainer = document.querySelector('.location-detail__carousel');
@@ -66,19 +67,31 @@ export default {
         console.error(err);
       });
   },
+  _buildUploadImageSkeleton(){
+    const carouselContainer = document.querySelector('.location-detail__carousel');
+    carouselContainer.innerHTML+=`<div class="img-select-holder"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
+  },
   addLocationPhotos() {
     if (this._isCurrentlyUploading || !accessManager.canAddLocationPhotos()) return;
+    const addPhotosBtn= document.querySelector("#addPhotosBtn");
 
     uploadImages(
       { allowMultipleFilesUpload: true },
       (onProgress) => {
         buildfire.spinner.show();
-
-        this._isCurrentlyUploading = true;
+        const existImage = this._currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
+        if(!existImage){
+            this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+            this._buildUploadImageSkeleton();
+            this._isCurrentlyUploading = true;
+            addPhotosBtn.classList.add('disabled');
+        }
         console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
       (err, files) => {
         this._isCurrentlyUploading = false;
+        addPhotosBtn.classList.remove('disabled');
+        this._currentImageOnProgress = this._currentImageOnProgress.filter(_imgObj=>_imgObj.source!=='carousel');
         if (files) {
           state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
           this.updateLocation();

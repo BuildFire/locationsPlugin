@@ -35,6 +35,7 @@ const localState = {
 
 let editViewAccordion;
 let formTextFields;
+let _currentImageOnProgress= [];
 
 const _handleEnableEditing = (e) => {
   e.preventDefault();
@@ -393,23 +394,25 @@ const _addLocationCarousel = () => {
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
-  let skeletonObj = {};
 
   uploadImages(
     uploadOptions,
     (onProgress) => {
-        if(!skeletonObj[onProgress.file.fileId]){
-            skeletonObj[onProgress.file.fileId] = onProgress.file.filename;
+        const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
+        if(!existImage){
+            locationImagesSelectBtn.classList.add('hidden');
+            state.carouselUploadPending = true;
+            locationImagesSelectBtn.disabled = true;
+            _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
             _buildUploadImageSkeleton();
+        }else{
+            existImage.percentage = onProgress.file.percentage;
         }
-      state.carouselUploadPending = true;
-      locationImagesSelectBtn.disabled = true;
-      locationImagesSelectBtn.classList.add('hidden');
-      console.log(`onProgress${JSON.stringify(onProgress)}`);
-    },
+        console.log(`onProgress${JSON.stringify(onProgress)}`);
+      },
     (err, files) => {
-        skeletonObj = {};
-        locationImagesSelectBtn.classList.remove('hidden');
+      _currentImageOnProgress = _currentImageOnProgress.filter(_imgObj=>(_imgObj.source!=='carousel'));
+      locationImagesSelectBtn.classList.remove('hidden');
       state.carouselUploadPending = false;
       locationImagesSelectBtn.disabled = false;
       if (files) {
@@ -715,12 +718,23 @@ const _uploadListImage = () => {
   uploadImages(
     uploadOptions,
     (onProgress) => {
-      localState.imageUploadPending = true;
-      listImageSelectBtn.disabled = true;
-      console.log(`onProgress${JSON.stringify(onProgress)}`);
-      listImageSelectBtn.classList.add('hidden');
-      listImageSkeletonContainer.classList.remove('hidden');
-    },
+       const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
+       if(!existImage && onProgress.file.fileId==0){
+         _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
+         localState.imageUploadPending = true;
+         listImageSelectBtn.disabled = true;
+         listImageSkeletonContainer.classList.remove('hidden');
+         listImageSelectBtn.classList.add('hidden');
+       }else if(!existImage){
+         const locationImagesSelectBtn = locationImagesList.querySelector('button');
+         locationImagesSelectBtn.classList.add('hidden');
+         _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+         _buildUploadImageSkeleton();
+       }else{
+         existImage.percentage= onProgress.file.percentage;
+       }
+       console.log(`onProgress${JSON.stringify(onProgress)}`);
+      },
     (err, files) => {
       localState.imageUploadPending = false;
       listImageSelectBtn.disabled = false;

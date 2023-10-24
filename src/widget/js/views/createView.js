@@ -102,6 +102,7 @@ export default {
   _isCurrentlyImagesUploading: false,
   payload: null,
   _formFieldsInstances: null,
+  _currentImageOnProgress: [],
   _querySelect(selector) {
     const createView = document.querySelector('section#create');
     return createView.querySelector(selector);
@@ -111,25 +112,25 @@ export default {
     const uploadOptions = { allowMultipleFilesUpload: true };
     const locationImagesList = this._querySelect('#locationListImagesContainer');
     const locationImagesSelectBtn = locationImagesList.querySelector('button');
-    let skeletonObj = {};
 
     uploadImages(
       uploadOptions,
       (onProgress) => {
-        this._isCurrentlyImagesUploading = true;
-        locationImagesSelectBtn.disabled = true;
-        locationImagesSelectBtn.classList.add('hidden');
-        if(!skeletonObj[onProgress.file.fileId]){
-            skeletonObj[onProgress.file.fileId] = onProgress.file.filename;
-            this._buildUploadImageSkeleton('#locationListImagesContainer');
+        const existImage = this._currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
+          if(!existImage){
+            this._isCurrentlyImagesUploading = true;
+            locationImagesSelectBtn.classList.add('hidden');
+            this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+            this._buildUploadImageSkeleton();
+        }else{
+            existImage.percentage = onProgress.file.percentage;
         }
         console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
       (err, files) => {
-        skeletonObj = {};
+        this._currentImageOnProgress = this._currentImageOnProgress.filter(_imgObj=>(_imgObj.source!=='carousel'));
         locationImagesSelectBtn.classList.remove('hidden');
         this._isCurrentlyImagesUploading = false;
-        locationImagesSelectBtn.disabled = false;
         if (files) {
           this.payload.images = [
             ...this.payload.images,
@@ -140,8 +141,8 @@ export default {
       }
     );
   },
-  _buildUploadImageSkeleton(selector){
-    const locationImagesList = this._querySelect(selector);
+  _buildUploadImageSkeleton(){
+    const locationImagesList = this._querySelect('#locationListImagesContainer');
     locationImagesList.appendChild(createImageHolder({ hasSkeleton: true, hasImage: false }, null));
   },
   _buildLocationImages() {
@@ -457,15 +458,25 @@ export default {
     uploadImages(
       uploadOptions,
       (onProgress) => {
-        this._isCurrentlyUploading = true;
-        listImageSelectBtn.disabled = true;
+        const existImage = this._currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
+        if(!existImage && onProgress.file.fileId==0){
+          this._isCurrentlyUploading = true;
+          this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
+          listImageSkeletonContainer.classList.remove('hidden');
+          listImageSelectBtn.classList.add('hidden');
+        }else if(!existImage){
+          const locationImagesSelectBtn = locationImagesList.querySelector('button');
+          locationImagesSelectBtn.classList.add('hidden');
+          this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+          this._buildUploadImageSkeleton();
+        }else{
+          existImage.percentage= onProgress.file.percentage;
+        }
         console.log(`onProgress${JSON.stringify(onProgress)}`);
-        listImageSkeletonContainer.classList.remove('hidden');
-        listImageSelectBtn.classList.add('hidden');
       },
       (err, files) => {
+        this._currentImageOnProgress = this._currentImageOnProgress.filter(_imgObj=>(_imgObj.source!=='location'));
         this._isCurrentlyUploading = false;
-        listImageSelectBtn.disabled = false;
         listImageSkeletonContainer.classList.add('hidden');
         listImageSelectBtn.classList.remove('hidden');
         if (files) {
