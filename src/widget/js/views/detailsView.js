@@ -100,7 +100,7 @@ export default {
         addPhotosBtn.classList.remove('disabled');
         this._currentImageOnProgress = this._currentImageOnProgress.filter((_imgObj) => _imgObj.source !== 'carousel');
 
-        files = files?.filter((file) => file.status === 'success' );
+        files = files?.filter((file) => file.status === 'success');
         if (err || !files?.length) {
           showToastMessage('uploadingFailed', 5000);
         } else {
