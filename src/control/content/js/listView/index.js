@@ -7,6 +7,7 @@ import Setting from "../../../../entities/Settings";
 import { generateUUID } from "../../utils/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
 import Location from "../../../../entities/Location";
+
 const state = {
   settings: new Setting(),
   pinnedLocations: [],
@@ -52,22 +53,32 @@ window.onSortLocationsChanged = (sorting) => {
 };
 
 window.onShowLocationsModeChanged = (showMode) => {
-	if (!showMode) {
-		return;
-	}
-	let areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
-	if(showMode=="AreaRadius"){
-		areaRadiusOptionsContainer?.classList?.remove('hidden');
-	}else{
-		areaRadiusOptionsContainer?.classList?.add('hidden');
-	}
-}
+  if (!showMode) {
+    return;
+  }
+
+  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
+  if (showMode === "AreaRadius") {
+    areaRadiusOptionsContainer?.classList?.remove('hidden');
+  } else {
+    areaRadiusOptionsContainer?.classList?.add('hidden');
+  }
+};
 
 window.initAreaRadiusMap = () => {
-	console.log("Map Ready");
+  console.log("Map Ready");
+  const localAreaOptions = {
+    formattedLocation: "",
+    radius: 0,
+    lat: 37.7749,
+    lng: -122.4194
+  };
+  const areaAddressInput = document.getElementById("area-radius-address-input");
+  const areaRadiusInput = document.getElementById("location-area-radius-input");
+
   const map = new google.maps.Map(document.getElementById("area-radius-location-map"), {
-    center: { lat: 32.7182625, lng: -117.1601157 },
-    zoom: 1,
+    center: { lat: localAreaOptions.lat, lng: localAreaOptions.lng },
+    zoom: 10,
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
@@ -77,13 +88,16 @@ window.initAreaRadiusMap = () => {
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
-    document.getElementById("area-radius-address-input"),
+    areaAddressInput,
     {
       types: ["address"],
     }
   );
 
   const geoCoder = new google.maps.Geocoder();
+  const handleLocalMapOptionChanges = () => {
+    console.log("🚀 ~ file: index.js:100 ~ handleLocalMapOptionChanges ~ localAreaOptions:", localAreaOptions);
+  };
 
   autocomplete.bindTo("bounds", map);
 
@@ -93,13 +107,29 @@ window.initAreaRadiusMap = () => {
     draggable: true,
   });
 
-  const currentPosition = {lat: 32.7182625, lng: -117.1601157}
-  if (currentPosition.lat && currentPosition.lng) {
-    const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+  // Create the circle and add it to the map.
+  const circle = new google.maps.Circle({
+    map,
+    strokeColor: '#D85646',
+    strokeWeight: 2,
+    fillColor: '#D85646',
+    fillOpacity: 0.20,
+    radius: localAreaOptions.radius // Radius in meters
+  });
+
+  if (localAreaOptions.lat && localAreaOptions.lng) {
+    const latlng  = new google.maps.LatLng(localAreaOptions.lat, localAreaOptions.lng);
     marker.setVisible(true);
     marker.setPosition(latlng);
+    circle.setVisible(true);
+    circle.setCenter(latlng);
     map.setCenter(latlng);
-    map.setZoom(15);
+
+    if (localAreaOptions.radius) {
+      map.fitBounds(circle.getBounds());
+    } else {
+      map.setZoom(15);
+    }
   }
 
   autocomplete.addListener("places_changed", () => {
@@ -115,58 +145,97 @@ window.initAreaRadiusMap = () => {
       map.fitBounds(place.geometry.viewport);
     } else {
       map.setCenter(place.geometry.location);
-      map.setZoom(17);
+      map.fitBounds(circle.getBounds());
     }
 
     marker.setPosition(place.geometry.location);
+    circle.setCenter(place.geometry.location);
     marker.setVisible(true);
-
-    console.log(place);
   });
 
   marker.addListener("dragend", (e) => {
-    map.setCenter(e.latLng);
+    circle.setCenter(e.latLng);
+  });
+
+  circle.addListener("center_changed", (e) => {
+    map.setCenter(circle.getCenter());
+    if (localAreaOptions.radius) {
+      map.fitBounds(circle.getBounds());
+    } else {
+      map.setZoom(15);
+    }
+
+    const lat = circle.getCenter().lat();
+    const lng = circle.getCenter().lng();
+
     geoCoder.geocode(
-      { location: { lat: e.latLng.lat(), lng: e.latLng.lng() } },
+      { location: { lat, lng } },
       (results, status) => {
-        console.log(results);
         if (status === "OK") {
           if (results[0]) {
-			document.getElementById("area-radius-address-input").value = results[0].formatted_address;
+            areaAddressInput.value = results[0].formatted_address;
+            localAreaOptions.formattedLocation = results[0].formatted_address;
+            localAreaOptions.lat = lat;
+            localAreaOptions.lng = lng;
+
+            handleLocalMapOptionChanges();
             // state.locationObj.formattedAddress = results[0].formatted_address;
             // state.locationObj.coordinates.lat = e.latLng.lat();
             // state.locationObj.coordinates.lng = e.latLng.lng();
-            // addLocationControls.locationAddress.value = results[0].formatted_address;
-            // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
           } else {
             console.log("No results found");
           }
         } else {
-          console.log("Geocoder failed due to: " + status);
+          console.log("Geocoder failed due to: ", status);
         }
       }
     );
   });
 
-}
+  circle.addListener("radius_changed", (e) => {
+    map.setCenter(circle.getCenter());
+    if (localAreaOptions.radius) {
+      map.fitBounds(circle.getBounds());
+    } else {
+      map.setZoom(15);
+    }
+
+    handleLocalMapOptionChanges();
+  });
+
+  areaRadiusInput.addEventListener('input', (e) => {
+    let newRadius = e.target.value; // radius in mile
+    if (newRadius > 500) {
+      areaRadiusInput.value = 500;
+      newRadius = 500;
+    } else if (newRadius < 1) {
+      areaRadiusInput.value = 1;
+      newRadius = 1;
+    }
+
+    localAreaOptions.radius = newRadius;
+    const radiusInMeter = Number(newRadius * 1609.34); // convert miles to meter
+    circle.setRadius(radiusInMeter);
+  });
+};
 
 const loadAreaRadiusMap = () => {
-	buildfire.getContext((error, context) => {
-	  function setGoogleMapsScript(key) {
-		const docHead = document.getElementsByTagName("head");
-		const mapScript = document.getElementById("googleScript");
-		const scriptEl = document.createElement("script");
-		scriptEl.id = "googleScript";
-		scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
-		if (mapScript) {
-		  document.head.removeChild(mapScript);
-		}
-		docHead[0].appendChild(scriptEl);
-	  }
+  buildfire.getContext((error, context) => {
+    function setGoogleMapsScript(key) {
+      const docHead = document.getElementsByTagName("head");
+      const mapScript = document.getElementById("googleScript");
+      const scriptEl = document.createElement("script");
+      scriptEl.id = "googleScript";
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+      if (mapScript) {
+        document.head.removeChild(mapScript);
+      }
+      docHead[0].appendChild(scriptEl);
+    }
 
-	  setGoogleMapsScript(context.apiKeys.googleMapKey);
-	});
-  };
+    setGoogleMapsScript(context.apiKeys.googleMapKey);
+  });
+};
 
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
@@ -174,7 +243,7 @@ const patchListViewValues = () => {
   showBtn.checked = state.settings.showIntroductoryListView;
   listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
-//   here to add stored show options to UI
+  // here to add stored show options to UI
   for (const radio of sortRadioBtns) {
     if (radio.value === state.settings.introductoryListView.sorting) {
       radio.checked = true;
