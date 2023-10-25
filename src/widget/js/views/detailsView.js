@@ -19,7 +19,6 @@ import introView from './introView';
 import mapView from './mapView';
 
 export default {
-  _isCurrentlyUploading: false,
   _currentImageOnProgress: [],
   _reflectUpdatedLocationOnUI() {
     const location = state.selectedLocation;
@@ -72,7 +71,7 @@ export default {
     carouselContainer.innerHTML += `<div class="img-select-holder"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
   },
   addLocationPhotos() {
-    if (this._isCurrentlyUploading || !accessManager.canAddLocationPhotos()) return;
+    if (!accessManager.canAddLocationPhotos()) return;
     const addPhotosBtn= document.querySelector("#addPhotosBtn");
 
     uploadImages(
@@ -94,12 +93,10 @@ export default {
           });
 
           this._buildUploadImageSkeleton();
-          this._isCurrentlyUploading = true;
           addPhotosBtn.classList.add('disabled');
         }
       },
       (err, files) => {
-        this._isCurrentlyUploading = false;
         addPhotosBtn.classList.remove('disabled');
         this._currentImageOnProgress = this._currentImageOnProgress.filter((_imgObj) => _imgObj.source !== 'carousel');
 
