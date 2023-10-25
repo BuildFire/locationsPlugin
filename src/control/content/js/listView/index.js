@@ -51,12 +51,130 @@ window.onSortLocationsChanged = (sorting) => {
   saveSettingsWithDelay();
 };
 
+window.onShowLocationsModeChanged = (showMode) => {
+	if (!showMode) {
+		return;
+	}
+	let areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
+	if(showMode=="AreaRadius"){
+		areaRadiusOptionsContainer?.classList?.remove('hidden');
+	}else{
+		areaRadiusOptionsContainer?.classList?.add('hidden');
+	}
+}
+
+window.initAreaRadiusMap = () => {
+	console.log("Map Ready");
+  const map = new google.maps.Map(document.getElementById("area-radius-location-map"), {
+    center: { lat: 32.7182625, lng: -117.1601157 },
+    zoom: 1,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    gestureHandling: "greedy",
+  });
+  state.map = map;
+
+  const autocomplete = new google.maps.places.SearchBox(
+    document.getElementById("area-radius-address-input"),
+    {
+      types: ["address"],
+    }
+  );
+
+  const geoCoder = new google.maps.Geocoder();
+
+  autocomplete.bindTo("bounds", map);
+
+  const marker = new google.maps.Marker({
+    map,
+    anchorPoint: new google.maps.Point(0, -29),
+    draggable: true,
+  });
+
+  const currentPosition = {lat: 32.7182625, lng: -117.1601157}
+  if (currentPosition.lat && currentPosition.lng) {
+    const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+    marker.setVisible(true);
+    marker.setPosition(latlng);
+    map.setCenter(latlng);
+    map.setZoom(15);
+  }
+
+  autocomplete.addListener("places_changed", () => {
+    marker.setVisible(false);
+    const places = autocomplete.getPlaces();
+    const place = places[0];
+
+    if (!place || !place.geometry || !place.geometry) {
+      return;
+    }
+
+    if (place.geometry.viewport) {
+      map.fitBounds(place.geometry.viewport);
+    } else {
+      map.setCenter(place.geometry.location);
+      map.setZoom(17);
+    }
+
+    marker.setPosition(place.geometry.location);
+    marker.setVisible(true);
+
+    console.log(place);
+  });
+
+  marker.addListener("dragend", (e) => {
+    map.setCenter(e.latLng);
+    geoCoder.geocode(
+      { location: { lat: e.latLng.lat(), lng: e.latLng.lng() } },
+      (results, status) => {
+        console.log(results);
+        if (status === "OK") {
+          if (results[0]) {
+			document.getElementById("area-radius-address-input").value = results[0].formatted_address;
+            // state.locationObj.formattedAddress = results[0].formatted_address;
+            // state.locationObj.coordinates.lat = e.latLng.lat();
+            // state.locationObj.coordinates.lng = e.latLng.lng();
+            // addLocationControls.locationAddress.value = results[0].formatted_address;
+            // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+          } else {
+            console.log("No results found");
+          }
+        } else {
+          console.log("Geocoder failed due to: " + status);
+        }
+      }
+    );
+  });
+
+}
+
+const loadAreaRadiusMap = () => {
+	buildfire.getContext((error, context) => {
+	  function setGoogleMapsScript(key) {
+		const docHead = document.getElementsByTagName("head");
+		const mapScript = document.getElementById("googleScript");
+		const scriptEl = document.createElement("script");
+		scriptEl.id = "googleScript";
+		scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+		if (mapScript) {
+		  document.head.removeChild(mapScript);
+		}
+		docHead[0].appendChild(scriptEl);
+	  }
+
+	  setGoogleMapsScript(context.apiKeys.googleMapKey);
+	});
+  };
+
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
   const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
   showBtn.checked = state.settings.showIntroductoryListView;
   listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
+//   here to add stored show options to UI
   for (const radio of sortRadioBtns) {
     if (radio.value === state.settings.introductoryListView.sorting) {
       radio.checked = true;
@@ -201,4 +319,5 @@ window.initListView = () => {
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();
+  loadAreaRadiusMap();
 };
