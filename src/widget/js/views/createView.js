@@ -152,7 +152,7 @@ export default {
   },
   _buildUploadImageSkeleton() {
     const locationImagesList = this._querySelect('#locationListImagesContainer');
-    locationImagesList.appendChild(createImageHolder({ hasSkeleton: true, hasImage: false }, null));
+    locationImagesList.appendChild(createImageHolder({ isSkeleton: true, hasImage: false }, null));
   },
   _buildLocationImages() {
     const locationImagesList = this._querySelect('#locationListImagesContainer');

@@ -329,7 +329,7 @@ const _saveChanges = (e) => {
 };
 
 const _createImageHolder = (options, onClick, onDelete) => {
-  const { hasSkeleton, hasImage, imageUrl } = options;
+  const { isSkeleton, hasImage, imageUrl } = options;
 
   const div = document.createElement('div');
   div.className = 'img-select-holder';
@@ -338,9 +338,9 @@ const _createImageHolder = (options, onClick, onDelete) => {
   if (hasImage) button.classList.add('has-img');
 
   div.appendChild(button);
-  if(hasSkeleton){
+  if (isSkeleton) {
     button.className = "img-skeleton-container margin-right-ten bf-skeleton-loader grid-block";
-  }else{
+  } else {
     const i = document.createElement('i');
     i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
     i.textContent = 'close';
@@ -384,7 +384,7 @@ const _refreshLocationImages = () => {
 };
 const _buildUploadImageSkeleton = () => {
   const locationImagesList = document.querySelector('#locationImagesList');
-  locationImagesList.appendChild(_createImageHolder({ hasSkeleton: true, hasImage: false }, null));
+  locationImagesList.appendChild(_createImageHolder({ isSkeleton: true, hasImage: false }, null));
 }
 const _addLocationCarousel = () => {
   const { pendingLocation } = localState;
