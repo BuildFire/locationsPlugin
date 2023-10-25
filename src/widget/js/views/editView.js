@@ -27,8 +27,6 @@ import accessManager from '../accessManager';
 const localState = {
   pendingLocation: null,
   selectedOpeningHours: getDefaultOpeningHours(),
-  imageUploadPending: false,
-  carouselUploadPending: false,
   map: null,
   geocodeTimeout: null,
 };
@@ -390,7 +388,6 @@ const _buildUploadImageSkeleton = () => {
 }
 const _addLocationCarousel = () => {
   const { pendingLocation } = localState;
-  if (state.carouselUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
@@ -398,37 +395,40 @@ const _addLocationCarousel = () => {
   uploadImages(
     uploadOptions,
     (onProgress) => {
-        const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
-        if(!existImage){
-            showToastMessage('uploadingImages', 5000);
-            locationImagesSelectBtn.classList.add('hidden');
-            state.carouselUploadPending = true;
-            locationImagesSelectBtn.disabled = true;
-            _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
-            _buildUploadImageSkeleton();
-        }else{
-            existImage.percentage = onProgress.file.percentage;
-        }
-        console.log(`onProgress${JSON.stringify(onProgress)}`);
-      },
+      const existImage = this._currentImageOnProgress.find((_imgObj) => (
+        _imgObj.fileId === onProgress.file.fileId
+        && _imgObj.filename === onProgress.file.filename
+        && _imgObj.percentage <= onProgress.file.percentage));
+
+      if (!existImage) {
+        locationImagesSelectBtn.classList.add('hidden');
+        locationImagesSelectBtn.disabled = true;
+        _currentImageOnProgress.push({
+          fileId: onProgress.file.fileId,
+          filename: onProgress.file.filename,
+          percentage: onProgress.file.percentage,
+          source:'carousel'
+        });
+
+        _buildUploadImageSkeleton();
+      } else {
+        existImage.percentage = onProgress.file.percentage;
+      }
+    },
     (err, files) => {
-      _currentImageOnProgress = _currentImageOnProgress.filter(_imgObj=>(_imgObj.source!=='carousel'));
+      _currentImageOnProgress = _currentImageOnProgress.filter( _imgObj => ( _imgObj.source !== 'carousel' ));
       locationImagesSelectBtn.classList.remove('hidden');
-      state.carouselUploadPending = false;
       locationImagesSelectBtn.disabled = false;
 
-      if(err || !files){
-          showToastMessage('uploadingFailed', 5000);
-      }else if (files) {
-        files=files.filter(file=>file.status=='success');
-        if(files.length){
-          showToastMessage('uploadingComplete', 5000);
-          pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
-        }else{
-          showToastMessage('uploadingFailed', 5000);
-        }
-        _refreshLocationImages();
+      files = files?.filter( file => file.status === 'success' );
+
+      if(err || !files>length){
+        showToastMessage('uploadingFailed', 5000);
+      }else {
+        showToastMessage('uploadingComplete', 5000);
+        pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
       }
+      _refreshLocationImages();
     }
   );
 };
@@ -723,49 +723,49 @@ const _uploadListImage = () => {
   const listImageSkeletonContainer = locationListImageInput.querySelector('.img-skeleton-container');
 
   const { pendingLocation } = localState;
-  if (localState.imageUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: false };
   uploadImages(
     uploadOptions,
     (onProgress) => {
-       const existImage = _currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
-       if(!existImage){
-        showToastMessage('uploadingImages', 5000);
-        _currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'location'});
-        localState.imageUploadPending = true;
+      const existImage = this._currentImageOnProgress.find((_imgObj) => (
+        _imgObj.fileId === onProgress.file.fileId
+        && _imgObj.filename === onProgress.file.filename
+        && _imgObj.percentage <= onProgress.file.percentage));
+
+      if (!existImage) {
+        _currentImageOnProgress.push({
+          fileId: onProgress.file.fileId,
+          filename: onProgress.file.filename,
+          percentage: onProgress.file.percentage,
+          source:'location'
+        });
+
         listImageSelectBtn.disabled = true;
         listImageSkeletonContainer.classList.remove('hidden');
         listImageSelectBtn.classList.add('hidden');
-       }else{
+      } else {
         existImage.percentage= onProgress.file.percentage;
-       }
-       console.log(`onProgress${JSON.stringify(onProgress)}`);
-      },
+      }
+    },
     (err, files) => {
-      localState.imageUploadPending = false;
       listImageSelectBtn.disabled = false;
       listImageSelectBtn.classList.remove('hidden');
       listImageSkeletonContainer.classList.add('hidden');
 
-      if(err || !successUploadingState){
+      files = files?.filter( file => file.status === 'success' );
+      if ( err || !files?.length ) {
         showToastMessage('uploadingFailed', 5000);
-      }else if (files) {
-        files=files.filter(file=>file.status=='success');
-        if(files.length){
-          showToastMessage('uploadingComplete', 5000);
-          const { url } = files[0];
-          pendingLocation.listImage = url;
-          listImageImg.src = cropImage(url, {
-            width: 64,
-            height: 64,
-          });
-          listImageSelectBtn.classList.add('has-img');
-        }else{
-          showToastMessage('uploadingFailed', 5000);
-        }
-
-        _toggleInputError('locationListImageFieldHelper', false);
+      } else {
+        showToastMessage('uploadingComplete', 5000);
+        const { url } = files[0];
+        pendingLocation.listImage = url;
+        listImageImg.src = cropImage(url, {
+          width: 64,
+          height: 64,
+        });
+        listImageSelectBtn.classList.add('has-img');
       }
+      _toggleInputError('locationListImageFieldHelper', false);
     }
   );
 };
