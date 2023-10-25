@@ -33,7 +33,7 @@ const localState = {
 
 let editViewAccordion;
 let formTextFields;
-let _currentImageOnProgress= [];
+let _currentImageOnProgress = [];
 
 const _handleEnableEditing = (e) => {
   e.preventDefault();
@@ -395,7 +395,7 @@ const _addLocationCarousel = () => {
   uploadImages(
     uploadOptions,
     (onProgress) => {
-      const existImage = this._currentImageOnProgress.find((_imgObj) => (
+      const existImage = _currentImageOnProgress.find((_imgObj) => (
         _imgObj.fileId === onProgress.file.fileId
         && _imgObj.filename === onProgress.file.filename
         && _imgObj.percentage <= onProgress.file.percentage));
@@ -416,15 +416,15 @@ const _addLocationCarousel = () => {
       }
     },
     (err, files) => {
-      _currentImageOnProgress = _currentImageOnProgress.filter( _imgObj => ( _imgObj.source !== 'carousel' ));
+      _currentImageOnProgress = _currentImageOnProgress.filter((_imgObj) => (_imgObj.source !== 'carousel'));
       locationImagesSelectBtn.classList.remove('hidden');
       locationImagesSelectBtn.disabled = false;
 
-      files = files?.filter( file => file.status === 'success' );
+      files = files?.filter((file) => file.status === 'success');
 
-      if(err || !files>length){
+      if (err || !files > length) {
         showToastMessage('uploadingFailed', 5000);
-      }else {
+      } else {
         showToastMessage('uploadingComplete', 5000);
         pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
       }
@@ -727,7 +727,7 @@ const _uploadListImage = () => {
   uploadImages(
     uploadOptions,
     (onProgress) => {
-      const existImage = this._currentImageOnProgress.find((_imgObj) => (
+      const existImage = _currentImageOnProgress.find((_imgObj) => (
         _imgObj.fileId === onProgress.file.fileId
         && _imgObj.filename === onProgress.file.filename
         && _imgObj.percentage <= onProgress.file.percentage));
@@ -752,8 +752,8 @@ const _uploadListImage = () => {
       listImageSelectBtn.classList.remove('hidden');
       listImageSkeletonContainer.classList.add('hidden');
 
-      files = files?.filter( file => file.status === 'success' );
-      if ( err || !files?.length ) {
+      files = files?.filter((file) => file.status === 'success');
+      if (err || !files?.length) {
         showToastMessage('uploadingFailed', 5000);
       } else {
         showToastMessage('uploadingComplete', 5000);
