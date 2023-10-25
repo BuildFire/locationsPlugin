@@ -67,9 +67,9 @@ export default {
         console.error(err);
       });
   },
-  _buildUploadImageSkeleton(){
+  _buildUploadImageSkeleton() {
     const carouselContainer = document.querySelector('.location-detail__carousel');
-    carouselContainer.innerHTML+=`<div class="img-select-holder"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
+    carouselContainer.innerHTML += `<div class="img-select-holder"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
   },
   addLocationPhotos() {
     if (this._isCurrentlyUploading || !accessManager.canAddLocationPhotos()) return;
@@ -79,33 +79,38 @@ export default {
       { allowMultipleFilesUpload: true },
       (onProgress) => {
         buildfire.spinner.show();
-        const existImage = this._currentImageOnProgress.find(_imgObj=>_imgObj.fileId==onProgress.file.fileId&&_imgObj.filename==onProgress.file.filename&&_imgObj.percentage<=onProgress.file.percentage);
-        if(!existImage){
-          showToastMessage('uploadingImages', 5000);
-          this._currentImageOnProgress.push({fileId:onProgress.file.fileId,filename:onProgress.file.filename,percentage:onProgress.file.percentage, source:'carousel'});
+
+        const existImage = this._currentImageOnProgress.find((_imgObj) => (
+          _imgObj.fileId === onProgress.file.fileId
+          && _imgObj.filename === onProgress.file.filename
+          && _imgObj.percentage <= onProgress.file.percentage));
+
+        if (!existImage) {
+          this._currentImageOnProgress.push({
+            fileId: onProgress.file.fileId,
+            filename: onProgress.file.filename,
+            percentage: onProgress.file.percentage,
+            source:'carousel'
+          });
+
           this._buildUploadImageSkeleton();
           this._isCurrentlyUploading = true;
           addPhotosBtn.classList.add('disabled');
         }
-        console.log(`onProgress${JSON.stringify(onProgress)}`);
       },
       (err, files) => {
         this._isCurrentlyUploading = false;
         addPhotosBtn.classList.remove('disabled');
-        this._currentImageOnProgress = this._currentImageOnProgress.filter(_imgObj=>_imgObj.source!=='carousel');
+        this._currentImageOnProgress = this._currentImageOnProgress.filter((_imgObj) => _imgObj.source !== 'carousel');
 
-        if(err || !files){
+        files = files?.filter((file) => file.status === 'success' );
+        if (err || !files?.length) {
           showToastMessage('uploadingFailed', 5000);
-        }else if (files) {
-          files=files.filter(file=>file.status=='success');
-          if(files.length){
-            showToastMessage('uploadingComplete', 5000);
-            state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
-          }else{
-            showToastMessage('uploadingFailed', 5000);
-          }
-          this.updateLocation();
+        } else {
+          showToastMessage('uploadingComplete', 5000);
+          state.selectedLocation.images = [...state.selectedLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
         }
+        this.updateLocation();
       }
     );
   },
