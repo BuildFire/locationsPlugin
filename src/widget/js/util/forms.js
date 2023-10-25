@@ -32,7 +32,7 @@ export const toggleFieldError = (element, hasError) => {
 };
 
 export const createImageHolder = (options, onClick, onDelete) => {
-  const { hasSkeleton, hasImage, imageUrl } = options;
+  const { isSkeleton, hasImage, imageUrl } = options;
 
   const div = document.createElement('div');
   div.className = 'img-select-holder';
@@ -41,9 +41,9 @@ export const createImageHolder = (options, onClick, onDelete) => {
   if (hasImage) button.classList.add('has-img');
 
   div.appendChild(button);
-  if(hasSkeleton){
+  if (isSkeleton) {
     button.className = "img-skeleton-container margin-right-ten bf-skeleton-loader grid-block";
-  }else{
+  } else {
     const i = document.createElement('i');
     i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
     i.textContent = 'close';
