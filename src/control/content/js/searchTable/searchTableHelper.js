@@ -200,7 +200,7 @@ export default class SearchTableHelper {
     actionsDiv.appendChild(anaBtn);
 
     const copyBtn = document.createElement("button");
-    copyBtn.className = "btn btn--icon bf-tooltip";
+    copyBtn.className = "btn btn--icon bf-tooltip left-tooltip";
     copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>
     <span id="tooltip-content-${obj.id}" class="tooltip-content right">Copy Deeplink</span>`;
     actionsDiv.appendChild(copyBtn);

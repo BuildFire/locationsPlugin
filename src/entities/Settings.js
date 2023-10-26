@@ -13,7 +13,11 @@ export default class Settings {
     this.introductoryListView = data.introductoryListView || {
       images: [],
       description: null,
-      sorting: null
+      sorting: null,
+      searchOptions: {
+        mode: null,
+        areaRadiusOptions: {}
+      }
     };
     this.chat = data.chat || {
       allowChat: true
