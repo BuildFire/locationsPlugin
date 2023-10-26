@@ -101,9 +101,15 @@ const initCreateLocationButton = () => {
   }
 };
 
+const showOtherLocationsMessage = () => {
+  const container = document.querySelector('#introLocationsList');
+  container.innerHTML += '<p class="mdc-theme--text-header">Other location</p>';
+};
+
 export default {
   initCreateLocationButton,
   refreshIntroductoryCarousel,
   renderIntroductoryLocations,
   clearIntroViewList,
+  showOtherLocationsMessage
 };

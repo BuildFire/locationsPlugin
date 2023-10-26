@@ -83,9 +83,6 @@ window.initAreaRadiusMap = () => {
     lat: 39.768403,
     lng: -86.158068
   };
-  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
-    localAreaOptions = state.settings.introductoryListView.searchOptions.areaRadiusOptions;
-  }
 
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
@@ -217,6 +214,10 @@ window.initAreaRadiusMap = () => {
     circle.setRadius(radiusInMeter);
   });
 
+  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
+    localAreaOptions = state.settings.introductoryListView.searchOptions.areaRadiusOptions;
+  }
+
   if (localAreaOptions.lat && localAreaOptions.lng) {
     areaRadiusInput.value = localAreaOptions.radius;
     areaAddressInput.value = localAreaOptions.formattedLocation;
@@ -225,7 +226,7 @@ window.initAreaRadiusMap = () => {
     marker.setVisible(true);
     marker.setPosition(latlng);
     circle.setVisible(true);
-    circle.setCenter(latlng);
+    circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
     map.setCenter(latlng);
 
     // Radius in meters
