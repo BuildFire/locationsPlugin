@@ -4,7 +4,6 @@ import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 
 const IntroSearchService = {
-  printOtherLocationMessage: false,
   _handleSearchMode() {
     const query = buildSearchCriteria();
     const existLocationStrings = state.listLocations.map((location) => location._buildfire.index.string1);
@@ -93,20 +92,22 @@ const IntroSearchService = {
       promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
     }
 
-    // TODO: rename result variables
     return Promise.all(promiseChain)
-      .then(([result, result2]) => {
+      .then(([aggregateLocations, searchEngineLocations]) => {
         state.fetchingNextPage = false;
-        state.fetchingEndReached = result.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
-        state.searchCriteria.page += 1;
+        state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
+        let printOtherLocationMessage;
 
-        if (result.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached) {
+        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached) {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
-          this.printOtherLocationMessage = true;
+          printOtherLocationMessage = true;
+        } else {
+          printOtherLocationMessage = false;
+          state.searchCriteria.page += 1;
         }
 
-        return ({ result, result2, printOtherLocationMessage: this.printOtherLocationMessage });
+        return ({ aggregateLocations, searchEngineLocations, printOtherLocationMessage });
       })
       .catch(console.error);
   },

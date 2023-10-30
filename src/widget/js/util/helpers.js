@@ -42,7 +42,7 @@ export const transformCategoriesToText = (locationCategories, categories) => {
 
   if (mainCategoriesTitles.length > 1) {
     text = mainCategoriesTitles.join(', ');
-  } else {
+  } else if (mainCategoriesTitles[0]) {
     text = `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
   }
 

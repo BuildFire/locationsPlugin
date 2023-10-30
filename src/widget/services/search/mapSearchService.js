@@ -95,14 +95,13 @@ const MapSearchService = {
         }
       }
 
-      // TODO: rename result variables
       Promise.all(promiseChain)
-        .then(([result, result2, nearestLocation]) => {
+        .then(([aggregateLocations, searchEngineLocations, nearestLocation]) => {
           state.fetchingNextPage = false;
-          state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
+          state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize;
           state.searchCriteria.page += 1;
 
-          return resolve({ result, result2, nearestLocation });
+          return resolve({ aggregateLocations, searchEngineLocations, nearestLocation });
         })
         .catch(console.error);
     });

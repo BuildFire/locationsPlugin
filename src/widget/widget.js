@@ -176,8 +176,17 @@ const triggerSearchOnMapIdle = () => {
   });
 };
 
+const fetchOtherLocations = () => {
+  searchHandler().then((result) => {
+    if (result && result.length) {
+      introView.showOtherLocationsMessage();
+      introView.renderIntroductoryLocations(result, true);
+    }
+  });
+};
+
 const _handleIntroSearchResponse = (data) => {
-  const result = data.result.filter((elem1) => (
+  const result = data.aggregateLocations.filter((elem1) => (
     !state.listLocations.find((elem) => elem?.id === elem1?.id)
   )).map((r) => {
     const distance = calculateLocationDistance(r?.coordinates);
@@ -187,26 +196,28 @@ const _handleIntroSearchResponse = (data) => {
 
   state.listLocations = state.listLocations.concat(result);
   if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
-    const searchableTitles = data.result2?.hits?.hits?.map((elem) => elem._source.searchable.title);
+    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => elem._source.searchable.title);
     if (searchableTitles && searchableTitles.length > 0) {
       state.searchableTitles = searchableTitles;
       return searchHandler();
     }
   }
-  // TODO: include the case when all near locations printed and start fetching others
-  if (data.printOtherLocationMessage && state.searchCriteria.page === 1 && result.length) {
-    introView.showOtherLocationsMessage();
+
+  // this condition will print the first page of other locations
+  // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
+  if (data.printOtherLocationMessage && result.length) {
+    fetchOtherLocations();
   }
 
   return result;
 };
 
 const _handleMapSearchResponse = (data) => {
-  if (!data.result || !data.result.length) {
+  if (!data.aggregateLocations || !data.aggregateLocations.length) {
     return [];
   }
 
-  const result = data.result.filter((elem1) => (
+  const result = data.aggregateLocations.filter((elem1) => (
     !state.listLocations.find((elem) => elem?.id === elem1?.id)
   )).map((r) => {
     const distance = calculateLocationDistance(r?.coordinates);
@@ -234,7 +245,7 @@ const _handleMapSearchResponse = (data) => {
   } else if (state.searchCriteria.searchValue
     && !state.listLocations.length
     && !state.searchableTitles.length) {
-    const searchableTitles = data.result2?.hits?.hits?.map((elem) => (elem._source.searchable.title));
+    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => (elem._source.searchable.title));
     if (searchableTitles && searchableTitles.length > 0) {
       state.searchableTitles = searchableTitles;
       return searchHandler();
@@ -260,11 +271,11 @@ const searchHandler = () => (
     state.fetchingNextPage = true;
 
     if (activeTemplate === 'intro' && showIntroductoryListView) {
-      // TODO: add comment here --
-      IntroSearchService.searchIntroLocations().then((res) => resolve(_handleIntroSearchResponse(res)));
+      // fetch locations within intro list view
+      IntroSearchService.searchIntroLocations().then((data) => resolve(_handleIntroSearchResponse(data)));
     } else {
-      // TODO: add comment here --
-      MapSearchService.searchLocations().then((res) => resolve(_handleMapSearchResponse(res)));
+      // fetch locations within map view
+      MapSearchService.searchLocations().then((data) => resolve(_handleMapSearchResponse(data)));
     }
   })
 );
@@ -401,8 +412,8 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      selectors.title.textContent = truncateString(selectedLocation.title, 15);
-      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 25);
+      selectors.title.textContent = truncateString(selectedLocation.title, 30);
+      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 50);
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
@@ -1286,8 +1297,8 @@ const initIntroLocations = () => {
   introView.initCreateLocationButton();
   showElement('section#intro');
 
-  searchHandler().then((result) => {
-    fetchPinnedLocations(() => {
+  fetchPinnedLocations(() => {
+    searchHandler().then((result) => {
       introView.renderIntroductoryLocations(state.listLocations, true);
 
       listSkeleton.stop();
