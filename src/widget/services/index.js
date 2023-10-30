@@ -2,11 +2,16 @@
 import state from "../js/state";
 
 export const calculateLocationDistance = (address) => {
-  const { userPosition } = state;
-  if (!userPosition) return null;
+  let mainPoint;
+  if (state.settings.introductoryListView.searchOptions?.mode === "AreaRadius") {
+    mainPoint = { latitude: state.settings.introductoryListView.searchOptions.areaRadiusOptions.lat, longitude: state.settings.introductoryListView.searchOptions.areaRadiusOptions.lng };
+  } else {
+    mainPoint = state.userPosition;
+  }
+  if (!mainPoint) return null;
 
   const destination = { latitude: address.lat, longitude: address.lng };
-  const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
+  const distance = buildfire.geo.calculateDistance(mainPoint, destination, { decimalPlaces: 5 });
 
   return distance;
 };

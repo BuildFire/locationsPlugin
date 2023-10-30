@@ -9,6 +9,11 @@ const IntroSearchService = {
     const existLocationStrings = state.listLocations.map((location) => location._buildfire.index.string1);
     let $match;
     let $geoNear;
+    let $sort = {};
+
+    if (state.searchCriteria.sort) {
+      $sort[state.introSort.sortBy] = state.introSort.order;
+    }
 
     if (state.searchCriteria.openingNow) {
       $match = buildOpenNowCriteria();
@@ -29,10 +34,16 @@ const IntroSearchService = {
           ...$match,
           "_buildfire.index.string1": { $nin: existLocationStrings },
         };
+        $sort = {
+          "_buildfire.index.text": 1
+        };
       } else {
         $match = {
           ...query,
           "_buildfire.index.string1": { $nin: existLocationStrings },
+        };
+        $sort = {
+          "_buildfire.index.text": 1
         };
       }
     } else if (state.settings.introductoryListView.searchOptions?.mode === "AreaRadius") {
@@ -63,6 +74,7 @@ const IntroSearchService = {
     return {
       geoNear: $geoNear ? { $geoNear } : null,
       match: $match ? { $match } : null,
+      sort: $sort ? { $sort } : null,
     };
   },
 
@@ -78,10 +90,8 @@ const IntroSearchService = {
       pipelines.push(searchPipeline.match);
     }
 
-    const $sort = {};
-    if (state.searchCriteria.sort) {
-      $sort[state.introSort.sortBy] = state.introSort.order;
-      pipelines.push({ $sort });
+    if (searchPipeline.sort) {
+      pipelines.push(searchPipeline.sort);
     }
 
     const promiseChain = [

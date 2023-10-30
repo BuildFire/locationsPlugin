@@ -176,10 +176,12 @@ const triggerSearchOnMapIdle = () => {
   });
 };
 
-const fetchOtherLocations = () => {
+const fetchOtherLocations = (nearbyLocationsLength) => {
   searchHandler().then((result) => {
     if (result && result.length) {
-      introView.showOtherLocationsMessage();
+      if (nearbyLocationsLength) {
+        introView.showOtherLocationsMessage();
+      }
       introView.renderIntroductoryLocations(result, true);
     }
   });
@@ -205,8 +207,8 @@ const _handleIntroSearchResponse = (data) => {
 
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
-  if (data.printOtherLocationMessage && result.length) {
-    fetchOtherLocations();
+  if (data.printOtherLocationMessage) {
+    fetchOtherLocations(result.length);
   }
 
   return result;
