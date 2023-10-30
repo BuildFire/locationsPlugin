@@ -97,6 +97,20 @@ export default {
         required: true,
         maxLength: 20,
       },
+      nearYou: {
+        title: 'Near You',
+        placeholder: 'Enter text here',
+        defaultValue: 'Near You',
+        required: true,
+        maxLength: 40,
+      },
+      otherLocations: {
+        title: 'Other Locations',
+        placeholder: 'Enter text here',
+        defaultValue: 'Other Locations',
+        required: true,
+        maxLength: 40,
+      },
       distanceUnitKm: {
         title: 'KM',
         placeholder: 'Enter text here',

@@ -210,6 +210,9 @@ const _handleIntroSearchResponse = (data) => {
   if (data.printOtherLocationMessage) {
     fetchOtherLocations(result.length);
   }
+  if (result.length && state.listLocations.length === result.length && state.settings.introductoryListView.searchOptions?.mode === "All") {
+    introView.showNearLocationsMessage();
+  }
 
   return result;
 };
@@ -414,8 +417,13 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      selectors.title.textContent = truncateString(selectedLocation.title, 30);
-      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 50);
+      if (pageMapPosition === 'top') {
+        selectors.title.textContent = truncateString(selectedLocation.title, 20);
+        selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 30);
+      } else {
+        selectors.title.textContent = truncateString(selectedLocation.title, 30);
+        selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 50);
+      }
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;

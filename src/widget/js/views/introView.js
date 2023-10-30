@@ -103,7 +103,14 @@ const initCreateLocationButton = () => {
 
 const showOtherLocationsMessage = () => {
   const container = document.querySelector('#introLocationsList');
-  container.innerHTML += '<div class="location-item"><h4 style="margin:0;font-weight:400;" class="mdc-theme--text-header">Other location</h4></div>';
+  const content = `<div class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.otherLocations').v}</h4></div>`;
+  container.insertAdjacentHTML('beforeend', content);
+};
+
+const showNearLocationsMessage = () => {
+  const container = document.querySelector('#introLocationsList');
+  const content = `<div class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.nearYou').v}</h4></div>`;
+  container.insertAdjacentHTML('beforeend', content);
 };
 
 export default {
@@ -111,5 +118,6 @@ export default {
   refreshIntroductoryCarousel,
   renderIntroductoryLocations,
   clearIntroViewList,
-  showOtherLocationsMessage
+  showOtherLocationsMessage,
+  showNearLocationsMessage
 };
