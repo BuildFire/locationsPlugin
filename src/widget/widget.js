@@ -210,8 +210,12 @@ const _handleIntroSearchResponse = (data) => {
   if (data.printOtherLocationMessage) {
     fetchOtherLocations(result.length);
   }
-  if (result.length && state.listLocations.length === result.length && state.settings.introductoryListView.searchOptions?.mode === "All") {
+  if (data.printNearLocationMessage) {
     introView.showNearLocationsMessage();
+  }
+
+  if (result.length) {
+    hideElement("div.empty-page");
   }
 
   return result;

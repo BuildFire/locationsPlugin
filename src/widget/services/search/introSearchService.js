@@ -107,6 +107,11 @@ const IntroSearchService = {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
         let printOtherLocationMessage;
+        let printNearLocationMessage;
+
+        if (!state.fetchingAllNearReached && aggregateLocations.length && (!state.listLocations || !state.listLocations.length)) {
+          printNearLocationMessage = true;
+        }
 
         if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached) {
           state.fetchingAllNearReached = true;
@@ -117,7 +122,12 @@ const IntroSearchService = {
           state.searchCriteria.page += 1;
         }
 
-        return ({ aggregateLocations, searchEngineLocations, printOtherLocationMessage });
+        return ({
+          aggregateLocations,
+          searchEngineLocations,
+          printOtherLocationMessage,
+          printNearLocationMessage
+        });
       })
       .catch(console.error);
   },
