@@ -3,16 +3,11 @@
 /* eslint-disable no-use-before-define */
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
-import Setting from "../../../../entities/Settings";
 import { generateUUID } from "../../utils/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
 import Location from "../../../../entities/Location";
-
-const state = {
-  settings: new Setting(),
-  pinnedLocations: [],
-  isWysiwygInitialized: true,
-};
+import loadAreaRadiusMap from "./introMap";
+import state from "../../state";
 
 const listViewSection = document.querySelector("#main");
 
@@ -33,7 +28,7 @@ const initListViewWysiwyg = () => {
       console.log(editor.getContent());
       editor.on('keyup change', () => {
         state.settings.introductoryListView.description = tinymce.activeEditor?.getContent();
-        saveSettingsWithDelay();
+        SettingsController.saveSettingsWithDelay(state.settings);
       });
     }
   });
@@ -41,7 +36,7 @@ const initListViewWysiwyg = () => {
 
 window.onShowListViewChanged = (e) => {
   state.settings.showIntroductoryListView = e.target.checked;
-  saveSettingsWithDelay();
+  SettingsController.saveSettingsWithDelay(state.settings);
 };
 
 window.onSortLocationsChanged = (sorting) => {
@@ -49,7 +44,7 @@ window.onSortLocationsChanged = (sorting) => {
     return;
   }
   state.settings.introductoryListView.sorting = sorting;
-  saveSettingsWithDelay();
+  SettingsController.saveSettingsWithDelay(state.settings);
 };
 
 window.onShowLocationsModeChanged = (showMode) => {
@@ -72,189 +67,7 @@ window.onShowLocationsModeChanged = (showMode) => {
       areaRadiusOptions: {}
     };
   }
-  saveSettingsWithDelay();
-};
-
-window.initAreaRadiusMap = () => {
-  console.log("Map Ready");
-  let localAreaOptions = {
-    formattedLocation: "Indianapolis, IN, USA",
-    radius: 15,
-    lat: 39.768403,
-    lng: -86.158068
-  };
-
-  const areaAddressInput = document.getElementById("area-radius-address-input");
-  const areaRadiusInput = document.getElementById("location-area-radius-input");
-
-  const map = new google.maps.Map(document.getElementById("area-radius-location-map"), {
-    center: { lat: localAreaOptions.lat, lng: localAreaOptions.lng },
-    zoom: 10,
-    zoomControl: true,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    gestureHandling: "greedy",
-  });
-  state.map = map;
-
-  const autocomplete = new google.maps.places.SearchBox(
-    areaAddressInput,
-    {
-      types: ["address"],
-    }
-  );
-
-  const geoCoder = new google.maps.Geocoder();
-  const handleLocalMapOptionChanges = () => {
-    state.settings.introductoryListView.searchOptions.areaRadiusOptions = localAreaOptions;
-    saveSettingsWithDelay();
-  };
-
-  autocomplete.bindTo("bounds", map);
-
-  const marker = new google.maps.Marker({
-    map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
-  });
-
-  // Create the circle and add it to the map.
-  const circle = new google.maps.Circle({
-    map,
-    strokeColor: '#D85646',
-    strokeWeight: 2,
-    fillColor: '#D85646',
-    fillOpacity: 0.20,
-  });
-
-  autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
-    const places = autocomplete.getPlaces();
-    const place = places[0];
-
-    if (!place || !place.geometry || !place.geometry) {
-      return;
-    }
-
-    if (place.geometry.viewport) {
-      map.fitBounds(place.geometry.viewport);
-    } else {
-      map.setCenter(place.geometry.location);
-      map.fitBounds(circle.getBounds());
-    }
-
-    marker.setPosition(place.geometry.location);
-    circle.setCenter(place.geometry.location);
-    marker.setVisible(true);
-  });
-
-  marker.addListener("dragend", (e) => {
-    circle.setCenter(e.latLng);
-  });
-
-  circle.addListener("center_changed", (e) => {
-    map.setCenter(circle.getCenter());
-    if (localAreaOptions.radius) {
-      map.fitBounds(circle.getBounds());
-    } else {
-      map.setZoom(15);
-    }
-
-    const lat = circle.getCenter().lat();
-    const lng = circle.getCenter().lng();
-
-    geoCoder.geocode(
-      { location: { lat, lng } },
-      (results, status) => {
-        if (status === "OK") {
-          if (results[0]) {
-            areaAddressInput.value = results[0].formatted_address;
-            localAreaOptions.formattedLocation = results[0].formatted_address;
-            localAreaOptions.lat = lat;
-            localAreaOptions.lng = lng;
-
-            handleLocalMapOptionChanges();
-            // state.locationObj.formattedAddress = results[0].formatted_address;
-            // state.locationObj.coordinates.lat = e.latLng.lat();
-            // state.locationObj.coordinates.lng = e.latLng.lng();
-          } else {
-            console.log("No results found");
-          }
-        } else {
-          console.log("Geocoder failed due to: ", status);
-        }
-      }
-    );
-  });
-
-  circle.addListener("radius_changed", (e) => {
-    map.setCenter(circle.getCenter());
-    if (localAreaOptions.radius) {
-      map.fitBounds(circle.getBounds());
-    } else {
-      map.setZoom(15);
-    }
-
-    handleLocalMapOptionChanges();
-  });
-
-  areaRadiusInput.addEventListener('input', (e) => {
-    let newRadius = Number(e.target.value); // radius in mile
-    if (newRadius > 500) {
-      areaRadiusInput.value = 500;
-      newRadius = 500;
-    } else if (newRadius < 1) {
-      areaRadiusInput.value = 1;
-      newRadius = 1;
-    }
-
-    localAreaOptions.radius = newRadius;
-    const radiusInMeter = Number(newRadius * 1609.34); // convert miles to meter
-    circle.setRadius(radiusInMeter);
-  });
-
-  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
-    localAreaOptions = state.settings.introductoryListView.searchOptions.areaRadiusOptions;
-  }
-
-  if (localAreaOptions.lat && localAreaOptions.lng) {
-    areaRadiusInput.value = localAreaOptions.radius;
-    areaAddressInput.value = localAreaOptions.formattedLocation;
-
-    const latlng  = new google.maps.LatLng(localAreaOptions.lat, localAreaOptions.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
-    circle.setVisible(true);
-    circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
-    map.setCenter(latlng);
-
-    // Radius in meters
-    const radiusInMeter = Number(localAreaOptions.radius * 1609.34);
-    circle.setRadius(radiusInMeter);
-  }
-};
-
-const loadAreaRadiusMap = () => {
-  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
-  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.mode === "AreaRadius") {
-    areaRadiusOptionsContainer?.classList?.remove('hidden');
-  }
-  buildfire.getContext((error, context) => {
-    function setGoogleMapsScript(key) {
-      const docHead = document.getElementsByTagName("head");
-      const mapScript = document.getElementById("googleScript");
-      const scriptEl = document.createElement("script");
-      scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
-      if (mapScript) {
-        document.head.removeChild(mapScript);
-      }
-      docHead[0].appendChild(scriptEl);
-    }
-
-    setGoogleMapsScript(context.apiKeys.googleMapKey);
-  });
+  SettingsController.saveSettingsWithDelay(state.settings);
 };
 
 const patchListViewValues = () => {
@@ -287,18 +100,6 @@ const handlePinnedLocationEmptyState = (isLoading) => {
   } else {
     emptyState.classList.add('hidden');
   }
-};
-
-let timeoutId;
-const saveSettingsWithDelay = () => {
-  clearTimeout(timeoutId);
-  timeoutId = setTimeout(() => {
-    saveSettings();
-  }, 300);
-};
-
-const saveSettings = () => {
-  SettingsController.saveSettings(state.settings).then(triggerWidgetOnListViewUpdate).catch(console.error);
 };
 
 const getPinnedLocations = () => {
@@ -334,7 +135,7 @@ const deletePinnedLocation = (item, index, callback) => {
           .then(() => {
             state.pinnedLocations = state.pinnedLocations.filter(elem => elem.id !== item.id);
             handlePinnedLocationEmptyState(false);
-            triggerWidgetOnListViewUpdate();
+            SettingsController.triggerWidgetOnListViewUpdate();
             callback(item);
           })
           .catch(console.error);
@@ -347,15 +148,8 @@ const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
-    loadAreaRadiusMap();
+    loadAreaRadiusMap(state);
   }).catch(console.error);
-};
-
-const triggerWidgetOnListViewUpdate = () => {
-  buildfire.messaging.sendMessageToWidget({
-    cmd: 'sync',
-    scope: 'intro'
-  });
 };
 
 window.initListView = () => {
@@ -364,18 +158,18 @@ window.initListView = () => {
 
   listViewImagesCarousel.onAddItems = (items) => {
     state.settings.introductoryListView.images.push(...items.map((item) => ({ ...item, id: generateUUID() })));
-    saveSettingsWithDelay();
+    SettingsController.saveSettingsWithDelay(state.settings);
   };
   listViewImagesCarousel.onItemChange = (item, index) => {
     const imageId = state.settings.introductoryListView.images[index]?.id;
     state.settings.introductoryListView.images[index] = { ...item, id: imageId };
-    saveSettingsWithDelay();
+    SettingsController.saveSettingsWithDelay(state.settings);
   };
   listViewImagesCarousel.onDeleteItem = (item, index,) => {
     state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
       (elem) => elem.id !== item.id
     );
-    saveSettingsWithDelay();
+    SettingsController.saveSettingsWithDelay(state.settings);
   };
   listViewImagesCarousel.onOrderChange = (item, oldIndex, newIndex) => {
     const items = state.settings.introductoryListView.images;
@@ -394,7 +188,7 @@ window.initListView = () => {
     items[newIndex] = tmp;
 
     state.settings.introductoryListView.images = items;
-    saveSettingsWithDelay();
+    SettingsController.saveSettingsWithDelay(state.settings);
   };
   pinnedLocationsList.onDeleteItem = deletePinnedLocation;
   pinnedLocationsList.onOrderChange = (item, oldIndex, newIndex) => {
@@ -408,7 +202,7 @@ window.initListView = () => {
 
     Promise.all(promiseChain).then(() => {
       console.log('Successfully reordered pinned locations');
-      triggerWidgetOnListViewUpdate();
+      SettingsController.triggerWidgetOnListViewUpdate();
     }).catch(console.error);
   };
   initListViewWysiwyg();

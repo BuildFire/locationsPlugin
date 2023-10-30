@@ -1,4 +1,8 @@
+import Settings from "../../entities/Settings";
+
 export default  {
   categories: [],
-  settings: {},
+  settings: new Settings(),
+  pinnedLocations: [],
+  isWysiwygInitialized: true,
 };

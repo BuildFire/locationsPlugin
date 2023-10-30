@@ -53,7 +53,7 @@ const renderListingLocations = (list) => {
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-        
+
           ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
               <span role="gridcell">

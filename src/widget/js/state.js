@@ -35,6 +35,7 @@ export default {
   firstSearchInit: false,
   fetchingNextPage: false,
   fetchingEndReached: false,
+  fetchingAllNearReached: false,
   filterElements: {},
   currentFilterElements: {},
   searchableTitles: [],

@@ -203,3 +203,15 @@ export const bookmarkLocation = (locationId, e) => {
 export const truncateString = (string = '', maxLength = 50) => (string.length > maxLength
   ? `${string.substring(0, maxLength)}…`
   : string);
+
+export const getDistanceString = (distance) => {
+  let result;
+  if (distance < 0.2) {
+    result = `${Math.round(distance * 5280).toLocaleString()} ${window.strings.get('general.distanceUnitFt').v}`;
+  } else if (state.settings.measurementUnit === 'metric') {
+    result = `${Math.round(distance * 1.60934).toLocaleString()} ${window.strings.get('general.distanceUnitKm').v}`;
+  } else {
+    result = `${Math.round(distance).toLocaleString()} ${window.strings.get('general.distanceUnitMi').v}`;
+  }
+  return result;
+};
