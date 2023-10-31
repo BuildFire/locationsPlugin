@@ -2,13 +2,15 @@
 import SettingsController from "./controller";
 import state from "../../state";
 
+const convertMileToMeter = (distanceInMiles) => {
+  if (typeof distanceInMiles === "number") {
+    return distanceInMiles * 1609.34;
+  }
+  return 1;
+};
+
 window.initAreaRadiusMap = () => {
-  let localAreaOptions = {
-    formattedLocation: "Indianapolis, IN, USA",
-    radius: 15,
-    lat: 39.768403,
-    lng: -86.158068
-  };
+  let localAreaOptions = {};
 
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
@@ -118,8 +120,6 @@ window.initAreaRadiusMap = () => {
     } else {
       map.setZoom(15);
     }
-
-    handleLocalMapOptionChanges();
   });
 
   areaRadiusInput.addEventListener('input', (e) => {
@@ -133,8 +133,10 @@ window.initAreaRadiusMap = () => {
     }
 
     localAreaOptions.radius = newRadius;
-    const radiusInMeter = Number(newRadius * 1609.34); // convert miles to meter
+    const radiusInMeter = convertMileToMeter(Number(newRadius));
     circle.setRadius(radiusInMeter);
+
+    handleLocalMapOptionChanges();
   });
 
   if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
@@ -152,8 +154,7 @@ window.initAreaRadiusMap = () => {
     circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
     map.setCenter(latlng);
 
-    // Radius in meters
-    const radiusInMeter = Number(localAreaOptions.radius * 1609.34);
+    const radiusInMeter = convertMileToMeter(Number(localAreaOptions.radius));
     circle.setRadius(radiusInMeter);
   }
 };

@@ -176,10 +176,10 @@ const triggerSearchOnMapIdle = () => {
   });
 };
 
-const fetchOtherLocations = (nearbyLocationsLength) => {
+const fetchOtherLocations = () => {
   searchHandler().then((result) => {
     if (result && result.length) {
-      if (nearbyLocationsLength) {
+      if (state.listLocations.length > result.length) {
         introView.showOtherLocationsMessage();
       }
       introView.renderIntroductoryLocations(result, true);
@@ -205,13 +205,13 @@ const _handleIntroSearchResponse = (data) => {
     }
   }
 
+  if (data.printNearLocationMessage) {
+    introView.showNearLocationsMessage();
+  }
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
   if (data.printOtherLocationMessage) {
-    fetchOtherLocations(result.length);
-  }
-  if (data.printNearLocationMessage) {
-    introView.showNearLocationsMessage();
+    fetchOtherLocations();
   }
 
   if (result.length) {
@@ -293,6 +293,7 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
+  introView.clearIntroViewList();
   searchHandler().then(() => {
     prepareIntroViewList();
     mapView.renderListingLocations(state.listLocations);
@@ -300,7 +301,6 @@ const clearAndSearchAllLocation = () => {
 };
 
 const prepareIntroViewList = () => {
-  introView.clearIntroViewList();
   introView.renderIntroductoryLocations(state.listLocations, true);
   if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
     showElement("div.empty-page");
@@ -1348,10 +1348,10 @@ const initMapLocations = () => {
     ? 'image, image, image, image'
     : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line';
   const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
+  introView.clearIntroViewList();
   searchHandler()
     .then((result) => {
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-      introView.clearIntroViewList();
       listViewCarousel.stop();
     });
 };

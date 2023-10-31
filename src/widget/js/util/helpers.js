@@ -215,3 +215,10 @@ export const getDistanceString = (distance) => {
   }
   return result;
 };
+
+export const convertMileToMeter = (distanceInMiles) => {
+  if (typeof distanceInMiles === "number") {
+    return distanceInMiles * 1609.34;
+  }
+  return 1;
+};
