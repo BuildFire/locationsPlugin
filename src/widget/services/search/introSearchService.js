@@ -136,7 +136,10 @@ const IntroSearchService = {
         let printNearLocationMessage;
 
         if (aggregateLocations.length && otherLocations && otherLocations.length) {
-          printNearLocationMessage = true;
+          const filteredOtherLocations = otherLocations.filter((location) => !aggregateLocations.find((near) => near.id === location.id));
+          if (filteredOtherLocations.length) {
+            printNearLocationMessage = true;
+          }
         }
 
         if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All") {
