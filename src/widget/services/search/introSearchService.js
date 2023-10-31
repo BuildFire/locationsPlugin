@@ -97,39 +97,24 @@ const IntroSearchService = {
 
   searchIntroLocations() {
     const pipelines = this.handleSearchModePipelines();
-	let getFromSearchEngine = false;
-	let checkOtherLocations = false;
 
     const promiseChain = [
       WidgetController.searchLocationsV2(pipelines, state.searchCriteria.page)
     ];
 
     if (state.searchCriteria.searchValue && !state.searchableTitles.length) {
-      getFromSearchEngine = true;
       promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
+    } else {
+      promiseChain.push(new Promise((resolve) => { }));
     }
 
     if (state.settings.introductoryListView.searchOptions?.mode === "All" && state.searchCriteria.page === 0 && !state.fetchingAllNearReached) {
-      checkOtherLocations = true;
       const otherLocationsPipelines = this.setupOtherLocationsPipelines({});
       promiseChain.push(WidgetController.searchLocationsV2(otherLocationsPipelines, state.searchCriteria.page, 1));
     }
 
     return Promise.all(promiseChain)
-      .then((result) => {
-        const aggregateLocations = [...result[0]];
-        let searchEngineLocations;
-        let otherLocations;
-
-        if (getFromSearchEngine && checkOtherLocations) {
-          searchEngineLocations = [...result[1]];
-          otherLocations = [...result[2]];
-        } else if (getFromSearchEngine) {
-          searchEngineLocations = [...result[1]];
-        } else if (checkOtherLocations) {
-          otherLocations = [...result[1]];
-        }
-
+      .then(([aggregateLocations, searchEngineLocations, otherLocations]) => {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All";
         let printOtherLocationMessage;
