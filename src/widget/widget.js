@@ -148,19 +148,6 @@ const initChipSetInteractionListener = (event) => {
   clearAndSearchAllLocation();
 };
 
-const clearLocations = () => {
-  state.listLocations = [];
-  state.searchCriteria.page = 0;
-  state.searchCriteria.page2 = 0;
-  state.fetchingNextPage = false;
-  state.fetchingEndReached = false;
-  state.fetchingAllNearReached = false;
-  state.searchableTitles = [];
-  state.nearestLocation = null;
-  state.isMapIdle = false;
-  if (state.maps.map) state.maps.map.clearMarkers();
-};
-
 const triggerSearchOnMapIdle = () => {
   if (!state.isMapIdle) {
     setTimeout(() => {
@@ -560,6 +547,19 @@ const viewFullImage = (url, selectedId) => {
     images.push(image.imageUrl);
   });
   buildfire.imagePreviewer.show({ images, index });
+};
+
+const clearLocations = () => {
+  state.listLocations = [];
+  state.searchCriteria.page = 0;
+  state.searchCriteria.page2 = 0;
+  state.fetchingNextPage = false;
+  state.fetchingEndReached = false;
+  state.fetchingAllNearReached = false;
+  state.searchableTitles = [];
+  state.nearestLocation = null;
+  state.isMapIdle = false;
+  if (state.maps.map) state.maps.map.clearMarkers();
 };
 
 const fetchPinnedLocations = (done) => {
