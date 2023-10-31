@@ -11,6 +11,9 @@ const convertMileToMeter = (distanceInMiles) => {
 
 window.initAreaRadiusMap = () => {
   let localAreaOptions = {};
+  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
+    localAreaOptions = state.settings.introductoryListView.searchOptions.areaRadiusOptions;
+  }
 
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
@@ -138,10 +141,6 @@ window.initAreaRadiusMap = () => {
 
     handleLocalMapOptionChanges();
   });
-
-  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.areaRadiusOptions) {
-    localAreaOptions = state.settings.introductoryListView.searchOptions.areaRadiusOptions;
-  }
 
   if (localAreaOptions.lat && localAreaOptions.lng) {
     areaRadiusInput.value = localAreaOptions.radius;
