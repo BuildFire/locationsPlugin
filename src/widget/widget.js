@@ -41,7 +41,7 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
-import { calculateLocationDistance, setDefaultSorting, setSortMode } from './services';
+import { calculateLocationDistance } from './services';
 
 let SEARCH_TIMOUT;
 
@@ -543,6 +543,25 @@ const viewFullImage = (url, selectedId) => {
     images.push(image.imageUrl);
   });
   buildfire.imagePreviewer.show({ images, index });
+};
+
+const setDefaultSorting = () => {
+  const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
+  if (showIntroductoryListView && introductoryListView.sorting) {
+    if (introductoryListView.sorting === 'distance') {
+      state.introSort = { sortBy: 'distance', order: 1 };
+    } else if (introductoryListView.sorting === 'alphabetical') {
+      state.introSort = { sortBy: '_buildfire.index.text', order: 1 };
+    } else if (introductoryListView.sorting === 'newest') {
+      state.introSort = { sortBy: '_buildfire.index.date1', order: -1 };
+    }
+  }
+
+  if (sorting.defaultSorting === 'distance') {
+    state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+  } else if (sorting.defaultSorting === 'alphabetical') {
+    state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+  }
 };
 
 const clearLocations = () => {
@@ -1216,8 +1235,23 @@ const initDrawerFilterOptions = () => {
       const value = event.detail.item.getAttribute('data-value');
       otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
       otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-
-      setSortMode(value);
+      if (value === 'distance') {
+        state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+      } else if (value === 'A-Z') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+      } else if (value === 'Z-A') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+      } else if (value === 'date') {
+        state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+      } else if (value === 'price-low-high') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
+      } else if (value === 'price-high-low') {
+        state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
+      } else if (value === 'rating') {
+        state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
+      } else if (value === 'views') {
+        state.searchCriteria.sort = { sortBy: 'views', order: 1 };
+      }
       resetResultsBookmark();
       clearAndSearchWithDelay();
     });

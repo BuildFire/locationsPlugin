@@ -41,7 +41,7 @@ const IntroSearchService = {
     const $match = {
       "_buildfire.geo": {
         $geoWithin: {
-          $centerSphere: [[lng, lat], radius / 3963.2] // convert meters to radians
+          $centerSphere: [[lng, lat], radius / 3963.2] // convert miles to radians
         }
       }
     };
@@ -114,7 +114,7 @@ const IntroSearchService = {
     return Promise.all(promiseChain)
       .then(([aggregateLocations, searchEngineLocations]) => {
         state.fetchingNextPage = false;
-        state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All";
+        state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
         let printOtherLocationMessage;
 
         if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All") {

@@ -1378,11 +1378,11 @@ h4.light-text {
 }
 
 .text-ellipsis{
-  white-space: nowrap !important;
+  white-space: nowrap;
   display: block !important;
   overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  width: 100% !important;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
