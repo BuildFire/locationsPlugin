@@ -200,10 +200,6 @@ export const bookmarkLocation = (locationId, e) => {
   }
 };
 
-export const truncateString = (string = '', maxLength = 50) => (string.length > maxLength
-  ? `${string.substring(0, maxLength)}…`
-  : string);
-
 export const getDistanceString = (distance) => {
   let result;
   if (distance < 0.2) {

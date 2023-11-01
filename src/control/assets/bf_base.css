@@ -548,11 +548,11 @@ p.info-note.info-note-transparent {
 }
 /* Tooltips */
 
-.bf-tooltip.left-tooltip{
+.bf-tooltip.hidden-Tooltip{
     position: relative;
 }
 
-.bf-tooltip:not(.left-tooltip) {
+.bf-tooltip:not(.hidden-Tooltip) {
     display: inline-block;
     text-align: center;
     position: relative;
@@ -565,7 +565,7 @@ p.info-note.info-note-transparent {
 	background-color: var(--c-primary);
 }
 
-.bf-tooltip:not(.left-tooltip)::after {
+.bf-tooltip:not(.hidden-Tooltip)::after {
     content: 'i';
     position: relative;
     bottom: 3px;

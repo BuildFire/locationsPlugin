@@ -127,9 +127,9 @@ window.initAreaRadiusMap = () => {
 
   areaRadiusInput.addEventListener('input', (e) => {
     let newRadius = Number(e.target.value); // radius in mile
-    if (newRadius > 100) {
-      areaRadiusInput.value = 100;
-      newRadius = 100;
+    if (newRadius > 200) {
+      areaRadiusInput.value = 200;
+      newRadius = 200;
     } else if (newRadius < 1) {
       areaRadiusInput.value = 1;
       newRadius = 1;

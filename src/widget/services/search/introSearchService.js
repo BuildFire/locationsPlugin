@@ -104,28 +104,13 @@ const IntroSearchService = {
 
     if (state.searchCriteria.searchValue && !state.searchableTitles.length) {
       promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
-    } else {
-      promiseChain.push(new Promise((resolve) => { }));
-    }
-
-    if (state.settings.introductoryListView.searchOptions?.mode === "All" && state.searchCriteria.page === 0 && !state.fetchingAllNearReached) {
-      const otherLocationsPipelines = this.setupOtherLocationsPipelines({});
-      promiseChain.push(WidgetController.searchLocationsV2(otherLocationsPipelines, state.searchCriteria.page, 1));
     }
 
     return Promise.all(promiseChain)
-      .then(([aggregateLocations, searchEngineLocations, otherLocations]) => {
+      .then(([aggregateLocations, searchEngineLocations]) => {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All";
         let printOtherLocationMessage;
-        let printNearLocationMessage;
-
-        if (aggregateLocations.length && otherLocations && otherLocations.length) {
-          const filteredOtherLocations = otherLocations.filter((location) => !aggregateLocations.find((near) => near.id === location.id));
-          if (filteredOtherLocations.length) {
-            printNearLocationMessage = true;
-          }
-        }
 
         if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All") {
           state.fetchingAllNearReached = true;
@@ -139,7 +124,6 @@ const IntroSearchService = {
           aggregateLocations,
           searchEngineLocations,
           printOtherLocationMessage,
-          printNearLocationMessage
         });
       })
       .catch(console.error);

@@ -24,10 +24,8 @@ import {
   hideOverlays
 } from './js/util/ui';
 import {
-  truncateString,
   bookmarkLocation,
   shareLocation,
-  deepObjectDiff,
   transformCategoriesToText,
   cdnImage,
   generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString
@@ -168,6 +166,7 @@ const fetchOtherLocations = () => {
     if (result && result.length) {
       if (state.listLocations.length > result.length) {
         introView.showOtherLocationsMessage();
+        introView.showNearLocationsMessage();
       }
       introView.renderIntroductoryLocations(result, true);
     }
@@ -192,9 +191,6 @@ const _handleIntroSearchResponse = (data) => {
     }
   }
 
-  if (data.printNearLocationMessage) {
-    introView.showNearLocationsMessage();
-  }
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
   if (data.printOtherLocationMessage) {
@@ -280,8 +276,8 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
-  introView.clearIntroViewList();
   searchHandler().then(() => {
+    introView.clearIntroViewList();
     prepareIntroViewList();
     mapView.renderListingLocations(state.listLocations);
   });
@@ -409,11 +405,11 @@ const showLocationDetail = () => {
       detailMap.addMarker(selectedLocation, () => {});
 
       if (pageMapPosition === 'top') {
-        selectors.title.textContent = truncateString(selectedLocation.title, 20);
-        selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 30);
+        selectors.title.textContent = selectedLocation.title ?? '';
+        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
       } else {
-        selectors.title.textContent = truncateString(selectedLocation.title, 30);
-        selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 50);
+        selectors.title.textContent = selectedLocation.title ?? '';
+        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
       }
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
@@ -1348,9 +1344,9 @@ const initMapLocations = () => {
     ? 'image, image, image, image'
     : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line';
   const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
-  introView.clearIntroViewList();
   searchHandler()
     .then((result) => {
+      introView.clearIntroViewList();
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
       listViewCarousel.stop();
     });
