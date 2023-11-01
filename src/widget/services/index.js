@@ -2,12 +2,7 @@
 import state from "../js/state";
 
 export const calculateLocationDistance = (address) => {
-  let mainPoint;
-  if (state.settings.introductoryListView.searchOptions?.mode === "AreaRadius") {
-    mainPoint = { latitude: state.settings.introductoryListView.searchOptions.areaRadiusOptions.lat, longitude: state.settings.introductoryListView.searchOptions.areaRadiusOptions.lng };
-  } else {
-    mainPoint = state.userPosition;
-  }
+  const mainPoint = state.userPosition;
   if (!mainPoint) return null;
 
   const destination = { latitude: address.lat, longitude: address.lng };

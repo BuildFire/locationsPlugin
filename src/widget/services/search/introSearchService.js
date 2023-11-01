@@ -2,7 +2,6 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
-import { convertMileToMeter } from "../../js/util/helpers";
 
 const IntroSearchService = {
   setupNearPipelines(query) {
@@ -32,16 +31,22 @@ const IntroSearchService = {
     const lng = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1;
     const lat = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1;
     const radius = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
-    const radiusInMeter = convertMileToMeter(Number(radius));
 
     const $geoNear = {
-      near: { type: "Point", coordinates: [lng, lat] },
+      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
       key: "_buildfire.geo",
-      maxDistance: radiusInMeter,
       distanceField: "distance",
       query: { ...query }
     };
+    const $match = {
+      "_buildfire.geo": {
+        $geoWithin: {
+          $centerSphere: [[lng, lat], radius / 3963.2] // convert meters to radians
+        }
+      }
+    };
     pipelines.push({ $geoNear });
+    pipelines.push({ $match });
 
     if (state.searchCriteria.sort) {
       const $sort = {};
