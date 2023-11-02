@@ -27,14 +27,13 @@ import accessManager from '../accessManager';
 const localState = {
   pendingLocation: null,
   selectedOpeningHours: getDefaultOpeningHours(),
-  imageUploadPending: false,
-  carouselUploadPending: false,
   map: null,
   geocodeTimeout: null,
 };
 
 let editViewAccordion;
 let formTextFields;
+let _currentImageOnProgress = [];
 
 const _handleEnableEditing = (e) => {
   e.preventDefault();
@@ -330,7 +329,7 @@ const _saveChanges = (e) => {
 };
 
 const _createImageHolder = (options, onClick, onDelete) => {
-  const { hasImage, imageUrl } = options;
+  const { isSkeleton, hasImage, imageUrl } = options;
 
   const div = document.createElement('div');
   div.className = 'img-select-holder';
@@ -338,18 +337,23 @@ const _createImageHolder = (options, onClick, onDelete) => {
   button.className = 'img-select margin-right-ten';
   if (hasImage) button.classList.add('has-img');
 
-  const i = document.createElement('i');
-  i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
-  i.textContent = 'close';
-  i.tabIndex = '0';
   div.appendChild(button);
-  const img = document.createElement('img');
-  img.src = imageUrl ?? '';
-  button.appendChild(i);
-  button.appendChild(img);
+  if (isSkeleton) {
+    button.className = "img-skeleton-container margin-right-ten bf-skeleton-loader grid-block";
+  } else {
+    const i = document.createElement('i');
+    i.className = 'material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn';
+    i.textContent = 'close';
+    i.tabIndex = '0';
 
-  if (onClick) button.onclick = onClick;
-  if (onDelete) i.onclick = onDelete;
+    const img = document.createElement('img');
+    img.src = imageUrl ?? '';
+    button.appendChild(i);
+    button.appendChild(img);
+
+    if (onClick) button.onclick = onClick;
+    if (onDelete) i.onclick = onDelete;
+  }
   return div;
 };
 
@@ -378,27 +382,53 @@ const _refreshLocationImages = () => {
     locationImagesList.appendChild(div);
   });
 };
-
+const _buildUploadImageSkeleton = () => {
+  const locationImagesList = document.querySelector('#locationImagesList');
+  locationImagesList.appendChild(_createImageHolder({ isSkeleton: true, hasImage: false }, null));
+}
 const _addLocationCarousel = () => {
   const { pendingLocation } = localState;
-  if (state.carouselUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: true };
   const locationImagesList = document.querySelector('#locationImagesList');
   const locationImagesSelectBtn = locationImagesList.querySelector('button');
+
   uploadImages(
     uploadOptions,
     (onProgress) => {
-      state.carouselUploadPending = true;
-      locationImagesSelectBtn.disabled = true;
-      console.log(`onProgress${JSON.stringify(onProgress)}`);
+      const existImage = _currentImageOnProgress.find((_imgObj) => (
+        _imgObj.fileId === onProgress.file.fileId
+        && _imgObj.filename === onProgress.file.filename
+        && _imgObj.percentage <= onProgress.file.percentage));
+
+      if (!existImage) {
+        locationImagesSelectBtn.classList.add('hidden');
+        locationImagesSelectBtn.disabled = true;
+        _currentImageOnProgress.push({
+          fileId: onProgress.file.fileId,
+          filename: onProgress.file.filename,
+          percentage: onProgress.file.percentage,
+          source:'carousel'
+        });
+
+        _buildUploadImageSkeleton();
+      } else {
+        existImage.percentage = onProgress.file.percentage;
+      }
     },
     (err, files) => {
-      state.carouselUploadPending = false;
+      _currentImageOnProgress = _currentImageOnProgress.filter((_imgObj) => (_imgObj.source !== 'carousel'));
+      locationImagesSelectBtn.classList.remove('hidden');
       locationImagesSelectBtn.disabled = false;
-      if (files) {
+
+      files = files?.filter((file) => file.status === 'success');
+
+      if (err || !files > length) {
+        showToastMessage('uploadingFailed', 5000);
+      } else {
+        showToastMessage('uploadingComplete', 5000);
         pendingLocation.images = [...pendingLocation.images, ...files.map((i) => ({ imageUrl: i.url, id: generateUUID() }))];
-        _refreshLocationImages();
       }
+      _refreshLocationImages();
     }
   );
 };
@@ -690,21 +720,43 @@ const _uploadListImage = () => {
   const locationListImageInput = document.querySelector('#locationListImageInput');
   const listImageImg = locationListImageInput.querySelector('img');
   const listImageSelectBtn = locationListImageInput.querySelector('button');
+  const listImageSkeletonContainer = locationListImageInput.querySelector('.img-skeleton-container');
 
   const { pendingLocation } = localState;
-  if (localState.imageUploadPending) return;
   const uploadOptions = { allowMultipleFilesUpload: false };
   uploadImages(
     uploadOptions,
     (onProgress) => {
-      localState.imageUploadPending = true;
-      listImageSelectBtn.disabled = true;
-      console.log(`onProgress${JSON.stringify(onProgress)}`);
+      const existImage = _currentImageOnProgress.find((_imgObj) => (
+        _imgObj.fileId === onProgress.file.fileId
+        && _imgObj.filename === onProgress.file.filename
+        && _imgObj.percentage <= onProgress.file.percentage));
+
+      if (!existImage) {
+        _currentImageOnProgress.push({
+          fileId: onProgress.file.fileId,
+          filename: onProgress.file.filename,
+          percentage: onProgress.file.percentage,
+          source:'location'
+        });
+
+        listImageSelectBtn.disabled = true;
+        listImageSkeletonContainer.classList.remove('hidden');
+        listImageSelectBtn.classList.add('hidden');
+      } else {
+        existImage.percentage= onProgress.file.percentage;
+      }
     },
     (err, files) => {
-      localState.imageUploadPending = false;
       listImageSelectBtn.disabled = false;
-      if (files) {
+      listImageSelectBtn.classList.remove('hidden');
+      listImageSkeletonContainer.classList.add('hidden');
+
+      files = files?.filter((file) => file.status === 'success');
+      if (err || !files?.length) {
+        showToastMessage('uploadingFailed', 5000);
+      } else {
+        showToastMessage('uploadingComplete', 5000);
         const { url } = files[0];
         pendingLocation.listImage = url;
         listImageImg.src = cropImage(url, {
@@ -712,8 +764,8 @@ const _uploadListImage = () => {
           height: 64,
         });
         listImageSelectBtn.classList.add('has-img');
-        _toggleInputError('locationListImageFieldHelper', false);
       }
+      _toggleInputError('locationListImageFieldHelper', false);
     }
   );
 };
