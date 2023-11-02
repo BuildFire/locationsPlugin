@@ -548,11 +548,11 @@ p.info-note.info-note-transparent {
 }
 /* Tooltips */
 
-.bf-tooltip.hidden-Tooltip{
+.bf-tooltip.hidden-tooltip{
     position: relative;
 }
 
-.bf-tooltip:not(.hidden-Tooltip) {
+.bf-tooltip:not(.hidden-tooltip) {
     display: inline-block;
     text-align: center;
     position: relative;
@@ -562,10 +562,10 @@ p.info-note.info-note-transparent {
     height: 16px;
     color: #fff;
     border-radius: 100%;
-	background-color: var(--c-primary);
+    background-color: var(--c-primary);
 }
 
-.bf-tooltip:not(.hidden-Tooltip)::after {
+.bf-tooltip:not(.hidden-tooltip)::after {
     content: 'i';
     position: relative;
     bottom: 3px;
@@ -578,7 +578,7 @@ p.info-note.info-note-transparent {
 }
 
 .bf-tooltip .tooltip-content {
-	display: none;
+    display: none;
     width: 250px;
     background-color: #414547;
     color: #fff;
@@ -599,7 +599,7 @@ p.info-note.info-note-transparent {
 
 .bf-tooltip.left-tooltip .tooltip-content{
     right: 100%;
-	margin-right: 10px;
+    margin-right: 10px;
     left: auto;
     width: auto;
 }
@@ -617,9 +617,9 @@ p.info-note.info-note-transparent {
 }
 
 .bf-tooltip.left-tooltip .tooltip-content::after{
-	top: 30%;
+    top: 30%;
     right: -5px;
-	left: auto;
+    left: auto;
     transform: rotate(-90deg) translate(-50%);
     margin-right: -5px;
 }

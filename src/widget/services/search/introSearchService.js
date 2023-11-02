@@ -4,7 +4,7 @@ import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 
 const IntroSearchService = {
-  setupNearPipelines(query) {
+  _setupNearPipelines(query) {
     const pipelines = [];
 
     const $geoNear = {
@@ -25,7 +25,7 @@ const IntroSearchService = {
     return pipelines;
   },
 
-  setupAreaRadiusPipelines(query) {
+  _setupAreaRadiusPipelines(query) {
     const pipelines = [];
 
     const lng = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1;
@@ -56,7 +56,7 @@ const IntroSearchService = {
     return pipelines;
   },
 
-  setupOtherLocationsPipelines(query) {
+  _setupOtherLocationsPipelines(query) {
     const pipelines = [];
     let $match = {};
     const $sort = {
@@ -81,27 +81,27 @@ const IntroSearchService = {
     return pipelines;
   },
 
-  handleSearchModePipelines() {
+  _handleSearchModePipelines() {
     const query = buildSearchCriteria();
     let pipelines;
 
     if (state.settings.introductoryListView.searchOptions?.mode === "All") {
       if (!state.fetchingAllNearReached) {
-        pipelines = this.setupNearPipelines(query);
+        pipelines = this._setupNearPipelines(query);
       } else {
-        pipelines = this.setupOtherLocationsPipelines(query);
+        pipelines = this._setupOtherLocationsPipelines(query);
       }
     } else if (state.settings.introductoryListView.searchOptions?.mode === "AreaRadius") {
-      pipelines = this.setupAreaRadiusPipelines(query);
+      pipelines = this._setupAreaRadiusPipelines(query);
     } else {
-      pipelines = this.setupNearPipelines(query);
+      pipelines = this._setupNearPipelines(query);
     }
 
     return pipelines;
   },
 
   searchIntroLocations() {
-    const pipelines = this.handleSearchModePipelines();
+    const pipelines = this._handleSearchModePipelines();
 
     const promiseChain = [
       WidgetController.searchLocationsV2(pipelines, state.searchCriteria.page)
@@ -115,12 +115,11 @@ const IntroSearchService = {
       .then(([aggregateLocations, searchEngineLocations]) => {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
-        let printOtherLocationMessage;
 
         if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All") {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
-          printOtherLocationMessage = true;
+          state.printOtherLocationMessage = true;
         } else {
           state.searchCriteria.page += 1;
         }
@@ -128,7 +127,6 @@ const IntroSearchService = {
         return ({
           aggregateLocations,
           searchEngineLocations,
-          printOtherLocationMessage,
         });
       })
       .catch(console.error);

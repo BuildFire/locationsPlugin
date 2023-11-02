@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import SettingsController from "./controller";
 import state from "../../state";
 
 const convertMileToMeter = (distanceInMiles) => {
@@ -18,7 +17,7 @@ window.initAreaRadiusMap = () => {
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
 
-  const map = new google.maps.Map(document.getElementById("area-radius-location-map"), {
+  const map = new google.maps.Map(document.getElementById("local-area-map"), {
     center: { lat: localAreaOptions.lat, lng: localAreaOptions.lng },
     zoom: 10,
     zoomControl: true,
@@ -39,7 +38,8 @@ window.initAreaRadiusMap = () => {
   const geoCoder = new google.maps.Geocoder();
   const handleLocalMapOptionChanges = () => {
     state.settings.introductoryListView.searchOptions.areaRadiusOptions = localAreaOptions;
-    SettingsController.saveSettingsWithDelay(state.settings);
+    // onBoundsChange function is set from index.js file
+    state.maps.onBoundsChange();
   };
 
   autocomplete.bindTo("bounds", map);
@@ -150,32 +150,33 @@ window.initAreaRadiusMap = () => {
     marker.setVisible(true);
     marker.setPosition(latlng);
     circle.setVisible(true);
-    circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
     map.setCenter(latlng);
+    circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
 
     const radiusInMeter = convertMileToMeter(Number(localAreaOptions.radius));
     circle.setRadius(radiusInMeter);
   }
 };
 
-const loadAreaRadiusMap = (data) => {
-  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
+const setGoogleMapsScript = (key) => {
+  const docHead = document.getElementsByTagName("head");
+  const googleMapsPlaces = document.getElementById("googleMapsPlaces");
+  if (googleMapsPlaces) {
+    document.head.removeChild(googleMapsPlaces);
+  }
+
+  const scriptEl = document.createElement("script");
+  scriptEl.id = "googleMapsPlaces";
+  scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+  docHead[0].appendChild(scriptEl);
+};
+
+const loadAreaRadiusMap = () => {
+  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
   if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.mode === "AreaRadius") {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   }
   buildfire.getContext((error, context) => {
-    function setGoogleMapsScript(key) {
-      const docHead = document.getElementsByTagName("head");
-      const mapScript = document.getElementById("googleScript");
-      const scriptEl = document.createElement("script");
-      scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
-      if (mapScript) {
-        document.head.removeChild(mapScript);
-      }
-      docHead[0].appendChild(scriptEl);
-    }
-
     setGoogleMapsScript(context.apiKeys.googleMapKey);
   });
 };

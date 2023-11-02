@@ -211,3 +211,32 @@ export const getDistanceString = (distance) => {
   }
   return result;
 };
+
+export const calculateLocationDistance = (address, userPosition) => {
+  if (!userPosition) return null;
+
+  const destination = { latitude: address.lat, longitude: address.lng };
+  const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
+
+  return distance;
+};
+
+export const getCategoriesAndSubCategoriesByName = (name, categories = []) => {
+  name = name.toLowerCase();
+  const subcategoryIds = [];
+  const categoryIds = [];
+
+  categories.forEach((category) => {
+    if (name === category.title.toLowerCase()) {
+      categoryIds.push(category.id);
+    }
+
+    category.subcategories.forEach((subcategory) => {
+      if (name === subcategory.title.toLowerCase()) {
+        subcategoryIds.push(subcategory.id);
+      }
+    });
+  });
+
+  return { subcategoryIds, categoryIds };
+};

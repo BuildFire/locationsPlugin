@@ -28,7 +28,7 @@ const initListViewWysiwyg = () => {
       console.log(editor.getContent());
       editor.on('keyup change', () => {
         state.settings.introductoryListView.description = tinymce.activeEditor?.getContent();
-        SettingsController.saveSettingsWithDelay(state.settings);
+        saveSettingsWithDelay();
       });
     }
   });
@@ -36,7 +36,7 @@ const initListViewWysiwyg = () => {
 
 window.onShowListViewChanged = (e) => {
   state.settings.showIntroductoryListView = e.target.checked;
-  SettingsController.saveSettingsWithDelay(state.settings);
+  saveSettingsWithDelay();
 };
 
 window.onSortLocationsChanged = (sorting) => {
@@ -44,30 +44,19 @@ window.onSortLocationsChanged = (sorting) => {
     return;
   }
   state.settings.introductoryListView.sorting = sorting;
-  SettingsController.saveSettingsWithDelay(state.settings);
+  saveSettingsWithDelay();
 };
 
 window.onShowLocationsModeChanged = (showMode) => {
-  if (!showMode) {
-    return;
-  }
-
-  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptions-Container");
+  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
   if (showMode === "AreaRadius") {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');
   }
 
-  if (state.settings.introductoryListView.searchOptions) {
-    state.settings.introductoryListView.searchOptions.mode = showMode;
-  } else {
-    state.settings.introductoryListView.searchOptions = {
-      mode: showMode,
-      areaRadiusOptions: {}
-    };
-  }
-  SettingsController.saveSettingsWithDelay(state.settings);
+  state.settings.introductoryListView.searchOptions.mode = showMode;
+  saveSettingsWithDelay();
 };
 
 const patchListViewValues = () => {
@@ -100,6 +89,18 @@ const handlePinnedLocationEmptyState = (isLoading) => {
   } else {
     emptyState.classList.add('hidden');
   }
+};
+
+let timeoutId;
+const saveSettingsWithDelay = () => {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    saveSettings();
+  }, 300);
+};
+
+const saveSettings = () => {
+  SettingsController.saveSettings(state.settings).then(triggerWidgetOnListViewUpdate).catch(console.error);
 };
 
 const getPinnedLocations = () => {
@@ -135,7 +136,7 @@ const deletePinnedLocation = (item, index, callback) => {
           .then(() => {
             state.pinnedLocations = state.pinnedLocations.filter(elem => elem.id !== item.id);
             handlePinnedLocationEmptyState(false);
-            SettingsController.triggerWidgetOnListViewUpdate();
+            triggerWidgetOnListViewUpdate();
             callback(item);
           })
           .catch(console.error);
@@ -148,8 +149,15 @@ const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
-    loadAreaRadiusMap(state);
+    loadAreaRadiusMap();
   }).catch(console.error);
+};
+
+const triggerWidgetOnListViewUpdate = () => {
+  buildfire.messaging.sendMessageToWidget({
+    cmd: 'sync',
+    scope: 'intro'
+  });
 };
 
 window.initListView = () => {
@@ -158,18 +166,18 @@ window.initListView = () => {
 
   listViewImagesCarousel.onAddItems = (items) => {
     state.settings.introductoryListView.images.push(...items.map((item) => ({ ...item, id: generateUUID() })));
-    SettingsController.saveSettingsWithDelay(state.settings);
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onItemChange = (item, index) => {
     const imageId = state.settings.introductoryListView.images[index]?.id;
     state.settings.introductoryListView.images[index] = { ...item, id: imageId };
-    SettingsController.saveSettingsWithDelay(state.settings);
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onDeleteItem = (item, index,) => {
     state.settings.introductoryListView.images = state.settings.introductoryListView.images.filter(
       (elem) => elem.id !== item.id
     );
-    SettingsController.saveSettingsWithDelay(state.settings);
+    saveSettingsWithDelay();
   };
   listViewImagesCarousel.onOrderChange = (item, oldIndex, newIndex) => {
     const items = state.settings.introductoryListView.images;
@@ -188,7 +196,7 @@ window.initListView = () => {
     items[newIndex] = tmp;
 
     state.settings.introductoryListView.images = items;
-    SettingsController.saveSettingsWithDelay(state.settings);
+    saveSettingsWithDelay();
   };
   pinnedLocationsList.onDeleteItem = deletePinnedLocation;
   pinnedLocationsList.onOrderChange = (item, oldIndex, newIndex) => {
@@ -202,9 +210,10 @@ window.initListView = () => {
 
     Promise.all(promiseChain).then(() => {
       console.log('Successfully reordered pinned locations');
-      SettingsController.triggerWidgetOnListViewUpdate();
+      triggerWidgetOnListViewUpdate();
     }).catch(console.error);
   };
+  state.maps.onBoundsChange = saveSettingsWithDelay;
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();

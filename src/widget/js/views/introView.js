@@ -100,16 +100,13 @@ const initCreateLocationButton = () => {
   }
 };
 
-const showOtherLocationsMessage = () => {
+const separateListItems = () => {
   const container = document.querySelector('#introLocationsList');
-  const content = `<div class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.otherLocations').v}</h4></div>`;
-  container.insertAdjacentHTML('beforeend', content);
-};
+  const nearLocationsMessage = `<div id="nearLocationsMessageContainer" class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.nearYou').v}</h4></div>`;
+  const otherLocationsMessage = `<div id="otherLocationsMessageContainer" class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.otherLocations').v}</h4></div>`;
 
-const showNearLocationsMessage = () => {
-  const container = document.querySelector('#introLocationsList');
-  const content = `<div class="location-item"><h4 style="margin:0;font-weight:400;font-size:0.875rem;" class="mdc-theme--text-header">${window.strings.get('general.nearYou').v}</h4></div>`;
-  container.insertAdjacentHTML('afterbegin', content);
+  container.insertAdjacentHTML('afterbegin', nearLocationsMessage);
+  container.insertAdjacentHTML('beforeend', otherLocationsMessage);
 };
 
 export default {
@@ -117,6 +114,5 @@ export default {
   refreshIntroductoryCarousel,
   renderIntroductoryLocations,
   clearIntroViewList,
-  showOtherLocationsMessage,
-  showNearLocationsMessage
+  separateListItems
 };

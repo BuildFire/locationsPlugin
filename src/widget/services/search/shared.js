@@ -1,13 +1,13 @@
 /* eslint-disable max-len */
-import { getCategoriesAndSubCategoriesByName } from "..";
 import Analytics from "../../../utils/analytics";
 import { getCurrentDayName, openingNowDate } from "../../../utils/datetime";
+import { getCategoriesAndSubCategoriesByName } from "../../js/util/helpers";
 import state from "../../js/state";
 
 export const buildSearchCriteria = () => {
   const query = {};
   if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
-    const { subcategoryIds, categoryIds } = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue);
+    const { subcategoryIds, categoryIds } = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue, state.categories);
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     query.$or = [
       { "_buildfire.index.text": { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" } },

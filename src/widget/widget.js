@@ -3,7 +3,6 @@
 /* eslint-disable no-use-before-define */
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
-import Location from '../entities/Location';
 import Accordion from './js/Accordion';
 import MainMap from './js/map/Map';
 import state from './js/state';
@@ -28,7 +27,7 @@ import {
   shareLocation,
   transformCategoriesToText,
   cdnImage,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString
+  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
@@ -41,7 +40,6 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
-import { calculateLocationDistance } from './services';
 
 let SEARCH_TIMOUT;
 
@@ -155,18 +153,17 @@ const triggerSearchOnMapIdle = () => {
   }
 
   clearLocations();
-  searchHandler().then((result) => {
+  searchLocations().then((result) => {
     mapView.clearMapViewList();
     mapView.renderListingLocations(state.listLocations);
   });
 };
 
 const fetchOtherLocations = () => {
-  searchHandler().then((result) => {
+  searchLocations().then((result) => {
     if (result && result.length) {
       if (state.listLocations.length > result.length) {
-        introView.showOtherLocationsMessage();
-        introView.showNearLocationsMessage();
+        introView.separateListItems();
       }
       introView.renderIntroductoryLocations(result, true);
     }
@@ -177,7 +174,7 @@ const _handleIntroSearchResponse = (data) => {
   const result = data.aggregateLocations.filter((elem1) => (
     !state.listLocations.find((elem) => elem?.id === elem1?.id)
   )).map((r) => {
-    const distance = calculateLocationDistance(r?.coordinates);
+    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
     const printedDistanceString = getDistanceString(distance);
     return { ...r, distance: printedDistanceString };
   });
@@ -187,13 +184,15 @@ const _handleIntroSearchResponse = (data) => {
     const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => elem._source.searchable.title);
     if (searchableTitles && searchableTitles.length > 0) {
       state.searchableTitles = searchableTitles;
-      return searchHandler();
+      return searchLocations();
     }
   }
 
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
-  if (data.printOtherLocationMessage) {
+  const nearLocationsMessageContainer = document.getElementById("nearLocationsMessageContainer");
+  const otherLocationsMessageContainer = document.getElementById("otherLocationsMessageContainer");
+  if (state.printOtherLocationMessage && !nearLocationsMessageContainer && !otherLocationsMessageContainer) {
     fetchOtherLocations();
   }
 
@@ -212,7 +211,7 @@ const _handleMapSearchResponse = (data) => {
   const result = data.aggregateLocations.filter((elem1) => (
     !state.listLocations.find((elem) => elem?.id === elem1?.id)
   )).map((r) => {
-    const distance = calculateLocationDistance(r?.coordinates);
+    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
     const printedDistanceString = getDistanceString(distance);
     return { ...r, distance: printedDistanceString };
   });
@@ -240,7 +239,7 @@ const _handleMapSearchResponse = (data) => {
     const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => (elem._source.searchable.title));
     if (searchableTitles && searchableTitles.length > 0) {
       state.searchableTitles = searchableTitles;
-      return searchHandler();
+      return searchLocations();
     }
   }
 
@@ -250,13 +249,13 @@ const _handleMapSearchResponse = (data) => {
   mapView.renderListingLocations(result);
 
   if (!state.fetchingEndReached && state.listLocations.length < 200) {
-    return searchHandler();
+    return searchLocations();
   }
 
   return result;
 };
 
-const searchHandler = () => (
+const searchLocations = () => (
   new Promise((resolve, reject) => {
     const { showIntroductoryListView } = state.settings;
     const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
@@ -276,7 +275,7 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
-  searchHandler().then(() => {
+  searchLocations().then(() => {
     introView.clearIntroViewList();
     prepareIntroViewList();
     mapView.renderListingLocations(state.listLocations);
@@ -517,7 +516,7 @@ const fetchMoreIntroductoryLocations = (e) => {
 
   if (activeTemplate === 'intro' && !state.fetchingNextPage && !state.fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-      searchHandler()
+      searchLocations()
         .then((result) => {
           result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
           introView.renderIntroductoryLocations(result);
@@ -530,7 +529,7 @@ const fetchMoreListLocations = (e) => {
   if (state.fetchingNextPage || state.fetchingEndReached) return;
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    searchHandler().then((result) => {
+    searchLocations().then((result) => {
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
     });
   }
@@ -582,7 +581,7 @@ const fetchPinnedLocations = (done) => {
     .getPinnedLocations()
     .then((locations) => {
       state.pinnedLocations = locations.result.map((r) => {
-        const distance = calculateLocationDistance(r?.coordinates);
+        const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
         const printedDistanceString = getDistanceString(distance);
         return { ...r, distance: printedDistanceString };
       });
@@ -594,7 +593,7 @@ const fetchPinnedLocations = (done) => {
 };
 const clearAndSearchLocations = () => {
   clearLocations();
-  searchHandler()
+  searchLocations()
     .then((result) => {
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
       prepareIntroViewList();
@@ -1015,7 +1014,7 @@ const findViewPortLocations = () => {
       mapView.clearMapViewList();
     }
 
-    searchHandler().then((result) => {
+    searchLocations().then((result) => {
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
     });
   }, 300);
@@ -1342,7 +1341,7 @@ const initIntroLocations = () => {
   showElement('section#intro');
 
   fetchPinnedLocations(() => {
-    searchHandler().then((result) => {
+    searchLocations().then((result) => {
       introView.renderIntroductoryLocations(state.listLocations, true);
 
       listSkeleton.stop();
@@ -1378,7 +1377,7 @@ const initMapLocations = () => {
     ? 'image, image, image, image'
     : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line';
   const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
-  searchHandler()
+  searchLocations()
     .then((result) => {
       introView.clearIntroViewList();
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
@@ -1388,7 +1387,7 @@ const initMapLocations = () => {
 
 const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
-    const distance = calculateLocationDistance(location.coordinates);
+    const distance = calculateLocationDistance(location.coordinates, state.userPosition);
     const printedDistanceString = getDistanceString(distance);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     const imageDistanceSelector = document.querySelector(`.location-image-item[data-id="${location.id}"] .location-image-item__header p`);
@@ -1398,7 +1397,7 @@ const setLocationsDistance = () => {
     return { ...location, ...{ distance: printedDistanceString } };
   });
   if (state.selectedLocation) {
-    const distance = calculateLocationDistance(state.selectedLocation.coordinates);
+    const distance = calculateLocationDistance(state.selectedLocation.coordinates, state.userPosition);
     const printedDistanceString = getDistanceString(distance);
     state.selectedLocation.distance = printedDistanceString;
     const locationDetailSelector = document.querySelector('.location-detail__address p:last-child');
@@ -1661,7 +1660,7 @@ const onPopHandler = (breadcrumb) => {
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      searchHandler().then(() => prepareIntroViewList());
+      searchLocations().then(() => prepareIntroViewList());
     }
   }
 
