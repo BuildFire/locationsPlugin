@@ -9,6 +9,12 @@ import Location from "../../../../entities/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
 
+const SearchLocationsModes = {
+  All: "All",
+  UserPosition: "UserPosition",
+  AreaRadius: "AreaRadius",
+};
+
 const listViewSection = document.querySelector("#main");
 
 let listViewImagesCarousel = null;
@@ -49,7 +55,7 @@ window.onSortLocationsChanged = (sorting) => {
 
 window.onShowLocationsModeChanged = (showMode) => {
   const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
-  if (showMode === "AreaRadius") {
+  if (showMode === SearchLocationsModes.AreaRadius) {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');

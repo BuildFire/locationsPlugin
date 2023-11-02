@@ -3,6 +3,12 @@ import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 
+const SearchLocationsModes = {
+  All: "All",
+  UserPosition: "UserPosition",
+  AreaRadius: "AreaRadius",
+};
+
 const IntroSearchService = {
   _setupNearPipelines(query) {
     const pipelines = [];
@@ -85,15 +91,15 @@ const IntroSearchService = {
     const query = buildSearchCriteria();
     let pipelines;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === "All") {
+    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
       if (!state.fetchingAllNearReached) {
         pipelines = this._setupNearPipelines(query);
       } else {
         pipelines = this._setupOtherLocationsPipelines(query);
       }
-    } else if (state.settings.introductoryListView.searchOptions?.mode === "AreaRadius") {
+    } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
       pipelines = this._setupAreaRadiusPipelines(query);
-    } else {
+    } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.UserPosition) {
       pipelines = this._setupNearPipelines(query);
     }
 
@@ -116,7 +122,7 @@ const IntroSearchService = {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
 
-        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === "All") {
+        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
           state.printOtherLocationMessage = true;
