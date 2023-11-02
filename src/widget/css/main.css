@@ -1385,6 +1385,12 @@ h4.light-text {
   width: 100%;
 }
 
+.separate-location-message{
+  margin:0;
+  font-weight:400;
+  font-size:0.875rem;
+}
+
 @media (min-width: 768px) and (max-width: 1024px) {
   .fields-group {
     display: flex;

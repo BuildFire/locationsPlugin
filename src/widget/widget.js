@@ -159,13 +159,15 @@ const triggerSearchOnMapIdle = () => {
   });
 };
 
-const fetchOtherLocations = () => {
+let separateListItemsCalled = false;
+const fetchOtherLocations = (lastNearPage) => {
   searchLocations().then((result) => {
     if (result && result.length) {
+      introView.renderIntroductoryLocations(lastNearPage, false);
       if (state.listLocations.length > result.length) {
         introView.separateListItems();
       }
-      introView.renderIntroductoryLocations(result, true);
+      introView.renderIntroductoryLocations(result, false);
     }
   });
 };
@@ -190,10 +192,10 @@ const _handleIntroSearchResponse = (data) => {
 
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
-  const nearLocationsMessageContainer = document.getElementById("nearLocationsMessageContainer");
-  const otherLocationsMessageContainer = document.getElementById("otherLocationsMessageContainer");
-  if (state.printOtherLocationMessage && !nearLocationsMessageContainer && !otherLocationsMessageContainer) {
-    fetchOtherLocations();
+  if (state.printOtherLocationMessage && !separateListItemsCalled) {
+    separateListItemsCalled = true;
+    fetchOtherLocations(result);
+    return [];
   }
 
   if (result.length) {
@@ -1342,7 +1344,7 @@ const initIntroLocations = () => {
 
   fetchPinnedLocations(() => {
     searchLocations().then((result) => {
-      introView.renderIntroductoryLocations(state.listLocations, true);
+      introView.renderIntroductoryLocations(result, true);
 
       listSkeleton.stop();
       introView.refreshIntroductoryCarousel();

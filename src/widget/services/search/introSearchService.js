@@ -98,8 +98,10 @@ const IntroSearchService = {
         pipelines = this._setupOtherLocationsPipelines(query);
       }
     } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
+      state.fetchingAllNearReached = true;
       pipelines = this._setupAreaRadiusPipelines(query);
     } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.UserPosition) {
+      state.fetchingAllNearReached = true;
       pipelines = this._setupNearPipelines(query);
     }
 
