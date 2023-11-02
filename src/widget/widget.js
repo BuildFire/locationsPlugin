@@ -159,11 +159,10 @@ const triggerSearchOnMapIdle = () => {
   });
 };
 
-let separateListItemsCalled = false;
 const fetchOtherLocations = (lastNearPage) => {
   searchLocations().then((result) => {
+    introView.renderIntroductoryLocations(lastNearPage, false);
     if (result && result.length) {
-      introView.renderIntroductoryLocations(lastNearPage, false);
       if (state.listLocations.length > result.length) {
         introView.separateListItems();
       }
@@ -192,8 +191,8 @@ const _handleIntroSearchResponse = (data) => {
 
   // this condition will print the first page of other locations
   // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
-  if (state.printOtherLocationMessage && !separateListItemsCalled) {
-    separateListItemsCalled = true;
+  if (state.printOtherLocationMessage && !state.separateListItemsMessageShown) {
+    state.separateListItemsMessageShown = true;
     fetchOtherLocations(result);
     return [];
   }
@@ -572,6 +571,8 @@ const clearLocations = () => {
   state.fetchingNextPage = false;
   state.fetchingEndReached = false;
   state.fetchingAllNearReached = false;
+  state.printOtherLocationMessage = false;
+  state.separateListItemsMessageShown = false;
   state.searchableTitles = [];
   state.nearestLocation = null;
   state.isMapIdle = false;
@@ -598,9 +599,9 @@ const clearAndSearchLocations = () => {
   searchLocations()
     .then((result) => {
       result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-      prepareIntroViewList();
+      introView.renderIntroductoryLocations(result, true);
       mapView.clearMapViewList();
-      mapView.renderListingLocations(state.listLocations);
+      mapView.renderListingLocations(result);
     });
 };
 const clearAndSearchWithDelay = () => {

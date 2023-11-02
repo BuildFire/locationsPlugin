@@ -36,6 +36,8 @@ export default {
   fetchingNextPage: false,
   fetchingEndReached: false,
   fetchingAllNearReached: false,
+  printOtherLocationMessage: false,
+  separateListItemsMessageShown: false,
   filterElements: {},
   currentFilterElements: {},
   searchableTitles: [],
