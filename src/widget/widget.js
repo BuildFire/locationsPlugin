@@ -276,16 +276,16 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
-  searchLocations().then(() => {
+  searchLocations().then((result) => {
     introView.clearIntroViewList();
-    prepareIntroViewList();
-    mapView.renderListingLocations(state.listLocations);
+    prepareIntroViewList(result);
+    mapView.renderListingLocations(result);
   });
 };
 
-const prepareIntroViewList = () => {
-  introView.renderIntroductoryLocations(state.listLocations, true);
-  if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
+const prepareIntroViewList = (locations) => {
+  introView.renderIntroductoryLocations(locations, true);
+  if (locations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
     showElement("div.empty-page");
   }
 };
@@ -1663,7 +1663,8 @@ const onPopHandler = (breadcrumb) => {
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      searchLocations().then(() => prepareIntroViewList());
+      clearLocations();
+      searchLocations().then((result) => prepareIntroViewList(result));
     }
   }
 
