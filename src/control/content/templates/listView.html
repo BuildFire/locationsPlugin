@@ -14,7 +14,7 @@
     <div id="listview-carousel">
 
     </div>
-    <hr class="none" /> 
+    <hr class="none" />
     <div class="main clearfix">
         <div>
             <textarea id="listview-description-wysiwyg"  name="content"></textarea>
@@ -34,20 +34,83 @@
     </div>
     <hr class="none" />
     <div>
-      <h5 class="text-bold">All Locations</h5>
+      <h5 class="text-bold">Other Locations</h5>
       <hr class="none" />
       <div class="form-group main clearfix">
-          <div class="col-md-3 pull-left padding-left-zero">
-            <label class="">Sort Locations by</label>
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="btn-description">Show Locations
+              <div class="bf-tooltip margin-left-ten">
+                <div class="tooltip-content to-center">
+                  Display all existing locations, locations around the user's current position, or locations around the manually selected local area.
+                </div>
+              </div>
+            </label>
           </div>
-          <div class="col-md-9 pull-right padding-right-zero">
+          <div class="col-md-8 pull-right padding-right-zero">
             <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-dist" value="distance" checked 
+              <input type="radio"  name="searchOptions" id="listview-show-locations-by-all" value="All"
+                  onchange="onShowLocationsModeChanged('All')"/>
+              <label for="listview-show-locations-by-all">All</label>
+            </div>
+            <div class="col-md-4 margin-top-zero radio radio-primary">
+              <input type="radio"  name="searchOptions" id="listview-show-locations-by-user-position" value="UserPosition" checked
+                onchange="onShowLocationsModeChanged('UserPosition')"/>
+              <label for="listview-show-locations-by-user-position">User’s Position</label>
+            </div>
+            <div class="col-md-4 margin-top-zero radio radio-primary">
+              <input type="radio" name="searchOptions" id="listview-show-locations-by-area-radius" value="AreaRadius"
+                onchange="onShowLocationsModeChanged('AreaRadius')" />
+              <label for="listview-show-locations-by-area-radius">Local Area</label>
+            </div>
+          </div>
+      </div>
+      <div id="areaRadiusOptionsContainer" class="hidden">
+        <div class="form-group main clearfix">
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="" for="area-radius-address-input">Area Center</label>
+          </div>
+          <div class="col-md-8 pull-right padding-right-zero">
+            <input type="text" class="form-control" required maxlength="100" id="area-radius-address-input" placeholder="" />
+          </div>
+        </div>
+        <hr class="none" />
+        <div class="form-group main clearfix">
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="" for="location-area-radius-input">Area Radius (miles)
+            <div class="bf-tooltip margin-left-ten">
+              <div class="tooltip-content to-center">
+                Distance around the selected area center. All locations within this radius will appear on the introduction screen. max 200 mile.
+              </div>
+            </div>
+            </label>
+          </div>
+          <div class="col-md-8 pull-right padding-right-zero">
+            <input type="number" min="1" max="200" class="form-control" required id="location-area-radius-input" placeholder="" />
+          </div>
+        </div>
+        <hr class="none" />
+        <div id="local-area-map"></div>
+        <hr class="none" />
+      </div>
+
+      <div class="form-group main clearfix">
+          <div class="col-md-4 pull-left padding-left-zero">
+            <label class="btn-description">Sort Locations by
+              <div class="bf-tooltip margin-left-ten">
+                <div class="tooltip-content to-center">
+                  Choose how to sort locations on the introduction screen.
+                </div>
+              </div>
+            </label>
+          </div>
+          <div class="col-md-8 pull-right padding-right-zero">
+            <div class="col-md-4 margin-top-zero radio radio-primary">
+              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-dist" value="distance" checked
                   onchange="onSortLocationsChanged('distance')"/>
               <label for="listview-sort-location-by-dist">Distance</label>
             </div>
             <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-alpha" value="alphabetical" 
+              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-alpha" value="alphabetical"
                 onchange="onSortLocationsChanged('alphabetical')"/>
               <label for="listview-sort-location-by-alpha">Alphabetical</label>
             </div>

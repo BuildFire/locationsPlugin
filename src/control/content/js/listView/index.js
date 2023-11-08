@@ -3,14 +3,16 @@
 /* eslint-disable no-use-before-define */
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
-import Setting from "../../../../entities/Settings";
 import { generateUUID } from "../../utils/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
 import Location from "../../../../entities/Location";
-const state = {
-  settings: new Setting(),
-  pinnedLocations: [],
-  isWysiwygInitialized: true,
+import loadAreaRadiusMap from "./introMap";
+import state from "../../state";
+
+const SearchLocationsModes = {
+  All: "All",
+  UserPosition: "UserPosition",
+  AreaRadius: "AreaRadius",
 };
 
 const listViewSection = document.querySelector("#main");
@@ -51,6 +53,23 @@ window.onSortLocationsChanged = (sorting) => {
   saveSettingsWithDelay();
 };
 
+window.onShowLocationsModeChanged = (showMode) => {
+  const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
+  if (showMode === SearchLocationsModes.AreaRadius) {
+    areaRadiusOptionsContainer?.classList?.remove('hidden');
+  } else {
+    areaRadiusOptionsContainer?.classList?.add('hidden');
+  }
+
+  if (state.settings.introductoryListView.searchOptions) {
+    state.settings.introductoryListView.searchOptions.mode = showMode;
+  } else {
+    state.settings.introductoryListView.searchOptions = { mode: showMode };
+  }
+
+  saveSettingsWithDelay();
+};
+
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
   const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
@@ -59,6 +78,12 @@ const patchListViewValues = () => {
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
     if (radio.value === state.settings.introductoryListView.sorting) {
+      radio.checked = true;
+    }
+  }
+  const searchOptionsRadioBtns = listViewSection.querySelectorAll('input[name="searchOptions"]');
+  for (const radio of searchOptionsRadioBtns) {
+    if (radio.value === state.settings.introductoryListView.searchOptions?.mode) {
       radio.checked = true;
     }
   }
@@ -135,6 +160,7 @@ const getSettings = () => {
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
     patchListViewValues();
+    loadAreaRadiusMap();
   }).catch(console.error);
 };
 
@@ -198,6 +224,7 @@ window.initListView = () => {
       triggerWidgetOnListViewUpdate();
     }).catch(console.error);
   };
+  state.maps.onBoundsChange = saveSettingsWithDelay;
   initListViewWysiwyg();
   getSettings();
   getPinnedLocations();

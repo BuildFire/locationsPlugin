@@ -3,15 +3,14 @@
 /* eslint-disable no-use-before-define */
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
-import Location from '../entities/Location';
 import Accordion from './js/Accordion';
 import MainMap from './js/map/Map';
 import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
+import IntroSearchService from './services/search/introSearchService';
+import MapSearchService from './services/search/mapSearchService';
 import {
-  openingNowDate,
-  getCurrentDayName,
   convertDateToTime12H,
   convertDateToTime
 } from '../utils/datetime';
@@ -24,13 +23,11 @@ import {
   hideOverlays
 } from './js/util/ui';
 import {
-  truncateString,
   bookmarkLocation,
   shareLocation,
-  deepObjectDiff,
   transformCategoriesToText,
   cdnImage,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual
+  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
 import  Analytics  from '../utils/analytics';
 import '../shared/strings';
@@ -55,276 +52,6 @@ if (!buildfire.components.carousel.view.prototype.clear) {
     return this._removeAll();
   };
 }
-
-const getCategoriesAndSubCategoriesByName = (name) => {
-  name = name.toLowerCase();
-  const subcategoryIds = [];
-  const categoryIds = [];
-
-  for (const category of state.categories) {
-    if (name === category.title.toLowerCase()) {
-      categoryIds.push(category.id);
-    }
-    for (const subcategory of category.subcategories) {
-      if (name === subcategory.title.toLowerCase()) {
-        subcategoryIds.push(subcategory.id);
-      }
-    }
-  }
-  return { subcategoryIds, categoryIds };
-};
-
-const buildSearchCriteria = () => {
-  const query = {};
-  if (state.searchCriteria.searchValue && state.searchableTitles.length === 0) {
-    const { subcategoryIds, categoryIds }  = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue);
-    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
-    query.$or = [
-      { "_buildfire.index.text": { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" } },
-      { "_buildfire.index.array1.string1": { $in: array1Index } }
-    ];
-  }
-
-  // categories & subcategories filter
-  const categoryIds = [];
-  const subcategoryIds = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const key in state.filterElements) {
-    if (state.filterElements[key].checked) {
-      categoryIds.push(key);
-      const selectedSubcategories = state.filterElements[key].subcategories;
-      subcategoryIds.push(...selectedSubcategories);
-      const category = state.categories.find((elem) => elem.id === key);
-      Analytics.categorySelected(category.id);
-      const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
-      subcategories.forEach((subcategory) => {
-        Analytics.subcategorySelected(subcategory.id);
-      });
-    }
-  }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0 || state.searchCriteria.priceRange || state.searchableTitles.length > 0 || state.searchCriteria.bookmarked) {
-    let array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
-    if (state.searchCriteria.priceRange) {
-      array1Index.push(`pr_${state.searchCriteria.priceRange}`);
-    }
-
-    if (state.searchableTitles.length > 0) {
-      array1Index.push(...state.searchableTitles.map((title) => `title_${title.toLowerCase()}`));
-    }
-
-    if (state.searchCriteria.bookmarked) {
-      array1Index = [...array1Index, ...state.bookmarks.map((b) => `cid_${b.id}`)];
-    }
-
-    query["_buildfire.index.array1.string1"] = { $in: array1Index };
-  }
-
-  return query;
-};
-
-const buildOpenNowCriteria = () => {
-  const query = {  };
-  query[`openingHours.days.${getCurrentDayName()}.intervals`] = {
-    $elemMatch: {
-      from: { $lte: openingNowDate() },
-      to: { $gt: openingNowDate() }
-    }
-  };
-  query[`openingHours.days.${getCurrentDayName()}.active`] = true;
-  return query;
-};
-
-const searchIntroLocations = () => {
-  const pipelines = [];
-  const query = buildSearchCriteria();
-
-  const  $geoNear = {
-    near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
-    key: "_buildfire.geo",
-    maxDistance: 10000,
-    distanceField: "distance",
-    query: { ...query }
-  };
-
-  pipelines.push({ $geoNear });
-
-  if (state.searchCriteria.openingNow) {
-    pipelines.push({ $match: buildOpenNowCriteria() });
-  }
-
-  const $sort = {};
-  if (state.searchCriteria.sort) {
-    $sort[state.introSort.sortBy] = state.introSort.order;
-    pipelines.push({ $sort });
-  }
-
-  const promiseChain = [
-    WidgetController.searchLocationsV2(pipelines, state.searchCriteria.page)
-  ];
-
-  if (state.searchCriteria.searchValue && !state.searchableTitles.length) {
-    promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
-  }
-
-  return Promise.all(promiseChain)
-    .then(([result, result2]) => {
-      state.fetchingNextPage = false;
-      state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
-      result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
-        .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
-      state.listLocations = state.listLocations.concat(result);
-      if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
-        const searchableTitles =  result2?.hits?.hits?.map((elem) => elem._source.searchable.title);
-        if (searchableTitles && searchableTitles.length > 0) {
-          state.searchableTitles = searchableTitles;
-          return searchLocations();
-        }
-      }
-      return result;
-    })
-    .catch(console.error);
-};
-
-const searchLocations = () => {
-  const { showIntroductoryListView } = state.settings;
-  const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
-  if (activeTemplate === 'intro' && showIntroductoryListView) {
-    return searchIntroLocations();
-  }
-
-  const pipelines = [];
-  const query = buildSearchCriteria();
-  const { mapBounds } = state.maps.map;
-
-  if (!mapBounds || !Array.isArray(mapBounds)) {
-    return Promise.resolve([]);
-  }
-
-  mapSearchControl.resetState();
-  const $match = { ...query };
-  $match["_buildfire.geo"] = {
-    $geoWithin: {
-      $geometry: {
-        type : "Polygon",
-        coordinates: [mapBounds]
-      }
-    }
-  };
-  pipelines.push({ $match });
-
-  /*
-   [_buidfire.geo.corrdentes.0 ]: -1 1
-   [ ] compare the current location & centre map location
-   [ ] consider the lat if the Math.abs(|lat1| - |lat2|) > Math.abs(|lng1| - |lng2|), otherwise lng
-   [ ] then check if ASC or DESC  if
-  */
-
-  if (state.searchCriteria.openingNow) {
-    pipelines.push({ $match: buildOpenNowCriteria() });
-  }
-
-  const $sort = {};
-  if (state.searchCriteria.sort) {
-    if (state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
-      const centerMapPoint = state.maps.map.getCenter();
-      const lat1 = Math.abs(state.currentLocation.lat);
-      const lng1 = Math.abs(state.currentLocation.lng);
-      const lat2 = Math.abs(centerMapPoint.lat());
-      const lng2 = Math.abs(centerMapPoint.lng());
-      if (Math.abs(lat1 - lat2) >= Math.abs(lng1 - lng2)) {
-        const order = lat2 > lat1 ? 1 : -1;
-        $sort['coordinates.lat'] = order;
-      } else {
-        const order = lng2 > lng1 ? 1 : -1;
-        $sort['coordinates.lng'] = order;
-      }
-    } else {
-      $sort[state.searchCriteria.sort.sortBy] = state.searchCriteria.sort.order;
-    }
-    pipelines.push({ $sort });
-  }
-
-  const promiseChain = [
-    WidgetController.searchLocationsV2(pipelines, state.searchCriteria.page)
-  ];
-
-  if (state.searchCriteria.searchValue) {
-    if (!state.searchableTitles.length) {
-      promiseChain.push(WidgetController.getSearchEngineResults(state.searchCriteria.searchValue));
-    } else {
-      promiseChain.push(new Promise((resolve) =>  {}));
-    }
-
-    if (!state.nearestLocation && state.checkNearLocation) {
-      promiseChain.push(getNearestLocation());
-    }
-  }
-
-  return Promise.all(promiseChain)
-    .then(([result, result2, nearestLocation]) => {
-      state.fetchingNextPage = false;
-      state.fetchingEndReached = result.length < state.searchCriteria.pageSize;
-      result = result.filter((elem1) => !state.listLocations.find((elem) => elem?.id === elem1?.id))
-        .map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
-      state.listLocations = state.listLocations.concat(result);
-      if (state.searchCriteria.sort.sortBy === 'distance' &&  state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
-        result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
-        state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
-      }
-
-      if (state.searchCriteria.searchValue && !state.listLocations.length && !state.nearestLocation && nearestLocation && state.checkNearLocation) {
-        state.nearestLocation = nearestLocation;
-        state.checkNearLocation  = false;
-        const latLng  = new google.maps.LatLng(state.nearestLocation.coordinates.lat, state.nearestLocation.coordinates.lng);
-        state.maps.map.center(latLng);
-        state.maps.map.setZoom(10);
-        triggerSearchOnMapIdle();
-      } else if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
-        const searchableTitles =  result2?.hits?.hits?.map((elem) => elem._source.searchable.title);
-        if (searchableTitles && searchableTitles.length > 0) {
-          state.searchableTitles = searchableTitles;
-          return searchLocations();
-        }
-      }
-
-      mapSearchControl.refresh();
-
-      // Render Map listLocations
-      mapView.renderListingLocations(result);
-      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-
-      if (!state.fetchingEndReached && state.listLocations.length < 200) {
-        state.searchCriteria.page += 1;
-        return searchLocations();
-      }
-
-      return result;
-    })
-    .catch(console.error);
-};
-
-const getNearestLocation = () => {
-  const pipelines = [];
-  const query = buildSearchCriteria();
-
-  const  $geoNear = {
-    near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
-    key: "_buildfire.geo",
-    distanceField: "distance",
-    query: { ...query },
-  };
-
-  pipelines.push({ $geoNear });
-
-  if (state.searchCriteria.openingNow) {
-    pipelines.push({ $match: buildOpenNowCriteria() });
-  }
-
-  const $sort = { distance: 1 };
-  pipelines.push({ $sort });
-
-  return WidgetController.searchLocationsV2(pipelines, 0, 1).then((results) => results[0]);
-};
 
 const refreshSettings = () => WidgetController
   .getAppSettings()
@@ -417,63 +144,148 @@ const initChipSetInteractionListener = (event) => {
   clearAndSearchAllLocation();
 };
 
+const triggerSearchOnMapIdle = () => {
+  if (!state.isMapIdle) {
+    setTimeout(() => {
+      triggerSearchOnMapIdle();
+    }, 300);
+    return;
+  }
+
+  clearLocations();
+  searchLocations().then((result) => {
+    mapView.clearMapViewList();
+    mapView.renderListingLocations(state.listLocations);
+  });
+};
+
+const fetchOtherLocations = (lastNearPage) => {
+  searchLocations().then((result) => {
+    introView.renderIntroductoryLocations(lastNearPage, false);
+    if (result && result.length) {
+      if (state.listLocations.length > result.length) {
+        introView.separateListItems();
+      }
+      introView.renderIntroductoryLocations(result, false);
+    }
+  });
+};
+
+const _handleIntroSearchResponse = (data) => {
+  const result = data.aggregateLocations.filter((elem1) => (
+    !state.listLocations.find((elem) => elem?.id === elem1?.id)
+  )).map((r) => {
+    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
+    const printedDistanceString = getDistanceString(distance);
+    return { ...r, distance: printedDistanceString };
+  });
+
+  state.listLocations = state.listLocations.concat(result);
+  if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
+    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => elem._source.searchable.title);
+    if (searchableTitles && searchableTitles.length > 0) {
+      state.searchableTitles = searchableTitles;
+      return searchLocations();
+    }
+  }
+
+  // this condition will print the first page of other locations
+  // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
+  if (state.printOtherLocationMessage && !state.separateListItemsMessageShown) {
+    state.separateListItemsMessageShown = true;
+    fetchOtherLocations(result);
+    return [];
+  }
+
+  if (result.length) {
+    hideElement("div.empty-page");
+  }
+
+  return result;
+};
+
+const _handleMapSearchResponse = (data) => {
+  if (!data.aggregateLocations || !data.aggregateLocations.length) {
+    return [];
+  }
+
+  const result = data.aggregateLocations.filter((elem1) => (
+    !state.listLocations.find((elem) => elem?.id === elem1?.id)
+  )).map((r) => {
+    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
+    const printedDistanceString = getDistanceString(distance);
+    return { ...r, distance: printedDistanceString };
+  });
+
+  state.listLocations = state.listLocations.concat(result);
+  if (state.searchCriteria.sort.sortBy === 'distance' && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+    result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
+    state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
+  }
+
+  if (state.searchCriteria.searchValue
+    && !state.listLocations.length
+    && !state.nearestLocation
+    && data.nearestLocation
+    && state.checkNearLocation) {
+    state.nearestLocation = data.nearestLocation;
+    state.checkNearLocation = false;
+    const latLng = new google.maps.LatLng(state.nearestLocation.coordinates.lat, state.nearestLocation.coordinates.lng);
+    state.maps.map.center(latLng);
+    state.maps.map.setZoom(10);
+    triggerSearchOnMapIdle();
+  } else if (state.searchCriteria.searchValue
+    && !state.listLocations.length
+    && !state.searchableTitles.length) {
+    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => (elem._source.searchable.title));
+    if (searchableTitles && searchableTitles.length > 0) {
+      state.searchableTitles = searchableTitles;
+      return searchLocations();
+    }
+  }
+
+  mapSearchControl.refresh();
+
+  // Render Map listLocations
+  mapView.renderListingLocations(result);
+
+  if (!state.fetchingEndReached && state.listLocations.length < 200) {
+    return searchLocations();
+  }
+
+  return result;
+};
+
+const searchLocations = () => (
+  new Promise((resolve, reject) => {
+    const { showIntroductoryListView } = state.settings;
+    const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+    state.fetchingNextPage = true;
+
+    if (activeTemplate === 'intro' && showIntroductoryListView) {
+      // fetch locations within intro list view
+      IntroSearchService.searchIntroLocations().then((data) => resolve(_handleIntroSearchResponse(data)));
+    } else {
+      // fetch locations within map view
+      MapSearchService.searchLocations().then((data) => resolve(_handleMapSearchResponse(data)));
+    }
+  })
+);
+
 const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
-  const query = {};
-  const subcategoryIds = [];
-  const categoryIds = [];
-  for (const key in state.filterElements) {
-    const categoryFilterElement = state.filterElements[key];
-    if (categoryFilterElement.checked) {
-      const selectedSubcategories = categoryFilterElement.subcategories;
-      const existedCategory = state.categories.find((category) => category.id == key);
-      if (existedCategory && (existedCategory.subcategories.length ===  selectedSubcategories.length || selectedSubcategories.length === 0)) {
-        categoryIds.push(key);
-      } else if (selectedSubcategories.length > 0) {
-        subcategoryIds.push(...selectedSubcategories);
-      }
-      const category = state.categories.find((elem) => elem.id === key);
-      Analytics.categorySelected(category.id);
-      const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
-      subcategories.forEach((subcategory) => {
-        Analytics.subcategorySelected(subcategory.id);
-      });
-    }
-  }
-  if (categoryIds.length > 0 || subcategoryIds.length > 0) {
-    const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
-    query["_buildfire.index.array1.string1"] = { $in: array1Index };
-  }
-  const options = {
-    filter: {
-      ...query
-    }
-  };
-  if (Object.entries(query).length === 0) {
-    mapView.clearMapViewList();
-    const { showIntroductoryListView } = state.settings;
-    if (showIntroductoryListView) {
-      searchIntroLocations().then(() => {
-        prepareIntroViewList();
-        mapView.renderListingLocations(state.listLocations);
-      });
-    }
-  } else {
-    WidgetController.searchLocations(options).then((response) => {
-      state.listLocations = response.result;
-      prepareIntroViewList();
-      mapView.clearMapViewList();
-      mapView.renderListingLocations(state.listLocations);
-      state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-    });
-  }
+  mapView.clearMapViewList();
+  searchLocations().then((result) => {
+    introView.clearIntroViewList();
+    prepareIntroViewList(result);
+    mapView.renderListingLocations(result);
+  });
 };
 
-const prepareIntroViewList = () => {
-  introView.clearIntroViewList();
-  introView.renderIntroductoryLocations(state.listLocations, true);
-  if (state.listLocations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
+const prepareIntroViewList = (locations) => {
+  introView.renderIntroductoryLocations(locations, true);
+  if (locations.length === 0 && (!state.pinnedLocations.length || state.pinnedLocations.length === 0)) {
     showElement("div.empty-page");
   }
 };
@@ -592,8 +404,13 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      selectors.title.textContent = truncateString(selectedLocation.title, 15);
-      selectors.subtitle.textContent = truncateString(selectedLocation.subtitle ?? '', 25);
+      if (pageMapPosition === 'top') {
+        selectors.title.textContent = selectedLocation.title ?? '';
+        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+      } else {
+        selectors.title.textContent = selectedLocation.title ?? '';
+        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+      }
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
@@ -700,10 +517,9 @@ const fetchMoreIntroductoryLocations = (e) => {
 
   if (activeTemplate === 'intro' && !state.fetchingNextPage && !state.fetchingEndReached) {
     if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-      state.fetchingNextPage = true;
-      state.searchCriteria.page += 1;
       searchLocations()
         .then((result) => {
+          result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
           introView.renderIntroductoryLocations(result);
         });
     }
@@ -714,9 +530,9 @@ const fetchMoreListLocations = (e) => {
   if (state.fetchingNextPage || state.fetchingEndReached) return;
   const listContainer = document.querySelector('#listingLocationsList');
   if (e.target.scrollTop + e.target.offsetHeight > listContainer.offsetHeight) {
-    state.fetchingNextPage = true;
-    state.searchCriteria.page += 1;
-    searchLocations();
+    searchLocations().then((result) => {
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+    });
   }
 };
 
@@ -754,6 +570,9 @@ const clearLocations = () => {
   state.searchCriteria.page2 = 0;
   state.fetchingNextPage = false;
   state.fetchingEndReached = false;
+  state.fetchingAllNearReached = false;
+  state.printOtherLocationMessage = false;
+  state.separateListItemsMessageShown = false;
   state.searchableTitles = [];
   state.nearestLocation = null;
   state.isMapIdle = false;
@@ -764,7 +583,11 @@ const fetchPinnedLocations = (done) => {
   WidgetController
     .getPinnedLocations()
     .then((locations) => {
-      state.pinnedLocations = locations.result.map((r) => ({ ...r, distance: calculateLocationDistance(r?.coordinates) }));
+      state.pinnedLocations = locations.result.map((r) => {
+        const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
+        const printedDistanceString = getDistanceString(distance);
+        return { ...r, distance: printedDistanceString };
+      });
       done(null, state.pinnedLocations);
     })
     .catch((err) => {
@@ -774,10 +597,11 @@ const fetchPinnedLocations = (done) => {
 const clearAndSearchLocations = () => {
   clearLocations();
   searchLocations()
-    .then(() => {
-      prepareIntroViewList();
+    .then((result) => {
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+      introView.renderIntroductoryLocations(result, true);
       mapView.clearMapViewList();
-      mapView.renderListingLocations(state.listLocations);
+      mapView.renderListingLocations(result);
     });
 };
 const clearAndSearchWithDelay = () => {
@@ -817,7 +641,6 @@ const getDirections = () => {
   }
 };
 
-
 const initEventListeners = () => {
   window.addEventListener('resize', () => {
     initDrawer();
@@ -826,7 +649,6 @@ const initEventListeners = () => {
     if (currentActive.id === 'home' && document.querySelector('section#intro').style.display === "none") {
       buildfire.components.swipeableDrawer.show();
     }
-
   }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
@@ -939,7 +761,6 @@ const initEventListeners = () => {
     }
     fillAreaSearchField(positionPoints);
   };
-
 };
 const chipSets = {};
 const initFilterOverlay = (isInitialized, newcategories) => {
@@ -1188,32 +1009,17 @@ const fillAreaSearchField = (coords) => {
   });
 };
 
-const triggerSearchOnMapIdle = () => {
-  if (!state.isMapIdle) {
-    setTimeout(() => {
-      triggerSearchOnMapIdle();
-    }, 300);
-    return;
-  }
-
-  clearLocations();
-  searchLocations().then((result) => {
-    mapView.clearMapViewList();
-    mapView.renderListingLocations(state.listLocations);
-  });
-};
-
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
     if (state.viewportHasChanged) {
       clearLocations();
       mapView.clearMapViewList();
-    } else {
-      state.searchCriteria.page += 1;
     }
 
-    searchLocations().then((result) => {});
+    searchLocations().then((result) => {
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+    });
   }, 300);
 
   mapSearchControl.hide();
@@ -1352,7 +1158,7 @@ const initDrawer = () => {
       document.querySelector('.bookmark-result').classList.remove('margin-bottom-thirty');
     }
   };
-}
+};
 
 const initDrawerFilterOptions = () => {
   const { sorting, bookmarks, filter } = state.settings;
@@ -1537,9 +1343,10 @@ const initIntroLocations = () => {
   introView.initCreateLocationButton();
   showElement('section#intro');
 
-  searchIntroLocations().then((result) => {
-    fetchPinnedLocations(() => {
-      introView.renderIntroductoryLocations(state.listLocations, true);
+  fetchPinnedLocations(() => {
+    searchLocations().then((result) => {
+      introView.renderIntroductoryLocations(result, true);
+
       listSkeleton.stop();
       introView.refreshIntroductoryCarousel();
       carouselSkeleton.stop();
@@ -1574,41 +1381,28 @@ const initMapLocations = () => {
     : 'list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line';
   const listViewCarousel = new buildfire.components.skeleton('#listingLocationsList', { type }).start();
   searchLocations()
-    .then(() => {
+    .then((result) => {
       introView.clearIntroViewList();
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
       listViewCarousel.stop();
     });
 };
 
-const calculateLocationDistance = (address) => {
-  const { userPosition } = state;
-  if (!userPosition) return null;
-
-  const destination = { latitude: address.lat, longitude: address.lng };
-  const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
-  let result;
-  if (distance < 0.2) {
-    result = `${Math.round(distance * 5280).toLocaleString()} ${window.strings.get('general.distanceUnitFt').v}`;
-  } else if (state.settings.measurementUnit === 'metric') {
-    result = `${Math.round(distance * 1.60934).toLocaleString()} ${window.strings.get('general.distanceUnitKm').v}`;
-  } else {
-    result = `${Math.round(distance).toLocaleString()} ${window.strings.get('general.distanceUnitMi').v}`;
-  }
-  return result;
-};
-
 const setLocationsDistance = () => {
   state.listLocations = state.listLocations.map((location) => {
-    const distance = calculateLocationDistance(location.coordinates);
+    const distance = calculateLocationDistance(location.coordinates, state.userPosition);
+    const printedDistanceString = getDistanceString(distance);
     const distanceSelector = document.querySelector(`.location-item[data-id="${location.id}"] .location-item__actions p`);
     const imageDistanceSelector = document.querySelector(`.location-image-item[data-id="${location.id}"] .location-image-item__header p`);
 
-    if (distanceSelector) distanceSelector.textContent = distance;
-    if (imageDistanceSelector) imageDistanceSelector.textContent = distance;
-    return { ...location, ...{ distance } };
+    if (distanceSelector) distanceSelector.textContent = printedDistanceString;
+    if (imageDistanceSelector) imageDistanceSelector.textContent = printedDistanceString;
+    return { ...location, ...{ distance: printedDistanceString } };
   });
   if (state.selectedLocation) {
-    state.selectedLocation.distance = calculateLocationDistance(state.selectedLocation.coordinates);
+    const distance = calculateLocationDistance(state.selectedLocation.coordinates, state.userPosition);
+    const printedDistanceString = getDistanceString(distance);
+    state.selectedLocation.distance = printedDistanceString;
     const locationDetailSelector = document.querySelector('.location-detail__address p:last-child');
     locationDetailSelector.childNodes[0].nodeValue = state.selectedLocation.distance;
   }
@@ -1869,7 +1663,8 @@ const onPopHandler = (breadcrumb) => {
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      searchIntroLocations().then(() => prepareIntroViewList());
+      clearLocations();
+      searchLocations().then((result) => prepareIntroViewList(result));
     }
   }
 

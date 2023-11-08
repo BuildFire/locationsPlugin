@@ -258,7 +258,7 @@ p.info::before {
 
 /* End Switch Button */
 
-#location-map {
+#location-map, #local-area-map {
 	height: 40vh;
 	width: 100%;
 }

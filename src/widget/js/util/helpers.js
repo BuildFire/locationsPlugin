@@ -42,7 +42,7 @@ export const transformCategoriesToText = (locationCategories, categories) => {
 
   if (mainCategoriesTitles.length > 1) {
     text = mainCategoriesTitles.join(', ');
-  } else {
+  } else if (mainCategoriesTitles[0]) {
     text = `${mainCategoriesTitles[0]}${subCategoriesTitles.length ? ` | ${subCategoriesTitles.join(', ')}` : ''}`;
   }
 
@@ -200,6 +200,43 @@ export const bookmarkLocation = (locationId, e) => {
   }
 };
 
-export const truncateString = (string = '', maxLength = 50) => (string.length > maxLength
-  ? `${string.substring(0, maxLength)}…`
-  : string);
+export const getDistanceString = (distance) => {
+  let result;
+  if (distance < 0.2) {
+    result = `${Math.round(distance * 5280).toLocaleString()} ${window.strings.get('general.distanceUnitFt').v}`;
+  } else if (state.settings.measurementUnit === 'metric') {
+    result = `${Math.round(distance * 1.60934).toLocaleString()} ${window.strings.get('general.distanceUnitKm').v}`;
+  } else {
+    result = `${Math.round(distance).toLocaleString()} ${window.strings.get('general.distanceUnitMi').v}`;
+  }
+  return result;
+};
+
+export const calculateLocationDistance = (address, userPosition) => {
+  if (!userPosition) return null;
+
+  const destination = { latitude: address.lat, longitude: address.lng };
+  const distance = buildfire.geo.calculateDistance(userPosition, destination, { decimalPlaces: 5 });
+
+  return distance;
+};
+
+export const getCategoriesAndSubCategoriesByName = (name, categories = []) => {
+  name = name.toLowerCase();
+  const subcategoryIds = [];
+  const categoryIds = [];
+
+  categories.forEach((category) => {
+    if (name === category.title.toLowerCase()) {
+      categoryIds.push(category.id);
+    }
+
+    category.subcategories.forEach((subcategory) => {
+      if (name === subcategory.title.toLowerCase()) {
+        subcategoryIds.push(subcategory.id);
+      }
+    });
+  });
+
+  return { subcategoryIds, categoryIds };
+};

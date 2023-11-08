@@ -1377,6 +1377,20 @@ h4.light-text {
   background-color: var(--bf-theme-success, #018786) !important;
 }
 
+.text-ellipsis{
+  white-space: nowrap;
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.separate-location-message{
+  margin:0;
+  font-weight:400;
+  font-size:0.875rem;
+}
+
 @media (min-width: 768px) and (max-width: 1024px) {
   .fields-group {
     display: flex;

@@ -1,5 +1,5 @@
 import state from '../state';
-import { cdnImage, transformCategoriesToText, isLocationOpen, truncateString } from '../util/helpers';
+import { cdnImage, transformCategoriesToText, isLocationOpen } from '../util/helpers';
 import { hideElement, showElement } from '../util/ui';
 
 const renderListingLocations = (list) => {
@@ -15,10 +15,10 @@ const renderListingLocations = (list) => {
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
-              <p class="margin-bottom-five">${truncateString(n.title, 30)}</p>
-              <p class="margin-top-zero">${transformCategoriesToText(n.categories, state.categories)}</p>
+              <p class="margin-bottom-five text-ellipsis">${n.title ?? ''}</p>
+              <p class="margin-top-zero text-ellipsis">${transformCategoriesToText(n.categories, state.categories)}</p>
               <p>
-                <span>${n.subtitle ? truncateString(n.subtitle, 40) : ''}</span>
+                <span class="text-ellipsis">${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
                   <span class="location-image__open-status">${n.settings.showOpeningHours ? (window.strings.get(isLocationOpen(n) ? 'general.open' : 'general.closed').v) : ''}</span>
@@ -43,9 +43,9 @@ const renderListingLocations = (list) => {
         <div class="d-flex">
           <img src="${cdnImage(n.listImage)}" alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header">${truncateString(n.title, 18)}</p>
-            <p class="mdc-theme--text-body text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ? truncateString(n.subtitle, 18) : ''}</p>
-            <p class="mdc-theme--text-body text-truncate">${truncateString(n.address, 25)}</p>
+            <p class="mdc-theme--text-header text-ellipsis">${n.title}</p>
+            <p class="mdc-theme--text-body text-ellipsis text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="mdc-theme--text-body text-ellipsis text-truncate">${n.address ?? ''}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
@@ -53,7 +53,7 @@ const renderListingLocations = (list) => {
           </div>
         </div>
         <div class="mdc-chip-set" role="grid">
-        
+
           ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
               <span role="gridcell">

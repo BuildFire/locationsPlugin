@@ -60,26 +60,11 @@
   width: unset !important;
 }
 
-.bf-tooltip {
-  display: inline-flex;
-  position: relative;
-  cursor: default;
-  z-index: 10;
-}
-
-.bf-tooltip .tooltip-content {
-  top: 75px;
-}
-.bf-tooltip .tooltip-content.to-top {
-  top: -75px;
-}
-.bf-tooltip .tooltip-content.to-center {
-  top: 0;
-}
-
 .bf-tooltip .tooltip-content img {
   border-radius: 4px;
   max-width: 100%;
+  display: block;
+  margin: auto;
 }
 
 .cursor-default {
