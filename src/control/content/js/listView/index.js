@@ -61,7 +61,12 @@ window.onShowLocationsModeChanged = (showMode) => {
     areaRadiusOptionsContainer?.classList?.add('hidden');
   }
 
-  state.settings.introductoryListView.searchOptions.mode = showMode;
+  if (state.settings.introductoryListView.searchOptions) {
+    state.settings.introductoryListView.searchOptions.mode = showMode;
+  } else {
+    state.settings.introductoryListView.searchOptions = { mode: showMode };
+  }
+
   saveSettingsWithDelay();
 };
 
