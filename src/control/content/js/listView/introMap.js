@@ -18,8 +18,8 @@ window.initAreaRadiusMap = () => {
   const areaRadiusInput = document.getElementById("location-area-radius-input");
 
   const map = new google.maps.Map(document.getElementById("local-area-map"), {
-    center: { lat: localAreaOptions.lat, lng: localAreaOptions.lng },
-    zoom: 10,
+    center: { lat: 32.7182625, lng: -117.1601157 },
+    zoom: 1,
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
@@ -153,7 +153,7 @@ window.initAreaRadiusMap = () => {
     map.setCenter(latlng);
     circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
 
-    const radiusInMeter = convertMileToMeter(Number(localAreaOptions.radius));
+    const radiusInMeter = convertMileToMeter(Number(localAreaOptions.radius || 1));
     circle.setRadius(radiusInMeter);
   }
 };
