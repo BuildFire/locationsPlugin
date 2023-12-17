@@ -1,27 +1,49 @@
-# BuildFire Webpack Plugin Template
-The following template uses webpack in order to provide module support and minification out of the box.
+# Locations
+
+## Overview
+Empower your app with the "Locations" plugin, offering powerful location-based capabilities. This plugin allows users to discover, explore, and connect with various places effortlessly. With features like location management and a sophisticated algorithm to list locations based on user proximity, it enhances the user experience by integrating geographical context.
 
 ## Features
- * Live Reloading
- * ES2017 JavaScript
- * Minification
- * Modules
+- Location Management: Create, edit, and delete location entries seamlessly.
+- Proximity-Based Listing: Utilizes a complex algorithm considering the user's position to fetch and sort locations by distance.
+- Interactive Map Screen: A comprehensive map view powered by Google Maps to visualize locations.
+- Swipeable Drawer: Easily navigate through a list of locations.
+- Detailed Location Pages: Access individual details for each location.
+- Introduction Screen: A user-friendly introductory screen, fully configurable.
 
-## Getting Started
-Be sure to have the latest [BuildFire CLI](https://github.com/BuildFire/sdk-cli) installed in your system.
+## Prerequisites
+- Node.js installed on your development machine.
+- A Google Maps API Key for map functionality.
 
-    # Download the latest SDK if you haven't already
-    $ buildfire init
+## Installation
 
-    # Once inside the SDK's folder
-    $ buildfire plugin init <pluginName> webpack
+### Step 1: Clone/Download
+```bash
+git clone git@github.com:BuildFire/locationsPlugin.git
+```
+### Step 2: Install Dependencies
+```bash
+npm install
+```
+### Step 3: Development Mode
+To run the plugin in development mode, use the following command:
+
+
+```bash
+npm start
+```
+### Step 4: Production Build
+For production bundling, run:
+
+```bash
+npm run build
+```
+
+## Configuring Google Maps API Key
+To integrate Google Maps in the plugin, you need to provide a valid API key. Follow these steps:
+
+- Obtain a Google Maps API Key from the Google Cloud Platform.
+- Add the API key to the API Keys.
 
 ## Usage
-Be sure to be in the plugin's folder while running the following commands:
-
-* `$ npm install` - Install all plugin dependencies
-* `$ npm start` - Runs the plugin in the [Plugin Tester](https://github.com/BuildFire/sdk/wiki/How-to-test-your-Plugin-locally)
-* `$ npm run-script build` - Builds the plugin to be [submitted to the Marketplace](https://github.com/BuildFire/sdk/wiki/How-to-submit-your-plugin)
-
-You need to have BuildFire SDK running as well when testing plugins. you can learn more here: https://github.com/BuildFire/sdk/wiki/How-to-test-your-Plugin-locally
-
+After installation and setup, you can start the plugin through BuildFire Plugin Tester. Ensure that you have configured the Google Maps API Key to utilize the full range of mapping features.
