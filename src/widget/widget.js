@@ -197,7 +197,7 @@ const _handleIntroSearchResponse = (data) => {
     return [];
   }
 
-  if (result.length) {
+  if (state.listLocations && state.listLocations.length) {
     hideElement("div.empty-page");
   }
 
