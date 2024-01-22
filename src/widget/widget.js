@@ -648,6 +648,7 @@ const initEventListeners = () => {
 
     if (currentActive.id === 'home' && document.querySelector('section#intro').style.display === "none") {
       buildfire.components.swipeableDrawer.show();
+      buildfire.components.swipeableDrawer.setStep('min');
     }
   }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -922,6 +923,7 @@ const showMapView = () => {
   showElement('section#listing');
   clearAndSearchAllLocation();
   buildfire.components.swipeableDrawer.show();
+  buildfire.components.swipeableDrawer.setStep('min');
   Analytics.mapListUsed();
 };
 
@@ -1429,6 +1431,7 @@ const initGoogleMapsSDK = () => {
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
   const { scope } = message;
+  buildfire.components.drawer.closeDrawer();
 
   if (scope === 'design') {
     refreshSettings()
@@ -1499,6 +1502,7 @@ const handleCPSync = (message) => {
           }
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+          buildfire.components.swipeableDrawer.hide();
         } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
           showMapView();
         }
