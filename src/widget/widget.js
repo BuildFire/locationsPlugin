@@ -648,7 +648,8 @@ const initEventListeners = () => {
 
     if (currentActive.id === 'home' && document.querySelector('section#intro').style.display === "none") {
       buildfire.components.swipeableDrawer.show();
-      buildfire.components.swipeableDrawer.setStep('min');
+      const drawerPosition = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+      buildfire.components.swipeableDrawer.setStep(drawerPosition);
     }
   }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
@@ -923,7 +924,8 @@ const showMapView = () => {
   showElement('section#listing');
   clearAndSearchAllLocation();
   buildfire.components.swipeableDrawer.show();
-  buildfire.components.swipeableDrawer.setStep('min');
+  const drawerPosition = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+  buildfire.components.swipeableDrawer.setStep(drawerPosition);
   Analytics.mapListUsed();
 };
 
