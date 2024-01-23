@@ -275,11 +275,24 @@ const searchLocations = () => (
 const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
+  showElement("div.empty-page");
   mapView.clearMapViewList();
   searchLocations().then((result) => {
     introView.clearIntroViewList();
-    prepareIntroViewList(result);
-    mapView.renderListingLocations(result);
+    if (document.querySelector('section#intro').style.display !== "none") {
+      prepareIntroViewList(result);
+    } else if (!result.length) {
+      // show empty drawer state
+      const emptyStateContainer = document.querySelector('.drawer-empty-state');
+      const emptyStateContainer2 = document.querySelector('.empty-page');
+      if (!state.listLocations.length) {
+        emptyStateContainer.textContent = window.strings.get(state.firstRender ? 'emptyState.locationsListBeforeSearch' : 'emptyState.locationsListAfterSearch').v;
+        showElement(emptyStateContainer);
+      } else {
+        hideElement(emptyStateContainer2);
+        hideElement(emptyStateContainer);
+      }
+    }
   });
 };
 
