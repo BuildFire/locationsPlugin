@@ -1667,8 +1667,7 @@ const onPopHandler = (breadcrumb) => {
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      clearLocations();
-      searchLocations().then((result) => prepareIntroViewList(result));
+      clearAndSearchAllLocation();
     }
   }
 
