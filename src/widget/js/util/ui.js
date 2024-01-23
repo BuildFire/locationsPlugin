@@ -73,8 +73,6 @@ export const navigateTo = (template) => {
 
   if (template === "home" && document.querySelector('section#intro').style.display === "none") {
     buildfire.components.swipeableDrawer.show();
-    const drawerPosition = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
-    buildfire.components.swipeableDrawer.setStep(drawerPosition);
   }
 };
 
