@@ -920,6 +920,11 @@ const showMapView = () => {
   clearAndSearchAllLocation();
   buildfire.components.swipeableDrawer.show();
   Analytics.mapListUsed();
+
+  const position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+  if (position === 'min') {
+    buildfire.components.swipeableDrawer.setStep('min');
+  }
 };
 
 const initAreaAutocompleteField = (textfield, callback) => {
