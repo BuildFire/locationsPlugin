@@ -197,7 +197,7 @@ const _handleIntroSearchResponse = (data) => {
     return [];
   }
 
-  if (result.length) {
+  if (state.listLocations && state.listLocations.length) {
     hideElement("div.empty-page");
   }
 
@@ -206,6 +206,10 @@ const _handleIntroSearchResponse = (data) => {
 
 const _handleMapSearchResponse = (data) => {
   if (!data.aggregateLocations || !data.aggregateLocations.length) {
+    if (!state.listLocations.length) {
+      // if there's no result and no cached data then call "mapView.renderListingLocations" to show the empty state
+      mapView.renderListingLocations([]);
+    }
     return [];
   }
 
@@ -278,8 +282,11 @@ const clearAndSearchAllLocation = () => {
   mapView.clearMapViewList();
   searchLocations().then((result) => {
     introView.clearIntroViewList();
-    prepareIntroViewList(result);
-    mapView.renderListingLocations(result);
+    if (document.querySelector('section#intro').style.display !== "none") {
+      prepareIntroViewList(result);
+    } else {
+      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+    }
   });
 };
 
@@ -594,19 +601,9 @@ const fetchPinnedLocations = (done) => {
       console.error('error fetching pinned locations: ', err);
     });
 };
-const clearAndSearchLocations = () => {
-  clearLocations();
-  searchLocations()
-    .then((result) => {
-      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
-      introView.renderIntroductoryLocations(result, true);
-      mapView.clearMapViewList();
-      mapView.renderListingLocations(result);
-    });
-};
 const clearAndSearchWithDelay = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
-  SEARCH_TIMOUT = setTimeout(clearAndSearchLocations, 500);
+  SEARCH_TIMOUT = setTimeout(clearAndSearchAllLocation, 500);
 };
 
 const getFormattedAddress = (coords, cb) => {
@@ -923,6 +920,11 @@ const showMapView = () => {
   clearAndSearchAllLocation();
   buildfire.components.swipeableDrawer.show();
   Analytics.mapListUsed();
+
+  const position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
+  if (position === 'min') {
+    buildfire.components.swipeableDrawer.setStep('min');
+  }
 };
 
 const initAreaAutocompleteField = (textfield, callback) => {
@@ -1429,6 +1431,7 @@ const initGoogleMapsSDK = () => {
 const handleCPSync = (message) => {
   const outdatedSettings = { ...state.settings };
   const { scope } = message;
+  buildfire.components.drawer.closeDrawer();
 
   if (scope === 'design') {
     refreshSettings()
@@ -1499,6 +1502,7 @@ const handleCPSync = (message) => {
           }
           // eslint-disable-next-line no-new
           new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+          buildfire.components.swipeableDrawer.hide();
         } else if (getComputedStyle(document.querySelector('section#intro'), null).display !== 'none') {
           showMapView();
         }
@@ -1663,8 +1667,7 @@ const onPopHandler = (breadcrumb) => {
     showElement("section#intro");
     const { showIntroductoryListView } = state.settings;
     if (showIntroductoryListView) {
-      clearLocations();
-      searchLocations().then((result) => prepareIntroViewList(result));
+      clearAndSearchAllLocation();
     }
   }
 
