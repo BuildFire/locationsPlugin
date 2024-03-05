@@ -1633,6 +1633,7 @@ const navigateToLocationId = (locationId) => {
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = { ...response.data, id: response.id };
+        state.listLocations = state.listLocations.concat([state.selectedLocation]);
         showLocationDetail();
       })
       .catch((err) => {
