@@ -1632,7 +1632,7 @@ const navigateToLocationId = (locationId) => {
     refreshCategories()
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
-        state.selectedLocation = response.data;
+        state.selectedLocation = { ...response.data, id: response.id };
         showLocationDetail();
       })
       .catch((err) => {
