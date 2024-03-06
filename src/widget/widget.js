@@ -1633,10 +1633,6 @@ const navigateToLocationId = (locationId) => {
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = { ...response.data, id: response.id };
-        const isExist = state.listLocations.find((l) => l.id === state.selectedLocation.id);
-        if (!isExist) {
-          state.listLocations = state.listLocations.concat([state.selectedLocation]);
-        }
         showLocationDetail();
       })
       .catch((err) => {
