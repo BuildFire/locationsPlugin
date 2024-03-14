@@ -1908,6 +1908,7 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
     let data = null;
     if (realtimeUpdate) {
       data = {
+        ...state.locationObj,
         id: state.locationObj.id,
         title: addLocationControls.locationTitle.value,
         subtitle: addLocationControls.locationSubtitle.value,

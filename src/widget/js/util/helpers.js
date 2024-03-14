@@ -149,7 +149,10 @@ export const shareLocation = () => {
 };
 
 export const bookmarkLocation = (locationId, e) => {
-  const location = state.listLocations.find((i) => i.id === locationId);
+  let location = state.listLocations.find((i) => i.id === locationId);
+  if (!location) {
+    location = state.selectedLocation.id === locationId ? state.selectedLocation : null;
+  }
   const { bookmarks } = state.settings;
 
   if (state.bookmarkLoading || !location || !bookmarks.enabled || !bookmarks.allowForLocations) return;
