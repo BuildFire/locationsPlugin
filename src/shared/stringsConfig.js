@@ -618,6 +618,20 @@ export default {
         required: true,
         maxLength: 25,
       },
+      contributorPrefix: {
+        title: 'Contributor Name Prefix',
+        placeholder: 'Enter text here',
+        defaultValue: 'by',
+        required: true,
+        maxLength: 15,
+      },
+      unknownContributor: {
+        title: 'Unknown Contributor',
+        placeholder: 'Enter text here',
+        defaultValue: 'Someone',
+        required: true,
+        maxLength: 25,
+      },
     }
   },
   emptyState: {
