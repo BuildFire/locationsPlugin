@@ -21,10 +21,15 @@ export const buildSearchCriteria = () => {
   // eslint-disable-next-line no-restricted-syntax
   for (const key in state.filterElements) {
     if (state.filterElements[key].checked) {
-      categoryIds.push(key);
       const selectedSubcategories = state.filterElements[key].subcategories;
       subcategoryIds.push(...selectedSubcategories);
       const category = state.categories.find((elem) => elem.id === key);
+
+      // if all subcategories are selected, then add the category to the categoryIds array
+      if (selectedSubcategories.length === category.subcategories.length) {
+        categoryIds.push(key);
+      }
+
       Analytics.categorySelected(category.id);
       const subcategories = category.subcategories.filter((elem) => selectedSubcategories.includes(elem.id));
       subcategories.forEach((subcategory) => {
