@@ -556,13 +556,13 @@ window.importCategories = () => {
         let categoriesLoaded = new Set();
         result.forEach((item) =>{
           let itemCategories = item.categories.split(",");
-          if(itemCategories?.length > 0) 
+          if(itemCategories?.length > 0)
             itemCategories.forEach((cat)=> {
-              if(cat?.length > 0) 
+              if(cat?.length > 0)
                 categoriesLoaded.add(cat.trim())
             });
         });
-        categoriesLoaded.forEach((cat) => categories.push(new Category({title:cat,createdOn:new Date(),createdBy:authManager.currentUser}).toJSON()));
+        categoriesLoaded.forEach((cat) => categories.push(new Category({title:cat,createdOn:new Date(),createdBy:authManager.sanitizedCurrentUser}).toJSON()));
       }else{
         categories = result.map((elem) => {
           delete elem.id;
@@ -571,7 +571,7 @@ window.importCategories = () => {
           elem.iconClassName = elem?.iconClassName?.trim();
           elem.subcategories = elem.subcategories?.split(',').filter((elem) => elem).map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() }));
           elem.createdOn = new Date();
-          elem.createdBy = authManager.currentUser;
+          elem.createdBy = authManager.sanitizedCurrentUser;
           return new Category(elem).toJSON();
         });
       }
@@ -677,7 +677,7 @@ const loadMoreCategories = () => {
         categoriesListUI.append(categories)
         isLoading = false;
       });
-    } 
+    }
   };
 }
 

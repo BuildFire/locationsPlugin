@@ -12,7 +12,7 @@ export default {
   createLocation(location) {
     location.clientId = generateUUID();
     location.createdOn = new Date();
-    location.createdBy = authManager.currentUser;
+    location.createdBy = authManager.sanitizedCurrentUser;
     return Location.add(location.toJSON()).then((result) => {
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
@@ -40,7 +40,7 @@ export default {
   },
   updateLocation(locationId, location) {
     location.lastUpdatedOn = new Date();
-    location.lastUpdatedBy = authManager.currentUser;
+    location.lastUpdatedBy = authManager.sanitizedCurrentUser;
     const promiseChain = [
       Location.update(locationId, location.toJSON()),
       DeepLink.registerDeeplink(location),
@@ -67,7 +67,7 @@ export default {
   },
   saveSettings(settings) {
     settings.lastUpdatedOn = new Date();
-    settings.lastUpdatedBy = authManager.currentUser;
+    settings.lastUpdatedBy = authManager.sanitizedCurrentUser;
     return Settings.save(settings.toJSON());
   },
 };

@@ -198,7 +198,7 @@ const refreshCategoriesText = () => {
 
 const updateLocation = (locationId, location) => {
   location.lastUpdatedOn = new Date();
-  location.lastUpdatedBy = state.currentUser;
+  location.lastUpdatedBy = state.sanitizedCurrentUser;
   const promiseChain = [
     Locations.update(locationId, location.toJSON()),
     DeepLink.registerDeeplink(location),

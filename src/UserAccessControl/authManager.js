@@ -6,6 +6,25 @@ const authManager = {
   set currentUser(user) {
     authManager._currentUser = user;
   },
+  get sanitizedCurrentUser() {
+    if (!this.currentUser) return null;
+    const sanitizedUser = { ...this.currentUser };
+
+    // List of properties to remove
+    const propertiesToRemove = [
+      "email", "username", "accessToken", "accessTokenExpiresIn",
+      "externalApps", "lastUsedIPAddress", "userToken", "loginProviderType",
+      "failedAttemptCount", "_cpUser",
+    ];
+
+    propertiesToRemove.forEach((prop) => {
+      if (sanitizedUser.hasOwnProperty(prop)) {
+        delete sanitizedUser[prop];
+      }
+    });
+
+    return sanitizedUser;
+  },
   enforceLogin(callback) {
     buildfire.auth.getCurrentUser((err, currentUser) => {
       if (!currentUser) {
