@@ -1480,7 +1480,7 @@ const handleCPSync = (message) => {
           showMapView();
           let position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
           buildfire.components.swipeableDrawer.setStep(position);
-        } else if ((d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
+        } else if ((d.showContributorName !== o.showContributorName || d.detailsMapPosition !== o.detailsMapPosition || d.showDetailsCategory !== o.showDetailsCategory) && state.listLocations.length) {
           [state.selectedLocation] = state.listLocations;
           showLocationDetail();
         } else if (d.hideQuickFilter !== o.hideQuickFilter) {
