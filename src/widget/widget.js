@@ -334,12 +334,33 @@ const refreshAdvancedFilterUI = (chipId) => {
   });
 };
 
+const extractContributorName = (user) => {
+  // Check if first name or last name is available and return the combination or one of them
+  if (user.firstName || user.lastName) {
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  }
+
+  // If first name and last name are not available, use the display name
+  if (user.displayName) {
+    return user.displayName;
+  }
+
+  // If none of the above is available, return "Someone"
+  return window.strings.get('details.unknownContributor').v;
+};
 const showLocationDetail = () => {
   const { selectedLocation } = state;
 
-  views
-    .fetch('detail')
-    .then(() => {
+  const showContributorName = (state.settings.design?.showContributorName && selectedLocation.createdBy?._id);
+
+  const promises = [views.fetch('detail')];
+
+  if (showContributorName) {
+    promises.push(authManager.getUserProfile(selectedLocation.createdBy._id));
+  }
+
+  Promise.all(promises)
+    .then((result) => {
       views.inject('detail');
       window.strings.inject(document.querySelector('section#detail'), false);
       const pageMapPosition = state.settings.design.detailsMapPosition;
@@ -359,7 +380,8 @@ const showLocationDetail = () => {
           ...selectors,
           ...{
             title: document.querySelector('.location-detail__top-header h1'),
-            subtitle: document.querySelector('.location-detail__top-header h5'),
+            subtitle: document.querySelector('.location-detail__top-header h5#locationSubtitle'),
+            contributor: document.querySelector('.location-detail__top-header h5#locationContributor'),
             categories: document.querySelector('.location-detail__top-subtitle p'),
             cover: document.querySelector('.location-detail__bottom-cover'),
             main: document.querySelector('.location-detail__top-view'),
@@ -375,7 +397,8 @@ const showLocationDetail = () => {
           ...selectors,
           ...{
             title: document.querySelector('.location-detail__cover h2'),
-            subtitle: document.querySelector('.location-detail__cover h4'),
+            subtitle: document.querySelector('.location-detail__cover h4#locationSubtitleCover'),
+            contributor: document.querySelector('.location-detail__cover h4#locationContributorCover'),
             categories: document.querySelector('.location-detail__cover p:first-child'),
             main: document.querySelector('.location-detail__cover'),
             map: document.querySelector('.location-detail__map'),
@@ -411,13 +434,9 @@ const showLocationDetail = () => {
 
       detailMap.addMarker(selectedLocation, () => {});
 
-      if (pageMapPosition === 'top') {
-        selectors.title.textContent = selectedLocation.title ?? '';
-        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
-      } else {
-        selectors.title.textContent = selectedLocation.title ?? '';
-        selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
-      }
+      selectors.title.textContent = selectedLocation.title ?? '';
+      selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
+
       selectors.address.textContent = selectedLocation.formattedAddress;
       selectors.description.innerHTML = selectedLocation.description;
       selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
@@ -425,6 +444,14 @@ const showLocationDetail = () => {
       if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
         selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories, state.categories);
         selectors.categories.style.display = 'block';
+      }
+
+      if (showContributorName && result[1]) {
+        selectors.contributor.textContent = `${window.strings.get('details.contributorPrefix').v} ${extractContributorName(result[1])}`;
+        selectors.contributor.classList.remove('hidden');
+        if (pageMapPosition !== 'top') {
+          selectors.title.classList.add('reduced-margin');
+        }
       }
 
       if (!selectedLocation.settings.showOpeningHours) {

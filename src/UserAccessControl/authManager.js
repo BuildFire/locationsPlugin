@@ -33,6 +33,14 @@ const authManager = {
       authManager.currentUser = null;
       window.location.reload();
     }, true);
+  },
+  getUserProfile(userId) {
+    return new Promise((resolve, reject) => {
+      buildfire.auth.getUserProfile({ userId }, (err, user) => {
+        if (err) return reject(err);
+        resolve(user);
+      });
+    });
   }
 };
 buildfire.auth.onLogout(authManager.enforceLogin, true);

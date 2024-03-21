@@ -481,11 +481,17 @@ button span {
   margin-top: 50px;
   margin-bottom: 0;
 }
+.location-detail__cover h2.reduced-margin {
+  margin-top: 5px;
+}
 .location-detail__cover h4 {
   margin-bottom: 0;
   margin-top: 5px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: normal;
+}
+.location-detail__cover h4#locationContributorCover {
+  margin-top: 30px;
 }
 .location-detail__cover .mdc-text-field__icon {
   cursor: pointer;
@@ -623,7 +629,7 @@ button span {
 .location-detail__top-header h5 {
   font-weight: normal;
   margin: 2px 0 0;
-  font-size: 15px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .location-detail__top-header span:nth-child(2) {
@@ -1053,10 +1059,6 @@ button.mdc-button > *,
   pointer-events: none;
 }
 
-.hidden {
-  display: none !important;
-}
-
 .overflow-visible {
   overflow: visible;
 }
@@ -1414,4 +1416,8 @@ h4.light-text {
 
 .swipeable-drawer-resizer-container {
   padding: 20px 0;
+}
+
+.hidden {
+  display: none !important;
 }
