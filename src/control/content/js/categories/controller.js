@@ -45,20 +45,23 @@ export default {
     return Categories.search(options);
   },
   getAllCategories(callback) {
-    let searchOptions = {
-        limit: 50,
-        skip: 0,
+    const options = {
+      limit: 50,
+      skip: 0,
+      filter: {},
+      sort: { title: 1 }
+    };
+    let categories = [];
 
-    }, categories = [];
+    options.filter["_buildfire.index.date1"] = { $type: 10 };
 
     const getCategoriesData = (callback) => {
-        Categories.search(searchOptions).then(result => {
-          if (result.length < searchOptions.limit) {
+        Categories.search(options).then((result) => {
+          if (result.length < options.limit) {
               categories = categories.concat(result);
-              categories = categories.filter(x => x.deletedBy == null);
               return callback(categories);
           } else {
-              searchOptions.skip = searchOptions.skip + searchOptions.limit;
+              options.skip = options.skip + options.limit;
               categories = categories.concat(result);
               return getCategoriesData(callback);
           }
@@ -66,7 +69,6 @@ export default {
     }
 
     getCategoriesData(callback);
-
   },
 
   updateCategory(categoryId, category) {

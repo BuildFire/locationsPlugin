@@ -407,7 +407,9 @@ const showLocationDetail = () => {
           }
         };
         selectors.main.style.display = 'flex';
-        selectors.rating.classList.add('location-detail__rating--dual-shadow');
+        if (selectedLocation.settings.showStarRating) {
+          selectors.rating.classList.add('location-detail__rating--dual-shadow');
+        }
       }
 
       detailsView.renderLocationActions();
