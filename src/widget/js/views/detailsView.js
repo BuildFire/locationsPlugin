@@ -51,7 +51,7 @@ export default {
   updateLocation() {
     const location = new Location(state.selectedLocation);
     location.lastUpdatedOn = new Date();
-    location.lastUpdatedBy = state.currentUser;
+    location.lastUpdatedBy = state.sanitizedCurrentUser;
     const promiseChain = [
       Locations.update(location.id, location.toJSON()),
       DeepLink.registerDeeplink(location),

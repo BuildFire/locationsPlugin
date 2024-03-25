@@ -553,6 +553,7 @@ p.info-note.info-note-transparent {
 }
 
 .bf-tooltip:not(.hidden-tooltip) {
+    cursor: pointer;
     display: inline-block;
     text-align: center;
     position: relative;

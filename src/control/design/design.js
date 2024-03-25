@@ -24,6 +24,7 @@ const render = () => {
   const hideQuickFilterBtn = document.querySelector('#hide-quick-filter-btn');
   const allowMapStyleSelectionBtn = document.querySelector('#allow-map-style-selection-btn');
   const showCategoryOnLocDetailsBtn = document.querySelector('#show-category-on-loc-details-btn');
+  const showContributorNameToggle = document.querySelector('#show-contributor-name');
 
   for (const radio of listViewPositionRadios) {
     if (radio.value === state.settings.design?.listViewPosition) {
@@ -106,6 +107,12 @@ const render = () => {
   showCategoryOnLocDetailsBtn.checked = state.settings.design.showDetailsCategory;
   showCategoryOnLocDetailsBtn.onchange = (e) => {
     state.settings.design.showDetailsCategory = e.target.checked;
+    saveSettings();
+  };
+
+  showContributorNameToggle.checked = state.settings.design.showContributorName;
+  showContributorNameToggle.onchange = (e) => {
+    state.settings.design.showContributorName = e.target.checked;
     saveSettings();
   };
 };

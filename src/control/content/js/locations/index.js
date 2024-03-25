@@ -1253,13 +1253,13 @@ const deleteLocation = (item, row, callback = () => {}) => {
 export const locationsAiSeeder = {
   instance: null,
   jsonTemplate: [{
-    title: '', // todo mandotory
-    subtitle: '', // todo take the title
+    title: '',
+    subtitle: '',
     address: '',
     listImage: '',
     description: '',
-    latitude: '', // todo san diego
-    longitude: '', // todo san diego
+    latitude: '',
+    longitude: '',
   }],
   init() {
     this.instance = new buildfire.components.aiStateSeeder({
@@ -1308,7 +1308,7 @@ export const locationsAiSeeder = {
         item.formattedAddress = item.address;
         item.coordinates = item.latitude && item.longitude && this._isValidCoordinates({ lat: Number(item.latitude), lng: Number(item.longitude) }) ? { lat: Number(item.latitude), lng: Number(item.longitude) } : constants.getDefaultLocation();
         item.createdOn = new Date();
-        item.createdBy = authManager.currentUser;
+        item.createdBy = authManager.sanitizedCurrentUser;
         return new Location(item).toJSON();
       });
   },
@@ -1565,7 +1565,7 @@ const upsertCategories = (result, allCategories) => {
                 iconClassName: "",
                 subcategories: selectedSubCategories ? selectedSubCategories.map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() })) : [],
                 createdOn: new Date(),
-                createdBy: authManager.currentUser
+                createdBy: authManager.sanitizedCurrentUser
               }
               categories.push(new Category(categoryToBeSaved).toJSON())
             } else if(selectedSubCategories){
@@ -1646,7 +1646,7 @@ const insertLocations = (result, callback) => {
     elem.categories = { main: categories, subcategories: subCategories };
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
-    elem.createdBy = authManager.currentUser;
+    elem.createdBy = authManager.sanitizedCurrentUser;
     // add location actionItems
     let actionItems =[];
     if(elem.phoneNumber){
@@ -1811,22 +1811,14 @@ const getPinnedLocation = () => {
     state.pinnedLocations = result || [];
   });
 };
-var skipFilter = 0;
 const loadCategories = (callback) => {
-  const options = {
-    filter: {},
-    page: skipFilter,
-    pageSize: 30,
-    sort: {title: 1}
-  };
-  CategoriesController.searchCategories(options).then((categories) => {
-    skipFilter += 1;
-    for(const category of categories){
-      state.categories.push(category);
-      globalState.categories.push(category);
+  CategoriesController.getAllCategories((allCategories) => {
+    for(const category of allCategories){
       state.categoriesLookup[category.id] = category;
     }
-    callback(null, categories);
+    state.categories = allCategories;
+    globalState.categories = allCategories;
+    callback(null, allCategories);
   });
 };
 
@@ -1954,15 +1946,9 @@ window.initLocations = () => {
   handleLocationEmptyState(true);
   state.filter = {};
 
-  var _loadCategoriesTimer = setInterval(()=>{
-    loadCategories((err ,result)=>{
-      if(result.length < 30){
-        clearInterval(_loadCategoriesTimer)
-        refreshLocations();
-      }
-    })
-
-  },500)
+  loadCategories((err, result)=> {
+    refreshLocations();
+  });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
     window.addEditLocation(obj);

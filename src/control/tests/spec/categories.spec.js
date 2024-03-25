@@ -6,15 +6,15 @@ import Categories from "../../../repository/Categories";
 import authManager from "../../../UserAccessControl/authManager";
 import Category from "../../../entities/Category";
 
-const run = () => { 
+const run = () => {
   describe("Categories", () => {
     const category= {
       title: "Restaurant",
-      createdBy: authManager._currentUser,
+      createdBy: authManager.sanitizedCurrentUser,
       createdAt: new Date()
     }
 
-    
+
     it("create category", (done) => {
       Categories.create(new Category(category).toJSON()).then((resp) => {
         category.id = resp.id;
@@ -46,7 +46,7 @@ const run = () => {
       Categories.search().then((result) => {
         const cat = result[result.length -1];
         cat.deletedOn = new Date();
-        cat.deletedBy = authManager._currentUser;
+        cat.deletedBy = authManager.sanitizedCurrentUser;
         Categories.delete(cat.id, new Category(cat).toJSON()).then((resp) => {
           expect(resp.data.deletedOn).toBeTruthy()
           done();
@@ -54,7 +54,7 @@ const run = () => {
       })
     });
   });
-  
+
 }
 
 export default {

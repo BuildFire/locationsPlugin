@@ -7,9 +7,9 @@ import Locations from "../../../repository/Locations";
 import authManager from "../../../UserAccessControl/authManager";
 import Location from "../../../entities/Location";
 
-const run = () => { 
+const run = () => {
   describe("Locations", () => {
-    
+
     let categories = []
     beforeEach((done) => {
       Categories.search().then((result) => {
@@ -26,7 +26,7 @@ const run = () => {
       address: 'Amman, Jordan',
       coordinates: { lat: 31.954043, lng:  35.910560 },
       description: 'This test location',
-      createdBy: authManager._currentUser,
+      createdBy: authManager.sanitizedCurrentUser,
       createdAt: new Date()
     }
 
@@ -70,7 +70,7 @@ const run = () => {
       })
     });
   });
-  
+
 }
 
 export default {
