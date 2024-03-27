@@ -10,6 +10,11 @@ const authManager = {
     if (!this.currentUser) return null;
     const sanitizedUser = { ...this.currentUser };
 
+    // the following will be stored in location createdBy
+    if (typeof sanitizedUser._cpUser !== "undefined") {
+      sanitizedUser.isCPUser = true;
+    }
+
     // List of properties to remove
     const propertiesToRemove = [
       "email", "username", "accessToken", "accessTokenExpiresIn",

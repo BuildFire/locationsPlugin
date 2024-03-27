@@ -335,6 +335,11 @@ const refreshAdvancedFilterUI = (chipId) => {
 };
 
 const extractContributorName = (user) => {
+  const { selectedLocation } = state;
+  // Check if the user is a CP user and return "Someone" if true
+  if (selectedLocation.createdBy?.isCPUser) {
+    return window.strings.get('details.unknownContributor').v;
+  }
   // Check if first name or last name is available and return the combination or one of them
   if (user.firstName || user.lastName) {
     return `${user.firstName || ''} ${user.lastName || ''}`.trim();
