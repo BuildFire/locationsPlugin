@@ -61,7 +61,8 @@ export default class Settings {
       hideQuickFilter: false,
       allowStyleSelection: true,
       detailsMapPosition: 'top',
-      showDetailsCategory: true
+      showDetailsCategory: true,
+      showContributorName: false,
     };
     this.globalEntries = data.globalEntries || {
       locations: {

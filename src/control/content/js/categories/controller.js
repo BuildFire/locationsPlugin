@@ -7,7 +7,7 @@ import Analytics from '../../../../utils/analytics';
 export default {
   createCategory(category) {
     category.createdOn = new Date();
-    category.createdBy = authManager.currentUser;
+    category.createdBy = authManager.sanitizedCurrentUser;
     return Categories.create(category.toJSON()).then((result) => {
       Analytics.registerCategoryEvent(result.id, result.title);
       for (const sub of result.subcategories) {
@@ -45,20 +45,23 @@ export default {
     return Categories.search(options);
   },
   getAllCategories(callback) {
-    let searchOptions = {
-        limit: 50,
-        skip: 0,
-        
-    }, categories = [];
-   
+    const options = {
+      limit: 50,
+      skip: 0,
+      filter: {},
+      sort: { title: 1 }
+    };
+    let categories = [];
+
+    options.filter["_buildfire.index.date1"] = { $type: 10 };
+
     const getCategoriesData = (callback) => {
-        Categories.search(searchOptions).then(result => {
-          if (result.length < searchOptions.limit) {
+        Categories.search(options).then((result) => {
+          if (result.length < options.limit) {
               categories = categories.concat(result);
-              categories = categories.filter(x => x.deletedBy == null);
               return callback(categories);
           } else {
-              searchOptions.skip = searchOptions.skip + searchOptions.limit;
+              options.skip = options.skip + options.limit;
               categories = categories.concat(result);
               return getCategoriesData(callback);
           }
@@ -66,17 +69,16 @@ export default {
     }
 
     getCategoriesData(callback);
-
   },
 
   updateCategory(categoryId, category) {
     category.lastUpdatedOn = new Date();
-    category.lastUpdatedBy = authManager.currentUser;
+    category.lastUpdatedBy = authManager.sanitizedCurrentUser;
     return Categories.update(categoryId, category.toJSON());
   },
   deleteCategory(categoryId, category) {
     category.deletedOn = new Date();
-    category.deletedBy = authManager.currentUser;
+    category.deletedBy = authManager.sanitizedCurrentUser;
     return Categories.delete(categoryId, category.toJSON());
   }
 };

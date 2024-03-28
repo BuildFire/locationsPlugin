@@ -58,23 +58,17 @@ class Analytics {
 
   static viewed(locationId, metadata = {}) {
     const key = `locations_${locationId}_viewed`;
-    buildfire.analytics.trackAction(key, {
-      _buildfire: { aggregationValue: 10 },
-    });
+    buildfire.analytics.trackAction(key);
   }
 
   static categorySelected(categoryId) {
     const key = `categories_${categoryId}_selected`;
-    buildfire.analytics.trackAction(key, {
-      _buildfire: { aggregationValue: 10 },
-    });
+    buildfire.analytics.trackAction(key);
   }
 
   static subcategorySelected(subcategoryId, metadata = {}) {
     const key = `subcategories_${subcategoryId}_selected`;
-    buildfire.analytics.trackAction(key, {
-      _buildfire: { aggregationValue: 10 },
-    });
+    buildfire.analytics.trackAction(key);
   }
 
   static listViewUsed() {

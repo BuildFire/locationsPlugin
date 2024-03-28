@@ -8,7 +8,7 @@ export default {
   },
   saveSettings(settings) {
     settings.lastUpdatedOn = new Date();
-    settings.lastUpdatedBy = authManager.currentUser;
+    settings.lastUpdatedBy = authManager.sanitizedCurrentUser;
     return Settings.save(settings.toJSON());
   },
 
