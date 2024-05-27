@@ -1243,6 +1243,7 @@ const deleteLocation = (item, row, callback = () => {}) => {
         LocationsController.deleteLocation(item.id).then(() => {
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
+          triggerWidgetOnLocationsUpdate({});
           callback(item);
         });
       }
@@ -1872,22 +1873,20 @@ const updateLocationImage = (obj, tr) => {
   );
 };
 
-const createLocation = (location) => {
-  return LocationsController.createLocation(location).then((res) => {
+const createLocation = (location) => LocationsController.createLocation(location).then((res) => {
     refreshLocations();
-    triggerWidgetOnLocationsUpdate({});
     cancelAddLocation();
+    triggerWidgetOnLocationsUpdate({});
     return true;
   }).catch(() => {
     addLocationControls.saveBtn.disabled = false;
   });
-};
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {
     refreshLocations();
-    triggerWidgetOnLocationsUpdate({});
     cancelAddLocation();
+    triggerWidgetOnLocationsUpdate({});
     return true;
   }).catch(() => {
     addLocationControls.saveBtn.disabled = false;

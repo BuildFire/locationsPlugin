@@ -1574,9 +1574,32 @@ const handleCPSync = (message) => {
     } else if (isCancel) {
       buildfire.history.pop();
     } else {
-      hideOverlays();
-      navigateTo('home');
-      showMapView();
+      const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
+      if (activeTemplate === 'intro') {
+        introView.clearIntroViewList();
+        clearLocations();
+        fetchPinnedLocations(() => {
+          searchLocations().then((result) => {
+            introView.renderIntroductoryLocations(result, true);
+            hideOverlays();
+            buildfire.history.pop();
+            if (state.settings.introductoryListView.images.length === 0
+                && state.listLocations.length === 0
+                && !state.settings.introductoryListView.description
+                && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
+              showElement('#intro div.empty-page');
+            }
+          });
+        });
+      } else if (activeTemplate === 'listing') {
+        hideOverlays();
+        buildfire.history.pop();
+        clearLocations();
+        searchLocations().then((result) => {
+          mapView.clearMapViewList();
+          mapView.renderListingLocations(state.listLocations);
+        });
+      }
     }
   } else if (scope === 'category') {
     refreshCategories()
