@@ -1266,7 +1266,7 @@ export const locationsAiSeeder = {
     this.instance = new buildfire.components.aiStateSeeder({
       generateOptions: {
         userMessage: 'List a sample [business-type] locations in [target-region].',
-        systemMessage: `Location\\'s listImage is an image URLUse https://app.buildfire.com/api/stockImages/?topic={title}&imageType=small , make-title-in-topic-as-a-kebab-case,  title is a real-world name, description is a brief description. Each location is a Javascript object, generating up to 10 items.`,
+        systemMessage: `Location\\'s listImage is an image URLUse https://app.buildfire.com/api/stockImages/?topic={title}&imageType=small, transform title in topic as a kebab case, title is a real-world name, description is a brief description.`,
         jsonTemplate: this.jsonTemplate,
         callback: this._handleGenerate.bind(this)
       },
