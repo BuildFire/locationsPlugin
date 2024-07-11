@@ -1266,13 +1266,14 @@ export const locationsAiSeeder = {
     this.instance = new buildfire.components.aiStateSeeder({
       generateOptions: {
         userMessage: 'List a sample [business-type] locations in [target-region].',
-        systemMessage: 'Location\'s listImage is a 300x200 image URL using source.unsplash.com, title is a real-world name, description is a brief description. Each location is a Javascript object, generate up to 10 items.', // within an array of size 10.
+        systemMessage: `Location\\'s listImage is an image URLUse https://app.buildfire.com/api/stockImages/?topic={title}&imageType=small, transform title in topic as a kebab case, title is a real-world name, description is a brief description.`,
         jsonTemplate: this.jsonTemplate,
         callback: this._handleGenerate.bind(this)
       },
       importOptions: {
         jsonTemplate: this.jsonTemplate,
-        sampleCSV: 'Adidas, Impossible Is Nothing, 8677 Impact Court, Indianapolis, IN 46219, 39.82941449, -86.02430977, https://www.liblogo.com/img-logo/max/ad14a407-adidas-originals-logo-adidas-originals-logo-png-and-vector-logo-download.png, Adidas AG is a German athletic apparel and footwear corporation headquartered in Herzogenaurach, Bavaria, Germany.\nBath & Body Works, We Just Want You to Love It, 49 W Maryland St, Indianapolis, IN 46204, 39.77726, -86.1562, https://www.liblogo.com/img-logo/ba7902b6b0-bath-and-body-works-logo-bath-amp-body-works.png, Bath & Body Works, LLC. is an American retail store chain that sells soaps, lotions, fragrances, and candles.',
+        sampleCSV: 'Disneyland, The Happiest Place on Earth, 1313 Disneyland Dr, Anaheim, CA 92802, 33.8090, -117.9190, https://app.buildfire.com/api/stockImages/?topic=disneyland, Disneyland Resort is a famous theme park and resort complex in Anaheim, California, operated by The Walt Disney Company.\n'
+          + 'Times Square, The Crossroads of the World, Manhattan, New York, NY 10036, 40.7580, -73.9855, https://app.buildfire.com/api/stockImages/?topic=times-square, Times Square is a major commercial and entertainment hub in Midtown Manhattan, New York City.',
         systemMessage: `listImage is a URL, latitude is a coordinate, longitude is a coordinate, subtitle can be empty string, address is a location address`,
         callback: this._handleImport.bind(this),
       }
