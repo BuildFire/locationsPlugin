@@ -963,6 +963,8 @@ const renderSelectedCategoriesList = (locationCategories) => {
 
   for (const categoryId of locationCategories?.main) {
     const category = state.categoriesLookup[categoryId];
+    if (!category) return console.warn(`location's category with ID: ${categoryId} is not found`);
+    
     const subcategories = category.subcategories.filter(elem => locationCategories?.subcategories.includes(elem.id));
 
     const categoryListItem = document.createElement('div');
