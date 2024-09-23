@@ -758,6 +758,7 @@ const initEventListeners = () => {
           state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
           state.maps.map.setZoom(10);
           state.maps.map.addUserPosition(state.userPosition);
+          state.currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
