@@ -8,7 +8,7 @@ import MainMap from './js/map/Map';
 import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
-import IntroSearchService from './services/search/introSearchService';
+import IntroSearchService, { SearchLocationsModes } from './services/search/introSearchService';
 import MapSearchService from './services/search/mapSearchService';
 import {
   convertDateToTime12H,
@@ -77,7 +77,7 @@ const refreshQuickFilter = () => {
   if (design.hideQuickFilter) {
     hideElement(container);
     hideQFBtn.style.opacity = '0.5';
-    if (filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
+    if (filter.allowFilterByArea) {
       showElement('#areaSearchLabel');
     }
     return;
@@ -283,13 +283,8 @@ const clearAndSearchAllLocation = () => {
   hideElement("div.empty-page");
   mapView.clearMapViewList();
 
-  if (document.querySelector('#intro').style.display !== "none") {
-    hideElement('#areaSearchLabel');
-    if (!state.settings.design.hideQuickFilter) {
-      showElement('.header-qf');
-    }
-  } else if (state.settings.design.hideQuickFilter && state.settings.filter.allowFilterByArea) {
-    showElement('#areaSearchLabel');
+  if (!state.currentLocation) {
+    fillDefaultAreaSearchField();
   }
 
   searchLocations().then((result) => {
@@ -697,7 +692,7 @@ const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
+    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea) {
       showElement('#areaSearchLabel');
       hideElement('.header-qf');
     }
@@ -803,6 +798,7 @@ const initEventListeners = () => {
       state.maps.map.setZoom(10);
     }
     fillAreaSearchField(positionPoints);
+    clearAndSearchAllLocation();
   };
 };
 const chipSets = {};
@@ -999,7 +995,6 @@ const initAreaAutocompleteField = (textfield, callback) => {
 };
 
 const generateMapOptions = () => {
-  const areaSearchTextField = document.querySelector('#areaSearchTextField');
   const selector = document.getElementById('mainMapContainer');
   const { map, design } = state.settings;
   const { userPosition } = state;
@@ -1034,17 +1029,16 @@ const generateMapOptions = () => {
 
   if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
     options.center = { ...map.initialAreaCoordinates };
-    state.currentLocation = { ...map.initialAreaCoordinates };
-    areaSearchTextField.value = map.initialAreaDisplayAddress || window.strings.get('general.notAvailable').v;
+    state.mapCenterPosition = { ...map.initialAreaCoordinates };
   } else if (userPosition) {
     options.center = {
       lat: userPosition.latitude,
       lng: userPosition.longitude
     };
-    state.currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
+    state.mapCenterPosition = { lat: userPosition.latitude, lng: userPosition.longitude };
   } else {
     options.center = constants.getDefaultLocation();
-    state.currentLocation = constants.getDefaultLocation();
+    state.mapCenterPosition = constants.getDefaultLocation();
   }
 
   return options;
@@ -1056,6 +1050,32 @@ const fillAreaSearchField = (coords) => {
     areaSearchTextField.value = address;
   });
 };
+const fillDefaultAreaSearchField = () => {
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  let coordinates = null;
+
+  if (document.querySelector('#intro').style.display === "none") { // map view
+    coordinates = state.mapCenterPosition;
+  } else { // intro view
+    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+      areaSearchTextField.value = '';
+    } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
+      coordinates = {
+        lat: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat,
+        lng: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng
+      };
+    } else {
+      coordinates = {
+        lat: state.userPosition ? state.userPosition.latitude : constants.getDefaultLocation().lat,
+        lng: state.userPosition ? state.userPosition.longitude : constants.getDefaultLocation().lng
+      };
+    }
+  }
+
+  if (coordinates) {
+    fillAreaSearchField(coordinates);
+  }
+}
 
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
@@ -1097,14 +1117,6 @@ const initMainMap = () => {
   };
 
   mapSearchControl.init(findViewPortLocations);
-  if (userPosition) {
-    state.maps.map.addUserPosition(userPosition);
-    if (!state.settings.map.initialArea
-      || !state.settings.map.initialAreaCoordinates.lat
-      || !state.settings.map.initialAreaCoordinates.lng) {
-      fillAreaSearchField({ lat: userPosition.latitude, lng: userPosition.longitude });
-    }
-  }
 };
 
 const refreshMapOptions = () => {
@@ -1359,7 +1371,7 @@ const initHomeView = () => {
       state.currentLocation = point;
       state.maps.map.center(point);
       state.maps.map.setZoom(10);
-      triggerSearchOnMapIdle();
+      clearAndSearchAllLocation();
     });
   });
   setDefaultSorting();
@@ -1381,6 +1393,7 @@ const initHomeView = () => {
   if (state.deepLinkData?.locationId) {
     navigateToLocationId(state.deepLinkData.locationId);
   }
+  fillDefaultAreaSearchField();
 };
 
 const initIntroLocations = () => {
@@ -1512,7 +1525,7 @@ const handleCPSync = (message) => {
           } else {
             hideQFBtn.style.opacity = '0.5';
             hideElement('.header-qf');
-            if (state.settings.filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
+            if (state.settings.filter.allowFilterByArea) {
               showElement('#areaSearchLabel');
             }
           }
@@ -1527,6 +1540,7 @@ const handleCPSync = (message) => {
   } else if (scope === 'settings') {
     window.location.reload();
   } else if (scope === 'intro') {
+    state.currentLocation = null;
     refreshSettings()
       .then(() => {
         if (state.settings.showIntroductoryListView) {

@@ -9,9 +9,10 @@ const MapSearchService = {
   _getNearestLocation() {
     const pipelines = [];
     const query = buildSearchCriteria();
+    const centerPoint = state.currentLocation ? state.currentLocation : state.mapCenterPosition;
 
     const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+      near: { type: "Point", coordinates: [centerPoint.lng, centerPoint.lat] },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query },
@@ -35,6 +36,7 @@ const MapSearchService = {
       const pipelines = [];
       const query = buildSearchCriteria();
       const { mapBounds } = state.maps.map;
+      const centerPoint = state.currentLocation ? state.currentLocation : state.mapCenterPosition;
 
       if (!mapBounds || !Array.isArray(mapBounds)) {
         return resolve({});
@@ -60,8 +62,8 @@ const MapSearchService = {
       if (state.searchCriteria.sort) {
         if (state.searchCriteria.sort.sortBy === 'distance' && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
           const centerMapPoint = state.maps.map.getCenter();
-          const lat1 = Math.abs(state.currentLocation.lat);
-          const lng1 = Math.abs(state.currentLocation.lng);
+          const lat1 = Math.abs(centerPoint.lat);
+          const lng1 = Math.abs(centerPoint.lng);
           const lat2 = Math.abs(centerMapPoint.lat());
           const lng2 = Math.abs(centerMapPoint.lng());
           if (Math.abs(lat1 - lat2) >= Math.abs(lng1 - lng2)) {

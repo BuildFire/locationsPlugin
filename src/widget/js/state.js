@@ -31,6 +31,7 @@ export default {
   userPosition: null,
   selectedLocation: null,
   currentLocation: null,
+  mapCenterPosition: null,
   searchCriteria: {
     searchValue: '',
     openingNow: false,

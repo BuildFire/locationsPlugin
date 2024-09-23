@@ -4,7 +4,7 @@ import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 import constants from "../../js/constants";
 
-const SearchLocationsModes = {
+export const SearchLocationsModes = {
   All: "All",
   UserPosition: "UserPosition",
   AreaRadius: "AreaRadius",
@@ -13,7 +13,10 @@ const SearchLocationsModes = {
 const IntroSearchService = {
   _getCenterPointCoordinates() {
     const coordinates = [];
-    if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+    if (state.currentLocation && state.currentLocation.lat && state.currentLocation.lng) {
+      coordinates.push(state.currentLocation.lng);
+      coordinates.push(state.currentLocation.lat);
+    } else if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
       coordinates.push(state.userPosition.longitude);
       coordinates.push(state.userPosition.latitude);
     } else {
@@ -49,8 +52,10 @@ const IntroSearchService = {
   _setupAreaRadiusPipelines(query) {
     const pipelines = [];
 
-    const lng = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1;
-    const lat = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1;
+    const centerSphere = [
+      state.currentLocation ? state.currentLocation.lng : (state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1),
+      state.currentLocation ? state.currentLocation.lat : (state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1),
+    ]
     const radius = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
 
     const $geoNear = {
@@ -62,7 +67,7 @@ const IntroSearchService = {
     const $match = {
       "_buildfire.geo": {
         $geoWithin: {
-          $centerSphere: [[lng, lat], radius / 3963.2] // convert miles to radians
+          $centerSphere: [centerSphere, radius / 3963.2] // convert miles to radians
         }
       }
     };
@@ -106,7 +111,7 @@ const IntroSearchService = {
     const query = buildSearchCriteria();
     let pipelines;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All && !state.currentLocation) {
       if (!state.fetchingAllNearReached) {
         pipelines = this._setupNearPipelines(query);
       } else {
