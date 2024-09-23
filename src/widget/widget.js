@@ -77,7 +77,7 @@ const refreshQuickFilter = () => {
   if (design.hideQuickFilter) {
     hideElement(container);
     hideQFBtn.style.opacity = '0.5';
-    if (filter.allowFilterByArea) {
+    if (filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
       showElement('#areaSearchLabel');
     }
     return;
@@ -280,6 +280,16 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
+
+  if (document.querySelector('#intro').style.display !== "none") {
+    hideElement('#areaSearchLabel');
+    if (!state.settings.design.hideQuickFilter) {
+      showElement('.header-qf');
+    }
+  } else if (state.settings.design.hideQuickFilter && state.settings.filter.allowFilterByArea) {
+    showElement('#areaSearchLabel');
+  }
+
   searchLocations().then((result) => {
     introView.clearIntroViewList();
     if (document.querySelector('section#intro').style.display !== "none") {
@@ -685,7 +695,7 @@ const initEventListeners = () => {
   document.addEventListener('focus', (e) => {
     if (!e.target) return;
 
-    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea) {
+    if (e.target.id === 'searchTextField' && state.settings.filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
       showElement('#areaSearchLabel');
       hideElement('.header-qf');
     }
@@ -794,13 +804,9 @@ const initEventListeners = () => {
   };
 };
 const chipSets = {};
-const initFilterOverlay = (isInitialized, newcategories) => {
-  let categories;
-  if (isInitialized) {
-    categories = state.categories;
-  } else {
-    categories = newcategories;
-  }
+const initFilterOverlay = () => {
+  let categories = state.categories
+  
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
   categories.forEach((category) => {
@@ -858,11 +864,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
       </div>
       </div>`;
   });
-  if (isInitialized) {
-    container.innerHTML = html;
-  } else {
-    container.innerHTML += html;
-  }
+  container.innerHTML = html;
 
   new Accordion({
     element: container,
@@ -945,6 +947,14 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     resetResultsBookmark();
     setTimeout(() => mdcChip.classList.remove('disabled'), 500);
   }));
+
+  if (categories.length === 0) {
+    container.classList.add('empty-page');
+    container.style.height = '80vh';
+    container.style.display = 'block';
+  } else {
+    container.classList.remove('empty-page');
+  }
 };
 
 const showMapView = () => {
@@ -1500,7 +1510,7 @@ const handleCPSync = (message) => {
           } else {
             hideQFBtn.style.opacity = '0.5';
             hideElement('.header-qf');
-            if (state.settings.filter.allowFilterByArea) {
+            if (state.settings.filter.allowFilterByArea && document.querySelector('#intro').style.display === "none") {
               showElement('#areaSearchLabel');
             }
           }
@@ -1604,7 +1614,7 @@ const handleCPSync = (message) => {
   } else if (scope === 'category') {
     refreshCategories()
       .then(() => {
-        initFilterOverlay(true, null);
+        initFilterOverlay();
         showFilterOverlay();
         refreshQuickFilter();
       });
@@ -1766,7 +1776,7 @@ const onReceivedMessageHandler = (message) => {
     })
       .then((result) => (state.categories = result))
       .then(() => {
-        initFilterOverlay(true, null);
+        initFilterOverlay();
         refreshQuickFilter();
       });
   }
@@ -1980,7 +1990,7 @@ const initApp = () => {
       .then(() => {
         reportAbuse.init();
         authManager.onUserChange();
-        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
+        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
@@ -2008,7 +2018,8 @@ const initApp = () => {
                 .then((result) => {
                   if (result && result.length > 0) {
                     isLoading = false;
-                    initFilterOverlay(false, result);
+                    state.categories = result;
+                    initFilterOverlay();
                   }
                 });
             }

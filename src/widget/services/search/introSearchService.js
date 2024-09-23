@@ -2,6 +2,7 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
+import constants from "../../js/constants";
 
 const SearchLocationsModes = {
   All: "All",
@@ -13,8 +14,18 @@ const IntroSearchService = {
   _setupNearPipelines(query) {
     const pipelines = [];
 
+    const coordinates = [];
+    if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+      coordinates.push(state.userPosition.longitude);
+      coordinates.push(state.userPosition.latitude);
+    } else {
+      const defaultPosition = constants.getDefaultLocation();
+      coordinates.push(defaultPosition.lng);
+      coordinates.push(defaultPosition.lat);
+    }
+
     const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+      near: { type: "Point", coordinates },
       key: "_buildfire.geo",
       maxDistance: 100000,
       distanceField: "distance",
@@ -38,8 +49,18 @@ const IntroSearchService = {
     const lat = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1;
     const radius = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
 
+    const coordinates = [];
+    if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+      coordinates.push(state.userPosition.longitude);
+      coordinates.push(state.userPosition.latitude);
+    } else {
+      const defaultPosition = constants.getDefaultLocation();
+      coordinates.push(defaultPosition.lng);
+      coordinates.push(defaultPosition.lat);
+    }
+
     const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+      near: { type: "Point", coordinates },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query }
