@@ -89,6 +89,8 @@ const refreshQuickFilter = () => {
     container.innerHTML = `<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">${window.strings.get('emptyState.emptyCategories').v}</small>`;
     advancedFilterBtn.classList.add('disabled');
     return;
+  } else {
+    advancedFilterBtn.classList.remove('disabled');
   }
 
   if (filter.allowFilterByBookmarks && bookmarks.enabled) {

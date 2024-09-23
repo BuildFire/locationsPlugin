@@ -11,9 +11,7 @@ const SearchLocationsModes = {
 };
 
 const IntroSearchService = {
-  _setupNearPipelines(query) {
-    const pipelines = [];
-
+  _getCenterPointCoordinates() {
     const coordinates = [];
     if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
       coordinates.push(state.userPosition.longitude);
@@ -23,9 +21,15 @@ const IntroSearchService = {
       coordinates.push(defaultPosition.lng);
       coordinates.push(defaultPosition.lat);
     }
+  
+    return coordinates;
+  },
+
+  _setupNearPipelines(query) {
+    const pipelines = [];
 
     const $geoNear = {
-      near: { type: "Point", coordinates },
+      near: { type: "Point", coordinates: IntroSearchService._getCenterPointCoordinates() },
       key: "_buildfire.geo",
       maxDistance: 100000,
       distanceField: "distance",
@@ -49,18 +53,8 @@ const IntroSearchService = {
     const lat = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1;
     const radius = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
 
-    const coordinates = [];
-    if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
-      coordinates.push(state.userPosition.longitude);
-      coordinates.push(state.userPosition.latitude);
-    } else {
-      const defaultPosition = constants.getDefaultLocation();
-      coordinates.push(defaultPosition.lng);
-      coordinates.push(defaultPosition.lat);
-    }
-
     const $geoNear = {
-      near: { type: "Point", coordinates },
+      near: { type: "Point", coordinates: IntroSearchService._getCenterPointCoordinates() },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query }
