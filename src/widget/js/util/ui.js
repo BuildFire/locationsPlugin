@@ -47,7 +47,6 @@ export const adjustMapHeight = () => {
   if (design.hideQuickFilter && !filter.allowFilterByArea) {
     baseMapHeight = 160;
   }
-  
 
   mainMapContainer.style.height = `calc(100vh - ${baseMapHeight}px)`;
 };
