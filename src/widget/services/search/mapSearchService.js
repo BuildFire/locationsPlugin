@@ -3,13 +3,29 @@ import WidgetController from '../../widget.controller';
 import mapSearchControl from '../../js/map/search-control';
 import state from "../../js/state";
 import { buildOpenNowCriteria, buildSearchCriteria } from './shared';
+import constants from '../../js/constants';
 
 const MapSearchService = {
+  getMapCenterPoint() {
+    let centerPoint = null;
+    if (state.settings.map.initialArea && state.settings.map.initialAreaCoordinates.lat && state.settings.map.initialAreaCoordinates.lng) {
+      centerPoint = { ...state.settings.map.initialAreaCoordinates };
+    } else if (state.userPosition) {
+      centerPoint = {
+        lat: state.userPosition.latitude,
+        lng: state.userPosition.longitude
+      };
+    } else {
+      centerPoint = constants.getDefaultLocation();
+    }
+
+    return centerPoint;
+  },
 
   _getNearestLocation() {
     const pipelines = [];
     const query = buildSearchCriteria();
-    const centerPoint = state.currentLocation ? state.currentLocation : state.mapCenterPosition;
+    const centerPoint = this.getMapCenterPoint();
 
     const $geoNear = {
       near: { type: "Point", coordinates: [centerPoint.lng, centerPoint.lat] },
@@ -36,7 +52,7 @@ const MapSearchService = {
       const pipelines = [];
       const query = buildSearchCriteria();
       const { mapBounds } = state.maps.map;
-      const centerPoint = state.currentLocation ? state.currentLocation : state.mapCenterPosition;
+      const centerPoint = this.getMapCenterPoint();
 
       if (!mapBounds || !Array.isArray(mapBounds)) {
         return resolve({});

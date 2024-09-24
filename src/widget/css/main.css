@@ -101,6 +101,7 @@ section#categories.overlay {
   margin-right: -15px;
   margin-top: 18px;
   height: 32px;
+  line-height: 32px;
 }
 .header-qf .mdc-chip {
   border-radius: 8px;

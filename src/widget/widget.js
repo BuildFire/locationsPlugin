@@ -8,7 +8,7 @@ import MainMap from './js/map/Map';
 import state from './js/state';
 import constants from './js/constants';
 import views from './js/Views';
-import IntroSearchService, { SearchLocationsModes } from './services/search/introSearchService';
+import IntroSearchService from './services/search/introSearchService';
 import MapSearchService from './services/search/mapSearchService';
 import {
   convertDateToTime12H,
@@ -1030,19 +1030,7 @@ const generateMapOptions = () => {
     });
   }
 
-  if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
-    options.center = { ...map.initialAreaCoordinates };
-    state.mapCenterPosition = { ...map.initialAreaCoordinates };
-  } else if (userPosition) {
-    options.center = {
-      lat: userPosition.latitude,
-      lng: userPosition.longitude
-    };
-    state.mapCenterPosition = { lat: userPosition.latitude, lng: userPosition.longitude };
-  } else {
-    options.center = constants.getDefaultLocation();
-    state.mapCenterPosition = constants.getDefaultLocation();
-  }
+  options.center = MapSearchService.getMapCenterPoint();
 
   return options;
 };
@@ -1058,11 +1046,11 @@ const fillDefaultAreaSearchField = () => {
   let coordinates = null;
 
   if (document.querySelector('#intro').style.display === "none") { // map view
-    coordinates = state.mapCenterPosition;
+    coordinates = MapSearchService.getMapCenterPoint();
   } else { // intro view
-    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
       areaSearchTextField.value = '';
-    } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
+    } else if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
       coordinates = {
         lat: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat,
         lng: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng

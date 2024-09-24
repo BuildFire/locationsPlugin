@@ -4,12 +4,6 @@ import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 import constants from "../../js/constants";
 
-export const SearchLocationsModes = {
-  All: "All",
-  UserPosition: "UserPosition",
-  AreaRadius: "AreaRadius",
-};
-
 const IntroSearchService = {
   _getCenterPointCoordinates() {
     const coordinates = [];
@@ -29,7 +23,7 @@ const IntroSearchService = {
     const pipelines = [];
     let centerSphere, radius;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
       centerSphere = [
         state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1,
         state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1,
@@ -98,7 +92,7 @@ const IntroSearchService = {
     const query = buildSearchCriteria();
     let pipelines;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All && !state.currentLocation) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All && !state.currentLocation) {
       if (!state.fetchingAllNearReached) {
         pipelines = this._setUpIntroGeoQuery(query);
       } else {
@@ -129,7 +123,7 @@ const IntroSearchService = {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
 
-        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
           state.printOtherLocationMessage = true;
