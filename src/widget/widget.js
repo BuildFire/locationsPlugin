@@ -86,7 +86,7 @@ const refreshQuickFilter = () => {
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
   if (!quickFilterItems.length) {
-    container.innerHTML = `<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">${window.strings.get('emptyState.emptyCategories').v}</small>`;
+    container.innerHTML = `<small class="mdc-theme--text-body d-block text-center">${window.strings.get('emptyState.emptyCategories').v}</small>`;
     advancedFilterBtn.classList.add('disabled');
     return;
   } else {
