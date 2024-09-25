@@ -601,7 +601,7 @@ const openSelectLocationsDialog = () => {
       locationsListContainer.appendChild(createEmptyHolder('Loading...'));
       resetSelectLocations();
       if (searchValue) {
-        state.selectLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+        state.selectLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "i" };
       }
       loadSelectLocations();
     }, 300);
@@ -765,7 +765,7 @@ const initLocationEditing = () => {
       resetEditingLocations();
       showLocationsEditingLoadingState();
       if (searchValue) {
-        state.editingLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+        state.editingLocations.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "i" };
       }
       loadEditingLocations();
     }, 300);
