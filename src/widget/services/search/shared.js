@@ -10,7 +10,7 @@ export const buildSearchCriteria = () => {
     const { subcategoryIds, categoryIds } = getCategoriesAndSubCategoriesByName(state.searchCriteria.searchValue, state.categories);
     const array1Index = [...categoryIds.map((id) => `c_${id}`), ...subcategoryIds.map((id) => `s_${id}`)];
     query.$or = [
-      { "_buildfire.index.text": { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "-i" } },
+      { "_buildfire.index.text": { $regex: state.searchCriteria.searchValue.toLowerCase(), $options: "i" } },
       { "_buildfire.index.array1.string1": { $in: array1Index } }
     ];
   }

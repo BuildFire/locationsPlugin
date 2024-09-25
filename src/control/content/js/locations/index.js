@@ -964,7 +964,7 @@ const renderSelectedCategoriesList = (locationCategories) => {
   for (const categoryId of locationCategories?.main) {
     const category = state.categoriesLookup[categoryId];
     if (!category) return console.warn(`location's category with ID: ${categoryId} is not found`);
-    
+
     const subcategories = category.subcategories.filter(elem => locationCategories?.subcategories.includes(elem.id));
 
     const categoryListItem = document.createElement('div');
@@ -1426,7 +1426,7 @@ window.searchLocations = (e) => {
   clearTimeout(timeoutId);
   timeoutId = setTimeout(() => {
     if (searchValue) {
-      state.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "-i" };
+      state.filter["_buildfire.index.text"] = { $regex: searchValue, $options: "i" };
     } else {
       delete state.filter["_buildfire.index.text"];
     }

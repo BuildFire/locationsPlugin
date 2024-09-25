@@ -478,7 +478,7 @@ window.searchCategories = () => {
         $or: [{
             "$json.title": {
               $regex: searchElem.value.toLowerCase(),
-              $options: "-i",
+              $options: "i",
             },
           },
         ],
