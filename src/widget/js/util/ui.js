@@ -55,9 +55,6 @@ export const navigateTo = (template) => {
   const currentActive = document.querySelector('section.active');
   currentActive?.classList.remove('active');
   document.querySelector(`section#${template}`).classList.add('active');
-  if (template === 'home' && state.breadcrumbs.length) {
-    addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
-  }
   buildfire.components.swipeableDrawer.hide();
 
   if (template === "home" && document.querySelector('section#intro').style.display === "none") {

@@ -5,7 +5,7 @@ import WidgetController from "../../widget.controller";
 import constants from "../../js/constants";
 
 const IntroSearchService = {
-  _getCenterPointCoordinates() {
+  _getUserCoordinates() {
     const coordinates = [];
     if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
       coordinates.push(state.userPosition.longitude);
@@ -31,7 +31,7 @@ const IntroSearchService = {
       const _radiusMiles = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
       radius = _radiusMiles / 3963.2; // convert miles to radians
     } else {
-      centerSphere = [state.userPosition.longitude || 1, state.userPosition.latitude || 1];
+      centerSphere = IntroSearchService._getUserCoordinates();
       radius = 100 / 6378.1; // 100 km in radians
     }
 
@@ -39,15 +39,15 @@ const IntroSearchService = {
       centerSphere = [state.currentLocation.lng, state.currentLocation.lat];
     }
 
-    const $geoNear = {
-      near: { type: "Point", coordinates: IntroSearchService._getCenterPointCoordinates() },
+    const $geoNear = { // near user position to calculate distance for each location
+      near: { type: "Point", coordinates: IntroSearchService._getUserCoordinates() },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query }
     };
     const $match = {
       "_buildfire.geo": {
-        $geoWithin: {
+        $geoWithin: { // find locations within a specific area
           $centerSphere: [centerSphere, radius]
         }
       }
