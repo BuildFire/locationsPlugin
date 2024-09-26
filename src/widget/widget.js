@@ -1493,14 +1493,12 @@ const handleCPSync = (message) => {
 
         if (d.listViewStyle !== o.listViewStyle) {
           hideOverlays();
-          clearHistory();
           navigateTo('home');
           showMapView();
           mapView.clearMapViewList();
           mapView.renderListingLocations(state.listLocations);
         } else if (d.listViewPosition !== o.listViewPosition) {
           hideOverlays();
-          clearHistory();
           navigateTo('home');
           showMapView();
           let position = state.settings.design?.listViewPosition === "collapsed" ? "min" : state.settings.design?.listViewPosition === "expanded" ? "max" : "mid";
@@ -1525,7 +1523,6 @@ const handleCPSync = (message) => {
           adjustMapHeight();
         } else {
           hideOverlays();
-          clearHistory();
           navigateTo('home');
           showMapView();
           refreshMapOptions();
@@ -1544,7 +1541,6 @@ const handleCPSync = (message) => {
           fetchPinnedLocations(() => clearAndSearchWithDelay());
           refreshIntroductoryDescription();
           hideOverlays();
-          clearHistory();
           navigateTo('home');
           showElement('section#intro');
           hideElement('section#listing');
@@ -1718,15 +1714,6 @@ const navigateToLocationId = (locationId) => {
       });
   }
 };
-
-const clearHistory = () => {
-  state.breadcrumbs = [];
-  buildfire.history.get({ pluginBreadcrumbsOnly: true },
-    (err, result) => {
-      if (err) return console.error(err);
-      result.forEach((element) => buildfire.history.pop());
-    });
-}
 
 const onPopHandler = (breadcrumb) => {
   // handle going back from advanced filter
