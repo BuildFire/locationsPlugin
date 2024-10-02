@@ -16,4 +16,10 @@ const getMapStyle = (name) => {
 
 const getDefaultLocation = () => ({ lat: 32.7182625, lng: -117.1601157 });
 
-export default { getMapStyle, getDefaultLocation };
+const SearchLocationsModes = {
+  All: "All",
+  UserPosition: "UserPosition",
+  AreaRadius: "AreaRadius",
+};
+
+export default { getMapStyle, getDefaultLocation, SearchLocationsModes };

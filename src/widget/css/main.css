@@ -46,6 +46,7 @@ section#categories.overlay {
   border: 0;
   overflow: visible;
   background-color: transparent;
+  height: 2.5rem;
 }
 .search-field.mdc-text-field .mdc-text-field__input {
   font-size: 13px;
@@ -100,6 +101,8 @@ section#categories.overlay {
   margin-left: -15px;
   margin-right: -15px;
   margin-top: 18px;
+  height: 32px;
+  line-height: 32px;
 }
 .header-qf .mdc-chip {
   border-radius: 8px;
