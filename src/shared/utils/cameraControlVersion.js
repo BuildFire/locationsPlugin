@@ -33,7 +33,7 @@ const isCameraControlVersion = function () {
   const VersionCheckService = function () {
     const currentVersionString = google.maps.version;
     const currentVersion = parseVersion(currentVersionString);
-    const requiredVersion = parseVersion('3.55');
+    const requiredVersion = parseVersion('3.60');
     return compareVersions(currentVersion, requiredVersion) >= 0;
   };
   return VersionCheckService();

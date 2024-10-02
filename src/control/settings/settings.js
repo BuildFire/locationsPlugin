@@ -1093,7 +1093,6 @@ window.intiGoogleMap = () => {
   });
 
   marker.addListener("dragend", (e) => {
-    console.log(e.latLng.lat(), e.latLng.lng());
     map.setCenter(e.latLng);
     geoCoder.geocode(
       { location: { lat: e.latLng.lat(), lng: e.latLng.lng() } },
@@ -1131,7 +1130,7 @@ const loadMap = () => {
       docHead[0].appendChild(scriptEl);
     }
 
-    setGoogleMapsScript('AIzaSyCbO8pZ_2IbI-1rku3w9KF9itk3ZQolzx0');
+    setGoogleMapsScript(context.apiKeys.googleMapKey);
   });
 };
 

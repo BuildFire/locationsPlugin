@@ -86,9 +86,11 @@ const refreshQuickFilter = () => {
   const advancedFilterBtn = document.querySelector('#filterIconBtn');
 
   if (!quickFilterItems.length) {
-    container.innerHTML = `<small class="mdc-theme--text-body d-block text-center margin-top-five margin-bottom-five">${window.strings.get('emptyState.emptyCategories').v}</small>`;
+    container.innerHTML = `<small class="mdc-theme--text-body d-block text-center">${window.strings.get('emptyState.emptyCategories').v}</small>`;
     advancedFilterBtn.classList.add('disabled');
     return;
+  } else {
+    advancedFilterBtn.classList.remove('disabled');
   }
 
   if (filter.allowFilterByBookmarks && bookmarks.enabled) {
@@ -280,6 +282,11 @@ const clearAndSearchAllLocation = () => {
   clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
+
+  if (!state.currentLocation) {
+    fillDefaultAreaSearchField();
+  }
+
   searchLocations().then((result) => {
     introView.clearIntroViewList();
     if (document.querySelector('section#intro').style.display !== "none") {
@@ -509,8 +516,8 @@ const showWorkingHoursDrawer = () => {
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
-    t.to
-  ) : convertDateToTime(t.to)}</p>`).join('\n')}
+        t.to
+      ) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -751,6 +758,9 @@ const initEventListeners = () => {
           state.maps.map.center({ lat: state.userPosition.latitude, lng: state.userPosition.longitude });
           state.maps.map.setZoom(10);
           state.maps.map.addUserPosition(state.userPosition);
+          if (state.settings.filter.allowFilterByArea) {
+            state.currentLocation = { lat: state.userPosition.latitude, lng: state.userPosition.longitude };
+          }
           const areaSearchTextField = document.querySelector('#areaSearchTextField');
           areaSearchTextField.value = address;
         });
@@ -791,16 +801,13 @@ const initEventListeners = () => {
       state.maps.map.setZoom(10);
     }
     fillAreaSearchField(positionPoints);
+    clearAndSearchAllLocation();
   };
 };
 const chipSets = {};
-const initFilterOverlay = (isInitialized, newcategories) => {
-  let categories;
-  if (isInitialized) {
-    categories = state.categories;
-  } else {
-    categories = newcategories;
-  }
+const initFilterOverlay = () => {
+  let categories = state.categories
+
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
   categories.forEach((category) => {
@@ -858,11 +865,7 @@ const initFilterOverlay = (isInitialized, newcategories) => {
       </div>
       </div>`;
   });
-  if (isInitialized) {
-    container.innerHTML = html;
-  } else {
-    container.innerHTML += html;
-  }
+  container.innerHTML = html;
 
   new Accordion({
     element: container,
@@ -945,6 +948,14 @@ const initFilterOverlay = (isInitialized, newcategories) => {
     resetResultsBookmark();
     setTimeout(() => mdcChip.classList.remove('disabled'), 500);
   }));
+
+  if (categories.length === 0) {
+    container.classList.add('empty-page');
+    container.style.height = '80vh';
+    container.style.display = 'block';
+  } else {
+    container.classList.remove('empty-page');
+  }
 };
 
 const showMapView = () => {
@@ -987,11 +998,11 @@ const initAreaAutocompleteField = (textfield, callback) => {
 };
 
 const generateMapOptions = () => {
-  const areaSearchTextField = document.querySelector('#areaSearchTextField');
   const selector = document.getElementById('mainMapContainer');
   const { map, design } = state.settings;
   const { userPosition } = state;
   const options = {
+    styles: [],
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     mapTypeControl: design.allowStyleSelection,
   };
@@ -1003,25 +1014,22 @@ const generateMapOptions = () => {
   }
 
   if (design.defaultMapStyle === 'dark') {
+    options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
     selector.classList.add('dark');
   } else {
     selector.classList.remove('dark');
   }
-
-  if (map.initialArea && map.initialAreaCoordinates.lat && map.initialAreaCoordinates.lng) {
-    options.center = { ...map.initialAreaCoordinates };
-    state.currentLocation = { ...map.initialAreaCoordinates };
-    areaSearchTextField.value = map.initialAreaDisplayAddress || window.strings.get('general.notAvailable').v;
-  } else if (userPosition) {
-    options.center = {
-      lat: userPosition.latitude,
-      lng: userPosition.longitude
-    };
-    state.currentLocation = { lat: userPosition.latitude, lng: userPosition.longitude };
-  } else {
-    options.center = constants.getDefaultLocation();
-    state.currentLocation = constants.getDefaultLocation();
+  if (!map.showPointsOfInterest) {
+    options.styles.push({
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [
+        { visibility: 'off' }
+      ]
+    });
   }
+
+  options.center = MapSearchService.getMapCenterPoint();
 
   return options;
 };
@@ -1032,6 +1040,32 @@ const fillAreaSearchField = (coords) => {
     areaSearchTextField.value = address;
   });
 };
+const fillDefaultAreaSearchField = () => {
+  const areaSearchTextField = document.querySelector('#areaSearchTextField');
+  let coordinates = null;
+
+  if (document.querySelector('#intro').style.display === "none") { // map view
+    coordinates = MapSearchService.getMapCenterPoint();
+  } else { // intro view
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
+      areaSearchTextField.value = '';
+    } else if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
+      coordinates = {
+        lat: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat,
+        lng: state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng
+      };
+    } else {
+      coordinates = {
+        lat: state.userPosition ? state.userPosition.latitude : constants.getDefaultLocation().lat,
+        lng: state.userPosition ? state.userPosition.longitude : constants.getDefaultLocation().lng
+      };
+    }
+  }
+
+  if (coordinates) {
+    fillAreaSearchField(coordinates);
+  }
+}
 
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
@@ -1073,14 +1107,6 @@ const initMainMap = () => {
   };
 
   mapSearchControl.init(findViewPortLocations);
-  if (userPosition) {
-    state.maps.map.addUserPosition(userPosition);
-    if (!state.settings.map.initialArea
-      || !state.settings.map.initialAreaCoordinates.lat
-      || !state.settings.map.initialAreaCoordinates.lng) {
-      fillAreaSearchField({ lat: userPosition.latitude, lng: userPosition.longitude });
-    }
-  }
 };
 
 const refreshMapOptions = () => {
@@ -1335,7 +1361,7 @@ const initHomeView = () => {
       state.currentLocation = point;
       state.maps.map.center(point);
       state.maps.map.setZoom(10);
-      triggerSearchOnMapIdle();
+      clearAndSearchAllLocation();
     });
   });
   setDefaultSorting();
@@ -1357,6 +1383,7 @@ const initHomeView = () => {
   if (state.deepLinkData?.locationId) {
     navigateToLocationId(state.deepLinkData.locationId);
   }
+  fillDefaultAreaSearchField();
 };
 
 const initIntroLocations = () => {
@@ -1503,6 +1530,7 @@ const handleCPSync = (message) => {
   } else if (scope === 'settings') {
     window.location.reload();
   } else if (scope === 'intro') {
+    state.currentLocation = null;
     refreshSettings()
       .then(() => {
         if (state.settings.showIntroductoryListView) {
@@ -1572,9 +1600,9 @@ const handleCPSync = (message) => {
             hideOverlays();
             buildfire.history.pop();
             if (state.settings.introductoryListView.images.length === 0
-                && state.listLocations.length === 0
-                && !state.settings.introductoryListView.description
-                && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
+              && state.listLocations.length === 0
+              && !state.settings.introductoryListView.description
+              && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
               showElement('#intro div.empty-page');
             }
           });
@@ -1592,7 +1620,7 @@ const handleCPSync = (message) => {
   } else if (scope === 'category') {
     refreshCategories()
       .then(() => {
-        initFilterOverlay(true, null);
+        initFilterOverlay();
         showFilterOverlay();
         refreshQuickFilter();
       });
@@ -1705,7 +1733,7 @@ const onPopHandler = (breadcrumb) => {
   } else if (
     state.breadcrumbs.length
     && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
-    || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
+      || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
     && state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
@@ -1740,7 +1768,6 @@ const onPopHandler = (breadcrumb) => {
       navigateTo('home');
       introView.refreshIntroductoryCarousel();
     }
-    // state.breadcrumbs.pop();
   }
 };
 
@@ -1754,7 +1781,7 @@ const onReceivedMessageHandler = (message) => {
     })
       .then((result) => (state.categories = result))
       .then(() => {
-        initFilterOverlay(true, null);
+        initFilterOverlay();
         refreshQuickFilter();
       });
   }
@@ -1968,7 +1995,7 @@ const initApp = () => {
       .then(() => {
         reportAbuse.init();
         authManager.onUserChange();
-        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(true, null); });
+        views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
@@ -1996,7 +2023,8 @@ const initApp = () => {
                 .then((result) => {
                   if (result && result.length > 0) {
                     isLoading = false;
-                    initFilterOverlay(false, result);
+                    state.categories = result;
+                    initFilterOverlay();
                   }
                 });
             }

@@ -8,12 +8,7 @@ import PinnedLocationsList from "./pinnedLocationsList";
 import Location from "../../../../entities/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
-
-const SearchLocationsModes = {
-  All: "All",
-  UserPosition: "UserPosition",
-  AreaRadius: "AreaRadius",
-};
+import constants from "../../../../widget/js/constants";
 
 const listViewSection = document.querySelector("#main");
 
@@ -55,7 +50,7 @@ window.onSortLocationsChanged = (sorting) => {
 
 window.onShowLocationsModeChanged = (showMode) => {
   const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
-  if (showMode === SearchLocationsModes.AreaRadius) {
+  if (showMode === constants.SearchLocationsModes.AreaRadius) {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');

@@ -2,52 +2,53 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
-
-const SearchLocationsModes = {
-  All: "All",
-  UserPosition: "UserPosition",
-  AreaRadius: "AreaRadius",
-};
+import constants from "../../js/constants";
 
 const IntroSearchService = {
-  _setupNearPipelines(query) {
-    const pipelines = [];
-
-    const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
-      key: "_buildfire.geo",
-      maxDistance: 100000,
-      distanceField: "distance",
-      query: { ...query }
-    };
-    pipelines.push({ $geoNear });
-
-    if (state.searchCriteria.sort) {
-      const $sort = {};
-      $sort[state.introSort.sortBy] = state.introSort.order;
-      pipelines.push({ $sort });
+  _getUserCoordinates() {
+    const coordinates = [];
+    if (state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+      coordinates.push(state.userPosition.longitude);
+      coordinates.push(state.userPosition.latitude);
+    } else {
+      const defaultPosition = constants.getDefaultLocation();
+      coordinates.push(defaultPosition.lng);
+      coordinates.push(defaultPosition.lat);
     }
-
-    return pipelines;
+  
+    return coordinates;
   },
 
-  _setupAreaRadiusPipelines(query) {
+  _setUpIntroGeoQuery(query) {
     const pipelines = [];
+    let centerSphere, radius;
 
-    const lng = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1;
-    const lat = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1;
-    const radius = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
+      centerSphere = [
+        state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lng || 1,
+        state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.lat || 1,
+      ];
+      const _radiusMiles = state.settings.introductoryListView.searchOptions?.areaRadiusOptions?.radius || 1;
+      radius = _radiusMiles / 3963.2; // convert miles to radians
+    } else {
+      centerSphere = IntroSearchService._getUserCoordinates();
+      radius = 100 / 6378.1; // 100 km in radians
+    }
 
-    const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+    if (state.currentLocation) { // this is for user search by location name
+      centerSphere = [state.currentLocation.lng, state.currentLocation.lat];
+    }
+
+    const $geoNear = { // near user position to calculate distance for each location
+      near: { type: "Point", coordinates: IntroSearchService._getUserCoordinates() },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query }
     };
     const $match = {
       "_buildfire.geo": {
-        $geoWithin: {
-          $centerSphere: [[lng, lat], radius / 3963.2] // convert miles to radians
+        $geoWithin: { // find locations within a specific area
+          $centerSphere: [centerSphere, radius]
         }
       }
     };
@@ -91,19 +92,16 @@ const IntroSearchService = {
     const query = buildSearchCriteria();
     let pipelines;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All && !state.currentLocation) {
       if (!state.fetchingAllNearReached) {
-        pipelines = this._setupNearPipelines(query);
+        pipelines = this._setUpIntroGeoQuery(query);
       } else {
         pipelines = this._setupOtherLocationsPipelines(query);
       }
-    } else if (state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.AreaRadius) {
-      state.fetchingAllNearReached = true;
-      pipelines = this._setupAreaRadiusPipelines(query);
     } else {
       // the default search mode is UserPosition
       state.fetchingAllNearReached = true;
-      pipelines = this._setupNearPipelines(query);
+      pipelines = this._setUpIntroGeoQuery(query);
     }
 
     return pipelines;
@@ -125,7 +123,7 @@ const IntroSearchService = {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
 
-        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === SearchLocationsModes.All) {
+        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
           state.printOtherLocationMessage = true;

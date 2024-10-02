@@ -3,15 +3,32 @@ import WidgetController from '../../widget.controller';
 import mapSearchControl from '../../js/map/search-control';
 import state from "../../js/state";
 import { buildOpenNowCriteria, buildSearchCriteria } from './shared';
+import constants from '../../js/constants';
 
 const MapSearchService = {
+  getMapCenterPoint() {
+    let centerPoint = null;
+    if (state.settings.map.initialArea && state.settings.map.initialAreaCoordinates.lat && state.settings.map.initialAreaCoordinates.lng) {
+      centerPoint = { ...state.settings.map.initialAreaCoordinates };
+    } else if (state.userPosition) {
+      centerPoint = {
+        lat: state.userPosition.latitude,
+        lng: state.userPosition.longitude
+      };
+    } else {
+      centerPoint = constants.getDefaultLocation();
+    }
+
+    return centerPoint;
+  },
 
   _getNearestLocation() {
     const pipelines = [];
     const query = buildSearchCriteria();
+    const centerPoint = this.getMapCenterPoint();
 
     const $geoNear = {
-      near: { type: "Point", coordinates: [state.currentLocation.lng, state.currentLocation.lat] },
+      near: { type: "Point", coordinates: [centerPoint.lng, centerPoint.lat] },
       key: "_buildfire.geo",
       distanceField: "distance",
       query: { ...query },
@@ -35,6 +52,7 @@ const MapSearchService = {
       const pipelines = [];
       const query = buildSearchCriteria();
       const { mapBounds } = state.maps.map;
+      const centerPoint = this.getMapCenterPoint();
 
       if (!mapBounds || !Array.isArray(mapBounds)) {
         return resolve({});
@@ -60,8 +78,8 @@ const MapSearchService = {
       if (state.searchCriteria.sort) {
         if (state.searchCriteria.sort.sortBy === 'distance' && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
           const centerMapPoint = state.maps.map.getCenter();
-          const lat1 = Math.abs(state.currentLocation.lat);
-          const lng1 = Math.abs(state.currentLocation.lng);
+          const lat1 = Math.abs(centerPoint.lat);
+          const lng1 = Math.abs(centerPoint.lng);
           const lat2 = Math.abs(centerMapPoint.lat());
           const lng2 = Math.abs(centerMapPoint.lng());
           if (Math.abs(lat1 - lat2) >= Math.abs(lng1 - lng2)) {
