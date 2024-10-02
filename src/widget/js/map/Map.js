@@ -1,6 +1,7 @@
 import MarkerClusterer from './markercluster';
 import CustomMarker from './CustomMarker';
 import { cdnImage } from '../util/helpers';
+import isCameraControlVersion from "../../../shared/utils/cameraControlVersion";
 
 export default class Map {
   constructor(selector, options) {
@@ -25,7 +26,11 @@ export default class Map {
         position: zoomPosition,
       },
       ...userOptions,
+      mapId: "mainViewMap",
     };
+    if (isCameraControlVersion()) {
+      document.querySelector('.map-center-btn').classList.add('left');
+    }
     this.map = new google.maps.Map(selector, options);
     google.maps.event.addListenerOnce(this.map, 'idle', this.attachMapListeners.bind(this));
   }
@@ -76,8 +81,6 @@ export default class Map {
     let marker;
     let labelText = location.addressAlias || location.title;
 
-
-
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (
@@ -86,18 +89,14 @@ export default class Map {
     ) {
       marker = new this.Marker(location, this.map, onClick);
     } else {
-      marker = new google.maps.Marker({
+      const pinGlyph = new google.maps.marker.PinElement({});
+      marker = new google.maps.marker.AdvancedMarkerElement({
         position: new google.maps.LatLng(lat, lng),
-        markerData: location,
         map: this.map,
-        label: {
-          text: labelText,
-          color: "#000",
-          fontSize: "16px",
-          fontWeight: "bold",
-          className: 'marker-label'
-        },
+        content: pinGlyph.element,
       });
+      marker.content.style.height = "40px";
+      marker.content.innerHTML += `<div class="marker-label ellipsis" style="font-size: 16px;font-weight: bold;color:#fff;">${labelText}</div>`;
       marker.addListener("click", () => {
         onClick(location, marker);
       });
@@ -117,21 +116,18 @@ export default class Map {
   addUserPosition(coordinates) {
     if (!this.map) return;
     if (this.userPositionMarker) {
-      this.userPositionMarker.setMap(null);
+      this.userPositionMarker.marker = null;
     }
     const { latitude, longitude } = coordinates;
-    const iconOptions = {
-      url: cdnImage('https://app.buildfire.com/app/media/google_marker_blue_icon.png'),
-      scaledSize: new google.maps.Size(20, 20),
-      origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(10, 10),
-    };
+    const iconOption = cdnImage('https://app.buildfire.com/app/media/google_marker_blue_icon.png');
 
-    this.userPositionMarker = new google.maps.Marker({
+    const pinGlyph = new google.maps.marker.PinElement({});
+    this.userPositionMarker = new google.maps.marker.AdvancedMarkerElement({
       position: new google.maps.LatLng(latitude, longitude),
       map: this.map,
-      icon: iconOptions,
+      content: pinGlyph.element,
     });
+    this.userPositionMarker.content.innerHTML = `<img src="${iconOption}" style="width: 20px;height: 20px;"/>`;
   }
 
   updateOptions(userOptions) {

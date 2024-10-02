@@ -267,7 +267,7 @@ MarkerClusterer.prototype.fitMapToMarkers = function() {
   var markers = this.getMarkers();
   var bounds = new google.maps.LatLngBounds();
   for (var i = 0, marker; marker = markers[i]; i++) {
-    bounds.extend(marker.getPosition());
+    bounds.extend(marker.position);
   }
 
   this.map_.fitBounds(bounds);
@@ -664,7 +664,7 @@ MarkerClusterer.prototype.getExtendedBounds = function(bounds) {
  * @private
  */
 MarkerClusterer.prototype.isMarkerInBounds_ = function(marker, bounds) {
-    return bounds.contains(marker.getPosition());
+    return bounds.contains(marker.position);
 };
 
 
@@ -742,10 +742,10 @@ MarkerClusterer.prototype.distanceBetweenPoints_ = function(p1, p2) {
     }
 
     var R = 6371; // Radius of the Earth in km
-    var dLat = (p2.lat() - p1.lat()) * Math.PI / 180;
-    var dLon = (p2.lng() - p1.lng()) * Math.PI / 180;
+    var dLat = (p2.lat - p1.lat) * Math.PI / 180;
+    var dLon = (p2.lng - p1.lng) * Math.PI / 180;
     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(p1.lat() * Math.PI / 180) * Math.cos(p2.lat() * Math.PI / 180) *
+        Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
@@ -762,11 +762,11 @@ MarkerClusterer.prototype.distanceBetweenPoints_ = function(p1, p2) {
 MarkerClusterer.prototype.addToClosestCluster_ = function(marker) {
     var distance = 40000; // Some large number
     var clusterToAddTo = null;
-    var pos = marker.getPosition();
+    var pos = marker.position;
     for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
         var center = cluster.getCenter();
         if (center) {
-            var d = this.distanceBetweenPoints_(center, marker.getPosition());
+            var d = this.distanceBetweenPoints_(center, marker.position);
             if (d < distance) {
                 distance = d;
                 clusterToAddTo = cluster;
@@ -861,13 +861,13 @@ Cluster.prototype.addMarker = function(marker) {
     }
 
     if (!this.center_) {
-        this.center_ = marker.getPosition();
+        this.center_ = marker.position;
         this.calculateBounds_();
     } else {
         if (this.averageCenter_) {
             var l = this.markers_.length + 1;
-            var lat = (this.center_.lat() * (l-1) + marker.getPosition().lat()) / l;
-            var lng = (this.center_.lng() * (l-1) + marker.getPosition().lng()) / l;
+            var lat = (this.center_.lat() * (l-1) + marker.position.lat()) / l;
+            var lng = (this.center_.lng() * (l-1) + marker.position.lng()) / l;
             this.center_ = new google.maps.LatLng(lat, lng);
             this.calculateBounds_();
         }
@@ -877,7 +877,7 @@ Cluster.prototype.addMarker = function(marker) {
     this.markers_.push(marker);
 
     var len = this.markers_.length;
-    if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
+    if (len < this.minClusterSize_ && marker.map != this.map_) {
         // Min cluster size not reached so show the marker.
         marker.setMap(this.map_);
     }
@@ -917,7 +917,7 @@ Cluster.prototype.getBounds = function() {
     var bounds = new google.maps.LatLngBounds(this.center_, this.center_);
     var markers = this.getMarkers();
     for (var i = 0, marker; marker = markers[i]; i++) {
-        bounds.extend(marker.getPosition());
+        bounds.extend(marker.position);
     }
     return bounds;
 };
@@ -981,7 +981,7 @@ Cluster.prototype.calculateBounds_ = function() {
  * @return {boolean} True if the marker lies in the bounds.
  */
 Cluster.prototype.isMarkerInClusterBounds = function(marker) {
-    return this.bounds_.contains(marker.getPosition());
+    return this.bounds_.contains(marker.position);
 };
 
 

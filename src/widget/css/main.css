@@ -877,11 +877,15 @@ body section#home {
 }
 .map-center-btn {
   position: fixed;
-  right: 10px;
   bottom: 105px;
+  right: 10px;
   text-align: center;
   z-index: 1;
   cursor: pointer;
+}
+.map-center-btn.left {
+  right: initial;
+  left: 10px;
 }
 
 .map-center-btn * {
@@ -931,7 +935,7 @@ body section#home {
 }
 
 .marker-label {
-  transform: translateY(200%) !important;
+  transform: translateY(150%) !important;
 }
 .mdc-chip__checkmark-path {
   stroke: var(--mdc-theme-text-primary-on-background, rgba(0, 0, 0, 0.87)) !important;

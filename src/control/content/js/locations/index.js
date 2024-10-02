@@ -20,6 +20,8 @@ import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 import constants from '../../../../widget/js/constants';
+import isCameraControlVersion from "../../../../shared/utils/cameraControlVersion";
+
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -208,8 +210,8 @@ const renderBreadcrumbs = () => {
   }
 };
 
-const checkInputErrorOnChange = (element, errorElement)=> {
-  if(state.saveBtnClicked ){
+const checkInputErrorOnChange = (element, errorElement) => {
+  if (state.saveBtnClicked) {
     if (element.value != "") {
       errorElement.parentNode.classList.remove('has-error');
       errorElement.classList.add('hidden');
@@ -219,7 +221,7 @@ const checkInputErrorOnChange = (element, errorElement)=> {
       errorElement.parentNode.classList.add('has-error');
     }
   }
-}
+};
 
 window.addEditLocation = (location) => {
   const { settings } = globalState;
@@ -403,20 +405,18 @@ window.addEditLocation = (location) => {
   };
 
   addLocationControls.locationAddress.onchange = () => {
-    const {  address,coordinates } = state.locationObj;
-      if(state.saveBtnClicked ){
-        if (!address || !coordinates.lat || !coordinates.lng) {
-          addLocationControls.locationTitleError.classList.remove('hidden');
-          addLocationControls.locationTitleError.innerHTML = 'Required';
-          addLocationControls.locationTitleError.parentNode.classList.add('has-error');
-        } else {
-          addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
-          addLocationControls.locationTitleError.classList.add('hidden');
-
-        }
+    const {  address, coordinates } = state.locationObj;
+    if (state.saveBtnClicked) {
+      if (!address || !coordinates.lat || !coordinates.lng) {
+        addLocationControls.locationTitleError.classList.remove('hidden');
+        addLocationControls.locationTitleError.innerHTML = 'Required';
+        addLocationControls.locationTitleError.parentNode.classList.add('has-error');
+      } else {
+        addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
+        addLocationControls.locationTitleError.classList.add('hidden');
       }
-  }
-
+    }
+  };
 
   addLocationControls.listImageBtn.onclick = () => {
     buildfire.imageLib.showDialog(
@@ -436,7 +436,7 @@ window.addEditLocation = (location) => {
         if (iconUrl) {
           setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
           state.locationObj.listImage = iconUrl;
-          if(state.saveBtnClicked){
+          if (state.saveBtnClicked) {
             addLocationControls.listImageError.parentNode.classList.remove('has-error');
             addLocationControls.listImageError.classList.add('hidden');
           }
@@ -474,7 +474,7 @@ window.addEditLocation = (location) => {
       imgLibOptions: {
         showIcons: true
       }
-     }, (err, actionItem) => {
+    }, (err, actionItem) => {
       if (err) return console.error(err);
 
       if (!actionItem) {
@@ -585,7 +585,7 @@ const saveLocation = (action, callback = () => {}) => {
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
-  if(!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
+  if (!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
     buildfire.dialog.alert(
       {
         title: "Location Save Error",
@@ -609,7 +609,9 @@ const saveLocation = (action, callback = () => {}) => {
 };
 
 const locationInputValidation = () => {
-  const { title, address, description, coordinates, listImage, categories, openingHours, marker } = state.locationObj;
+  const {
+    title, address, description, coordinates, listImage, categories, openingHours, marker
+  } = state.locationObj;
   let isValid = true;
 
   if (!title) {
@@ -805,8 +807,8 @@ const setIcon = (icon, type, selector, options = {}) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: options.width? options.width : 40,
-      height: options.height? options.height : 40,
+      width: options.width ? options.width : 40,
+      height: options.height ? options.height : 40,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -965,7 +967,7 @@ const renderSelectedCategoriesList = (locationCategories) => {
     const category = state.categoriesLookup[categoryId];
     if (!category) return console.warn(`location's category with ID: ${categoryId} is not found`);
 
-    const subcategories = category.subcategories.filter(elem => locationCategories?.subcategories.includes(elem.id));
+    const subcategories = category.subcategories.filter((elem) => locationCategories?.subcategories.includes(elem.id));
 
     const categoryListItem = document.createElement('div');
     categoryListItem.className = 'item-list';
@@ -1030,7 +1032,7 @@ const renderOpeningHours = (openingHours) => {
       addHoursBtn.onclick = (e) => {
         days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
-       // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       renderDayIntervals(days[day], dayIntervals);
 
@@ -1066,7 +1068,7 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       const start = convertTimeToDate(e.target.value);
       interval.from = start;
       if (!validateTimeInterval(start, interval.to, intervalError)) {
-        return;
+
       }
     //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
@@ -1074,14 +1076,14 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       const end = convertTimeToDate(e.target.value);
       interval.to = end;
       if (!validateTimeInterval(interval.from, end, intervalError)) {
-        return;
+
       }
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
       dayInterval.remove();
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
 
     dayIntervalsContainer.appendChild(dayInterval);
@@ -1112,21 +1114,27 @@ const creatCheckboxElem = () => {
 const createEmptyHolder = (message) => {
   const div = document.createElement("div");
   div.className = 'empty-state margin-top-fifteen';
-  div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }.</h4>`;
+  div.innerHTML = `<hr class="none"><h4>${message || 'No Data'}.</h4>`;
   return div;
 };
 
 window.intiMap = () => {
   console.log("Map Ready");
-  const map = new google.maps.Map(document.getElementById("location-map"), {
+  const options = {
     center: { lat: 32.7182625, lng: -117.1601157 },
     zoom: 1,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+    mapId: "itemMap",
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+  const map = new google.maps.Map(document.getElementById("location-map"),options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
@@ -1140,23 +1148,22 @@ window.intiMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
-  const currentPosition = {lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng}
+  const currentPosition = { lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng };
   if (currentPosition.lat && currentPosition.lng) {
     const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = latlng;
     map.setCenter(latlng);
     map.setZoom(15);
   }
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -1171,8 +1178,8 @@ window.intiMap = () => {
       map.setZoom(17);
     }
 
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    marker.visible = true
 
     state.locationObj.coordinates.lat = place.geometry.location.lat();
     state.locationObj.coordinates.lng = place.geometry.location.lng();
@@ -1199,7 +1206,7 @@ window.intiMap = () => {
             console.log("No results found");
           }
         } else {
-          console.log("Geocoder failed due to: " + status);
+          console.log(`Geocoder failed due to: ${status}`);
         }
       }
     );
@@ -1213,7 +1220,7 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=weekly`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=intiMap&libraries=places,marker`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }
@@ -1450,7 +1457,7 @@ const downloadCsvTemplate = (templateData, header, name) => {
     header, locationInfoRowHeader
   });
 
-  downloadCsv(csv, `${name? name : 'template'}.csv`);
+  downloadCsv(csv, `${name || 'template'}.csv`);
 };
 
 window.downloadLocationTemplate = () =>  {
@@ -1467,7 +1474,7 @@ const validateLocationCsv = (items) => {
   }
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if(item.id != null && item.id != '[!Reserved-Field!]'){
+    if (item.id != null && item.id != '[!Reserved-Field!]') {
       if (!item.title || !item.address || !item.description) {
         showImportErrorMessage({
           message: `This file has missing title, address or description in row number [${i + 1}], please fix it and upload it again.`,
@@ -1501,107 +1508,101 @@ window.importLocations = () =>  {
         message: 'We’re importing your locations, please wait.'
       });
       insertData(result, (err, result) => {
-        if(err)  console.error(err);
+        if (err)  console.error(err);
         fileInput.value = '';
         dialogRef.close();
-      })
+      });
     });
   };
 };
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
-    CategoriesController.getAllCategories((allCategories1)=>{
-          for(const category of allCategories1){
-            state.categoriesLookup[category.id] = category;
-          }
-          state.categories = allCategories1;
-          globalState.categories = allCategories1;
-          upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
-            if(newCategories.length == 0){
-              insertLocations(jsonResult, ()=>{
-                callback(null, true);
-              })
-            } else {
-              CategoriesController._bulkCreateCategories(newCategories).then((res) => {
-                CategoriesController.registerCategoryAnalytics(res.data.length);
-                CategoriesController.getAllCategories((allCategories2)=>{
-                  for(const category of allCategories2){
-                    state.categoriesLookup[category.id] = category;
-                  }
-                  state.categories = allCategories2;
-                  globalState.categories = allCategories2;
-                  insertLocations(jsonResult, () => {
-                    callback(null, true);
-                  })
-                })
-              }).catch((err) => {
-                callback(err, false);
-              });
+  CategoriesController.getAllCategories((allCategories1) => {
+    for (const category of allCategories1) {
+      state.categoriesLookup[category.id] = category;
+    }
+    state.categories = allCategories1;
+    globalState.categories = allCategories1;
+    upsertCategories(jsonResult, allCategories1).then((newCategories) => {
+      if (newCategories.length == 0) {
+        insertLocations(jsonResult, () => {
+          callback(null, true);
+        });
+      } else {
+        CategoriesController._bulkCreateCategories(newCategories).then((res) => {
+          CategoriesController.registerCategoryAnalytics(res.data.length);
+          CategoriesController.getAllCategories((allCategories2) => {
+            for (const category of allCategories2) {
+              state.categoriesLookup[category.id] = category;
             }
-          })
-    })
-}
-
-const upsertCategories = (result, allCategories) => {
-  return new Promise((resolve, reject) => {
-    var categories = []
-    var newCategories = [];
-    result.forEach(elem => {
-      if(elem.categories){
-        var newSubCategories = [];
-        var _categories = elem.categories.split(",").filter(Boolean)
-          _categories.forEach(categoryAndSub => {
-
-          var categoryAndSub = categoryAndSub.split("->")
-          var selectedCategoryTitle = categoryAndSub[0].trim()
-          var selectedSubCategories = categoryAndSub[1]?.split(",")
-          var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle && x.deletedBy == null)
-
-          if(!savedCategory){ // Check if category not found in collection
-            var isNewCategorySaved = newCategories.find(x => x == selectedCategoryTitle)
-
-            if(!isNewCategorySaved){ // Check if category already added
-              newCategories.push(selectedCategoryTitle)
-
-              var categoryToBeSaved = {
-                title: selectedCategoryTitle,
-                iconUrl: "",
-                iconClassName: "",
-                subcategories: selectedSubCategories ? selectedSubCategories.map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() })) : [],
-                createdOn: new Date(),
-                createdBy: authManager.sanitizedCurrentUser
-              }
-              categories.push(new Category(categoryToBeSaved).toJSON())
-            } else if(selectedSubCategories){
-              let selectedCategory = categories.find(x => x.title == selectedCategoryTitle)
-              var isSubCategoryAdded = selectedCategory.subcategories.find(x => x.title == selectedSubCategories[0].trim())
-              if(!isSubCategoryAdded){
-                selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim()})
-              }
-            }
-
-          } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
-            var savedSubCategories = savedCategory.subcategories.map(x => x.title);
-            var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
-            if(nonSavedSubCategories.length > 0){ // Check if there is new subcategory & update category
-              nonSavedSubCategories.forEach(subCategory => {
-                var isNewSubCategorySaved = newSubCategories.find(x => x == subCategory)
-                if(isNewSubCategorySaved == null){ // Check if subcategory already added
-                  newSubCategories.push(subCategory)
-                  savedCategory.subcategories.push({ id: generateUUID(), title: subCategory?.trim() })
-                }
-              });
-              CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
-            }
-
-          }
+            state.categories = allCategories2;
+            globalState.categories = allCategories2;
+            insertLocations(jsonResult, () => {
+              callback(null, true);
+            });
+          });
+        }).catch((err) => {
+          callback(err, false);
         });
       }
-    })
-    resolve(categories)
+    });
   });
+};
 
-}
+const upsertCategories = (result, allCategories) => new Promise((resolve, reject) => {
+  const categories = [];
+  const newCategories = [];
+  result.forEach((elem) => {
+    if (elem.categories) {
+      const newSubCategories = [];
+      const _categories = elem.categories.split(",").filter(Boolean);
+      _categories.forEach((categoryAndSub) => {
+        var categoryAndSub = categoryAndSub.split("->");
+        const selectedCategoryTitle = categoryAndSub[0].trim();
+        const selectedSubCategories = categoryAndSub[1]?.split(",");
+        const savedCategory = allCategories.find((x) => x.title == selectedCategoryTitle && x.deletedBy == null);
+
+        if (!savedCategory) { // Check if category not found in collection
+          const isNewCategorySaved = newCategories.find((x) => x == selectedCategoryTitle);
+
+          if (!isNewCategorySaved) { // Check if category already added
+            newCategories.push(selectedCategoryTitle);
+
+            const categoryToBeSaved = {
+              title: selectedCategoryTitle,
+              iconUrl: "",
+              iconClassName: "",
+              subcategories: selectedSubCategories ? selectedSubCategories.map((subTitle) => ({ id: generateUUID(), title: subTitle?.trim() })) : [],
+              createdOn: new Date(),
+              createdBy: authManager.sanitizedCurrentUser
+            };
+            categories.push(new Category(categoryToBeSaved).toJSON());
+          } else if (selectedSubCategories) {
+            const selectedCategory = categories.find((x) => x.title == selectedCategoryTitle);
+            const isSubCategoryAdded = selectedCategory.subcategories.find((x) => x.title == selectedSubCategories[0].trim());
+            if (!isSubCategoryAdded) {
+              selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim() });
+            }
+          }
+        } else if (selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
+          const savedSubCategories = savedCategory.subcategories.map((x) => x.title);
+          const nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())));
+          if (nonSavedSubCategories.length > 0) { // Check if there is new subcategory & update category
+            nonSavedSubCategories.forEach((subCategory) => {
+              const isNewSubCategorySaved = newSubCategories.find((x) => x == subCategory);
+              if (isNewSubCategorySaved == null) { // Check if subcategory already added
+                newSubCategories.push(subCategory);
+                savedCategory.subcategories.push({ id: generateUUID(), title: subCategory?.trim() });
+              }
+            });
+            CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(() => {});
+          }
+        }
+      });
+    }
+  });
+  resolve(categories);
+});
 
 const insertLocations = (result, callback) => {
   const locations = result.map((elem) => {
@@ -1623,139 +1624,141 @@ const insertLocations = (result, callback) => {
     };
     elem.coordinates = { lat: Number(elem.lat), lng: Number(elem.lng) };
     elem.price = { range: elem.priceRange || 0, currency: elem.priceCurrency || '$' };
-    var elemCategories = elem.categories?.split(",").filter(e => e)
-    let categories = [];
-    let subCategories = [];
-    if(elemCategories){
-      elemCategories.forEach(categoryAndSub => {
-        var _categoryAndSub = categoryAndSub.split("->")
-        var selectedCategoryTitle = _categoryAndSub[0].trim();
-        var selectedSubCategories = _categoryAndSub[1]?.trim();
-        var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
-        if(savedCategory){
-          var isCategoryAdded = categories.find(x=>x == savedCategory.id)
-          if(!isCategoryAdded){
-            categories.push(savedCategory.id)
-
+    const elemCategories = elem.categories?.split(",").filter((e) => e);
+    const categories = [];
+    const subCategories = [];
+    if (elemCategories) {
+      elemCategories.forEach((categoryAndSub) => {
+        const _categoryAndSub = categoryAndSub.split("->");
+        const selectedCategoryTitle = _categoryAndSub[0].trim();
+        const selectedSubCategories = _categoryAndSub[1]?.trim();
+        const savedCategory = state.categories?.find((x) => x.title == selectedCategoryTitle);
+        if (savedCategory) {
+          const isCategoryAdded = categories.find((x) => x == savedCategory.id);
+          if (!isCategoryAdded) {
+            categories.push(savedCategory.id);
           }
-          if(selectedSubCategories){
-            var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
-            if(selectedSubCategory){
-              subCategories.push(selectedSubCategory.id)
+          if (selectedSubCategories) {
+            const selectedSubCategory = savedCategory.subcategories.find((x) => x.title == selectedSubCategories);
+            if (selectedSubCategory) {
+              subCategories.push(selectedSubCategory.id);
             }
           }
         }
-      })
+      });
     }
     elem.categories = { main: categories, subcategories: subCategories };
     elem.openingHours = { ...getDefaultOpeningHours(), timezone: null };
     elem.createdOn = new Date();
     elem.createdBy = authManager.sanitizedCurrentUser;
     // add location actionItems
-    let actionItems =[];
-    if(elem.phoneNumber){
+    const actionItems = [];
+    if (elem.phoneNumber) {
       actionItems.push({
-        "title": "Phone",
-        "action": "callNumber",
-        "iconClassName": "bf-icon bf-icon-phone",
-        "phoneNumber": elem.phoneNumber,
-        "id": generateUUID() });
+        title: "Phone",
+        action: "callNumber",
+        iconClassName: "bf-icon bf-icon-phone",
+        phoneNumber: elem.phoneNumber,
+        id: generateUUID()
+      });
     }
-    if(elem.website){
+    if (elem.website) {
       if (!elem.website.startsWith('https://') && !elem.website.startsWith('http://')) {
-        elem.website = 'http://'+elem.website;
+        elem.website = `http://${elem.website}`;
       }
       actionItems.push({
-        "title": "Website",
-        "action": "linkToWeb",
-        "iconClassName": "bf-icon bf-icon-globe",
-        "openIn": "_blank",
-        "url": elem.website,
-        "id": generateUUID() });
+        title: "Website",
+        action: "linkToWeb",
+        iconClassName: "bf-icon bf-icon-globe",
+        openIn: "_blank",
+        url: elem.website,
+        id: generateUUID()
+      });
     }
-    if(actionItems.length >0){
-        elem.actionItems = actionItems
+    if (actionItems.length > 0) {
+      elem.actionItems = actionItems;
     }
 
     return new Location(elem).toJSON();
+  });
+  LocationsController.bulkCreateLocation(locations).then((result) => {
+    buildfire.dialog.toast({
+      message: "Successfully imported locations",
+      type: "success",
     });
-    LocationsController.bulkCreateLocation(locations).then((result) => {
-        buildfire.dialog.toast({
-          message: "Successfully imported locations",
-          type: "success",
-        });
-        refreshLocations();
-        triggerWidgetOnLocationsUpdate({});
-        callback(null, true)
-      }).catch((err) => {
-        callback(err, null)
-        console.error(err);
-    });
-}
+    refreshLocations();
+    triggerWidgetOnLocationsUpdate({});
+    callback(null, true);
+  }).catch((err) => {
+    callback(err, null);
+    console.error(err);
+  });
+};
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
     title: 'Exporting Locations',
     message: 'We’re exporting your locations, please wait.'
   });
 
-  let searchOptions = {
+  const searchOptions = {
     limit: 50,
     skip: 0,
     recordCount: true
-  }, records = [];
+  }; let
+    records = [];
 
   const processLocations = () => {
-    const data = records.map(elem => {
-      elem= elem;
+    const data = records.map((elem) => {
+      elem = elem;
       elem.lat = elem.coordinates?.lat;
       elem.lng = elem.coordinates?.lng;
-      elem.settings= elem.settings;
-      elem.markerType= elem.marker.type;
-      elem.markerImage= elem.marker.image;
-      elem.markerColorRGBA= elem.marker.color?.color;
-      elem.priceRange= elem.price.range;
-      elem.priceCurrency= elem.price.currency;
+      elem.settings = elem.settings;
+      elem.markerType = elem.marker.type;
+      elem.markerImage = elem.marker.image;
+      elem.markerColorRGBA = elem.marker.color?.color;
+      elem.priceRange = elem.price.range;
+      elem.priceCurrency = elem.price.currency;
       // action item / phone number and website
-      elem.phoneNumber= "";
+      elem.phoneNumber = "";
       elem.website = "";
-      let categories = [];
-      elem.categories.main.forEach(catId => {
-        var category = state.categoriesLookup[catId]
-        if(category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0){
-          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id) )
-          if(subcategories && subcategories.length > 0){
-            subcategories.forEach(e => {
+      const categories = [];
+      elem.categories.main.forEach((catId) => {
+        const category = state.categoriesLookup[catId];
+        if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
+          const subcategories = category.subcategories.filter((x) => elem.categories.subcategories.includes(x.id));
+          if (subcategories && subcategories.length > 0) {
+            subcategories.forEach((e) => {
               categories.push({
-                title: category.title + " -> " + e.title
-              } )
-            })
+                title: `${category.title} -> ${e.title}`
+              });
+            });
           } else {
-            categories.push({title: category.title})
+            categories.push({ title: category.title });
           }
         } else {
-          categories.push({title: category.title})
+          categories.push({ title: category.title });
         }
       });
-      elem.categories = categories
+      elem.categories = categories;
 
       return elem;
     });
     downloadCsvTemplate(data, locationTemplateHeader, 'locations');
     dialogRef.close();
-  }
+  };
 
   const getLocations = () => {
-    Locations.search(searchOptions).then(response => {
+    Locations.search(searchOptions).then((response) => {
       if (response.result.length < searchOptions.limit) {
         records = records.concat(response.result);
         processLocations();
       } else {
-        searchOptions.skip = searchOptions.skip + searchOptions.limit;
+        searchOptions.skip += searchOptions.limit;
         records = records.concat(response.result);
         return getLocations();
       }
-    }).catch(err => console.error(err));
-  }
+    }).catch((err) => console.error(err));
+  };
   getLocations();
 };
 
@@ -1817,7 +1820,7 @@ const getPinnedLocation = () => {
 };
 const loadCategories = (callback) => {
   CategoriesController.getAllCategories((allCategories) => {
-    for(const category of allCategories){
+    for (const category of allCategories) {
       state.categoriesLookup[category.id] = category;
     }
     state.categories = allCategories;
@@ -1877,24 +1880,22 @@ const updateLocationImage = (obj, tr) => {
 };
 
 const createLocation = (location) => LocationsController.createLocation(location).then((res) => {
-    refreshLocations();
-    cancelAddLocation();
-    triggerWidgetOnLocationsUpdate({});
-    return true;
-  }).catch(() => {
-    addLocationControls.saveBtn.disabled = false;
-  });
+  refreshLocations();
+  cancelAddLocation();
+  triggerWidgetOnLocationsUpdate({});
+  return true;
+}).catch(() => {
+  addLocationControls.saveBtn.disabled = false;
+});
 
-const updateLocation = (locationId, location) => {
-  return LocationsController.updateLocation(locationId, location).then((res) => {
-    refreshLocations();
-    cancelAddLocation();
-    triggerWidgetOnLocationsUpdate({});
-    return true;
-  }).catch(() => {
-    addLocationControls.saveBtn.disabled = false;
-  });
-};
+const updateLocation = (locationId, location) => LocationsController.updateLocation(locationId, location).then((res) => {
+  refreshLocations();
+  cancelAddLocation();
+  triggerWidgetOnLocationsUpdate({});
+  return true;
+}).catch(() => {
+  addLocationControls.saveBtn.disabled = false;
+});
 
 const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = false } = {}) => {
   if (syncTimeOut) clearTimeout(syncTimeOut);
@@ -1948,7 +1949,7 @@ window.initLocations = () => {
   handleLocationEmptyState(true);
   state.filter = {};
 
-  loadCategories((err, result)=> {
+  loadCategories((err, result) => {
     refreshLocations();
   });
   getPinnedLocation();

@@ -12,6 +12,7 @@ import LocationEditingListUI from './js/ui/locationEditingListUI';
 import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../repository/Locations';
 import { getDisplayName } from './js/util/helpers';
+import isCameraControlVersion from '../../shared/utils/cameraControlVersion';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -1015,15 +1016,22 @@ const initMap = () => {
 
 window.intiGoogleMap = () => {
   const searchBoxElem = document.querySelector('#initial-area-location-input');
-  const map = new google.maps.Map(document.getElementById("location-map"), {
+  const options = {
     center: { lat: -34.397, lng: 150.644 },
     zoom: 10,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+    mapId: "WIDGET_APP_ID",
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  }
+  else {
+    options.zoomControl = true;
+  }
+  const map = new google.maps.Map(document.getElementById("location-map"), options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
@@ -1037,10 +1045,9 @@ window.intiGoogleMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
   const currentPosition = {
@@ -1054,14 +1061,14 @@ window.intiGoogleMap = () => {
 
   if (currentPosition.lat && currentPosition.lng) {
     const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = (latlng);
     map.setCenter(latlng);
     map.setZoom(15);
   }
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false;
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -1076,8 +1083,8 @@ window.intiGoogleMap = () => {
       map.setZoom(17);
     }
 
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    marker.visible = true;
 
     state.settings.map.initialAreaCoordinates.lat = place.geometry.location.lat();
     state.settings.map.initialAreaCoordinates.lng = place.geometry.location.lng();
@@ -1086,6 +1093,7 @@ window.intiGoogleMap = () => {
   });
 
   marker.addListener("dragend", (e) => {
+    console.log(e.latLng.lat(), e.latLng.lng());
     map.setCenter(e.latLng);
     geoCoder.geocode(
       { location: { lat: e.latLng.lat(), lng: e.latLng.lng() } },
@@ -1116,14 +1124,14 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiGoogleMap&libraries=places&v=weekly`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=intiGoogleMap&libraries=places,marker`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }
       docHead[0].appendChild(scriptEl);
     }
 
-    setGoogleMapsScript(context.apiKeys.googleMapKey);
+    setGoogleMapsScript('AIzaSyCbO8pZ_2IbI-1rku3w9KF9itk3ZQolzx0');
   });
 };
 

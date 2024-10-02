@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import state from "../../state";
+import isCameraControlVersion from "../../../../shared/utils/cameraControlVersion";
 
 const convertMileToMeter = (distanceInMiles) => {
   if (typeof distanceInMiles === "number") {
@@ -17,15 +18,22 @@ window.initAreaRadiusMap = () => {
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
 
-  const map = new google.maps.Map(document.getElementById("local-area-map"), {
+  const options = {
     center: { lat: 32.7182625, lng: -117.1601157 },
     zoom: 1,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+    mapId: "introMapContent",
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+
+  const map = new google.maps.Map(document.getElementById("local-area-map"), options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
@@ -44,10 +52,9 @@ window.initAreaRadiusMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
   // Create the circle and add it to the map.
@@ -60,7 +67,7 @@ window.initAreaRadiusMap = () => {
   });
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false;
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -75,9 +82,9 @@ window.initAreaRadiusMap = () => {
       map.fitBounds(circle.getBounds());
     }
 
-    marker.setPosition(place.geometry.location);
-    circle.setCenter(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location ;
+    circle.center = place.geometry.location ;
+    marker.visible = true;
   });
 
   marker.addListener("dragend", (e) => {
@@ -147,8 +154,8 @@ window.initAreaRadiusMap = () => {
     areaAddressInput.value = localAreaOptions.formattedLocation;
 
     const latlng = new google.maps.LatLng(localAreaOptions.lat, localAreaOptions.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = latlng;
     circle.setVisible(true);
     map.setCenter(latlng);
     circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
@@ -167,7 +174,7 @@ const setGoogleMapsScript = (key) => {
 
   const scriptEl = document.createElement("script");
   scriptEl.id = "googleMapsPlaces";
-  scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+  scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=initAreaRadiusMap&libraries=places,marker`;
   docHead[0].appendChild(scriptEl);
 };
 
