@@ -889,6 +889,7 @@ body section#home {
 .map-center-btn.left {
   right: initial;
   left: 10px;
+  bottom: 115px;
 }
 
 .map-center-btn * {

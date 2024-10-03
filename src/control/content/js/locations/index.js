@@ -20,7 +20,7 @@ import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 import constants from '../../../../widget/js/constants';
-import isCameraControlVersion from "../../../../shared/utils/cameraControlVersion";
+import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");

@@ -1,4 +1,16 @@
-const isCameraControlVersion = function () {
+// eslint-disable-next-line max-len
+/**
+ * Starting from version 3.60 (released in February 2025), Google Maps introduces a new Camera control
+ * which replaces the traditional Zoom control as part of the default UI.
+ * This version check function  is necessary because the behavior of the controls changes:
+ * If the version is 3.60 or higher, the new Camera control will be the default
+ * If the version is below 3.60, the legacy Zoom control will still be applicable.
+ * By determining the version, this function allows the code to handle the transition smoothly, ensuring compatibility with both
+ * the old and new controls.
+ */
+
+// eslint-disable-next-line import/prefer-default-export
+export const isCameraControlVersion = function () {
   const parseVersion = function (versionString) {
     const parts = versionString.split('.');
     return parts.map((part) => {
@@ -38,4 +50,3 @@ const isCameraControlVersion = function () {
   };
   return VersionCheckService();
 };
-export default isCameraControlVersion;

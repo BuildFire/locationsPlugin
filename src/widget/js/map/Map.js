@@ -1,7 +1,7 @@
 import MarkerClusterer from './markercluster';
 import CustomMarker from './CustomMarker';
 import { cdnImage } from '../util/helpers';
-import isCameraControlVersion from "../../../shared/utils/cameraControlVersion";
+import { isCameraControlVersion } from "../../../shared/utils/mapUtils";
 
 export default class Map {
   constructor(selector, options) {
@@ -107,6 +107,7 @@ export default class Map {
     }
 
     if (this.markerClusterer) {
+      console.log("Adding marker to clusterer");
       this.markerClusterer.addMarker(marker);
     }
 

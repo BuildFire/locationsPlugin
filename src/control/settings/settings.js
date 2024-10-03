@@ -12,7 +12,7 @@ import LocationEditingListUI from './js/ui/locationEditingListUI';
 import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../repository/Locations';
 import { getDisplayName } from './js/util/helpers';
-import isCameraControlVersion from '../../shared/utils/cameraControlVersion';
+import { isCameraControlVersion } from '../../shared/utils/mapUtils';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -1023,7 +1023,7 @@ window.intiGoogleMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-    mapId: "WIDGET_APP_ID",
+    mapId: "settingsMap",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;

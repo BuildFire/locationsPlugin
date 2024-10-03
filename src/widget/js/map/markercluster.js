@@ -742,16 +742,22 @@ MarkerClusterer.prototype.distanceBetweenPoints_ = function(p1, p2) {
     }
 
     var R = 6371; // Radius of the Earth in km
-    var dLat = (p2.lat - p1.lat) * Math.PI / 180;
-    var dLon = (p2.lng - p1.lng) * Math.PI / 180;
+
+    // Check if lat and lng are functions or properties and get the values accordingly
+    var lat1 = typeof p1.lat === 'function' ? p1.lat() : p1.lat;
+    var lng1 = typeof p1.lng === 'function' ? p1.lng() : p1.lng;
+    var lat2 = typeof p2.lat === 'function' ? p2.lat() : p2.lat;
+    var lng2 = typeof p2.lng === 'function' ? p2.lng() : p2.lng;
+
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lng2 - lng1) * Math.PI / 180;
     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
     return d;
 };
-
 
 /**
  * Add a marker to a cluster, or creates a new cluster.
@@ -766,6 +772,7 @@ MarkerClusterer.prototype.addToClosestCluster_ = function(marker) {
     for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
         var center = cluster.getCenter();
         if (center) {
+            console.log(center, marker.position, 'center, marker.position');
             var d = this.distanceBetweenPoints_(center, marker.position);
             if (d < distance) {
                 distance = d;

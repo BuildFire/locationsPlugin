@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import state from "../../state";
-import isCameraControlVersion from "../../../../shared/utils/cameraControlVersion";
+import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
 
 const convertMileToMeter = (distanceInMiles) => {
   if (typeof distanceInMiles === "number") {
