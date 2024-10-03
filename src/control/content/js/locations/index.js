@@ -20,6 +20,8 @@ import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 import constants from '../../../../widget/js/constants';
+import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
+
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -404,17 +406,17 @@ window.addEditLocation = (location) => {
 
   addLocationControls.locationAddress.onchange = () => {
     const {  address,coordinates } = state.locationObj;
-      if(state.saveBtnClicked ){
-        if (!address || !coordinates.lat || !coordinates.lng) {
-          addLocationControls.locationTitleError.classList.remove('hidden');
-          addLocationControls.locationTitleError.innerHTML = 'Required';
-          addLocationControls.locationTitleError.parentNode.classList.add('has-error');
-        } else {
-          addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
-          addLocationControls.locationTitleError.classList.add('hidden');
+    if(state.saveBtnClicked ){
+      if (!address || !coordinates.lat || !coordinates.lng) {
+        addLocationControls.locationTitleError.classList.remove('hidden');
+        addLocationControls.locationTitleError.innerHTML = 'Required';
+        addLocationControls.locationTitleError.parentNode.classList.add('has-error');
+      } else {
+        addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
+        addLocationControls.locationTitleError.classList.add('hidden');
 
-        }
       }
+    }
   }
 
 
@@ -474,7 +476,7 @@ window.addEditLocation = (location) => {
       imgLibOptions: {
         showIcons: true
       }
-     }, (err, actionItem) => {
+    }, (err, actionItem) => {
       if (err) return console.error(err);
 
       if (!actionItem) {
@@ -1025,12 +1027,12 @@ const renderOpeningHours = (openingHours) => {
       enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
-      //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       addHoursBtn.onclick = (e) => {
         days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
-       // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       renderDayIntervals(days[day], dayIntervals);
 
@@ -1068,7 +1070,7 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(start, interval.to, intervalError)) {
         return;
       }
-    //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
       const end = convertTimeToDate(e.target.value);
@@ -1076,12 +1078,12 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(interval.from, end, intervalError)) {
         return;
       }
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
       dayInterval.remove();
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
 
     dayIntervalsContainer.appendChild(dayInterval);
@@ -1118,15 +1120,21 @@ const createEmptyHolder = (message) => {
 
 window.intiMap = () => {
   console.log("Map Ready");
-  const map = new google.maps.Map(document.getElementById("location-map"), {
+  const options = {
     center: { lat: 32.7182625, lng: -117.1601157 },
     zoom: 1,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+    mapId: "itemMap",
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+  const map = new google.maps.Map(document.getElementById("location-map"),options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
@@ -1140,23 +1148,22 @@ window.intiMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
-  const currentPosition = {lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng}
+  const currentPosition = { lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng };
   if (currentPosition.lat && currentPosition.lng) {
     const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = latlng;
     map.setCenter(latlng);
     map.setZoom(15);
   }
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -1171,8 +1178,8 @@ window.intiMap = () => {
       map.setZoom(17);
     }
 
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    marker.visible = true
 
     state.locationObj.coordinates.lat = place.geometry.location.lat();
     state.locationObj.coordinates.lng = place.geometry.location.lng();
@@ -1199,7 +1206,7 @@ window.intiMap = () => {
             console.log("No results found");
           }
         } else {
-          console.log("Geocoder failed due to: " + status);
+          console.log(`Geocoder failed due to: ${status}`);
         }
       }
     );
@@ -1213,7 +1220,7 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=weekly`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=intiMap&libraries=places,marker`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }
@@ -1510,36 +1517,36 @@ window.importLocations = () =>  {
 };
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
-    CategoriesController.getAllCategories((allCategories1)=>{
-          for(const category of allCategories1){
-            state.categoriesLookup[category.id] = category;
-          }
-          state.categories = allCategories1;
-          globalState.categories = allCategories1;
-          upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
-            if(newCategories.length == 0){
-              insertLocations(jsonResult, ()=>{
-                callback(null, true);
-              })
-            } else {
-              CategoriesController._bulkCreateCategories(newCategories).then((res) => {
-                CategoriesController.registerCategoryAnalytics(res.data.length);
-                CategoriesController.getAllCategories((allCategories2)=>{
-                  for(const category of allCategories2){
-                    state.categoriesLookup[category.id] = category;
-                  }
-                  state.categories = allCategories2;
-                  globalState.categories = allCategories2;
-                  insertLocations(jsonResult, () => {
-                    callback(null, true);
-                  })
-                })
-              }).catch((err) => {
-                callback(err, false);
-              });
+  CategoriesController.getAllCategories((allCategories1)=>{
+    for(const category of allCategories1){
+      state.categoriesLookup[category.id] = category;
+    }
+    state.categories = allCategories1;
+    globalState.categories = allCategories1;
+    upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
+      if(newCategories.length == 0){
+        insertLocations(jsonResult, ()=>{
+          callback(null, true);
+        })
+      } else {
+        CategoriesController._bulkCreateCategories(newCategories).then((res) => {
+          CategoriesController.registerCategoryAnalytics(res.data.length);
+          CategoriesController.getAllCategories((allCategories2)=>{
+            for(const category of allCategories2){
+              state.categoriesLookup[category.id] = category;
             }
+            state.categories = allCategories2;
+            globalState.categories = allCategories2;
+            insertLocations(jsonResult, () => {
+              callback(null, true);
+            })
           })
+        }).catch((err) => {
+          callback(err, false);
+        });
+      }
     })
+  })
 }
 
 const upsertCategories = (result, allCategories) => {
@@ -1550,7 +1557,7 @@ const upsertCategories = (result, allCategories) => {
       if(elem.categories){
         var newSubCategories = [];
         var _categories = elem.categories.split(",").filter(Boolean)
-          _categories.forEach(categoryAndSub => {
+        _categories.forEach(categoryAndSub => {
 
           var categoryAndSub = categoryAndSub.split("->")
           var selectedCategoryTitle = categoryAndSub[0].trim()
@@ -1674,23 +1681,23 @@ const insertLocations = (result, callback) => {
         "id": generateUUID() });
     }
     if(actionItems.length >0){
-        elem.actionItems = actionItems
+      elem.actionItems = actionItems
     }
 
     return new Location(elem).toJSON();
+  });
+  LocationsController.bulkCreateLocation(locations).then((result) => {
+    buildfire.dialog.toast({
+      message: "Successfully imported locations",
+      type: "success",
     });
-    LocationsController.bulkCreateLocation(locations).then((result) => {
-        buildfire.dialog.toast({
-          message: "Successfully imported locations",
-          type: "success",
-        });
-        refreshLocations();
-        triggerWidgetOnLocationsUpdate({});
-        callback(null, true)
-      }).catch((err) => {
-        callback(err, null)
-        console.error(err);
-    });
+    refreshLocations();
+    triggerWidgetOnLocationsUpdate({});
+    callback(null, true)
+  }).catch((err) => {
+    callback(err, null)
+    console.error(err);
+  });
 }
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
@@ -1877,13 +1884,13 @@ const updateLocationImage = (obj, tr) => {
 };
 
 const createLocation = (location) => LocationsController.createLocation(location).then((res) => {
-    refreshLocations();
-    cancelAddLocation();
-    triggerWidgetOnLocationsUpdate({});
-    return true;
-  }).catch(() => {
-    addLocationControls.saveBtn.disabled = false;
-  });
+  refreshLocations();
+  cancelAddLocation();
+  triggerWidgetOnLocationsUpdate({});
+  return true;
+}).catch(() => {
+  addLocationControls.saveBtn.disabled = false;
+});
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {

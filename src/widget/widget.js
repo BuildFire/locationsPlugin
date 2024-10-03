@@ -516,8 +516,8 @@ const showWorkingHoursDrawer = () => {
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
-    t.to
-  ) : convertDateToTime(t.to)}</p>`).join('\n')}
+        t.to
+      ) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -807,7 +807,7 @@ const initEventListeners = () => {
 const chipSets = {};
 const initFilterOverlay = () => {
   let categories = state.categories
-  
+
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
   categories.forEach((category) => {
@@ -1014,12 +1014,11 @@ const generateMapOptions = () => {
   }
 
   if (design.defaultMapStyle === 'dark') {
-    selector.classList.add('dark');
     options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
+    selector.classList.add('dark');
   } else {
     selector.classList.remove('dark');
   }
-
   if (!map.showPointsOfInterest) {
     options.styles.push({
       featureType: 'poi',
@@ -1465,7 +1464,7 @@ const initGoogleMapsSDK = () => {
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
   script.type = 'text/javascript';
-  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
+  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places,marker&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
   };
@@ -1601,9 +1600,9 @@ const handleCPSync = (message) => {
             hideOverlays();
             buildfire.history.pop();
             if (state.settings.introductoryListView.images.length === 0
-                && state.listLocations.length === 0
-                && !state.settings.introductoryListView.description
-                && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
+              && state.listLocations.length === 0
+              && !state.settings.introductoryListView.description
+              && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
               showElement('#intro div.empty-page');
             }
           });
@@ -1734,7 +1733,7 @@ const onPopHandler = (breadcrumb) => {
   } else if (
     state.breadcrumbs.length
     && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
-    || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
+      || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
     && state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");
