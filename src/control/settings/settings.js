@@ -12,6 +12,7 @@ import LocationEditingListUI from './js/ui/locationEditingListUI';
 import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../repository/Locations';
 import { getDisplayName } from './js/util/helpers';
+import { isCameraControlVersion } from '../../shared/utils/mapUtils';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -377,7 +378,6 @@ const removeAsEditingLocations = (location, index, callback) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-
         const payload = {
           $set: {
             lastUpdatedOn: new Date(),
@@ -651,7 +651,6 @@ const openLocationPermsDialog = (location) => {
     callback(item);
   };
 
-
   const locationTagsListContainer = document.createElement('div');
   const tagsContainerTitle = document.createElement('h5');
 
@@ -739,7 +738,6 @@ const initLocationEditing = () => {
   const searchInput = document.querySelector('#location-editing-search-input');
   const defaultLocationsTimeRadios = document.querySelectorAll('input[name="defaultLocationTime"]');
   let timeoutId;
-
 
   for (const radio of defaultLocationsTimeRadios) {
     if (radio.value === state.settings.locationEditors.time) {
@@ -1015,15 +1013,20 @@ const initMap = () => {
 
 window.intiGoogleMap = () => {
   const searchBoxElem = document.querySelector('#initial-area-location-input');
-  const map = new google.maps.Map(document.getElementById("location-map"), {
+  const options = {
     center: { lat: -34.397, lng: 150.644 },
     zoom: 10,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+  const map = new google.maps.Map(document.getElementById("location-map"), options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
@@ -1102,7 +1105,7 @@ window.intiGoogleMap = () => {
             console.log("No results found");
           }
         } else {
-          console.log("Geocoder failed due to: " + status);
+          console.log(`Geocoder failed due to: ${status}`);
         }
       }
     );
@@ -1185,7 +1188,7 @@ const setActiveSidenavTab = (section) => {
   const sidenav = document.querySelector('#sidenav');
   for (const tab of sidenav.childNodes) {
     tab.querySelector('a').classList.remove('active');
-  };
+  }
 
   sidenav.querySelector(`#${section}-tab`).firstChild.classList.add('active');
 };

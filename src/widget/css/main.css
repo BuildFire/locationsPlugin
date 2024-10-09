@@ -886,6 +886,11 @@ body section#home {
   z-index: 1;
   cursor: pointer;
 }
+.map-center-btn.left {
+  right: initial;
+  left: 10px;
+  bottom: 115px;
+}
 
 .map-center-btn * {
   pointer-events: none;

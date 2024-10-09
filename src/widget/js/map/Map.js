@@ -1,6 +1,8 @@
 import MarkerClusterer from './markercluster';
 import CustomMarker from './CustomMarker';
 import { cdnImage } from '../util/helpers';
+import { isCameraControlVersion } from "../../../shared/utils/mapUtils";
+
 
 export default class Map {
   constructor(selector, options) {
@@ -26,6 +28,9 @@ export default class Map {
       },
       ...userOptions,
     };
+    if (isCameraControlVersion()) {
+      document.querySelector('.map-center-btn').classList.add('left');
+    }
     this.map = new google.maps.Map(selector, options);
     google.maps.event.addListenerOnce(this.map, 'idle', this.attachMapListeners.bind(this));
   }

@@ -807,7 +807,7 @@ const initEventListeners = () => {
 const chipSets = {};
 const initFilterOverlay = () => {
   let categories = state.categories
-  
+
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
   categories.forEach((category) => {

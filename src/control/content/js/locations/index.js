@@ -20,6 +20,8 @@ import Locations from "../../../../repository/Locations";
 import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 import constants from '../../../../widget/js/constants';
+import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
+
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
 const locationsSection = document.querySelector("#main");
@@ -1118,15 +1120,20 @@ const createEmptyHolder = (message) => {
 
 window.intiMap = () => {
   console.log("Map Ready");
-  const map = new google.maps.Map(document.getElementById("location-map"), {
+  const options = {
     center: { lat: 32.7182625, lng: -117.1601157 },
     zoom: 1,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+  const map = new google.maps.Map(document.getElementById("location-map"), options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
