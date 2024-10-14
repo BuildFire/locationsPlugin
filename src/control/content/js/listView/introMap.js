@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import state from "../../state";
+import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
 
 const convertMileToMeter = (distanceInMiles) => {
   if (typeof distanceInMiles === "number") {
@@ -16,16 +17,21 @@ window.initAreaRadiusMap = () => {
 
   const areaAddressInput = document.getElementById("area-radius-address-input");
   const areaRadiusInput = document.getElementById("location-area-radius-input");
-
-  const map = new google.maps.Map(document.getElementById("local-area-map"), {
+  const options = {
     center: { lat: 32.7182625, lng: -117.1601157 },
     zoom: 1,
-    zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-  });
+  };
+  if (isCameraControlVersion()) {
+    options.cameraControl = true;
+  } else {
+    options.zoomControl = true;
+  }
+
+  const map = new google.maps.Map(document.getElementById("local-area-map"), options);
   state.map = map;
 
   const autocomplete = new google.maps.places.SearchBox(
