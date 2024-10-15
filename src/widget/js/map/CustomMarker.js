@@ -97,7 +97,6 @@ export default (function () {
   };
 
   CustomMarker.prototype.remove = function () {
-    this.setMap(null);
     if (this.div_) {
       this.div_.parentNode.removeChild(this.div_);
       this.div_ = null;
