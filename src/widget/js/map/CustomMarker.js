@@ -63,37 +63,27 @@ export default (function () {
         this.onClick(this.location);
       });
     }
+    const point = this.getProjection().fromLatLngToDivPixel(this.position);
+    if (point) {
+      const southWest = this.map.getBounds().getSouthWest();
+      const northEast = this.map.getBounds().getNorthEast();
+      const sw = this.getProjection().fromLatLngToDivPixel(southWest);
+      const ne = this.getProjection().fromLatLngToDivPixel(northEast);
+
+      const mapWidth = ne.x - sw.x;
+      const mapHeight = sw.y - ne.y;
+      // factor depends on the marker size
+      const widthRatio = 45 / mapWidth;
+      const heightRatio = 45 / mapHeight;
+      div.style.width = `${mapWidth * widthRatio}px`;
+      div.style.height = `${mapHeight * heightRatio}px`;
+
+      div.style.left = point.x + 'px';
+      div.style.top = point.y + 'px';
+    }
 
     this.getPanes().overlayMouseTarget.appendChild(div);
 
-    const changeBound =  () => {
-      // Position the overlay
-      if (!this.getProjection()) {
-        return;
-      }
-      const point = this.getProjection().fromLatLngToDivPixel(this.position);
-      const sw = this.getProjection().fromLatLngToDivPixel(
-        this.map.getBounds().getSouthWest()
-      );
-      const ne = this.getProjection().fromLatLngToDivPixel(
-        this.map.getBounds().getNorthEast()
-      );
-      if (point) {
-        div.style.left = `${point.x}px`;
-        div.style.top = `${point.y}px`;
-        let width = ne.x - sw.x;
-        let height = sw.y - ne.y;
-        // factor depends on the marker size, circle has its own width
-        const ratio1 = 45 / width;
-        const ratio2 = 45 / height;
-        height *= ratio2;    // Reset height to match scaled image
-        width *= ratio1;
-        div.style.width = `${width}px`;
-        div.style.height = `${height}px`;
-      }
-    };
-    changeBound();
-    google.maps.event.addListener(this.map, 'idle', changeBound);
   };
 
   CustomMarker.prototype.remove = function () {
