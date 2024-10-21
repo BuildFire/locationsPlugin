@@ -1076,8 +1076,8 @@ const findViewPortLocations = () => {
       mapView.clearMapViewList();
     }
 
-    searchLocations().then((result) => {
-      result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+    searchLocations().then(() => {
+      state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
     });
   }, 300);
 
