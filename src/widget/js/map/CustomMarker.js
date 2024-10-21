@@ -17,17 +17,12 @@ export default (function () {
     let labelText = this.location.addressAlias || this.location.title;
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
-    const point = this.getProjection().fromLatLngToDivPixel(this.position);
     if (!div) {
       this.div_ = document.createElement('div');
 
       div = this.div_;
       // Create the DIV representing our CustomMarker
       div.classList.add('custom-marker');
-      div.style.position = 'absolute';
-      div.style.cursor = 'pointer';
-      div.style.left = point.x + 'px';
-      div.style.top = point.y + 'px';
 
       if (this.location.marker.type === 'image') {
         const imageContainer = document.createElement('div');
@@ -67,9 +62,24 @@ export default (function () {
       google.maps.event.addDomListener(div, 'click', () => {
         this.onClick(this.location);
       });
-    } else {
-      this.div_.style.left = point.x + 'px';
-      this.div_.style.top = point.y + 'px';
+    }
+    const point = this.getProjection().fromLatLngToDivPixel(this.position);
+    if (point) {
+      const southWest = this.map.getBounds().getSouthWest();
+      const northEast = this.map.getBounds().getNorthEast();
+      const sw = this.getProjection().fromLatLngToDivPixel(southWest);
+      const ne = this.getProjection().fromLatLngToDivPixel(northEast);
+
+      const mapWidth = ne.x - sw.x;
+      const mapHeight = sw.y - ne.y;
+      // factor depends on the marker size
+      const widthRatio = 45 / mapWidth;
+      const heightRatio = 45 / mapHeight;
+      div.style.width = `${mapWidth * widthRatio}px`;
+      div.style.height = `${mapHeight * heightRatio}px`;
+
+      div.style.left = point.x + 'px';
+      div.style.top = point.y + 'px';
     }
 
     this.getPanes().overlayMouseTarget.appendChild(div);
