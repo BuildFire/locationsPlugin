@@ -17,12 +17,17 @@ export default (function () {
     let labelText = this.location.addressAlias || this.location.title;
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
+    const point = this.getProjection().fromLatLngToDivPixel(this.position);
     if (!div) {
       this.div_ = document.createElement('div');
 
       div = this.div_;
       // Create the DIV representing our CustomMarker
       div.classList.add('custom-marker');
+      div.style.position = 'absolute';
+      div.style.cursor = 'pointer';
+      div.style.left = point.x + 'px';
+      div.style.top = point.y + 'px';
 
       if (this.location.marker.type === 'image') {
         const imageContainer = document.createElement('div');
@@ -62,42 +67,16 @@ export default (function () {
       google.maps.event.addDomListener(div, 'click', () => {
         this.onClick(this.location);
       });
+    } else {
+      this.div_.style.left = point.x + 'px';
+      this.div_.style.top = point.y + 'px';
     }
 
     this.getPanes().overlayMouseTarget.appendChild(div);
 
-    const changeBound =  () => {
-      // Position the overlay
-      if (!this.getProjection()) {
-        return;
-      }
-      const point = this.getProjection().fromLatLngToDivPixel(this.position);
-      const sw = this.getProjection().fromLatLngToDivPixel(
-        this.map.getBounds().getSouthWest()
-      );
-      const ne = this.getProjection().fromLatLngToDivPixel(
-        this.map.getBounds().getNorthEast()
-      );
-      if (point) {
-        div.style.left = `${point.x}px`;
-        div.style.top = `${point.y}px`;
-        let width = ne.x - sw.x;
-        let height = sw.y - ne.y;
-        // factor depends on the marker size, circle has its own width
-        const ratio1 = 45 / width;
-        const ratio2 = 45 / height;
-        height *= ratio2;    // Reset height to match scaled image
-        width *= ratio1;
-        div.style.width = `${width}px`;
-        div.style.height = `${height}px`;
-      }
-    };
-    changeBound();
-    google.maps.event.addListener(this.map, 'idle', changeBound);
   };
 
   CustomMarker.prototype.remove = function () {
-    this.setMap(null);
     if (this.div_) {
       this.div_.parentNode.removeChild(this.div_);
       this.div_ = null;

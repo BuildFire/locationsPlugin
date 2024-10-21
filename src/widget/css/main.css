@@ -791,6 +791,8 @@ body section#home {
 .custom-marker {
   position: absolute;
   cursor: pointer;
+  width: 48px;
+  height: 48px;
 }
 .custom-marker__container{
   box-sizing: border-box;
@@ -835,6 +837,9 @@ body section#home {
 }
 .custom-marker__circle {
   overflow: visible;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
 }
 .custom-marker__circle svg {
   width: 100%;
