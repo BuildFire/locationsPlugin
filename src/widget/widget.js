@@ -959,7 +959,7 @@ const initFilterOverlay = () => {
 };
 
 const showMapView = () => {
-  addBreadcrumb({ pageName: 'Map', title: 'Map View' });
+  addBreadcrumb({ pageName: 'home', title: 'Home' }, false);
   hideElement('section#intro');
   showElement('section#listing');
   clearAndSearchAllLocation();
@@ -1739,10 +1739,7 @@ const onPopHandler = (breadcrumb) => {
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    const { showIntroductoryListView } = state.settings;
-    if (showIntroductoryListView) {
-      clearAndSearchAllLocation();
-    }
+    clearAndSearchAllLocation();
   }
 
   state.breadcrumbs.pop();
