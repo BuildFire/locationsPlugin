@@ -15,7 +15,7 @@ const IntroSearchService = {
       coordinates.push(defaultPosition.lng);
       coordinates.push(defaultPosition.lat);
     }
-  
+
     return coordinates;
   },
 
@@ -97,6 +97,7 @@ const IntroSearchService = {
         pipelines = this._setUpIntroGeoQuery(query);
       } else {
         pipelines = this._setupOtherLocationsPipelines(query);
+        state.searchCriteria.page = 0;
       }
     } else {
       // the default search mode is UserPosition
