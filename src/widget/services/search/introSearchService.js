@@ -15,7 +15,7 @@ const IntroSearchService = {
       coordinates.push(defaultPosition.lng);
       coordinates.push(defaultPosition.lat);
     }
-  
+
     return coordinates;
   },
 
@@ -70,7 +70,7 @@ const IntroSearchService = {
       "_buildfire.index.text": 1
     };
 
-    const existLocationStrings = state.listLocations.map((location) => location._buildfire.index.string1);
+    const existLocationStrings = state.nearLocations.map((location) => location._buildfire.index.string1);
 
     if (state.searchCriteria.openingNow) {
       $match = buildOpenNowCriteria();
@@ -127,6 +127,7 @@ const IntroSearchService = {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
           state.printOtherLocationMessage = true;
+          state.nearLocations = [...state.listLocations, ...aggregateLocations];
         } else {
           state.searchCriteria.page += 1;
         }
