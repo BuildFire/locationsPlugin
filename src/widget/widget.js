@@ -392,7 +392,7 @@ const handleLocationFollowingState = () => {
   }
 };
 
-const showLocationDetail = () => {
+const showLocationDetail = (pushToHistory = true) => {
   const { selectedLocation } = state;
 
   const showContributorName = (state.settings.design?.showContributorName && selectedLocation.createdBy?._id);
@@ -541,7 +541,9 @@ const showLocationDetail = () => {
         </div>
       </div>`).join('\n');
       selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
-      addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
+      if (pushToHistory) {
+        addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
+      }
       resetBodyScroll();
       navigateTo('detail');
       if (selectedLocation.id) {
@@ -1436,7 +1438,7 @@ const initHomeView = () => {
   }
 
   if (state.deepLinkData?.locationId) {
-    navigateToLocationId(state.deepLinkData.locationId);
+    navigateToLocationId(state.deepLinkData.locationId, false);
   }
   fillDefaultAreaSearchField();
 };
@@ -1755,13 +1757,13 @@ const handleResultsBookmark = () => {
   showMapView();
   initMapLocations();
 };
-const navigateToLocationId = (locationId) => {
+const navigateToLocationId = (locationId, pushToHistory = true) => {
   if (state.deepLinkData?.locationId) {
     refreshCategories()
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = { ...response.data, id: response.id };
-        showLocationDetail();
+        showLocationDetail(pushToHistory);
       })
       .catch((err) => {
         console.error('fetch location error: ', err);
@@ -1917,7 +1919,7 @@ const handleDeepLinkData = () => new Promise((resolve) => {
       state.deepLinkData = deeplinkData;
       if (state.deepLinkData?.locationId) {
         buildfire.services.reportAbuse.triggerWidgetReadyForAdminResponse();
-        navigateToLocationId(state.deepLinkData.locationId);
+        navigateToLocationId(state.deepLinkData.locationId, true);
       }
     }
   }, true);
