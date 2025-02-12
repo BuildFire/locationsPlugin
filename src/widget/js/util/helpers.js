@@ -84,8 +84,8 @@ export const createTemplate = (templateId) => {
   return document.importNode(template.content, true);
 };
 
-export const showToastMessage = (message, duration = 3000) => {
-  buildfire.dialog.toast({ message: window.strings.get(`toast.${message}`).v, duration });
+export const showToastMessage = (message, duration = 3000, type = 'info') => {
+  buildfire.dialog.toast({ message: window.strings.get(`toast.${message}`).v, duration, type });
 };
 
 export const addBreadcrumb = ({ pageName, label }, showLabel = true) => {

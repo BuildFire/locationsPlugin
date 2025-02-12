@@ -29,7 +29,7 @@ import {
   cdnImage,
   generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
-import  Analytics  from '../utils/analytics';
+import Analytics from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
 import editView from './js/views/editView';
@@ -46,6 +46,7 @@ let SEARCH_TIMOUT;
 let mdcSortingMenu;
 let mdcPriceMenu;
 let chipSet;
+let selectors = {};
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -360,6 +361,37 @@ const extractContributorName = (user) => {
   // If none of the above is available, return "Someone"
   return window.strings.get('details.unknownContributor').v;
 };
+
+const handleLocationFollowingState = () => {
+  const { selectedLocation, currentUser } = state;
+
+  if (selectedLocation.subscribers.indexOf(currentUser.userId) > -1) {
+    selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== currentUser.userId);
+    selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
+    selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
+    WidgetController.unsubscribeFromLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
+      selectors.subscribeBtn.classList.remove('disabled-btn');
+      showToastMessage('unSubscribeFromLocationUpdates');
+    }).catch((err) => {
+      console.error(err);
+      selectors.subscribeBtn.classList.remove('disabled-btn');
+      showToastMessage('somethingWentWrong', 3000, 'danger');
+    });
+  } else {
+    selectedLocation.subscribers.push(currentUser.userId);
+    selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
+    selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button disabled-btn';
+    WidgetController.subscribeToLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
+      selectors.subscribeBtn.classList.remove('disabled-btn');
+      showToastMessage('subscribeToLocationUpdates');
+    }).catch((err) => {
+      console.error(err);
+      selectors.subscribeBtn.classList.remove('disabled-btn');
+      showToastMessage('somethingWentWrong', 3000, 'danger');
+    });
+  }
+};
+
 const showLocationDetail = () => {
   const { selectedLocation } = state;
 
@@ -376,7 +408,7 @@ const showLocationDetail = () => {
       views.inject('detail');
       window.strings.inject(document.querySelector('section#detail'), false);
       const pageMapPosition = state.settings.design.detailsMapPosition;
-      let selectors = {
+      selectors = {
         address: document.querySelector('.location-detail__address p:first-child'),
         distance: document.querySelector('.location-detail__address p:last-child'),
         carousel: document.querySelector('.location-detail__carousel'),
@@ -399,7 +431,9 @@ const showLocationDetail = () => {
             main: document.querySelector('.location-detail__top-view'),
             map: document.querySelector('.location-detail__map--top-view'),
             workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
+            subscribeBtn: document.querySelector('#locationSubscribe'),
             workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
+            subscribeBtnLabel: document.querySelector('#locationSubscribe .mdc-button__label'),
           }
         };
         selectors.main.style.display = 'block';
@@ -415,7 +449,9 @@ const showLocationDetail = () => {
             main: document.querySelector('.location-detail__cover'),
             map: document.querySelector('.location-detail__map'),
             workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
+            subscribeBtn: document.querySelector('#locationSubscribe'),
             workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
+            subscribeBtnLabel: document.querySelector('#locationSubscribe .mdc-button__label'),
           }
         };
         selectors.main.style.display = 'flex';
@@ -446,7 +482,7 @@ const showLocationDetail = () => {
         zoom: 14,
       });
 
-      detailMap.addMarker(selectedLocation, () => {});
+      detailMap.addMarker(selectedLocation, () => { });
 
       selectors.title.textContent = selectedLocation.title ?? '';
       selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
@@ -466,6 +502,16 @@ const showLocationDetail = () => {
         if (pageMapPosition !== 'top') {
           selectors.title.classList.add('reduced-margin');
         }
+      }
+
+      if (!state.settings || !state.settings.subscription || !state.settings.subscription.enabled) {
+        selectors.subscribeBtn.style.display = 'none';
+      } else if (state.currentUser && state.currentUser.userId && selectedLocation.subscribers.indexOf(state.currentUser.userId) > -1) {
+        selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button';
+      } else {
+        selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button';
       }
 
       if (!selectedLocation.settings.showOpeningHours) {
@@ -516,8 +562,8 @@ const showWorkingHoursDrawer = () => {
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
-    t.to
-  ) : convertDateToTime(t.to)}</p>`).join('\n')}
+        t.to
+      ) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -738,11 +784,19 @@ const initEventListeners = () => {
     } else if (e.target.id === 'otherSortingBtn') {
       buildfire.components.swipeableDrawer.setStep('max');
       setTimeout(() => { mdcSortingMenu.open = true; }, 200);
-    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary'))  {
+    } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary')) {
       state.selectedLocation = state.pinnedLocations.concat(state.listLocations).find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
+    } else if (e.target.id === 'locationSubscribe') {
+      if (!state.currentUser) {
+        buildfire.auth.login({}, (err, user) => {
+          if (err) console.error('Error logging in', err);
+        });
+      } else {
+        handleLocationFollowingState();
+      }
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
@@ -776,7 +830,7 @@ const initEventListeners = () => {
 
     if (e.target.id === 'searchTextField') {
       state.searchCriteria.searchValue = value;
-      state.checkNearLocation  = true;
+      state.checkNearLocation = true;
       resetResultsBookmark();
       clearAndSearchWithDelay();
     }
@@ -784,7 +838,7 @@ const initEventListeners = () => {
     // this is to refresh only
     if (keyCode === 13 && e.target.id === 'searchTextField' && value) {
       state.searchCriteria.searchValue = value;
-      state.checkNearLocation  = true;
+      state.checkNearLocation = true;
       resetResultsBookmark();
       clearAndSearchWithDelay();
     }
@@ -1322,7 +1376,7 @@ const initDrawerFilterOptions = () => {
         priceSortingBtn.style.removeProperty('background-color');
       } else {
         state.searchCriteria.priceRange = Number(value);
-        state.checkNearLocation  = true;
+        state.checkNearLocation = true;
         priceSortingBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
         priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
       }
@@ -1601,9 +1655,9 @@ const handleCPSync = (message) => {
             hideOverlays();
             buildfire.history.pop();
             if (state.settings.introductoryListView.images.length === 0
-                && state.listLocations.length === 0
-                && !state.settings.introductoryListView.description
-                && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
+              && state.listLocations.length === 0
+              && !state.settings.introductoryListView.description
+              && (!state.pinnedLocations.length || state.pinnedLocations.length == 0)) {
               showElement('#intro div.empty-page');
             }
           });
@@ -1646,7 +1700,7 @@ const handleResultsBookmark = () => {
 
   if (deepLinkData.searchCriteria.openingNow && !filter.hideOpeningHoursFilter) {
     state.searchCriteria.openingNow = true;
-    state.checkNearLocation  = true;
+    state.checkNearLocation = true;
     openNowFilterBtn.classList.add('selected');
   }
   if (deepLinkData.searchCriteria.priceRange && !filter.hidePriceFilter) {
@@ -1734,7 +1788,7 @@ const onPopHandler = (breadcrumb) => {
   } else if (
     state.breadcrumbs.length
     && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
-    || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
+      || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
     && state.settings.showIntroductoryListView
   ) {
     hideElement("section#listing");

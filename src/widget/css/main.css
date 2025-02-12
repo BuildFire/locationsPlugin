@@ -651,6 +651,10 @@ button span {
 }
 .location-detail__top-subtitle button {
   white-space: nowrap;
+  height: 28px;
+}
+.location-detail__top-subtitle .location-user-actions .mdc-button__label {
+  line-height: 16px;
 }
 .mdc-text-field__icon.disabled {
   opacity: 0.3;
@@ -1397,6 +1401,11 @@ h4.light-text {
   margin:0;
   font-weight:400;
   font-size:0.875rem;
+}
+
+.disabled-btn {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
