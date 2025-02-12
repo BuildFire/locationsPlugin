@@ -9,7 +9,8 @@
     </div>
   </div>
   <div class="clearfix">
-    <p class="info-note">Grant permissions to edit all locations to specific users or users with specific tags. Users with editing permissions can edit the location through the app.
+    <p class="info-note">Grant permissions to edit all locations to specific users or users with specific tags.
+      Users with editing permissions can edit the location through the app.
       <span class="bf-tooltip">
         <span class="tooltip-content">
           <img alt="" src="../assets/images/app_editing.png" width="100">
@@ -17,24 +18,43 @@
       </span>
     </p>
   </div>
-	<hr class="none" />
-	<div class="form-group main clearfix">
-		<div class="col-md-5 pull-left padding-left-zero">
-			<label class="btn-description">Allow Location Creators to Edit
-				<div class="bf-tooltip margin-left-ten">
-					<div class="tooltip-content to-center">
-						Enable users to edit locations created by them
-					</div>
-				</div>
-			</label>
-		</div>
-		<div class="col-md-7 pull-right padding-right-zero">
-			<div class="button-switch">
-				<input id="allowLocationCreatorsToEdit" type="checkbox" />
-				<label for="allowLocationCreatorsToEdit" class="label-success"></label>
-			</div>
-		</div>
-	</div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-7 pull-left padding-left-zero">
+      <label class="btn-description">Allow Location Creators to Edit
+        <div class="bf-tooltip margin-left-ten">
+          <div class="tooltip-content to-center">
+            Enable users to edit locations created by them
+          </div>
+        </div>
+      </label>
+    </div>
+    <div class="col-md-5 pull-right padding-right-zero">
+      <div class="button-switch pull-right">
+        <input id="allowLocationCreatorsToEdit" type="checkbox" />
+        <label for="allowLocationCreatorsToEdit" class="label-success"></label>
+      </div>
+    </div>
+  </div>
+  <hr class="none" />
+  <div class="form-group main clearfix">
+    <div class="col-md-7 pull-left padding-left-zero">
+      <label class="btn-description">Track Location Updates
+        <div class="bf-tooltip margin-left-ten">
+          <div class="tooltip-content">
+            Show the Follow button on location details, allowing users to subscribe to updates and receive
+            notifications whenever the location is updated.
+          </div>
+        </div>
+      </label>
+    </div>
+    <div class="col-md-5 pull-right padding-right-zero">
+      <div class="button-switch pull-right">
+        <input id="allowSubscription" type="checkbox" />
+        <label for="allowSubscription" class="label-success"></label>
+      </div>
+    </div>
+  </div>
   <hr class="none" />
   <div class="actions">
     <p>Tags</p>

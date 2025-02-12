@@ -62,15 +62,6 @@ let globalTagsListUI = null;
 let locationsEditorsListUI = null;
 let locationEditingListUI = null;
 
-const initChat = () => {
-  const allowChat = document.querySelector('#allow-chat-btn');
-  allowChat.checked = state.settings.chat.allowChat;
-  allowChat.onchange = (e) => {
-    state.settings.chat.allowChat = e.target.checked;
-    saveSettingsWithDelay();
-  };
-};
-
 const initSorting = () => {
   const sortingSettings = new Settings().sorting;
   const sortingOptionsContainer = document.querySelector('#sorting-settings-container');
@@ -899,10 +890,20 @@ const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
+  const allowSubscriptionCheckbox = document.querySelector('#allowSubscription');
   const allowLocationCreatorsCheckbox = document.querySelector('#allowLocationCreatorsToEdit');
 
   const { tags, users } = state.settings.globalEditors;
   const { globalEditors } = state.settings;
+
+  allowSubscriptionCheckbox.checked = state.settings.subscription.enabled;
+  allowSubscriptionCheckbox.onchange = (e) => {
+    state.settings.subscription = {
+      enabled: e.target.checked,
+      allowCustomNotifications: e.target.checked,
+    };
+    saveSettingsWithDelay();
+  };
 
   allowLocationCreatorsCheckbox.checked = globalEditors.allowLocationCreatorsToEdit;
   allowLocationCreatorsCheckbox.onchange = (e) => {
@@ -1195,12 +1196,6 @@ const setActiveSidenavTab = (section) => {
 
 window.onSidenavChange = (section) => {
   switch (section) {
-    // case 'chat':
-    //   setActiveSidenavTab('chat');
-    //   navigate('chat', () => {
-    //     initChat()
-    //   });
-    //   break;
     case 'sorting':
       setActiveSidenavTab('sorting');
       navigate('sorting', () => {

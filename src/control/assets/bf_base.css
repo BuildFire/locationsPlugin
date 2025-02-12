@@ -541,14 +541,13 @@ p.info-note.info-note-transparent {
 }
 
 .bf-tooltip:hover .tooltip-content {
-    display: block;
     opacity: 1;
+    transform: scale(1) translate(10px, 50%);
 }
 
 .bf-tooltip .tooltip-content {
-    display: none;
-    width: 250px;
-    background-color: #414547;
+    width: 200px;
+    background-color: rgba(0,0,0,.8);
     color: #fff;
     text-align: left;
     line-height: 18px;
@@ -558,10 +557,12 @@ p.info-note.info-note-transparent {
     font-size: 12px;
     z-index: 2;
     bottom: 50%;
-    transform: translate(10px, 50%);
+    transform-origin: left;
+    pointer-events: none;
+    transform: scale(.1) translate(10px, 50%);
     left: 100%;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity ease .1s, transform ease .1s;
     letter-spacing: 0.25px;
 }
 
@@ -582,6 +583,15 @@ p.info-note.info-note-transparent {
     border-width: 5px;
     border-style: solid;
     border-color: #414547 transparent transparent transparent;
+}
+
+.bf-tooltip .tooltip-content.to-bottom {
+    bottom: 100%;
+    transform: translate(10px, 35%);
+}
+
+.bf-tooltip .tooltip-content.to-bottom::after {
+    top: 72%;
 }
 
 .bf-tooltip.left-tooltip .tooltip-content::after{
