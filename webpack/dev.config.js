@@ -96,6 +96,13 @@ const WebpackConfig = {
       chunks: ['devServer', 'control/settings/settings']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalSettings.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalSettings.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
