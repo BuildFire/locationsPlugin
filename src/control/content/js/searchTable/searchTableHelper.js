@@ -2,12 +2,13 @@
 import buildfire from "buildfire";
 
 export default class SearchTableHelper {
-  constructor(tableId, config) {
+  constructor(tableId, config, settings) {
     if (!config) throw "No config provided";
     if (!tableId) throw "No tableId provided";
     this.table = document.getElementById(tableId);
     if (!this.table) throw "Cant find table with ID that was provided";
     this.config = config;
+    this.settings = settings;
     this.tag = null;
     this.items = [];
     this.sort = {};
@@ -199,6 +200,19 @@ export default class SearchTableHelper {
     anaBtn.appendChild(anaBtnIcon);
     actionsDiv.appendChild(anaBtn);
 
+    if (this.settings.subscription && this.settings.subscription.allowCustomNotifications) {
+      const notificationBtn = document.createElement("button");
+      notificationBtn.className = "btn btn--icon";
+      const notificationBtnIcon = document.createElement("span");
+      notificationBtnIcon.className = "glyphicon glyphicon-bell";
+      notificationBtn.appendChild(notificationBtnIcon);
+      actionsDiv.appendChild(notificationBtn);
+
+      notificationBtn.onclick = () => {
+        t.onShowNotificationForm(obj, tr);
+      };
+    }
+
     const copyBtn = document.createElement("button");
     copyBtn.className = "btn btn--icon bf-tooltip left-tooltip hidden-tooltip";
     copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>
@@ -208,7 +222,7 @@ export default class SearchTableHelper {
     const editBtn = document.createElement("button");
     editBtn.className = "btn btn--icon";
     const editBtnIcon = document.createElement("span");
-    editBtnIcon.className = "icon icon-pencil3";
+    editBtnIcon.className = "icon icon-pencil";
     editBtn.appendChild(editBtnIcon);
     actionsDiv.appendChild(editBtn);
 
@@ -245,15 +259,6 @@ export default class SearchTableHelper {
     actionsColumn.appendChild(actionsDiv);
     tr.appendChild(actionsColumn);
 
-    // this._create(
-    //   "td",
-    //   tr,
-    //   `<div class="flex-row justify-content-end">
-    //     ${actionsDiv.innerHTML}
-    //   </div>`,
-    //   ["actionsColumn"]
-    // );
-
     this.onRowAdded(obj, tr);
   }
 
@@ -261,7 +266,7 @@ export default class SearchTableHelper {
     return options;
   }
 
-  onRowAdded(obj, tr) {}
+  onRowAdded(obj, tr) { }
 
   onEditRow(obj, tr) {
     console.log("Edit row", obj);
@@ -271,17 +276,19 @@ export default class SearchTableHelper {
     console.log("Record Delete", obj);
   }
 
-  onSort(sort) {}
+  onSort(sort) { }
 
-  onCopy(obj, tr) {}
+  onCopy(obj, tr) { }
 
-  onCopyMouseOut(obj, tr) {}
+  onCopyMouseOut(obj, tr) { }
 
-  onImageClick(obj, tr) {}
+  onImageClick(obj, tr) { }
 
-  onLoadMore() {}
+  onLoadMore() { }
 
-  onShowReport() {}
+  onShowReport() { }
+
+  onShowNotificationForm() { }
 
   onCommand(command, cb) {
     this.commands[command] = cb;

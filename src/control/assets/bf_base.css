@@ -1,7 +1,8 @@
 /* Variables */
 :root{
   --c-primary: #05acf0;
-  --c-success: #14cb5d;
+  --c-success: #101010;
+  --c-success-hover: #333;
   --c-danger: #ed4b4b;
   --c-warning: #F69606;
   --c-info: #000;
@@ -84,6 +85,9 @@ textarea{
 }
 textarea {
   resize: vertical;
+}
+.resize-none {
+  resize: none;
 }
 ::placeholder{
   color: var(--c-gray4);
@@ -279,12 +283,15 @@ button{
 }
 .btn--success,
 .btn-success {
-  background-color: var(--c-success);
-  color: var(--c-white);
+  background-color: var(--c-success) !important;
+  color: var(--c-white) !important;
+}
+.border-danger {
+  border: 1px solid var(--c-danger) !important;
 }
 .btn--success:hover,
 .btn-success:hover {
-  background-color: #00af43;
+  background-color: var(--c-success-hover) !important;
 }
 .btn--danger,
 .btn-danger {
@@ -308,7 +315,7 @@ button{
   background-color: transparent;
 }
 .btn-outlined.btn-success{
-  border: 1px solid var(--c-success);
+  border: 1px solid var(--c-success) !important;
 }
 .btn-outlined.btn-secondary{
   border: 1px solid var(--c-gray3);
@@ -355,7 +362,9 @@ button{
   margin-right: .5rem;
   position: absolute;
 }
-
+.text-success {
+  color: var(--c-success) !important;
+}
 /* Image Select Control */
 .img-select-holder{
   flex: auto;
@@ -388,7 +397,7 @@ button{
   transform: translateY(-50%) translateX(-50%);
   display: inline-block;
   height: .125rem;
-  background-color: var(--c-success);
+  background-color: var(--c-success) !important;
   margin-right: .5rem;
   position: absolute;
 }
@@ -400,7 +409,7 @@ button{
   transform: translateY(-50%) translateX(-50%) rotate(90deg);
   display: inline-block;
   height: .125rem;
-  background-color: var(--c-success);
+  background-color: var(--c-success) !important;
   margin-right: .5rem;
   position: absolute;
 }
