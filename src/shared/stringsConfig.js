@@ -187,6 +187,20 @@ export default {
         required: true,
         maxLength: 25,
       },
+      follow: {
+        title: 'Follow',
+        placeholder: 'follow',
+        defaultValue: 'follow',
+        required: true,
+        maxLength: 25,
+      },
+      following: {
+        title: 'Following',
+        placeholder: 'Following',
+        defaultValue: 'Following',
+        required: true,
+        maxLength: 25,
+      },
     }
   },
   sortingOptions: {
@@ -575,6 +589,29 @@ export default {
         title: 'Thanks for sharing your photos',
         placeholder: 'Enter text here',
         defaultValue: 'Thanks for sharing your photos',
+        required: true,
+        maxLength: 50,
+      },
+      subscribeToLocationUpdates: {
+        title: "You'll now get notifications for location updates.",
+        placeholder: "You'll now get notifications for location updates.",
+        defaultValue: "You'll now get notifications for location updates.",
+        tooltip: "Visible only when the “Track Location Updates” option is enabled on the Design tab.",
+        required: true,
+        maxLength: 75,
+      },
+      unSubscribeFromLocationUpdates: {
+        title: "You'll no longer get notifications for location updates.",
+        placeholder: "You'll no longer get notifications for location updates.",
+        defaultValue: "You'll no longer get notifications for location updates.",
+        tooltip: "Visible only when the “Track Location Updates” option is enabled on the Design tab.",
+        required: true,
+        maxLength: 75,
+      },
+      somethingWentWrong: {
+        title: 'Something went wrong',
+        placeholder: 'Enter text here',
+        defaultValue: 'Something went wrong',
         required: true,
         maxLength: 50,
       }

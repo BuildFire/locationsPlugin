@@ -65,6 +65,11 @@ const stringsUI = {
     const labelContainer = this.createAndAppend('div', '', ['labels', 'col-md-3', 'padding-right-zero', 'pull-left'], div);
     this.createAndAppend("span", labelObj.title, [], labelContainer);
 
+    if (labelObj.tooltip) {
+      const tooltipContainer = this.createAndAppend('div', '', ['bf-tooltip'], labelContainer);
+      this.createAndAppend('div', labelObj.tooltip, ['tooltip-content'], tooltipContainer);
+    }
+
     const inputContainer = this.createAndAppend('div', '', ['main', 'col-md-9', 'padding-left-zero', 'pull-right'], div);
     let inputElement;
     const id = prop;
