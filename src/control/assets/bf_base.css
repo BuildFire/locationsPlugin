@@ -544,9 +544,18 @@ p.info-note.info-note-transparent {
 
 .bf-tooltip:not(.hidden-tooltip)::after {
     content: 'i';
-    position: relative;
-    bottom: 3px;
-    display: block;
+    position: absolute;
+    font-weight: 400;
+    display: flex;
+    font-size: 12px;
+    font-style: normal;
+    left: 0;
+    top: auto !important;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    -webkit-text-stroke: 0;
 }
 
 .bf-tooltip:hover .tooltip-content {
@@ -561,7 +570,7 @@ p.info-note.info-note-transparent {
     text-align: left;
     line-height: 18px;
     border-radius: 4px;
-    padding: 12px;
+    padding: 8px;
     position: absolute;
     font-size: 12px;
     z-index: 2;
@@ -573,6 +582,7 @@ p.info-note.info-note-transparent {
     opacity: 0;
     transition: opacity ease .1s, transform ease .1s;
     letter-spacing: 0.25px;
+    -webkit-text-stroke: 0;
 }
 
 .bf-tooltip.left-tooltip .tooltip-content{

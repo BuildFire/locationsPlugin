@@ -200,7 +200,7 @@ export default class SearchTableHelper {
     anaBtn.appendChild(anaBtnIcon);
     actionsDiv.appendChild(anaBtn);
 
-    if (this.settings.subscription && this.settings.subscription.allowCustomNotifications) {
+    if (this.settings.subscription && this.settings.subscription.enabled) {
       const notificationBtn = document.createElement("button");
       notificationBtn.className = "btn btn--icon";
       const notificationBtnIcon = document.createElement("span");

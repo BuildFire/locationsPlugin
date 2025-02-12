@@ -722,6 +722,17 @@ const openLocationPermsDialog = (location) => {
     }
   );
 };
+
+const initGlobalSettings = () => {
+  const enableSubscriptionCheckbox = document.querySelector('#enableSubscription');
+
+  enableSubscriptionCheckbox.checked = state.settings.subscription.enabled;
+  enableSubscriptionCheckbox.onchange = (e) => {
+    state.settings.subscription.enabled = e.target.checked;
+    saveSettingsWithDelay();
+  };
+};
+
 const initLocationEditing = () => {
   const enableLocationEditingBtn = document.querySelector('#enable-location-editing-btn');
   const addLocationsButton = document.querySelector('#addLocationsButton');
@@ -890,18 +901,15 @@ const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
-  const allowSubscriptionCheckbox = document.querySelector('#allowSubscription');
+  const allowSendingNotificationCheckbox = document.querySelector('#allowSendingNotification');
   const allowLocationCreatorsCheckbox = document.querySelector('#allowLocationCreatorsToEdit');
 
   const { tags, users } = state.settings.globalEditors;
   const { globalEditors } = state.settings;
 
-  allowSubscriptionCheckbox.checked = state.settings.subscription.enabled;
-  allowSubscriptionCheckbox.onchange = (e) => {
-    state.settings.subscription = {
-      enabled: e.target.checked,
-      allowCustomNotifications: e.target.checked,
-    };
+  allowSendingNotificationCheckbox.checked = state.settings.subscription.allowCustomNotifications;
+  allowSendingNotificationCheckbox.onchange = (e) => {
+    state.settings.subscription.allowCustomNotifications = e.target.checked;
     saveSettingsWithDelay();
   };
 
@@ -1196,6 +1204,12 @@ const setActiveSidenavTab = (section) => {
 
 window.onSidenavChange = (section) => {
   switch (section) {
+    case 'globalSettings':
+      setActiveSidenavTab('globalSettings');
+      navigate('globalSettings', () => {
+        initGlobalSettings();
+      });
+      break;
     case 'sorting':
       setActiveSidenavTab('sorting');
       navigate('sorting', () => {
@@ -1261,7 +1275,7 @@ const getSettings = () => {
   showLoading();
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
-    onSidenavChange('sorting');
+    onSidenavChange('globalSettings');
     hideLoading();
   }).catch(console.error);
 };
