@@ -1,10 +1,9 @@
 <template>
   <div class="mdc-layout-grid notification-form-container">
-	<p class="mdc-theme--text-header text-ellipsis notification-form-header">New Push Notification</p>
-<!-- TODO: all text should be moved to language tab -->
+    <p class="mdc-theme--text-header text-ellipsis notification-form-header" bfString="details.newPushNotification">New Push Notification</p>
     <div class="mdc-theme--warning-bg warning-notification-container" id="notificationWarning">
       <i class="material-icons mdc-text-field__icon icon">priority_high</i>
-      <span class="contact-info-subtitle" bfString="form.atLeastOneRequired">
+      <span class="contact-info-subtitle" bfString="details.notificationWarningNote">
         Notify users about changes to location. Only users who have subscribed to this location will receive
         this notification.
       </span>
@@ -15,7 +14,7 @@
       <div class="w-100 mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon" id="notificationTitle" >
         <span class="mdc-text-field__ripple"></span>
         <span class="mdc-floating-label" for="subject">
-          <span bfString="form.subject">Title</span><span>*</span>
+          <span bfString="details.notificationTitlePlaceholder">Title</span><span>*</span>
         </span>
         <input type="text" class="mdc-text-field__input" maxlength="60" />
         <span class="mdc-line-ripple"></span>
@@ -26,7 +25,7 @@
       <div class="w-100 mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon notification-message-container" id="notificationMessage">
         <span class="mdc-text-field__ripple"></span>
         <span class="mdc-floating-label" for="description">
-          <span bfString="form.details">Message</span><span>*</span>
+          <span bfString="details.notificationMessagePlaceholder">Message</span><span>*</span>
         </span>
         <textarea type="text" class="mdc-text-field__input" ></textarea>
         <span class="mdc-line-ripple"></span>
@@ -35,6 +34,6 @@
 
   </div>
   <div class="submit-button-container">
-    <button class="mdc-button mdc-button--raised" bfString="form.submit" id="submitBtn" disabled>Send</button>
+    <button class="mdc-button mdc-button--raised" bfString="details.notificationSend" id="submitBtn" disabled>Send</button>
   </div>
 </template>

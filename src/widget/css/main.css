@@ -572,10 +572,10 @@ button span {
 #notificationForm .notification-form-header {
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   margin-top: 7px;
 }
-.warning-notification-container {
+#notificationForm .warning-notification-container {
   background-color: var(--bf-theme-warning);
   color: white;
   display: flex;
@@ -583,11 +583,14 @@ button span {
   padding: 16px;
   gap: 16px;
   border-radius: 4px;
+  margin: 15px 0;
 }
 .notification-form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  height: calc(100vh - 88px);
+  overflow: auto;
+}
+#notificationForm .mdc-layout-grid__cell--span-12 {
+  margin: 15px 0;
 }
 #atLeastOneContactInfoText {
   display: flex;
@@ -631,6 +634,9 @@ button span {
   white-space: nowrap;
   width: 187.5px;
   line-height: 40px;
+}
+.submit-button-container .mdc-button:disabled {
+  opacity: 0.5;
 }
 .mdc-chip span[role="gridcell"] {
   max-width: 80px;

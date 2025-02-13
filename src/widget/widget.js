@@ -407,6 +407,7 @@ const showNotificationForm = () => {
 
   views.fetch('notificationForm').then(() => {
     views.inject('notificationForm');
+    window.strings.inject(document.querySelector('section#notificationForm'), false);
     addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
 
     const titleInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationTitle'));
@@ -416,8 +417,9 @@ const showNotificationForm = () => {
       notificationMessage.input_.blur();
       buildfire.input.showTextDialog(
         {
-          placeholder: "Enter your title here",
-          saveText: "Set",
+          placeholder: window.strings.get('details.notificationMessagePlaceholder').v,
+          saveText: window.strings.get('details.done').v,
+          cancelText: window.strings.get('details.cancel').v,
           maxLength: 150,
           defaultValue: notificationMessageText,
         },
