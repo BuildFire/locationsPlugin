@@ -1,4 +1,5 @@
 import state from "../state";
+import notifications from "../../services/notifications";
 
 let notificationTitleText = '';
 let notificationMessageText = '';
@@ -64,17 +65,18 @@ const initFormListeners = () => {
     const { selectedLocation } = state;
     submitNotificationBtn.disabled = true;
 
-    buildfire.notifications.pushNotification.schedule({
+    notifications.sendNotification({
       title: notificationTitleText,
       text: notificationMessageText,
       users: selectedLocation.subscribers,
       queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: selectedLocation.id }))}`,
-    }, (err, result) => {
+    }).then(() => {
+      buildfire.dialog.toast({ message: window.strings.get('toast.sendNotificationSuccess').v, type: 'success' });
       resetForm();
-
-      if (err) buildfire.dialog.toast({ message: window.strings.get('toast.sendNotificationFailed').v, type: 'danger' });
-      else buildfire.dialog.toast({ message: window.strings.get('toast.sendNotificationSuccess').v, type: 'success' });
-
+      buildfire.history.pop();
+    }).catch((err) => {
+      console.error(err);
+      resetForm();
       buildfire.history.pop();
     });
   };

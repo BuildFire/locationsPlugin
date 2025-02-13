@@ -41,6 +41,7 @@ import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
 import renderNotificationForm from './js/views/notificationFormView';
+import notifications from './services/notifications';
 
 let SEARCH_TIMOUT;
 
@@ -379,6 +380,8 @@ const handleLocationFollowingState = () => {
       showToastMessage('somethingWentWrong', 3000, 'danger');
     });
   } else {
+    notifications.subscribe();
+
     selectedLocation.subscribers.push(currentUser.userId);
     selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
     selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
