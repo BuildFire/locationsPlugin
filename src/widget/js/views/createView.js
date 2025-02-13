@@ -11,7 +11,7 @@ import {
   getActiveTemplate,
   cropImage
 } from '../util/helpers';
-import { navigateTo, resetBodyScroll } from '../util/ui';
+import { navigateTo, resetBodyScroll, showElement } from '../util/ui';
 import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
@@ -510,6 +510,11 @@ export default {
   _buildCategoriesOverview() {
     let html = '';
     const container = document.querySelector('#categories .expansion-panel__container .accordion');
+    if (!state.categories || !state.categories.length) {
+      container.classList.add('empty-page');
+      return showElement(container);
+    }
+    container.classList.remove('empty-page')
     state.categories.forEach((category) => {
       let categoryIcon = `<i class="custom-category-icon ${category.iconClassName ?? 'bf-icon bf-icon-geo-alt'}"></i>`;
       if (category.iconUrl) {
