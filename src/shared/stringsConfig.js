@@ -616,9 +616,16 @@ export default {
         maxLength: 75,
       },
       sendNotificationFailed: {
-        title: 'Notification sent successfully',
+        title: 'Notification failed',
         placeholder: 'Enter text here',
         defaultValue: 'Failed to send notification. Please try again later.',
+        required: true,
+        maxLength: 75,
+      },
+      locationHasNoSubscribers: {
+        title: 'Location has no subscribers',
+        placeholder: 'Enter text here',
+        defaultValue: 'This location has no subscribers to notify',
         required: true,
         maxLength: 75,
       },

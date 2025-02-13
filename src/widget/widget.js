@@ -40,6 +40,7 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
+import renderNotificationForm from './js/views/notificationFormView';
 
 let SEARCH_TIMOUT;
 
@@ -392,53 +393,25 @@ const handleLocationFollowingState = () => {
   }
 };
 
-// TODO: this functionalities should be moved to a new view
+// TODO: outlined button should be refactored
 const showNotificationForm = () => {
+  const { selectedLocation } = state;
+  if (!selectedLocation || !selectedLocation.subscribers || !selectedLocation.subscribers.length) {
+    return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
+  }
+
   const currentActive = document.querySelector('section.active');
   currentActive?.classList.remove('active');
 
   const notificationForm = document.querySelector('section#notificationForm');
   notificationForm.classList.add('active');
 
-  const { selectedLocation } = state;
-
-  let notificationTitleText = '';
-  let notificationMessageText = '';
-
   views.fetch('notificationForm').then(() => {
     views.inject('notificationForm');
     window.strings.inject(document.querySelector('section#notificationForm'), false);
     addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
 
-    const titleInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationTitle'));
-    const notificationMessage = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationMessage'));
-
-    notificationMessage.input_.onfocus = () => {
-      notificationMessage.input_.blur();
-      buildfire.input.showTextDialog(
-        {
-          placeholder: window.strings.get('details.notificationMessagePlaceholder').v,
-          saveText: window.strings.get('details.done').v,
-          cancelText: window.strings.get('details.cancel').v,
-          maxLength: 150,
-          defaultValue: notificationMessageText,
-        },
-        (err, response) => {
-          if (err) return console.error(err);
-          if (response.cancelled) return;
-
-          if (response && response.results && response.results[0] && response.results[0].textValue) {
-            notificationMessage.label_.root_.classList.add('mdc-floating-label--float-above');
-            notificationMessageText = response.results[0].textValue;
-          } else {
-            notificationMessage.label_.root_.classList.remove('mdc-floating-label--float-above');
-            notificationMessageText = response.results[0].textValue;
-          }
-          notificationMessage.input_.value = notificationMessageText;
-        }
-      );
-    };
-	// TODO: handle sending notification
+    renderNotificationForm();
   });
 };
 
@@ -852,7 +825,6 @@ const initEventListeners = () => {
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
     } else if (e.target.id === 'notifySubscribers') {
-      // TODO: handle the case when there is no subscribers
       showNotificationForm();
     } else if (e.target.id === 'closeNotificationWarning') {
       document.getElementById('notificationWarning')?.classList.add('hidden');
