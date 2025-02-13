@@ -511,6 +511,7 @@ export default {
     let html = '';
     const container = document.querySelector('#categories .expansion-panel__container .accordion');
     if (!state.categories || !state.categories.length) {
+      container.innerHTML = '';
       container.classList.add('empty-page');
       return showElement(container);
     }
