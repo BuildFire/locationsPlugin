@@ -148,6 +148,12 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/widget/templates/detail.html')
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/notificationForm.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/notificationForm.html')
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/edit.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

@@ -392,6 +392,54 @@ const handleLocationFollowingState = () => {
   }
 };
 
+// TODO: this functionalities should be moved to a new view
+const showNotificationForm = () => {
+  const currentActive = document.querySelector('section.active');
+  currentActive?.classList.remove('active');
+
+  const notificationForm = document.querySelector('section#notificationForm');
+  notificationForm.classList.add('active');
+
+  const { selectedLocation } = state;
+
+  let notificationTitleText = '';
+  let notificationMessageText = '';
+
+  views.fetch('notificationForm').then(() => {
+    views.inject('notificationForm');
+    addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
+
+    const titleInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationTitle'));
+    const notificationMessage = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationMessage'));
+
+    notificationMessage.input_.onfocus = () => {
+      notificationMessage.input_.blur();
+      buildfire.input.showTextDialog(
+        {
+          placeholder: "Enter your title here",
+          saveText: "Set",
+          maxLength: 150,
+          defaultValue: notificationMessageText,
+        },
+        (err, response) => {
+          if (err) return console.error(err);
+          if (response.cancelled) return;
+
+          if (response && response.results && response.results[0] && response.results[0].textValue) {
+            notificationMessage.label_.root_.classList.add('mdc-floating-label--float-above');
+            notificationMessageText = response.results[0].textValue;
+          } else {
+            notificationMessage.label_.root_.classList.remove('mdc-floating-label--float-above');
+            notificationMessageText = response.results[0].textValue;
+          }
+          notificationMessage.input_.value = notificationMessageText;
+        }
+      );
+    };
+	// TODO: handle sending notification
+  });
+};
+
 const showLocationDetail = (pushToHistory = true) => {
   const { selectedLocation } = state;
 
@@ -431,9 +479,9 @@ const showLocationDetail = (pushToHistory = true) => {
             main: document.querySelector('.location-detail__top-view'),
             map: document.querySelector('.location-detail__map--top-view'),
             workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
-            subscribeBtn: document.querySelector('#locationSubscribe'),
+            subscribeBtn: document.querySelector('#topLocationSubscribe'),
             workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
-            subscribeBtnLabel: document.querySelector('#locationSubscribe .mdc-button__label'),
+            subscribeBtnLabel: document.querySelector('#topLocationSubscribe .mdc-button__label'),
           }
         };
         selectors.main.style.display = 'block';
@@ -449,9 +497,9 @@ const showLocationDetail = (pushToHistory = true) => {
             main: document.querySelector('.location-detail__cover'),
             map: document.querySelector('.location-detail__map'),
             workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
-            subscribeBtn: document.querySelector('#locationSubscribe'),
+            subscribeBtn: document.querySelector('#coverLocationSubscribe'),
             workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
-            subscribeBtnLabel: document.querySelector('#locationSubscribe .mdc-button__label'),
+            subscribeBtnLabel: document.querySelector('#coverLocationSubscribe .mdc-button__label'),
           }
         };
         selectors.main.style.display = 'flex';
@@ -791,7 +839,7 @@ const initEventListeners = () => {
       showLocationDetail();
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
-    } else if (e.target.id === 'locationSubscribe') {
+    } else if (['topLocationSubscribe', 'coverLocationSubscribe'].includes(e.target.id)) {
       if (!state.currentUser) {
         buildfire.auth.login({}, (err, user) => {
           if (err) console.error('Error logging in', err);
@@ -801,6 +849,11 @@ const initEventListeners = () => {
       }
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
+    } else if (e.target.id === 'notifySubscribers') {
+      // TODO: handle the case when there is no subscribers
+      showNotificationForm();
+    } else if (e.target.id === 'closeNotificationWarning') {
+      document.getElementById('notificationWarning')?.classList.add('hidden');
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
       handleListActionItem(e);
     } else if (e.target.parentNode?.classList?.contains('location-detail__carousel')) {

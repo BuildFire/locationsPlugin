@@ -66,9 +66,14 @@
 	width : 2rem !important;
 	height: 2rem !important;
 }
+table#locations-items {
+  display: block;
+  overflow-x: hidden;
 
+}
 table#locations-items tbody {
   max-height: 290px !important;
+  overflow-x: auto;
 }
 
 #sidenav-container ul#sidenav.disabled-links a {

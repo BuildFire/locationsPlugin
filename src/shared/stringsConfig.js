@@ -648,6 +648,13 @@ export default {
         required: true,
         maxLength: 25,
       },
+      notifySubscribers: {
+        title: 'Notify Subscribers',
+        placeholder: 'Enter text here',
+        defaultValue: 'Notify Subscribers',
+        required: true,
+        maxLength: 50,
+      },
       addPhotos: {
         title: 'Add Photos',
         placeholder: 'Enter text here',

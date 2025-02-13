@@ -201,6 +201,13 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'widget/templates/notificationForm.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/notificationForm.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'widget/templates/create.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

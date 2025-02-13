@@ -72,7 +72,7 @@ export default {
   },
   addLocationPhotos() {
     if (!accessManager.canAddLocationPhotos()) return;
-    const addPhotosBtn= document.querySelector("#addPhotosBtn");
+    const addPhotosBtn = document.querySelector("#addPhotosBtn");
 
     uploadImages(
       { allowMultipleFilesUpload: true },
@@ -89,7 +89,7 @@ export default {
             fileId: onProgress.file.fileId,
             filename: onProgress.file.filename,
             percentage: onProgress.file.percentage,
-            source:'carousel'
+            source: 'carousel'
           });
 
           this._buildUploadImageSkeleton();
@@ -136,7 +136,7 @@ export default {
     }
   },
   getEnabledActions() {
-    const { bookmarks } = state.settings;
+    const { bookmarks, subscription } = state.settings;
     const { selectedLocation } = state;
 
     const actions = [
@@ -164,6 +164,15 @@ export default {
         textContent: 'edit',
         id: 'editLocationBtn',
       });
+      if (subscription.enabled && subscription.allowCustomNotifications) {
+        actions.push({
+          text: window.strings?.get('details.notifySubscribers')?.v,
+          name: 'notifySubscribers',
+          classNames: 'material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+          textContent: 'notifySubscribers',
+          id: 'notifySubscribers',
+        });
+      }
     } else if (accessManager.canAddLocationPhotos()) {
       actions.push({
         text: window.strings?.get('details.addPhotos')?.v,
@@ -190,9 +199,12 @@ export default {
     let actions = this.getEnabledActions();
     const addPhotoEnabled = actions.find((a) => a.name === 'addPhotos');
     const editLocationEnabled = actions.find((a) => a.name === 'edit');
+    const notifySubscribersEnabled = actions.find((a) => a.name === 'notifySubscribers');
     actions = actions.filter((action) => {
       let isQualified = true;
-      if (action.name === 'share' || action.name === 'addPhotos' || action.name === 'edit') {
+      if (action.name === 'notifySubscribers' || action.name === 'addPhotos' || action.name === 'edit') {
+        isQualified = false;
+      } else if (!notifySubscribersEnabled && action.name === 'share') {
         isQualified = false;
       } else if (action.name === 'reportAbuse' && !(addPhotoEnabled || editLocationEnabled)) {
         isQualified = false;
@@ -234,6 +246,7 @@ export default {
       ];
       const addPhotoEnabled = actions.find((a) => a.name === 'addPhotos');
       const editLocationEnabled = actions.find((a) => a.name === 'edit');
+      const sendNotificationEnabled = actions.find((a) => a.name === 'notifySubscribers');
 
       if (addPhotoEnabled) {
         primaryActions.push({
@@ -247,6 +260,19 @@ export default {
           textContent: 'edit',
           id: 'editLocationBtn',
         });
+        if (sendNotificationEnabled) {
+          primaryActions.splice(1, 1);
+          primaryActions.push({
+            classNames: 'action-btn-1 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+            textContent: 'notification_add',
+            id: 'notifySubscribers',
+          });
+          actions.unshift({
+            classNames: 'action-btn-1 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
+            textContent: 'share',
+            id: 'shareLocationBtn',
+          });
+        }
       } else {
         primaryActions.push({
           classNames: 'action-btn-2 material-icons-outlined margin-left-fifteen mdc-text-field__icon pointer',
