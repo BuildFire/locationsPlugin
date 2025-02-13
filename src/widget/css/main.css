@@ -584,6 +584,8 @@ button span {
   gap: 16px;
   border-radius: 4px;
   margin: 15px 0;
+  font-size: 14px;
+  line-height: 16px;
 }
 .notification-form-container {
   height: calc(100vh - 88px);
@@ -591,14 +593,6 @@ button span {
 }
 #notificationForm .mdc-layout-grid__cell--span-12 {
   margin: 15px 0;
-}
-#atLeastOneContactInfoText {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(150,150,150,.1);
-  border-radius: 0.25rem;
 }
 #notificationForm .mdc-text-field.notification-message-container {
   height: 150px;
