@@ -369,7 +369,7 @@ const handleLocationFollowingState = () => {
   if (selectedLocation.subscribers.indexOf(currentUser.userId) > -1) {
     selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== currentUser.userId);
     selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
-    selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
+    selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button disabled-btn';
     WidgetController.unsubscribeFromLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
       selectors.subscribeBtn.classList.remove('disabled-btn');
       showToastMessage('unSubscribeFromLocationUpdates');
@@ -381,7 +381,7 @@ const handleLocationFollowingState = () => {
   } else {
     selectedLocation.subscribers.push(currentUser.userId);
     selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
-    selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button disabled-btn';
+    selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
     WidgetController.subscribeToLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
       selectors.subscribeBtn.classList.remove('disabled-btn');
       showToastMessage('subscribeToLocationUpdates');
@@ -393,7 +393,6 @@ const handleLocationFollowingState = () => {
   }
 };
 
-// TODO: outlined button should be refactored
 const showNotificationForm = () => {
   const { selectedLocation } = state;
   if (!selectedLocation || !selectedLocation.subscribers || !selectedLocation.subscribers.length) {
@@ -531,10 +530,10 @@ const showLocationDetail = (pushToHistory = true) => {
         selectors.subscribeBtn.style.display = 'none';
       } else if (state.currentUser && state.currentUser.userId && selectedLocation.subscribers.indexOf(state.currentUser.userId) > -1) {
         selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button';
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button';
       } else {
         selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button';
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button';
       }
 
       if (!selectedLocation.settings.showOpeningHours) {

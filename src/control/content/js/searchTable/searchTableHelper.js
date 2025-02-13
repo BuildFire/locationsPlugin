@@ -204,7 +204,7 @@ export default class SearchTableHelper {
       const notificationBtn = document.createElement("button");
       notificationBtn.className = "btn btn--icon";
       const notificationBtnIcon = document.createElement("span");
-      notificationBtnIcon.className = "glyphicon glyphicon-bell";
+      notificationBtnIcon.className = "icon icon-alarm";
       notificationBtn.appendChild(notificationBtnIcon);
       actionsDiv.appendChild(notificationBtn);
 
@@ -215,7 +215,7 @@ export default class SearchTableHelper {
 
     const copyBtn = document.createElement("button");
     copyBtn.className = "btn btn--icon bf-tooltip left-tooltip hidden-tooltip";
-    copyBtn.innerHTML = `<span class="glyphicon glyphicon-link"></span>
+    copyBtn.innerHTML = `<span class="icon icon-link2"></span>
     <span id="tooltip-content-${obj.id}" class="tooltip-content right">Copy Deeplink</span>`;
     actionsDiv.appendChild(copyBtn);
 

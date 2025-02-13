@@ -459,7 +459,8 @@ button span {
   max-width: calc(100% - 40px);
   display: none;
 }
-.location-detail__cover #coverWorkingHoursBtn {
+.location-detail__cover #coverWorkingHoursBtn,
+.location-detail__cover #coverLocationSubscribe {
   margin-bottom: 8px;
 }
 .working-hours-button {
@@ -468,6 +469,10 @@ button span {
   text-transform: capitalize;
   font-weight: bold;
   font-size: 11px;
+}
+.location-detail__cover .mdc-button--outlined.working-hours-button {
+  border-color: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 .location-detail__cover .action-btn-2 {
   position: absolute;
