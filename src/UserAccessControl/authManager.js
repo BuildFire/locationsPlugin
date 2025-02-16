@@ -47,10 +47,10 @@ const authManager = {
       }
     });
   },
-  onUserChange() {
+  onUserChange(callback) {
     buildfire.auth.onLogin((user) => {
       authManager.currentUser = user;
-      window.location.reload();
+      callback();
     }, true);
 
     buildfire.auth.onLogout(() => {

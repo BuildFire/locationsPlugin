@@ -1,9 +1,10 @@
+import authManager from "../../UserAccessControl/authManager";
+
 export default {
   bookmarkLoading: false,
-  currentUser: null,
   get sanitizedCurrentUser() {
-    if (!this.currentUser) return null;
-    const sanitizedUser = { ...this.currentUser };
+    if (!authManager.currentUser) return null;
+    const sanitizedUser = { ...authManager.currentUser };
 
     // List of properties to remove
     const propertiesToRemove = [

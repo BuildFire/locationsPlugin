@@ -1,8 +1,9 @@
+import authManager from '../../UserAccessControl/authManager';
 import state from './state';
 
 export default {
   canCreateLocations() {
-    const { currentUser } = state;
+    const { currentUser } = authManager;
     const { allowAdding, tags } = state.settings.globalEntries.locations;
 
     if (!currentUser || allowAdding === 'none') {
@@ -19,7 +20,7 @@ export default {
     }
   },
   canAddLocationPhotos() {
-    const { currentUser } = state;
+    const { currentUser } = authManager;
     const { allowAdding, tags } = state.settings.globalEntries.photos;
 
     if (!currentUser || allowAdding === 'none') {
@@ -37,7 +38,8 @@ export default {
   },
   canEditLocations() {
     let authed = false;
-    const { currentUser, selectedLocation } = state;
+    const { currentUser } = authManager;
+    const { selectedLocation } = state;
     if (!currentUser) return authed;
 
     const { globalEditors, locationEditors } = state.settings;

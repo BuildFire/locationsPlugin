@@ -365,13 +365,13 @@ const extractContributorName = (user) => {
 };
 
 const handleLocationFollowingState = () => {
-  const { selectedLocation, currentUser } = state;
+  const { selectedLocation } = state;
 
-  if (selectedLocation.subscribers.indexOf(currentUser.userId) > -1) {
-    selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== currentUser.userId);
+  if (selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
+    selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== authManager.currentUser.userId);
     selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
     selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button disabled-btn';
-    WidgetController.unsubscribeFromLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
+    WidgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
       selectors.subscribeBtn.classList.remove('disabled-btn');
       showToastMessage('unSubscribeFromLocationUpdates');
     }).catch((err) => {
@@ -382,10 +382,10 @@ const handleLocationFollowingState = () => {
   } else {
     notifications.subscribe();
 
-    selectedLocation.subscribers.push(currentUser.userId);
+    selectedLocation.subscribers.push(authManager.currentUser.userId);
     selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
     selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
-    WidgetController.subscribeToLocationUpdates(selectedLocation.id, currentUser.userId).then(() => {
+    WidgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
       selectors.subscribeBtn.classList.remove('disabled-btn');
       showToastMessage('subscribeToLocationUpdates');
     }).catch((err) => {
@@ -531,7 +531,7 @@ const showLocationDetail = (pushToHistory = true) => {
 
       if (!state.settings || !state.settings.subscription || !state.settings.subscription.enabled) {
         selectors.subscribeBtn.style.display = 'none';
-      } else if (state.currentUser && state.currentUser.userId && selectedLocation.subscribers.indexOf(state.currentUser.userId) > -1) {
+      } else if (authManager.currentUser && authManager.currentUser.userId && selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
         selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
         selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button';
       } else {
@@ -817,9 +817,11 @@ const initEventListeners = () => {
     } else if (['topWorkingHoursBtn', 'coverWorkingHoursBtn'].includes(e.target.id)) {
       showWorkingHoursDrawer();
     } else if (['topLocationSubscribe', 'coverLocationSubscribe'].includes(e.target.id)) {
-      if (!state.currentUser) {
-        buildfire.auth.login({}, (err, user) => {
-          if (err) console.error('Error logging in', err);
+      if (!authManager.currentUser) {
+        authManager.enforceLogin(() => {
+          if (authManager.currentUser) {
+            handleLocationFollowingState();
+          }
         });
       } else {
         handleLocationFollowingState();
@@ -2042,6 +2044,26 @@ const bookmarkSearchResults = (e) => {
   );
 };
 
+const refreshCurrentView = () => {
+  const activeSection = document.querySelector('section.active');
+
+  // eslint-disable-next-line default-case
+  switch (activeSection.id) {
+    case 'home':
+      const mapContainer = activeSection.querySelector('#listing');
+      if (mapContainer && mapContainer.style.display === 'block') {
+        showMapView();
+        initMapLocations();
+      } else {
+        initIntroLocations();
+      }
+      break;
+    case 'detail':
+      showLocationDetail(false);
+      break;
+  }
+};
+
 const showLocationEdit = () => {
   navigateTo('edit');
   addBreadcrumb({ pageName: 'edit', title: 'Location Edit' });
@@ -2054,10 +2076,7 @@ const initAppStrings = () => {
 };
 
 const getCurrentUser = () => new Promise((resolve) => {
-  buildfire.auth.getCurrentUser((err, currentUser) => {
-    if (!err && currentUser) {
-      state.currentUser = currentUser;
-    }
+  authManager.enforceLogin(() => {
     resolve();
   });
 });
@@ -2080,7 +2099,9 @@ const initApp = () => {
     Promise.all(bootstrap)
       .then(() => {
         reportAbuse.init();
-        authManager.onUserChange();
+        authManager.onUserChange(() => {
+          refreshCurrentView();
+        });
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);
         buildfire.history.onPop(onPopHandler);
