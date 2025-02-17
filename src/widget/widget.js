@@ -40,8 +40,7 @@ import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
-import renderNotificationForm from './js/views/notificationFormView';
-import notifications from './services/notifications';
+import renderNotificationForm from './js/views/sendNotificationView';
 
 let SEARCH_TIMOUT;
 
@@ -364,59 +363,6 @@ const extractContributorName = (user) => {
   return window.strings.get('details.unknownContributor').v;
 };
 
-const handleLocationFollowingState = () => {
-  const { selectedLocation } = state;
-
-  if (selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
-    selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== authManager.currentUser.userId);
-    selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
-    selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button disabled-btn';
-    WidgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
-      selectors.subscribeBtn.classList.remove('disabled-btn');
-      showToastMessage('unSubscribeFromLocationUpdates');
-    }).catch((err) => {
-      console.error(err);
-      selectors.subscribeBtn.classList.remove('disabled-btn');
-      showToastMessage('somethingWentWrong', 3000, 'danger');
-    });
-  } else {
-    notifications.subscribe();
-
-    selectedLocation.subscribers.push(authManager.currentUser.userId);
-    selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
-    selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button disabled-btn';
-    WidgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
-      selectors.subscribeBtn.classList.remove('disabled-btn');
-      showToastMessage('subscribeToLocationUpdates');
-    }).catch((err) => {
-      console.error(err);
-      selectors.subscribeBtn.classList.remove('disabled-btn');
-      showToastMessage('somethingWentWrong', 3000, 'danger');
-    });
-  }
-};
-
-const showNotificationForm = () => {
-  const { selectedLocation } = state;
-  if (!selectedLocation || !selectedLocation.subscribers || !selectedLocation.subscribers.length) {
-    return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
-  }
-
-  const currentActive = document.querySelector('section.active');
-  currentActive?.classList.remove('active');
-
-  const notificationForm = document.querySelector('section#notificationForm');
-  notificationForm.classList.add('active');
-
-  views.fetch('notificationForm').then(() => {
-    views.inject('notificationForm');
-    window.strings.inject(document.querySelector('section#notificationForm'), false);
-    addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
-
-    renderNotificationForm();
-  });
-};
-
 const showLocationDetail = (pushToHistory = true) => {
   const { selectedLocation } = state;
 
@@ -533,10 +479,10 @@ const showLocationDetail = (pushToHistory = true) => {
         selectors.subscribeBtn.style.display = 'none';
       } else if (authManager.currentUser && authManager.currentUser.userId && selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
         selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated working-hours-button';
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated bf-outlined-btn';
       } else {
         selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined working-hours-button';
+        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined bf-outlined-btn';
       }
 
       if (!selectedLocation.settings.showOpeningHours) {
@@ -820,16 +766,16 @@ const initEventListeners = () => {
       if (!authManager.currentUser) {
         authManager.enforceLogin(() => {
           if (authManager.currentUser) {
-            handleLocationFollowingState();
+            detailsView.handleLocationFollowingState(selectors);
           }
         });
       } else {
-        handleLocationFollowingState();
+        detailsView.handleLocationFollowingState(selectors);
       }
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
     } else if (e.target.id === 'notifySubscribers') {
-      showNotificationForm();
+      renderNotificationForm();
     } else if (e.target.id === 'closeNotificationWarning') {
       document.getElementById('notificationWarning')?.classList.add('hidden');
     } else if (e.target.classList?.contains('list-action-item') || e.target.dataset?.actionId) {
@@ -1616,7 +1562,16 @@ const handleCPSync = (message) => {
         }
       });
   } else if (scope === 'settings') {
-    window.location.reload();
+    refreshSettings()
+      .then(() => {
+        const newSubscription = state.settings.subscription;
+        const oldSubscription = outdatedSettings.subscription;
+        if (newSubscription.enabled !== oldSubscription.enabled || newSubscription.allowCustomNotifications !== oldSubscription.allowCustomNotifications) {
+          views.refreshCurrentView();
+        } else {
+          window.location.reload();
+        }
+      });
   } else if (scope === 'intro') {
     state.currentLocation = null;
     refreshSettings()
@@ -2044,26 +1999,6 @@ const bookmarkSearchResults = (e) => {
   );
 };
 
-const refreshCurrentView = () => {
-  const activeSection = document.querySelector('section.active');
-
-  // eslint-disable-next-line default-case
-  switch (activeSection.id) {
-    case 'home':
-      const mapContainer = activeSection.querySelector('#listing');
-      if (mapContainer && mapContainer.style.display === 'block') {
-        showMapView();
-        initMapLocations();
-      } else {
-        initIntroLocations();
-      }
-      break;
-    case 'detail':
-      showLocationDetail(false);
-      break;
-  }
-};
-
 const showLocationEdit = () => {
   navigateTo('edit');
   addBreadcrumb({ pageName: 'edit', title: 'Location Edit' });
@@ -2076,7 +2011,7 @@ const initAppStrings = () => {
 };
 
 const getCurrentUser = () => new Promise((resolve) => {
-  authManager.enforceLogin(() => {
+  authManager.getCurrentUser(() => {
     resolve();
   });
 });
@@ -2100,7 +2035,7 @@ const initApp = () => {
       .then(() => {
         reportAbuse.init();
         authManager.onUserChange(() => {
-          refreshCurrentView();
+          views.refreshCurrentView();
         });
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);

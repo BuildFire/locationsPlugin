@@ -33,7 +33,7 @@ const authManager = {
   enforceLogin(callback) {
     buildfire.auth.getCurrentUser((err, currentUser) => {
       if (!currentUser) {
-        buildfire.auth.login({ allowCancel: false }, (err, user) => {
+        buildfire.auth.login({ allowCancel: true }, (err, user) => {
           if (!user) {
             authManager.enforceLogin(callback);
           } else {
@@ -45,6 +45,14 @@ const authManager = {
         authManager.currentUser = currentUser;
         if (callback) callback();
       }
+    });
+  },
+  getCurrentUser(callback) {
+    buildfire.auth.getCurrentUser((err, currentUser) => {
+      if (currentUser) {
+        authManager.currentUser = currentUser;
+      }
+      if (callback) callback();
     });
   },
   onUserChange(callback) {

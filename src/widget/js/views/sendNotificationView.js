@@ -1,5 +1,7 @@
 import state from "../state";
 import notifications from "../../services/notifications";
+import views from "../Views";
+import { addBreadcrumb } from "../util/helpers";
 
 let notificationTitleText = '';
 let notificationMessageText = '';
@@ -36,7 +38,7 @@ const initFormListeners = () => {
         placeholder: window.strings.get('details.notificationMessagePlaceholder').v,
         saveText: window.strings.get('details.done').v,
         cancelText: window.strings.get('details.cancel').v,
-        maxLength: 150,
+        maxLength: 300,
         defaultValue: notificationMessageText,
       },
       (err, response) => {
@@ -82,13 +84,44 @@ const initFormListeners = () => {
   };
 };
 
+const showNotificationForm = () => new Promise((resolve, reject) => {
+  const { selectedLocation } = state;
+  if (!selectedLocation || !selectedLocation.subscribers || !selectedLocation.subscribers.length) {
+    return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
+  }
+
+  const currentActive = document.querySelector('section.active');
+  currentActive?.classList.remove('active');
+
+  const notificationForm = document.querySelector('section#notificationForm');
+  notificationForm.classList.add('active');
+
+  views.fetch('notificationForm').then(() => {
+    views.inject('notificationForm');
+    window.strings.inject(document.querySelector('section#notificationForm'), false);
+    addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
+
+    resolve();
+  });
+});
+
 const renderNotificationForm = () => {
-  notificationTitleInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationTitle'));
-  notificationMessageInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationMessage'));
+  showNotificationForm().then(() => {
+    if (notificationTitleInput) {
+      notificationTitleInput.destroy();
+    }
+    if (notificationMessageInput) {
+      notificationMessageInput.destroy();
+    }
 
-  submitNotificationBtn = document.querySelector('#submitNotificationBtn');
+    notificationTitleInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationTitle'));
+    notificationMessageInput = new mdc.textField.MDCTextField(document.querySelector('section#notificationForm #notificationMessage'));
 
-  initFormListeners();
+    submitNotificationBtn = document.querySelector('#submitNotificationBtn');
+
+    resetForm();
+    initFormListeners();
+  });
 };
 
 export default renderNotificationForm;

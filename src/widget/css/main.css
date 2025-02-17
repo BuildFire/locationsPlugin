@@ -463,14 +463,14 @@ button span {
 .location-detail__cover #coverLocationSubscribe {
   margin-bottom: 8px;
 }
-.working-hours-button {
+.bf-outlined-btn {
   padding: 4px 8px;
   height: 24px;
   text-transform: capitalize;
   font-weight: bold;
   font-size: 11px;
 }
-.location-detail__cover .mdc-button--outlined.working-hours-button {
+.location-detail__cover .mdc-button--outlined.bf-outlined-btn {
   border-color: #FFFFFF !important;
   color: #FFFFFF !important;
 }
@@ -695,6 +695,7 @@ button span {
 }
 .location-detail__map--top-view {
   display: none;
+  margin-top: 15px !important;
 }
 .location-detail__top-header {
   display: flex;
@@ -725,12 +726,16 @@ button span {
   font-size: 13px;
   display: none;
 }
+.location-user-actions {
+  display: flex;
+  gap: 8px;
+}
 .location-user-actions button {
   white-space: nowrap;
   height: 28px;
 }
 .location-user-actions .mdc-button__label {
-  line-height: 16px;
+  line-height: 12px;
 }
 .mdc-text-field__icon.disabled {
   opacity: 0.3;

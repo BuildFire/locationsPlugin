@@ -17,6 +17,9 @@ import DeepLink from '../../../utils/deeplink';
 import SearchEngine from '../../../repository/searchEngine';
 import introView from './introView';
 import mapView from './mapView';
+import authManager from '../../../UserAccessControl/authManager';
+import notifications from '../../services/notifications';
+import widgetController from '../../widget.controller';
 
 export default {
   _currentImageOnProgress: [],
@@ -307,4 +310,37 @@ export default {
       bookmarkLocationBtn.textContent = 'star';
     }
   },
+
+  handleLocationFollowingState(selectors) {
+    const { selectedLocation } = state;
+
+    if (selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
+      selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== authManager.currentUser.userId);
+      selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
+      selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined bf-outlined-btn disabled-btn';
+      widgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
+        selectors.subscribeBtn.classList.remove('disabled-btn');
+        showToastMessage('unSubscribeFromLocationUpdates');
+      }).catch((err) => {
+        console.error(err);
+        selectors.subscribeBtn.classList.remove('disabled-btn');
+        showToastMessage('somethingWentWrong', 3000, 'danger');
+      });
+    } else {
+      notifications.subscribe();
+
+      selectedLocation.subscribers.push(authManager.currentUser.userId);
+      selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
+      selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated bf-outlined-btn disabled-btn';
+      widgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
+        selectors.subscribeBtn.classList.remove('disabled-btn');
+        showToastMessage('subscribeToLocationUpdates');
+      }).catch((err) => {
+        console.error(err);
+        selectors.subscribeBtn.classList.remove('disabled-btn');
+        showToastMessage('somethingWentWrong', 3000, 'danger');
+      });
+    }
+  },
+
 };
