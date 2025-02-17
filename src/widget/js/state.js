@@ -21,6 +21,20 @@ export default {
 
     return sanitizedUser;
   },
+  clearLocations() {
+    this.listLocations = [];
+    this.searchCriteria.page = 0;
+    this.searchCriteria.page2 = 0;
+    this.fetchingNextPage = false;
+    this.fetchingEndReached = false;
+    this.fetchingAllNearReached = false;
+    this.printOtherLocationMessage = false;
+    this.separateListItemsMessageShown = false;
+    this.searchableTitles = [];
+    this.nearestLocation = null;
+    this.isMapIdle = false;
+    if (this.maps.map) this.maps.map.clearMarkers();
+  },
   maps: {
     map: null,
     detail: null

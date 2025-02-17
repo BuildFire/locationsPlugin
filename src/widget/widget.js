@@ -26,7 +26,6 @@ import {
   bookmarkLocation,
   shareLocation,
   transformCategoriesToText,
-  cdnImage,
   generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
 import Analytics from '../utils/analytics';
@@ -47,7 +46,6 @@ let SEARCH_TIMOUT;
 let mdcSortingMenu;
 let mdcPriceMenu;
 let chipSet;
-let selectors = {};
 
 if (!buildfire.components.carousel.view.prototype.clear) {
   buildfire.components.carousel.view.prototype.clear = function () {
@@ -148,122 +146,6 @@ const initChipSetInteractionListener = (event) => {
   clearAndSearchAllLocation();
 };
 
-const triggerSearchOnMapIdle = () => {
-  if (!state.isMapIdle) {
-    setTimeout(() => {
-      triggerSearchOnMapIdle();
-    }, 300);
-    return;
-  }
-
-  clearLocations();
-  searchLocations().then((result) => {
-    mapView.clearMapViewList();
-    mapView.renderListingLocations(state.listLocations);
-  });
-};
-
-const fetchOtherLocations = (lastNearPage) => {
-  searchLocations().then((result) => {
-    introView.renderIntroductoryLocations(lastNearPage, false);
-    if (result && result.length) {
-      if (state.listLocations.length > result.length) {
-        introView.separateListItems();
-      }
-      introView.renderIntroductoryLocations(result, false);
-    }
-  });
-};
-
-const _handleIntroSearchResponse = (data) => {
-  const result = data.aggregateLocations.filter((elem1) => (
-    !state.listLocations.find((elem) => elem?.id === elem1?.id)
-  )).map((r) => {
-    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
-    const printedDistanceString = getDistanceString(distance);
-    return { ...r, distance: printedDistanceString };
-  });
-
-  state.listLocations = state.listLocations.concat(result);
-  if (state.searchCriteria.searchValue && !state.listLocations.length && !state.searchableTitles.length) {
-    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => elem._source.searchable.title);
-    if (searchableTitles && searchableTitles.length > 0) {
-      state.searchableTitles = searchableTitles;
-      return searchLocations();
-    }
-  }
-
-  // this condition will print the first page of other locations
-  // we call it this way to include the case when the near locations are not fet the page which will cause scroll issues
-  if (state.printOtherLocationMessage && !state.separateListItemsMessageShown) {
-    state.separateListItemsMessageShown = true;
-    fetchOtherLocations(result);
-    return [];
-  }
-
-  if (state.listLocations && state.listLocations.length) {
-    hideElement("div.empty-page");
-  }
-
-  return result;
-};
-
-const _handleMapSearchResponse = (data) => {
-  if (!data.aggregateLocations || !data.aggregateLocations.length) {
-    if (!state.listLocations.length) {
-      // if there's no result and no cached data then call "mapView.renderListingLocations" to show the empty state
-      mapView.renderListingLocations([]);
-    }
-    return [];
-  }
-
-  const result = data.aggregateLocations.filter((elem1) => (
-    !state.listLocations.find((elem) => elem?.id === elem1?.id)
-  )).map((r) => {
-    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
-    const printedDistanceString = getDistanceString(distance);
-    return { ...r, distance: printedDistanceString };
-  });
-
-  state.listLocations = state.listLocations.concat(result);
-  if (state.searchCriteria.sort.sortBy === 'distance' && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
-    result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
-    state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
-  }
-
-  if (state.searchCriteria.searchValue
-    && !state.listLocations.length
-    && !state.nearestLocation
-    && data.nearestLocation
-    && state.checkNearLocation) {
-    state.nearestLocation = data.nearestLocation;
-    state.checkNearLocation = false;
-    const latLng = new google.maps.LatLng(state.nearestLocation.coordinates.lat, state.nearestLocation.coordinates.lng);
-    state.maps.map.center(latLng);
-    state.maps.map.setZoom(10);
-    triggerSearchOnMapIdle();
-  } else if (state.searchCriteria.searchValue
-    && !state.listLocations.length
-    && !state.searchableTitles.length) {
-    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => (elem._source.searchable.title));
-    if (searchableTitles && searchableTitles.length > 0) {
-      state.searchableTitles = searchableTitles;
-      return searchLocations();
-    }
-  }
-
-  mapSearchControl.refresh();
-
-  // Render Map listLocations
-  mapView.renderListingLocations(result);
-
-  if (!state.fetchingEndReached && state.listLocations.length < 200) {
-    return searchLocations();
-  }
-
-  return result;
-};
-
 const searchLocations = () => (
   new Promise((resolve, reject) => {
     const { showIntroductoryListView } = state.settings;
@@ -272,16 +154,16 @@ const searchLocations = () => (
 
     if (activeTemplate === 'intro' && showIntroductoryListView) {
       // fetch locations within intro list view
-      IntroSearchService.searchIntroLocations().then((data) => resolve(_handleIntroSearchResponse(data)));
+      IntroSearchService.searchIntroLocations().then((data) => resolve(introView.handleIntroSearchResponse(data)));
     } else {
       // fetch locations within map view
-      MapSearchService.searchLocations().then((data) => resolve(_handleMapSearchResponse(data)));
+      MapSearchService.searchLocations().then((data) => resolve(mapView.handleMapSearchResponse(data)));
     }
   })
 );
 
 const clearAndSearchAllLocation = () => {
-  clearLocations();
+  state.clearLocations();
   hideElement("div.empty-page");
   mapView.clearMapViewList();
 
@@ -343,184 +225,15 @@ const refreshAdvancedFilterUI = (chipId) => {
   });
 };
 
-const extractContributorName = (user) => {
-  const { selectedLocation } = state;
-  // Check if the user is a CP user and return "Someone" if true
-  if (selectedLocation.createdBy?.isCPUser) {
-    return window.strings.get('details.unknownContributor').v;
-  }
-  // Check if first name or last name is available and return the combination or one of them
-  if (user.firstName || user.lastName) {
-    return `${user.firstName || ''} ${user.lastName || ''}`.trim();
-  }
-
-  // If first name and last name are not available, use the display name
-  if (user.displayName) {
-    return user.displayName;
-  }
-
-  // If none of the above is available, return "Someone"
-  return window.strings.get('details.unknownContributor').v;
-};
-
 const showLocationDetail = (pushToHistory = true) => {
-  const { selectedLocation } = state;
-
-  const showContributorName = (state.settings.design?.showContributorName && selectedLocation.createdBy?._id);
-
-  const promises = [views.fetch('detail')];
-
-  if (showContributorName) {
-    promises.push(authManager.getUserProfile(selectedLocation.createdBy._id));
-  }
-
-  Promise.all(promises)
+  detailsView.initLocationDetails()
     .then((result) => {
-      views.inject('detail');
-      window.strings.inject(document.querySelector('section#detail'), false);
-      const pageMapPosition = state.settings.design.detailsMapPosition;
-      selectors = {
-        address: document.querySelector('.location-detail__address p:first-child'),
-        distance: document.querySelector('.location-detail__address p:last-child'),
-        carousel: document.querySelector('.location-detail__carousel'),
-        actionItems: document.querySelector('.location-detail__actions'),
-        description: document.querySelector('.location-detail__description'),
-        rating: document.querySelector('.location-detail__rating'),
-        ratingSystem: document.querySelector('.location-detail__rating div[data-rating-id]'),
-        ratingValue: document.querySelector('.location-cover__rating-value')
-      };
 
-      if (pageMapPosition === 'top') {
-        selectors = {
-          ...selectors,
-          ...{
-            title: document.querySelector('.location-detail__top-header h1'),
-            subtitle: document.querySelector('.location-detail__top-header h5#locationSubtitle'),
-            contributor: document.querySelector('.location-detail__top-header h5#locationContributor'),
-            categories: document.querySelector('.location-detail__top-subtitle p'),
-            cover: document.querySelector('.location-detail__bottom-cover'),
-            main: document.querySelector('.location-detail__top-view'),
-            map: document.querySelector('.location-detail__map--top-view'),
-            workingHoursBtn: document.querySelector('#topWorkingHoursBtn'),
-            subscribeBtn: document.querySelector('#topLocationSubscribe'),
-            workingHoursBtnLabel: document.querySelector('#topWorkingHoursBtn .mdc-button__label'),
-            subscribeBtnLabel: document.querySelector('#topLocationSubscribe .mdc-button__label'),
-          }
-        };
-        selectors.main.style.display = 'block';
-        selectors.rating.classList.add('location-detail__rating--single-shadow');
-      } else {
-        selectors = {
-          ...selectors,
-          ...{
-            title: document.querySelector('.location-detail__cover h2'),
-            subtitle: document.querySelector('.location-detail__cover h4#locationSubtitleCover'),
-            contributor: document.querySelector('.location-detail__cover h4#locationContributorCover'),
-            categories: document.querySelector('.location-detail__cover p:first-child'),
-            main: document.querySelector('.location-detail__cover'),
-            map: document.querySelector('.location-detail__map'),
-            workingHoursBtn: document.querySelector('#coverWorkingHoursBtn'),
-            subscribeBtn: document.querySelector('#coverLocationSubscribe'),
-            workingHoursBtnLabel: document.querySelector('#coverWorkingHoursBtn .mdc-button__label'),
-            subscribeBtnLabel: document.querySelector('#coverLocationSubscribe .mdc-button__label'),
-          }
-        };
-        selectors.main.style.display = 'flex';
-        if (selectedLocation.settings.showStarRating) {
-          selectors.rating.classList.add('location-detail__rating--dual-shadow');
-        }
-      }
-
-      detailsView.renderLocationActions();
-
-      if (selectedLocation.images?.length > 0) {
-        if (pageMapPosition === 'top') {
-          selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
-          selectors.cover.style.display = 'block';
-        } else {
-          selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
-        }
-      }
-
-      if (!selectedLocation.coordinates.lat || !selectedLocation.coordinates.lng) {
-        selectedLocation.coordinates = constants.getDefaultLocation();
-      }
-      selectors.map.style.display = 'block';
-      const detailMap = new MainMap(selectors.map, {
-        mapTypeControl: true,
-        disableDefaultUI: true,
-        center: { lat: selectedLocation.coordinates.lat, lng: selectedLocation.coordinates.lng },
-        zoom: 14,
-      });
-
-      detailMap.addMarker(selectedLocation, () => { });
-
-      selectors.title.textContent = selectedLocation.title ?? '';
-      selectors.subtitle.textContent = selectedLocation.subtitle ?? '';
-
-      selectors.address.textContent = selectedLocation.formattedAddress;
-      selectors.description.innerHTML = selectedLocation.description;
-      selectors.distance.childNodes[0].nodeValue = selectedLocation.distance;
-
-      if (state.settings.design?.showDetailsCategory && selectedLocation.settings.showCategory) {
-        selectors.categories.textContent = transformCategoriesToText(selectedLocation.categories, state.categories);
-        selectors.categories.style.display = 'block';
-      }
-
-      if (showContributorName && result[1]) {
-        selectors.contributor.textContent = `${window.strings.get('details.contributorPrefix').v} ${extractContributorName(result[1])}`;
-        selectors.contributor.classList.remove('hidden');
-        if (pageMapPosition !== 'top') {
-          selectors.title.classList.add('reduced-margin');
-        }
-      }
-
-      if (!state.settings || !state.settings.subscription || !state.settings.subscription.enabled) {
-        selectors.subscribeBtn.style.display = 'none';
-      } else if (authManager.currentUser && authManager.currentUser.userId && selectedLocation.subscribers.indexOf(authManager.currentUser.userId) > -1) {
-        selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated bf-outlined-btn';
-      } else {
-        selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
-        selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined bf-outlined-btn';
-      }
-
-      if (!selectedLocation.settings.showOpeningHours) {
-        selectors.workingHoursBtn.style.display = 'none';
-      } else {
-        selectors.workingHoursBtnLabel.textContent = window.strings.get(isLocationOpen(selectedLocation) ? 'general.open' : 'general.closed').v;
-      }
-
-      if (!selectedLocation.settings.showStarRating) {
-        document.querySelectorAll('.location-detail__rating > *').forEach((el) => { el.style.display = 'none'; });
-        selectors.ratingValue.style.display = 'none';
-      } else {
-        selectors.ratingSystem.dataset.ratingId = selectedLocation.id;
-        selectors.ratingValue.textContent = Array(Math.round(selectedLocation.rating.average) + 1).join('★ ');
-        buildfire.components.ratingSystem.injectRatings();
-      }
-
-      selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-      ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon ${a.iconClassName}"></i>` : ''}
-        <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
-          <div class="mdc-chip__ripple"></div>
-          <span role="gridcell">
-            <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
-              <span class="mdc-chip__text">${a.title}</span>
-            </span>
-          </span>
-        </div>
-      </div>`).join('\n');
-      selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
       if (pushToHistory) {
         addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       }
       resetBodyScroll();
       navigateTo('detail');
-      if (selectedLocation.id) {
-        WidgetController.updateLocation(selectedLocation.id, { $inc: { views: 1 } });
-        Analytics.viewed(selectedLocation.id, {});
-      }
     });
 };
 
@@ -629,21 +342,6 @@ const setDefaultSorting = () => {
   } else if (sorting.defaultSorting === 'alphabetical') {
     state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
   }
-};
-
-const clearLocations = () => {
-  state.listLocations = [];
-  state.searchCriteria.page = 0;
-  state.searchCriteria.page2 = 0;
-  state.fetchingNextPage = false;
-  state.fetchingEndReached = false;
-  state.fetchingAllNearReached = false;
-  state.printOtherLocationMessage = false;
-  state.separateListItemsMessageShown = false;
-  state.searchableTitles = [];
-  state.nearestLocation = null;
-  state.isMapIdle = false;
-  if (state.maps.map) state.maps.map.clearMarkers();
 };
 
 const fetchPinnedLocations = (done) => {
@@ -766,11 +464,11 @@ const initEventListeners = () => {
       if (!authManager.currentUser) {
         authManager.enforceLogin(() => {
           if (authManager.currentUser) {
-            detailsView.handleLocationFollowingState(selectors);
+            detailsView.handleLocationFollowingState();
           }
         });
       } else {
-        detailsView.handleLocationFollowingState(selectors);
+        detailsView.handleLocationFollowingState();
       }
     } else if (e.target.id === 'shareLocationBtn') {
       shareLocation();
@@ -1105,7 +803,7 @@ const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
   SEARCH_TIMOUT = setTimeout(() => {
     if (state.viewportHasChanged) {
-      clearLocations();
+      state.clearLocations();
       mapView.clearMapViewList();
     }
 
@@ -1459,7 +1157,7 @@ const initMapLocations = () => {
     return;
   }
   attempts = 0;
-  clearLocations();
+  state.clearLocations();
   mapView.clearMapViewList();
   const type = state.settings.design.listViewStyle === 'backgroundImage'
     ? 'image, image, image, image'
@@ -1636,7 +1334,7 @@ const handleCPSync = (message) => {
       const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
       if (activeTemplate === 'intro') {
         introView.clearIntroViewList();
-        clearLocations();
+        state.clearLocations();
         fetchPinnedLocations(() => {
           searchLocations().then((result) => {
             introView.renderIntroductoryLocations(result, true);
@@ -1653,7 +1351,7 @@ const handleCPSync = (message) => {
       } else if (activeTemplate === 'listing') {
         hideOverlays();
         buildfire.history.pop();
-        clearLocations();
+        state.clearLocations();
         searchLocations().then((result) => {
           mapView.clearMapViewList();
           mapView.renderListingLocations(state.listLocations);
