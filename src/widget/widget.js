@@ -1013,13 +1013,6 @@ const generateMapOptions = () => {
     options.mapTypeId = google.maps.MapTypeId.SATELLITE;
   }
 
-  if (design.defaultMapStyle === 'dark') {
-    selector.classList.add('dark');
-    options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
-  } else {
-    selector.classList.remove('dark');
-  }
-
   if (!map.showPointsOfInterest) {
     options.styles.push({
       featureType: 'poi',
@@ -1465,7 +1458,7 @@ const initGoogleMapsSDK = () => {
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
   script.type = 'text/javascript';
-  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
+  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places,marker&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
   };

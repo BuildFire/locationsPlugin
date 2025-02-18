@@ -17,7 +17,6 @@ const state = {
 const render = () => {
   const listViewPositionRadios = document.querySelectorAll('input[name="listViewPosition"]');
   const defaultListViewStyleRadios = document.querySelectorAll('input[name="defaultListViewStyle"]');
-  const defaultMapStyleRadios = document.querySelectorAll('input[name="defaultMapStyle"]');
   const defaultMapTypeRadios = document.querySelectorAll('input[name="defaultMapType"]');
   const mapPositionRadios = document.querySelectorAll('input[name="mapPosition"]');
   const enableMapTerrainViewBtn = document.querySelector('#enable-map-terrain-view-btn');
@@ -46,18 +45,6 @@ const render = () => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.settings.design.listViewStyle = value;
-      saveSettings();
-    };
-  }
-
-  for (const radio of defaultMapStyleRadios) {
-    if (radio.value === state.settings.design?.defaultMapStyle) {
-      radio.checked = true;
-    }
-
-    radio.onchange = (e) => {
-      const { value } = e.target;
-      state.settings.design.defaultMapStyle = value;
       saveSettings();
     };
   }

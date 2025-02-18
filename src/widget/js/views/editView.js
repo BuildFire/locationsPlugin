@@ -276,6 +276,7 @@ const _buildMap = () => {
     // center: new google.maps.LatLng(52.5498783, 13.425209099999961),
     center: constants.getDefaultLocation(),
     zoom: 14,
+    mapId: buildfire.getContext().apiKeys.mapId || "bfEditView",
   };
 
   if (pendingLocation.coordinates.lat && pendingLocation.coordinates.lng) {
