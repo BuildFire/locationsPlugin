@@ -41,7 +41,6 @@ export default class Settings {
     };
     this.map = data.map || {
       distanceUnit: 'metric',
-      showPointsOfInterest: false,
       initialArea: true,
       offlineAreaSelection: true, // pending
       initialAreaCoordinates: { lat: null, lng: null },

@@ -1127,6 +1127,7 @@ window.intiMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
+    mapId: buildfire.getContext().apiKeys.mapId || "bfItemMap",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;
@@ -1147,23 +1148,22 @@ window.intiMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
-  const currentPosition = {lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng}
+  const currentPosition = { lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng };
   if (currentPosition.lat && currentPosition.lng) {
     const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = latlng;
     map.setCenter(latlng);
     map.setZoom(15);
   }
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false;
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -1178,8 +1178,8 @@ window.intiMap = () => {
       map.setZoom(17);
     }
 
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    marker.visible = true;
 
     state.locationObj.coordinates.lat = place.geometry.location.lat();
     state.locationObj.coordinates.lng = place.geometry.location.lng();
@@ -1220,7 +1220,7 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=weekly`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=intiMap&libraries=places,marker`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }

@@ -24,6 +24,7 @@ window.initAreaRadiusMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
+    mapId: buildfire.getContext().apiKeys.mapId || "bfIntroMapContent",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;
@@ -50,10 +51,10 @@ window.initAreaRadiusMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
     draggable: true,
+    gmpDraggable: true,
   });
 
   // Create the circle and add it to the map.
@@ -66,7 +67,7 @@ window.initAreaRadiusMap = () => {
   });
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false;
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -81,9 +82,9 @@ window.initAreaRadiusMap = () => {
       map.fitBounds(circle.getBounds());
     }
 
-    marker.setPosition(place.geometry.location);
-    circle.setCenter(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    circle.center = place.geometry.location;
+    marker.visible = true;
   });
 
   marker.addListener("dragend", (e) => {
@@ -153,8 +154,8 @@ window.initAreaRadiusMap = () => {
     areaAddressInput.value = localAreaOptions.formattedLocation;
 
     const latlng = new google.maps.LatLng(localAreaOptions.lat, localAreaOptions.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = latlng;
     circle.setVisible(true);
     map.setCenter(latlng);
     circle.setCenter({ lat: localAreaOptions.lat, lng: localAreaOptions.lng });
@@ -173,7 +174,7 @@ const setGoogleMapsScript = (key) => {
 
   const scriptEl = document.createElement("script");
   scriptEl.id = "googleMapsPlaces";
-  scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+  scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=initAreaRadiusMap&libraries=places,marker`;
   docHead[0].appendChild(scriptEl);
 };
 
