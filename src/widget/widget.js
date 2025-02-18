@@ -1013,16 +1013,6 @@ const generateMapOptions = () => {
     options.mapTypeId = google.maps.MapTypeId.SATELLITE;
   }
 
-  if (!map.showPointsOfInterest) {
-    options.styles.push({
-      featureType: 'poi',
-      elementType: 'labels',
-      stylers: [
-        { visibility: 'off' }
-      ]
-    });
-  }
-
   options.center = MapSearchService.getMapCenterPoint();
 
   return options;
