@@ -34,9 +34,7 @@ const authManager = {
     buildfire.auth.getCurrentUser((err, currentUser) => {
       if (!currentUser) {
         buildfire.auth.login({ allowCancel: true }, (err, user) => {
-          if (!user) {
-            authManager.enforceLogin(callback);
-          } else {
+          if (user) {
             authManager.currentUser = user;
             if (callback) callback();
           }
