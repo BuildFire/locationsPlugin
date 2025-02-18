@@ -61,6 +61,7 @@ export default {
   },
   pinnedLocations: [],
   listLocations: [],
+  nearLocations: [],
   introSort: {
     sortBy: 'distance',
     order: 1
