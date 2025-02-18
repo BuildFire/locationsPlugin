@@ -148,4 +148,26 @@ export default class Locations {
       );
     });
   }
+
+  static subscribeToLocationUpdates(locationId, userId) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.update(locationId, {
+        $push: { subscribers: userId }
+      }, Locations.TAG, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
+    });
+  }
+
+  static unsubscribeFromLocationUpdates(locationId, userId) {
+    return new Promise((resolve, reject) => {
+      buildfire.publicData.update(locationId, {
+        $pull: { subscribers: userId }
+      }, Locations.TAG, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
+    });
+  }
 }

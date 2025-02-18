@@ -1,6 +1,7 @@
 thead, tbody tr {
     display:table;
     width:100%;
+    min-width: 450px;
     table-layout:fixed;/* even columns width , fix width of table too*/
 }
 th{
@@ -22,7 +23,7 @@ td.ellipsis{
 tbody {
     display: block;
     max-height: 300px !important;
-	overflow-y: auto;
+    overflow-y: auto;
 }
 table tbody tr {
     background-color: transparent !important;

@@ -17,7 +17,14 @@ export default class Settings {
         if (err) return reject(err);
 
         if (!res || !res.data || Object.keys(res.data).length === 0) {
-          const settings = new Setting();
+          // for the new instances, subscription should be enabled by default
+          // unlike the old instances, which should be disabled by default for backward compatible
+          const settings = new Setting({
+            subscription: {
+              enabled: true,
+              allowCustomNotifications: true,
+            }
+          });
           if (autosave) Settings.save(settings.toJSON());
           resolve(settings);
           return;

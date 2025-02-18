@@ -9,6 +9,10 @@ export default class Settings {
    */
   constructor(data = {}) {
     this.showIntroductoryListView = typeof data.showIntroductoryListView === 'undefined' ? true : data.showIntroductoryListView;
+    this.subscription = data.subscription || {
+      enabled: false,
+      allowCustomNotifications: false,
+    };
     this.measurementUnit = data.measurementUnit || 'metric';
     this.introductoryListView = data.introductoryListView || {
       images: [],
@@ -18,9 +22,6 @@ export default class Settings {
         mode: null,
         areaRadiusOptions: {}
       }
-    };
-    this.chat = data.chat || {
-      allowChat: true
     };
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
@@ -102,10 +103,10 @@ export default class Settings {
 
   toJSON() {
     return {
+      subscription: this.subscription,
       showIntroductoryListView: this.showIntroductoryListView,
       measurementUnit: this.measurementUnit,
       introductoryListView: this.introductoryListView,
-      chat: this.chat,
       sorting: this.sorting,
       filter: this.filter,
       map: this.map,

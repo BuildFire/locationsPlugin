@@ -75,6 +75,12 @@ const WebpackConfig = {
       chunks: ['control/settings/settings']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/globalSettings.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/globalSettings.html'),
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
@@ -140,6 +146,12 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/detail.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/notificationForm.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/notificationForm.html')
     }),
     new HtmlWebpackPlugin({
       filename: 'widget/templates/edit.html',

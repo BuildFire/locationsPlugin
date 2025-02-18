@@ -19,6 +19,7 @@ export default class Location {
     this.address = data.address || null;
     this.formattedAddress = data.formattedAddress || null;
     this.addressAlias = data.addressAlias || null;
+    this.subscribers = data.subscribers || [];
     this.coordinates = data.coordinates || { lat: null, lng: null };
     this.marker = data.marker || { type: "pin", image: null, color: null, base64Image: null };
     this.categories = data.categories || { main: [], subcategories: [] };
@@ -27,7 +28,6 @@ export default class Location {
       showOpeningHours: false,
       showPriceRange: false,
       showStarRating: false,
-      allowChat: true
     };
     this.openingHours = data.openingHours || {
       timezone: null,
@@ -70,6 +70,7 @@ export default class Location {
       address: this.address,
       formattedAddress: this.formattedAddress,
       addressAlias: this.addressAlias,
+      subscribers: this.subscribers,
       coordinates: this.coordinates,
       marker: this.marker,
       categories: this.categories,

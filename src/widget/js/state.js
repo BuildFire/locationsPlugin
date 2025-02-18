@@ -1,9 +1,10 @@
+import authManager from "../../UserAccessControl/authManager";
+
 export default {
   bookmarkLoading: false,
-  currentUser: null,
   get sanitizedCurrentUser() {
-    if (!this.currentUser) return null;
-    const sanitizedUser = { ...this.currentUser };
+    if (!authManager.currentUser) return null;
+    const sanitizedUser = { ...authManager.currentUser };
 
     // List of properties to remove
     const propertiesToRemove = [
@@ -19,6 +20,20 @@ export default {
     });
 
     return sanitizedUser;
+  },
+  clearLocations() {
+    this.listLocations = [];
+    this.searchCriteria.page = 0;
+    this.searchCriteria.page2 = 0;
+    this.fetchingNextPage = false;
+    this.fetchingEndReached = false;
+    this.fetchingAllNearReached = false;
+    this.printOtherLocationMessage = false;
+    this.separateListItemsMessageShown = false;
+    this.searchableTitles = [];
+    this.nearestLocation = null;
+    this.isMapIdle = false;
+    if (this.maps.map) this.maps.map.clearMarkers();
   },
   maps: {
     map: null,

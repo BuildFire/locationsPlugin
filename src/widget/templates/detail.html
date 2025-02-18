@@ -14,11 +14,18 @@
 
       <div class="location-detail__top-subtitle">
         <p class="text-truncate mdc-theme--text-primary-on-background">Category | Subcategory</p>
-        <button class="mdc-button mdc-button--unelevated working-hours-button" id="topWorkingHoursBtn">
-          <span class="mdc-button__ripple"></span>
-          <span class="mdc-button__focus-ring"></span>
-          <span class="mdc-button__label">Open</span>
-        </button>
+		<div class="location-user-actions">
+			<button class="mdc-button mdc-button--unelevated bf-outlined-btn" id="topWorkingHoursBtn">
+			  <span class="mdc-button__ripple"></span>
+			  <span class="mdc-button__focus-ring"></span>
+			  <span class="mdc-button__label">Open</span>
+			</button>
+			<button class="mdc-button mdc-button--unelevated bf-outlined-btn" id="topLocationSubscribe">
+			  <span class="mdc-button__ripple"></span>
+			  <span class="mdc-button__focus-ring"></span>
+			  <span class="mdc-button__label">Follow</span>
+			</button>
+		</div>
       </div>
     </div>
 
@@ -26,11 +33,18 @@
 
     <div class="location-detail__cover">
       <p class="text-truncate">Category | Subcategory</p>
-      <button class="mdc-button mdc-button--unelevated working-hours-button" id="coverWorkingHoursBtn">
-        <span class="mdc-button__ripple"></span>
-        <span class="mdc-button__focus-ring"></span>
-        <span class="mdc-button__label">Open</span>
-      </button>
+	  <div class="location-user-actions">
+		  <button class="mdc-button mdc-button--unelevated bf-outlined-btn" id="coverWorkingHoursBtn">
+			<span class="mdc-button__ripple"></span>
+			<span class="mdc-button__focus-ring"></span>
+			<span class="mdc-button__label">Open</span>
+		  </button>
+		  <button class="mdc-button mdc-button--unelevated bf-outlined-btn" id="coverLocationSubscribe">
+			<span class="mdc-button__ripple"></span>
+			<span class="mdc-button__focus-ring"></span>
+			<span class="mdc-button__label">Follow</span>
+		  </button>
+	  </div>
       <span class="location-cover__rating-value"></span>
       <h4 class="text-ellipsis hidden" id="locationContributorCover">by Someone</h4>
       <h2 class="text-ellipsis">Location Title</h2>

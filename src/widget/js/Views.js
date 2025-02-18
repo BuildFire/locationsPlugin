@@ -1,3 +1,11 @@
+/* eslint-disable max-len */
+import IntroSearchService from "../services/search/introSearchService";
+import MapSearchService from "../services/search/mapSearchService";
+import state from "./state";
+import detailsView from "./views/detailsView";
+import introView from "./views/introView";
+import mapView from "./views/mapView";
+
 class Views {
   constructor() {
     this.templates = {};
@@ -41,6 +49,29 @@ class Views {
       return;
     }
     document.querySelector(`section#${view}`).innerHTML = '';
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  refreshCurrentView() {
+    const activeSection = document.querySelector('section.active');
+    const mapContainer = activeSection.querySelector('#listing');
+
+    // eslint-disable-next-line default-case
+    switch (activeSection.id) {
+      case 'home':
+        state.clearLocations();
+        if (mapContainer && mapContainer.style.display === 'block') {
+          mapView.clearMapViewList();
+          MapSearchService.searchLocations().then((data) => mapView.handleMapSearchResponse(data));
+        } else {
+          introView.clearIntroViewList();
+          IntroSearchService.searchIntroLocations().then((data) => introView.handleIntroSearchResponse(data));
+        }
+        break;
+      case 'detail':
+        detailsView.initLocationDetails();
+        break;
+    }
   }
 }
 

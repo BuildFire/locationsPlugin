@@ -1,6 +1,9 @@
+/* eslint-disable max-len */
+import MapSearchService from '../../services/search/mapSearchService';
 import state from '../state';
-import { cdnImage, transformCategoriesToText, isLocationOpen } from '../util/helpers';
+import { cdnImage, transformCategoriesToText, isLocationOpen, calculateLocationDistance, getDistanceString } from '../util/helpers';
 import { hideElement, showElement } from '../util/ui';
+import mapSearchControl from '../map/search-control';
 
 const renderListingLocations = (list) => {
   const container = document.querySelector('#listingLocationsList');
@@ -84,4 +87,79 @@ const clearMapViewList = () => {
   document.querySelector('#listingLocationsList').innerHTML = '';
 };
 
-export default { renderListingLocations, clearMapViewList };
+const triggerSearchOnMapIdle = () => {
+  if (!state.isMapIdle) {
+    setTimeout(() => {
+      triggerSearchOnMapIdle();
+    }, 300);
+    return;
+  }
+
+  MapSearchService.searchLocations().then((_data) => {
+    handleMapSearchResponse(_data);
+    clearMapViewList();
+    renderListingLocations(state.listLocations);
+  });
+};
+
+const handleMapSearchResponse = (data) => {
+  if (!data.aggregateLocations || !data.aggregateLocations.length) {
+    if (!state.listLocations.length) {
+      // if there's no result and no cached data then call "renderListingLocations" to show the empty state
+      renderListingLocations([]);
+    }
+    return [];
+  }
+
+  const result = data.aggregateLocations.filter((elem1) => (
+    !state.listLocations.find((elem) => elem?.id === elem1?.id)
+  )).map((r) => {
+    const distance = calculateLocationDistance(r?.coordinates, state.userPosition);
+    const printedDistanceString = getDistanceString(distance);
+    return { ...r, distance: printedDistanceString };
+  });
+
+  state.listLocations = state.listLocations.concat(result);
+  if (state.searchCriteria.sort.sortBy === 'distance' && state.userPosition && state.userPosition.latitude && state.userPosition.longitude) {
+    result.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
+    state.listLocations.sort((a, b) => a.distance.split(" ")[0] - b.distance.split(" ")[0]);
+  }
+
+  if (state.searchCriteria.searchValue
+    && !state.listLocations.length
+    && !state.nearestLocation
+    && data.nearestLocation
+    && state.checkNearLocation) {
+    state.nearestLocation = data.nearestLocation;
+    state.checkNearLocation = false;
+    const latLng = new google.maps.LatLng(state.nearestLocation.coordinates.lat, state.nearestLocation.coordinates.lng);
+    state.maps.map.center(latLng);
+    state.maps.map.setZoom(10);
+    triggerSearchOnMapIdle();
+  } else if (state.searchCriteria.searchValue
+    && !state.listLocations.length
+    && !state.searchableTitles.length) {
+    const searchableTitles = data.searchEngineLocations?.hits?.hits?.map((elem) => (elem._source.searchable.title));
+    if (searchableTitles && searchableTitles.length > 0) {
+      state.searchableTitles = searchableTitles;
+      return MapSearchService.searchLocations().then((_data) => {
+        handleMapSearchResponse(_data);
+      });
+    }
+  }
+
+  mapSearchControl.refresh();
+
+  // Render Map listLocations
+  renderListingLocations(result);
+
+  if (!state.fetchingEndReached && state.listLocations.length < 200) {
+    return MapSearchService.searchLocations().then((_data) => {
+      handleMapSearchResponse(_data);
+    });
+  }
+
+  return result;
+};
+
+export default { renderListingLocations, clearMapViewList, handleMapSearchResponse };

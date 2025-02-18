@@ -33,10 +33,8 @@ const authManager = {
   enforceLogin(callback) {
     buildfire.auth.getCurrentUser((err, currentUser) => {
       if (!currentUser) {
-        buildfire.auth.login({ allowCancel: false }, (err, user) => {
-          if (!user) {
-            authManager.enforceLogin(callback);
-          } else {
+        buildfire.auth.login({ allowCancel: true }, (err, user) => {
+          if (user) {
             authManager.currentUser = user;
             if (callback) callback();
           }
@@ -47,10 +45,18 @@ const authManager = {
       }
     });
   },
-  onUserChange() {
+  getCurrentUser(callback) {
+    buildfire.auth.getCurrentUser((err, currentUser) => {
+      if (currentUser) {
+        authManager.currentUser = currentUser;
+      }
+      if (callback) callback();
+    });
+  },
+  onUserChange(callback) {
     buildfire.auth.onLogin((user) => {
       authManager.currentUser = user;
-      window.location.reload();
+      callback();
     }, true);
 
     buildfire.auth.onLogout(() => {
