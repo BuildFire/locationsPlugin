@@ -24,7 +24,7 @@ window.initAreaRadiusMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-    mapId: buildfire.getContext().apiKeys.mapId || "bfIntroMapContent",
+    mapId: buildfire.getContext().apiKeys.googleMapId || "bfIntroMapContent",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;

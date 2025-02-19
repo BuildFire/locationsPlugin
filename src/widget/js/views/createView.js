@@ -809,7 +809,7 @@ export default {
       // center: new google.maps.LatLng(52.5498783, 13.425209099999961),
       center: constants.getDefaultLocation(),
       zoom: 14,
-      mapId: buildfire.getContext().apiKeys.mapId || "bfCreateView",
+      mapId: buildfire.getContext().apiKeys.googleMapId || "bfCreateView",
     };
     this._map = new google.maps.Map(document.querySelector('section#create #locationMapContainer'), options);
     google.maps.event.addListener(this._map, 'center_changed', () => {

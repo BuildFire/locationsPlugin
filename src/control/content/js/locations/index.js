@@ -1127,7 +1127,7 @@ window.intiMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-    mapId: buildfire.getContext().apiKeys.mapId || "bfItemMap",
+    mapId: buildfire.getContext().apiKeys.googleMapId || "bfItemMap",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;

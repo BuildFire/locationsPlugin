@@ -27,7 +27,7 @@ export default class Map {
         position: zoomPosition,
       },
       ...userOptions,
-      mapId: buildfire.getContext().apiKeys.mapId || "bfMainViewMap",
+      mapId: buildfire.getContext().apiKeys.googleMapId || "bfMainViewMap",
     };
     if (isCameraControlVersion()) {
       document.querySelector('.map-center-btn').classList.add('left');

@@ -1013,7 +1013,7 @@ window.intiGoogleMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
-    mapId: buildfire.getContext().apiKeys.mapId || "bfSettingsMap",
+    mapId: buildfire.getContext().apiKeys.googleMapId || "bfSettingsMap",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;
