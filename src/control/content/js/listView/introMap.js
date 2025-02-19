@@ -173,7 +173,7 @@ const setGoogleMapsScript = (key) => {
 
   const scriptEl = document.createElement("script");
   scriptEl.id = "googleMapsPlaces";
-  scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=weekly`;
+  scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initAreaRadiusMap&libraries=places&v=3.59.8`;
   docHead[0].appendChild(scriptEl);
 };
 

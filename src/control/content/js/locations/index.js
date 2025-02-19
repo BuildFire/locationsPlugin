@@ -1220,7 +1220,7 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=weekly`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiMap&libraries=places&v=3.59.8`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }

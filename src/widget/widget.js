@@ -1465,7 +1465,7 @@ const initGoogleMapsSDK = () => {
   const { googleMapKey } = apiKeys;
   const script = document.createElement('script');
   script.type = 'text/javascript';
-  script.src = `https://maps.googleapis.com/maps/api/js?v=weekly${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
+  script.src = `https://maps.googleapis.com/maps/api/js?v=3.59.8${googleMapKey ? `&key=${googleMapKey}` : ''}&libraries=places&callback=googleMapOnLoad`;
   script.onload = () => {
     console.info('Successfully loaded Google\'s Maps SDK.');
   };
