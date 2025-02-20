@@ -54,7 +54,6 @@ export default class Settings {
     this.design = data.design ||  {
       listViewPosition: 'collapsed',
       listViewStyle: 'backgroundImage',
-      defaultMapStyle: 'light',
       defaultMapType: 'streets',
       enableMapTerrainView: false,
       hideQuickFilter: false,
