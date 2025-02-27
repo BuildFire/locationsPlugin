@@ -629,6 +629,13 @@ export default {
         required: true,
         maxLength: 75,
       },
+      locationDeleted: {
+        title: 'Location Deleted',
+        placeholder: 'Enter text here',
+        defaultValue: 'This location has been deleted.',
+        required: true,
+        maxLength: 75,
+      },
       somethingWentWrong: {
         title: 'Something went wrong',
         placeholder: 'Enter text here',

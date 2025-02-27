@@ -433,7 +433,16 @@ const initEventListeners = () => {
       detailsView.addLocationPhotos();
     } else if (e.target.id === 'editLocationBtn') {
       Analytics.inAppEditUsed();
-      editView.init();
+      WidgetController.getLocation(state.selectedLocation.id).then((result) => {
+        if (result && result.id && result.data) {
+          state.selectedLocation = { ...result.data, id: result.id };
+          syncUpdatedLocation({ ...result.data, id: result.id });
+
+          editView.init();
+        } else {
+          buildfire.dialog.toast({ message: window.strings.get('toast.locationDeleted').v, type: 'danger' });
+        }
+      });
     } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'createNewLocationBtn') {
@@ -1482,9 +1491,13 @@ const navigateToLocationId = (locationId, pushToHistory = true) => {
     refreshCategories()
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
-        state.selectedLocation = { ...response.data, id: response.id };
-        syncUpdatedLocation({ ...response.data, id: response.id });
-        showLocationDetail(pushToHistory);
+        if (response && response.id && response.data) {
+          state.selectedLocation = { ...response.data, id: response.id };
+          syncUpdatedLocation({ ...response.data, id: response.id });
+          showLocationDetail(pushToHistory);
+        } else {
+          buildfire.dialog.toast({ message: window.strings.get('toast.locationDeleted').v, type: 'danger' });
+        }
       })
       .catch((err) => {
         console.error('fetch location error: ', err);

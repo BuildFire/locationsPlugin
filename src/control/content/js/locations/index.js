@@ -1862,7 +1862,7 @@ const showAnalyticsReport = (obj) => {
 };
 
 const showNotificationForm = (obj) => {
-  Locations.getById(obj.id).then((updatedLocation) => {
+  LocationsController.getById(obj.id).then((updatedLocation) => {
     if (!updatedLocation.data.subscribers || !updatedLocation.data.subscribers.length) {
       return buildfire.dialog.toast({ message: "This location has no subscribers to notify.", type: 'danger' });
     }
@@ -2025,7 +2025,9 @@ window.initLocations = () => {
   });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
-    window.addEditLocation(obj);
+    LocationsController.getById(obj.id).then((updatedLocation) => {
+      window.addEditLocation({ ...updatedLocation.data, id: updatedLocation.id });
+    });
   };
 
   locationsTable.onRowDeleted = deleteLocation;

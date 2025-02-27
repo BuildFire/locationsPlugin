@@ -70,4 +70,7 @@ export default {
     settings.lastUpdatedBy = authManager.sanitizedCurrentUser;
     return Settings.save(settings.toJSON());
   },
+  getById(id) {
+    return Location.getById(id);
+  }
 };
