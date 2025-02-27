@@ -62,15 +62,6 @@ let globalTagsListUI = null;
 let locationsEditorsListUI = null;
 let locationEditingListUI = null;
 
-const initChat = () => {
-  const allowChat = document.querySelector('#allow-chat-btn');
-  allowChat.checked = state.settings.chat.allowChat;
-  allowChat.onchange = (e) => {
-    state.settings.chat.allowChat = e.target.checked;
-    saveSettingsWithDelay();
-  };
-};
-
 const initSorting = () => {
   const sortingSettings = new Settings().sorting;
   const sortingOptionsContainer = document.querySelector('#sorting-settings-container');
@@ -731,6 +722,17 @@ const openLocationPermsDialog = (location) => {
     }
   );
 };
+
+const initGlobalSettings = () => {
+  const enableSubscriptionCheckbox = document.querySelector('#enableSubscription');
+
+  enableSubscriptionCheckbox.checked = state.settings.subscription.enabled;
+  enableSubscriptionCheckbox.onchange = (e) => {
+    state.settings.subscription.enabled = e.target.checked;
+    saveSettingsWithDelay();
+  };
+};
+
 const initLocationEditing = () => {
   const enableLocationEditingBtn = document.querySelector('#enable-location-editing-btn');
   const addLocationsButton = document.querySelector('#addLocationsButton');
@@ -899,10 +901,22 @@ const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
+  const sendNotificationCheckboxContainer = document.querySelector('#sendNotificationCheckboxContainer');
+  const allowSendingNotificationCheckbox = document.querySelector('#allowSendingNotification');
   const allowLocationCreatorsCheckbox = document.querySelector('#allowLocationCreatorsToEdit');
 
   const { tags, users } = state.settings.globalEditors;
   const { globalEditors } = state.settings;
+
+  if (!state.settings.subscription.enabled) {
+    sendNotificationCheckboxContainer.classList.add('disabled-content');
+  } else {
+    allowSendingNotificationCheckbox.checked = state.settings.subscription.allowCustomNotifications;
+    allowSendingNotificationCheckbox.onchange = (e) => {
+      state.settings.subscription.allowCustomNotifications = e.target.checked;
+      saveSettingsWithDelay();
+    };
+  }
 
   allowLocationCreatorsCheckbox.checked = globalEditors.allowLocationCreatorsToEdit;
   allowLocationCreatorsCheckbox.onchange = (e) => {
@@ -1195,12 +1209,12 @@ const setActiveSidenavTab = (section) => {
 
 window.onSidenavChange = (section) => {
   switch (section) {
-    // case 'chat':
-    //   setActiveSidenavTab('chat');
-    //   navigate('chat', () => {
-    //     initChat()
-    //   });
-    //   break;
+    case 'globalSettings':
+      setActiveSidenavTab('globalSettings');
+      navigate('globalSettings', () => {
+        initGlobalSettings();
+      });
+      break;
     case 'sorting':
       setActiveSidenavTab('sorting');
       navigate('sorting', () => {
@@ -1266,7 +1280,7 @@ const getSettings = () => {
   showLoading();
   SettingsController.getSettings().then((settings) => {
     state.settings = settings;
-    onSidenavChange('sorting');
+    onSidenavChange('globalSettings');
     hideLoading();
   }).catch(console.error);
 };

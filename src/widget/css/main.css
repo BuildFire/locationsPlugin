@@ -32,6 +32,7 @@ section#categories.overlay {
   left: 0;
 }
 
+#notificationForm:not(.active),
 #home:not(.active),
 #detail:not(.active),
 #create:not(.active),
@@ -458,15 +459,20 @@ button span {
   max-width: calc(100% - 40px);
   display: none;
 }
-.location-detail__cover #coverWorkingHoursBtn {
+.location-detail__cover #coverWorkingHoursBtn,
+.location-detail__cover #coverLocationSubscribe {
   margin-bottom: 8px;
 }
-.working-hours-button {
+.bf-outlined-btn {
   padding: 4px 8px;
   height: 24px;
   text-transform: capitalize;
   font-weight: bold;
   font-size: 11px;
+}
+.location-detail__cover .mdc-button--outlined.bf-outlined-btn {
+  border-color: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 .location-detail__cover .action-btn-2 {
   position: absolute;
@@ -560,7 +566,80 @@ button span {
   font-size: 35px;
   margin: 8px 0 7px;
 }
-
+#notificationForm {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bf-theme-background);
+  padding: 0;
+}
+#notificationForm .notification-form-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  margin-top: 7px;
+}
+#notificationForm .warning-notification-container {
+  background-color: var(--bf-theme-warning);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 16px;
+  border-radius: 4px;
+  margin: 15px 0;
+  font-size: 14px;
+  line-height: 16px;
+}
+.notification-form-container {
+  height: calc(100vh - 88px);
+  overflow: auto;
+}
+#notificationForm .mdc-layout-grid__cell--span-12 {
+  margin: 15px 0;
+}
+#notificationForm .mdc-text-field.notification-message-container {
+  height: 150px;
+}
+#notificationForm .mdc-text-field.notification-message-container textarea {
+  resize: none;
+}
+#notificationForm .mdc-text-field.notification-message-container .mdc-floating-label {
+  top: 15%;
+}
+#notificationForm .mdc-text-field__input {
+  color: var(--bf-theme-body-text) !important;
+}
+.submit-button-container {
+  align-items: center;
+  background-color: var(--bf-theme-background);
+  bottom: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding-bottom: 32px;
+  padding-top: 16px;
+  position: fixed;
+  width: 100%;
+  z-index: 10;
+}
+.submit-button-container .mdc-button{
+  background-color: var(--bf-theme-success);
+  color: #fff;
+  font-weight: 500;
+  height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 187.5px;
+  line-height: 40px;
+}
+.submit-button-container .mdc-button:disabled {
+  opacity: 0.5;
+}
 .mdc-chip span[role="gridcell"] {
   max-width: 80px;
   overflow: hidden;
@@ -619,6 +698,7 @@ button span {
 }
 .location-detail__map--top-view {
   display: none;
+  margin-top: 15px !important;
 }
 .location-detail__top-header {
   display: flex;
@@ -649,8 +729,16 @@ button span {
   font-size: 13px;
   display: none;
 }
-.location-detail__top-subtitle button {
+.location-user-actions {
+  display: flex;
+  gap: 8px;
+}
+.location-user-actions button {
   white-space: nowrap;
+  height: 28px;
+}
+.location-user-actions .mdc-button__label {
+  line-height: 12px;
 }
 .mdc-text-field__icon.disabled {
   opacity: 0.3;
@@ -1397,6 +1485,11 @@ h4.light-text {
   margin:0;
   font-weight:400;
   font-size:0.875rem;
+}
+
+.disabled-btn {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {

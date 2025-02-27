@@ -1,7 +1,8 @@
 /* Variables */
 :root{
   --c-primary: #05acf0;
-  --c-success: #14cb5d;
+  --c-success: #101010;
+  --c-success-hover: #333;
   --c-danger: #ed4b4b;
   --c-warning: #F69606;
   --c-info: #000;
@@ -46,7 +47,7 @@ margin-bottom: .5em;
 }
 .section-title, h1{
   font-size: 1.125rem;
-  font-weight: bold;
+  font-weight: 400;
   color: var(--c-info);
   /* padding-top: .875rem; */
   margin-bottom: 1.5rem;
@@ -84,6 +85,9 @@ textarea{
 }
 textarea {
   resize: vertical;
+}
+.resize-none {
+  resize: none;
 }
 ::placeholder{
   color: var(--c-gray4);
@@ -279,12 +283,15 @@ button{
 }
 .btn--success,
 .btn-success {
-  background-color: var(--c-success);
-  color: var(--c-white);
+  background-color: var(--c-success) !important;
+  color: var(--c-white) !important;
+}
+.border-danger {
+  border: 1px solid var(--c-danger) !important;
 }
 .btn--success:hover,
 .btn-success:hover {
-  background-color: #00af43;
+  background-color: var(--c-success-hover) !important;
 }
 .btn--danger,
 .btn-danger {
@@ -308,7 +315,7 @@ button{
   background-color: transparent;
 }
 .btn-outlined.btn-success{
-  border: 1px solid var(--c-success);
+  border: 1px solid var(--c-success) !important;
 }
 .btn-outlined.btn-secondary{
   border: 1px solid var(--c-gray3);
@@ -355,7 +362,9 @@ button{
   margin-right: .5rem;
   position: absolute;
 }
-
+.text-success {
+  color: var(--c-success) !important;
+}
 /* Image Select Control */
 .img-select-holder{
   flex: auto;
@@ -388,7 +397,7 @@ button{
   transform: translateY(-50%) translateX(-50%);
   display: inline-block;
   height: .125rem;
-  background-color: var(--c-success);
+  background-color: var(--c-success) !important;
   margin-right: .5rem;
   position: absolute;
 }
@@ -400,7 +409,7 @@ button{
   transform: translateY(-50%) translateX(-50%) rotate(90deg);
   display: inline-block;
   height: .125rem;
-  background-color: var(--c-success);
+  background-color: var(--c-success) !important;
   margin-right: .5rem;
   position: absolute;
 }
@@ -535,34 +544,45 @@ p.info-note.info-note-transparent {
 
 .bf-tooltip:not(.hidden-tooltip)::after {
     content: 'i';
-    position: relative;
-    bottom: 3px;
-    display: block;
+    position: absolute;
+    font-weight: 400;
+    display: flex;
+    font-size: 12px;
+    font-style: normal;
+    left: 0;
+    top: auto !important;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    -webkit-text-stroke: 0;
 }
 
 .bf-tooltip:hover .tooltip-content {
-    display: block;
     opacity: 1;
+    transform: scale(1) translate(10px, 50%);
 }
 
 .bf-tooltip .tooltip-content {
-    display: none;
-    width: 250px;
-    background-color: #414547;
+    width: 200px;
+    background-color: rgba(0,0,0,.8);
     color: #fff;
     text-align: left;
     line-height: 18px;
     border-radius: 4px;
-    padding: 12px;
+    padding: 8px;
     position: absolute;
     font-size: 12px;
     z-index: 2;
     bottom: 50%;
-    transform: translate(10px, 50%);
+    transform-origin: left;
+    pointer-events: none;
+    transform: scale(.1) translate(10px, 50%);
     left: 100%;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity ease .1s, transform ease .1s;
     letter-spacing: 0.25px;
+    -webkit-text-stroke: 0;
 }
 
 .bf-tooltip.left-tooltip .tooltip-content{
@@ -582,6 +602,15 @@ p.info-note.info-note-transparent {
     border-width: 5px;
     border-style: solid;
     border-color: #414547 transparent transparent transparent;
+}
+
+.bf-tooltip .tooltip-content.to-bottom {
+    bottom: 100%;
+    transform: translate(10px, 35%);
+}
+
+.bf-tooltip .tooltip-content.to-bottom::after {
+    top: 72%;
 }
 
 .bf-tooltip.left-tooltip .tooltip-content::after{

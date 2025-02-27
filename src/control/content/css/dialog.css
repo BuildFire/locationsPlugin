@@ -37,7 +37,7 @@
     left: 20%;
     top: 40px;
     box-shadow: rgb(206, 204, 204) 5px 5px 15px;
-    /* outline: 9999px solid #ffffffaa; */
+    animation: open-animation 0.2s linear;
 }
 
 .dialog-component >.dialog-header {
@@ -75,4 +75,13 @@
 .input-group-append {
     margin-top: 0.3rem;
     color: #929292;
+}
+
+@keyframes open-animation {
+    0% {
+        transform: translateY(-25px);
+    }
+    to {
+        transform: translateY(0);
+    }
 }

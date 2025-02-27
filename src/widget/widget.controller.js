@@ -84,5 +84,11 @@ export default {
       SearchEngine.delete(Location.TAG, locationId)
     ];
     return Promise.allSettled(promiseChain);
+  },
+  subscribeToLocationUpdates(locationId, userId) {
+    return Location.subscribeToLocationUpdates(locationId, userId);
+  },
+  unsubscribeFromLocationUpdates(locationId, userId) {
+    return Location.unsubscribeFromLocationUpdates(locationId, userId);
   }
 };

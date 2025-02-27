@@ -84,8 +84,8 @@ export const createTemplate = (templateId) => {
   return document.importNode(template.content, true);
 };
 
-export const showToastMessage = (message, duration = 3000) => {
-  buildfire.dialog.toast({ message: window.strings.get(`toast.${message}`).v, duration });
+export const showToastMessage = (message, duration = 3000, type = 'info') => {
+  buildfire.dialog.toast({ message: window.strings.get(`toast.${message}`).v, duration, type });
 };
 
 export const addBreadcrumb = ({ pageName, label }, showLabel = true) => {
@@ -242,4 +242,24 @@ export const getCategoriesAndSubCategoriesByName = (name, categories = []) => {
   });
 
   return { subcategoryIds, categoryIds };
+};
+
+export const extractContributorName = (user) => {
+  const { selectedLocation } = state;
+  // Check if the user is a CP user and return "Someone" if true
+  if (selectedLocation.createdBy?.isCPUser) {
+    return window.strings.get('details.unknownContributor').v;
+  }
+  // Check if first name or last name is available and return the combination or one of them
+  if (user.firstName || user.lastName) {
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+  }
+
+  // If first name and last name are not available, use the display name
+  if (user.displayName) {
+    return user.displayName;
+  }
+
+  // If none of the above is available, return "Someone"
+  return window.strings.get('details.unknownContributor').v;
 };

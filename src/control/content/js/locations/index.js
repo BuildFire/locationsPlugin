@@ -30,6 +30,7 @@ let locationsTable = null;
 let addLocationControls = {};
 let selectCategoryDialog = null;
 let locationImagesUI = null;
+let notificationDialog = null;
 let actionItemsUI = null;
 let syncTimeOut;
 
@@ -97,8 +98,8 @@ const locationTemplateHeader = {
   priceRange: "priceRange",
   priceCurrency: "priceCurrency",
   bookmarksCount: "bookmarksCount",
-  phoneNumber:"phoneNumber",
-  website:"website"
+  phoneNumber: "phoneNumber",
+  website: "website"
 };
 
 const locationInfoRowHeader = {
@@ -125,8 +126,8 @@ const locationInfoRowHeader = {
   priceRange: "If price range is enabled select the following option :1  refer to $  or 2  refer $$ or 3 refer to $$$  or 4 refer $$$$",
   priceCurrency: "If price range is enabled select the currency type $ or €",
   bookmarksCount: "",
-  phoneNumber:"Phone Number is an optional field, if provided will create a Call Phone Number Action Item with the provided Phone number.",
-  website:"Website is an optional field, if provided will create a Web Content Action Item with the provided URL. The URL should starts with http or https, when possible use secure websites (https) some operating systems require it."
+  phoneNumber: "Phone Number is an optional field, if provided will create a Call Phone Number Action Item with the provided Phone number.",
+  website: "Website is an optional field, if provided will create a Web Content Action Item with the provided URL. The URL should starts with http or https, when possible use secure websites (https) some operating systems require it."
 };
 
 const renderAddLocationsPage = () => {
@@ -210,8 +211,8 @@ const renderBreadcrumbs = () => {
   }
 };
 
-const checkInputErrorOnChange = (element, errorElement)=> {
-  if(state.saveBtnClicked ){
+const checkInputErrorOnChange = (element, errorElement) => {
+  if (state.saveBtnClicked) {
     if (element.value != "") {
       errorElement.parentNode.classList.remove('has-error');
       errorElement.classList.add('hidden');
@@ -405,18 +406,18 @@ window.addEditLocation = (location) => {
   };
 
   addLocationControls.locationAddress.onchange = () => {
-    const {  address,coordinates } = state.locationObj;
-      if(state.saveBtnClicked ){
-        if (!address || !coordinates.lat || !coordinates.lng) {
-          addLocationControls.locationTitleError.classList.remove('hidden');
-          addLocationControls.locationTitleError.innerHTML = 'Required';
-          addLocationControls.locationTitleError.parentNode.classList.add('has-error');
-        } else {
-          addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
-          addLocationControls.locationTitleError.classList.add('hidden');
+    const { address, coordinates } = state.locationObj;
+    if (state.saveBtnClicked) {
+      if (!address || !coordinates.lat || !coordinates.lng) {
+        addLocationControls.locationTitleError.classList.remove('hidden');
+        addLocationControls.locationTitleError.innerHTML = 'Required';
+        addLocationControls.locationTitleError.parentNode.classList.add('has-error');
+      } else {
+        addLocationControls.locationTitleError.parentNode.classList.remove('has-error');
+        addLocationControls.locationTitleError.classList.add('hidden');
 
-        }
       }
+    }
   }
 
 
@@ -438,7 +439,7 @@ window.addEditLocation = (location) => {
         if (iconUrl) {
           setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
           state.locationObj.listImage = iconUrl;
-          if(state.saveBtnClicked){
+          if (state.saveBtnClicked) {
             addLocationControls.listImageError.parentNode.classList.remove('has-error');
             addLocationControls.listImageError.classList.add('hidden');
           }
@@ -476,7 +477,7 @@ window.addEditLocation = (location) => {
       imgLibOptions: {
         showIcons: true
       }
-     }, (err, actionItem) => {
+    }, (err, actionItem) => {
       if (err) return console.error(err);
 
       if (!actionItem) {
@@ -580,20 +581,20 @@ window.addEditLocation = (location) => {
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
-const saveLocation = (action, callback = () => {}) => {
+const saveLocation = (action, callback = () => { }) => {
   state.locationObj.title = addLocationControls.locationTitle.value;
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
   state.locationObj.address = addLocationControls.locationAddress.value;
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
   state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
-  if(!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
+  if (!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
     buildfire.dialog.alert(
       {
         title: "Location Save Error",
         message: "Opening hours are duplicated for the same day",
       },
-      (err, actionButton) => {}
+      (err, actionButton) => { }
     );
     callback(false);
     return;
@@ -807,8 +808,8 @@ const setIcon = (icon, type, selector, options = {}) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: options.width? options.width : 40,
-      height: options.height? options.height : 40,
+      width: options.width ? options.width : 40,
+      height: options.height ? options.height : 40,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -1010,7 +1011,7 @@ const openConfirmationLeaveDialog = (callback) => {
 };
 
 const renderOpeningHours = (openingHours) => {
-  state.selectedOpeningHours.days =  { ...state.selectedOpeningHours.days, ...openingHours.days };
+  state.selectedOpeningHours.days = { ...state.selectedOpeningHours.days, ...openingHours.days };
   const { days } = state.selectedOpeningHours;
   for (const day in days) {
     if (days[day]) {
@@ -1027,12 +1028,12 @@ const renderOpeningHours = (openingHours) => {
       enableDayInput.checked = !!days[day]?.active;
       enableDayInput.onchange = (e) => {
         days[day].active = e.target.checked;
-      //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       addHoursBtn.onclick = (e) => {
         days[day].intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         renderDayIntervals(days[day], dayIntervals);
-       // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+        // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
       };
       renderDayIntervals(days[day], dayIntervals);
 
@@ -1070,7 +1071,7 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(start, interval.to, intervalError)) {
         return;
       }
-    //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      //  triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     toInput.onchange = (e) => {
       const end = convertTimeToDate(e.target.value);
@@ -1078,12 +1079,12 @@ const renderDayIntervals = (day, dayIntervalsContainer) => {
       if (!validateTimeInterval(interval.from, end, intervalError)) {
         return;
       }
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
     deleteBtn.onclick = (e) => {
       day.intervals = day.intervals.filter((elem, index) => index !== intervalIndex);
       dayInterval.remove();
-     // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+      // triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
 
     dayIntervalsContainer.appendChild(dayInterval);
@@ -1114,7 +1115,7 @@ const creatCheckboxElem = () => {
 const createEmptyHolder = (message) => {
   const div = document.createElement("div");
   div.className = 'empty-state margin-top-fifteen';
-  div.innerHTML = `<hr class="none"><h4>${ message? message : 'No Data' }.</h4>`;
+  div.innerHTML = `<hr class="none"><h4>${message ? message : 'No Data'}.</h4>`;
   return div;
 };
 
@@ -1153,9 +1154,9 @@ window.intiMap = () => {
     draggable: true,
   });
 
-  const currentPosition = {lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng}
+  const currentPosition = { lat: state.locationObj.coordinates.lat, lng: state.locationObj.coordinates.lng }
   if (currentPosition.lat && currentPosition.lng) {
-    const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
+    const latlng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
     marker.setVisible(true);
     marker.setPosition(latlng);
     map.setCenter(latlng);
@@ -1231,7 +1232,7 @@ const loadMap = () => {
   });
 };
 
-const deleteLocation = (item, row, callback = () => {}) => {
+const deleteLocation = (item, row, callback = () => { }) => {
   buildfire.notifications.confirm(
     {
       title: "Delete Location",
@@ -1453,14 +1454,14 @@ window.openLocationsBulkAction = (e) => {
 };
 
 const downloadCsvTemplate = (templateData, header, name) => {
-  const  csv = jsonToCsv(templateData, {
+  const csv = jsonToCsv(templateData, {
     header, locationInfoRowHeader
   });
 
-  downloadCsv(csv, `${name? name : 'template'}.csv`);
+  downloadCsv(csv, `${name ? name : 'template'}.csv`);
 };
 
-window.downloadLocationTemplate = () =>  {
+window.downloadLocationTemplate = () => {
   const templateData = [{}];
   downloadCsvTemplate(templateData, locationTemplateHeader);
 };
@@ -1474,7 +1475,7 @@ const validateLocationCsv = (items) => {
   }
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if(item.id != null && item.id != '[!Reserved-Field!]'){
+    if (item.id != null && item.id != '[!Reserved-Field!]') {
       if (!item.title || !item.address || !item.description) {
         showImportErrorMessage({
           message: `This file has missing title, address or description in row number [${i + 1}], please fix it and upload it again.`,
@@ -1495,7 +1496,7 @@ const validateLocationCsv = (items) => {
   // return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
 
-window.importLocations = () =>  {
+window.importLocations = () => {
   const fileInput = locationsSection.querySelector("#location-file-input");
   fileInput.click();
   fileInput.onchange = function (e) {
@@ -1508,7 +1509,7 @@ window.importLocations = () =>  {
         message: 'We’re importing your locations, please wait.'
       });
       insertData(result, (err, result) => {
-        if(err)  console.error(err);
+        if (err) console.error(err);
         fileInput.value = '';
         dialogRef.close();
       })
@@ -1517,36 +1518,36 @@ window.importLocations = () =>  {
 };
 
 const insertData = (jsonResult, callback, fileInput, dialogRef) => {
-    CategoriesController.getAllCategories((allCategories1)=>{
-          for(const category of allCategories1){
-            state.categoriesLookup[category.id] = category;
-          }
-          state.categories = allCategories1;
-          globalState.categories = allCategories1;
-          upsertCategories(jsonResult, allCategories1).then((newCategories)=>{
-            if(newCategories.length == 0){
-              insertLocations(jsonResult, ()=>{
-                callback(null, true);
-              })
-            } else {
-              CategoriesController._bulkCreateCategories(newCategories).then((res) => {
-                CategoriesController.registerCategoryAnalytics(res.data.length);
-                CategoriesController.getAllCategories((allCategories2)=>{
-                  for(const category of allCategories2){
-                    state.categoriesLookup[category.id] = category;
-                  }
-                  state.categories = allCategories2;
-                  globalState.categories = allCategories2;
-                  insertLocations(jsonResult, () => {
-                    callback(null, true);
-                  })
-                })
-              }).catch((err) => {
-                callback(err, false);
-              });
+  CategoriesController.getAllCategories((allCategories1) => {
+    for (const category of allCategories1) {
+      state.categoriesLookup[category.id] = category;
+    }
+    state.categories = allCategories1;
+    globalState.categories = allCategories1;
+    upsertCategories(jsonResult, allCategories1).then((newCategories) => {
+      if (newCategories.length == 0) {
+        insertLocations(jsonResult, () => {
+          callback(null, true);
+        })
+      } else {
+        CategoriesController._bulkCreateCategories(newCategories).then((res) => {
+          CategoriesController.registerCategoryAnalytics(res.data.length);
+          CategoriesController.getAllCategories((allCategories2) => {
+            for (const category of allCategories2) {
+              state.categoriesLookup[category.id] = category;
             }
+            state.categories = allCategories2;
+            globalState.categories = allCategories2;
+            insertLocations(jsonResult, () => {
+              callback(null, true);
+            })
           })
+        }).catch((err) => {
+          callback(err, false);
+        });
+      }
     })
+  })
 }
 
 const upsertCategories = (result, allCategories) => {
@@ -1554,20 +1555,20 @@ const upsertCategories = (result, allCategories) => {
     var categories = []
     var newCategories = [];
     result.forEach(elem => {
-      if(elem.categories){
+      if (elem.categories) {
         var newSubCategories = [];
         var _categories = elem.categories.split(",").filter(Boolean)
-          _categories.forEach(categoryAndSub => {
+        _categories.forEach(categoryAndSub => {
 
           var categoryAndSub = categoryAndSub.split("->")
           var selectedCategoryTitle = categoryAndSub[0].trim()
           var selectedSubCategories = categoryAndSub[1]?.split(",")
           var savedCategory = allCategories.find(x => x.title == selectedCategoryTitle && x.deletedBy == null)
 
-          if(!savedCategory){ // Check if category not found in collection
+          if (!savedCategory) { // Check if category not found in collection
             var isNewCategorySaved = newCategories.find(x => x == selectedCategoryTitle)
 
-            if(!isNewCategorySaved){ // Check if category already added
+            if (!isNewCategorySaved) { // Check if category already added
               newCategories.push(selectedCategoryTitle)
 
               var categoryToBeSaved = {
@@ -1579,26 +1580,26 @@ const upsertCategories = (result, allCategories) => {
                 createdBy: authManager.sanitizedCurrentUser
               }
               categories.push(new Category(categoryToBeSaved).toJSON())
-            } else if(selectedSubCategories){
+            } else if (selectedSubCategories) {
               let selectedCategory = categories.find(x => x.title == selectedCategoryTitle)
               var isSubCategoryAdded = selectedCategory.subcategories.find(x => x.title == selectedSubCategories[0].trim())
-              if(!isSubCategoryAdded){
-                selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim()})
+              if (!isSubCategoryAdded) {
+                selectedCategory.subcategories.push({ id: generateUUID(), title: selectedSubCategories[0].trim() })
               }
             }
 
-          } else if(selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
+          } else if (selectedSubCategories && selectedSubCategories.length > 0) { // Check if Subcategories found in old category
             var savedSubCategories = savedCategory.subcategories.map(x => x.title);
             var nonSavedSubCategories = selectedSubCategories.filter((elem) => !(savedSubCategories?.includes(elem.trim())))
-            if(nonSavedSubCategories.length > 0){ // Check if there is new subcategory & update category
+            if (nonSavedSubCategories.length > 0) { // Check if there is new subcategory & update category
               nonSavedSubCategories.forEach(subCategory => {
                 var isNewSubCategorySaved = newSubCategories.find(x => x == subCategory)
-                if(isNewSubCategorySaved == null){ // Check if subcategory already added
+                if (isNewSubCategorySaved == null) { // Check if subcategory already added
                   newSubCategories.push(subCategory)
                   savedCategory.subcategories.push({ id: generateUUID(), title: subCategory?.trim() })
                 }
               });
-              CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(()=>{})
+              CategoriesController.updateCategory(savedCategory.id, new Category(savedCategory)).then(() => { })
             }
 
           }
@@ -1633,21 +1634,21 @@ const insertLocations = (result, callback) => {
     var elemCategories = elem.categories?.split(",").filter(e => e)
     let categories = [];
     let subCategories = [];
-    if(elemCategories){
+    if (elemCategories) {
       elemCategories.forEach(categoryAndSub => {
         var _categoryAndSub = categoryAndSub.split("->")
         var selectedCategoryTitle = _categoryAndSub[0].trim();
         var selectedSubCategories = _categoryAndSub[1]?.trim();
         var savedCategory = state.categories?.find(x => x.title == selectedCategoryTitle)
-        if(savedCategory){
-          var isCategoryAdded = categories.find(x=>x == savedCategory.id)
-          if(!isCategoryAdded){
+        if (savedCategory) {
+          var isCategoryAdded = categories.find(x => x == savedCategory.id)
+          if (!isCategoryAdded) {
             categories.push(savedCategory.id)
 
           }
-          if(selectedSubCategories){
-            var selectedSubCategory= savedCategory.subcategories.find(x => x.title == selectedSubCategories)
-            if(selectedSubCategory){
+          if (selectedSubCategories) {
+            var selectedSubCategory = savedCategory.subcategories.find(x => x.title == selectedSubCategories)
+            if (selectedSubCategory) {
               subCategories.push(selectedSubCategory.id)
             }
           }
@@ -1659,18 +1660,19 @@ const insertLocations = (result, callback) => {
     elem.createdOn = new Date();
     elem.createdBy = authManager.sanitizedCurrentUser;
     // add location actionItems
-    let actionItems =[];
-    if(elem.phoneNumber){
+    let actionItems = [];
+    if (elem.phoneNumber) {
       actionItems.push({
         "title": "Phone",
         "action": "callNumber",
         "iconClassName": "bf-icon bf-icon-phone",
         "phoneNumber": elem.phoneNumber,
-        "id": generateUUID() });
+        "id": generateUUID()
+      });
     }
-    if(elem.website){
+    if (elem.website) {
       if (!elem.website.startsWith('https://') && !elem.website.startsWith('http://')) {
-        elem.website = 'http://'+elem.website;
+        elem.website = 'http://' + elem.website;
       }
       actionItems.push({
         "title": "Website",
@@ -1678,26 +1680,27 @@ const insertLocations = (result, callback) => {
         "iconClassName": "bf-icon bf-icon-globe",
         "openIn": "_blank",
         "url": elem.website,
-        "id": generateUUID() });
+        "id": generateUUID()
+      });
     }
-    if(actionItems.length >0){
-        elem.actionItems = actionItems
+    if (actionItems.length > 0) {
+      elem.actionItems = actionItems
     }
 
     return new Location(elem).toJSON();
+  });
+  LocationsController.bulkCreateLocation(locations).then((result) => {
+    buildfire.dialog.toast({
+      message: "Successfully imported locations",
+      type: "success",
     });
-    LocationsController.bulkCreateLocation(locations).then((result) => {
-        buildfire.dialog.toast({
-          message: "Successfully imported locations",
-          type: "success",
-        });
-        refreshLocations();
-        triggerWidgetOnLocationsUpdate({});
-        callback(null, true)
-      }).catch((err) => {
-        callback(err, null)
-        console.error(err);
-    });
+    refreshLocations();
+    triggerWidgetOnLocationsUpdate({});
+    callback(null, true)
+  }).catch((err) => {
+    callback(err, null)
+    console.error(err);
+  });
 }
 window.exportLocations = () => {
   const dialogRef = showProgressDialog({
@@ -1713,34 +1716,34 @@ window.exportLocations = () => {
 
   const processLocations = () => {
     const data = records.map(elem => {
-      elem= elem;
+      elem = elem;
       elem.lat = elem.coordinates?.lat;
       elem.lng = elem.coordinates?.lng;
-      elem.settings= elem.settings;
-      elem.markerType= elem.marker.type;
-      elem.markerImage= elem.marker.image;
-      elem.markerColorRGBA= elem.marker.color?.color;
-      elem.priceRange= elem.price.range;
-      elem.priceCurrency= elem.price.currency;
+      elem.settings = elem.settings;
+      elem.markerType = elem.marker.type;
+      elem.markerImage = elem.marker.image;
+      elem.markerColorRGBA = elem.marker.color?.color;
+      elem.priceRange = elem.price.range;
+      elem.priceCurrency = elem.price.currency;
       // action item / phone number and website
-      elem.phoneNumber= "";
+      elem.phoneNumber = "";
       elem.website = "";
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
-        if(category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0){
-          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id) )
-          if(subcategories && subcategories.length > 0){
+        if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
+          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id))
+          if (subcategories && subcategories.length > 0) {
             subcategories.forEach(e => {
               categories.push({
                 title: category.title + " -> " + e.title
-              } )
+              })
             })
           } else {
-            categories.push({title: category.title})
+            categories.push({ title: category.title })
           }
         } else {
-          categories.push({title: category.title})
+          categories.push({ title: category.title })
         }
       });
       elem.categories = categories
@@ -1772,7 +1775,7 @@ const showImportErrorMessage = ({ message }) => {
       title: "Couldn't import locations",
       message,
     },
-    (err, actionButton) => {}
+    (err, actionButton) => { }
   );
 };
 
@@ -1824,7 +1827,7 @@ const getPinnedLocation = () => {
 };
 const loadCategories = (callback) => {
   CategoriesController.getAllCategories((allCategories) => {
-    for(const category of allCategories){
+    for (const category of allCategories) {
       state.categoriesLookup[category.id] = category;
     }
     state.categories = allCategories;
@@ -1858,6 +1861,66 @@ const showAnalyticsReport = (obj) => {
   buildfire.analytics.showReports({ eventKey: `locations_${obj.id}_viewed` });
 };
 
+const showNotificationForm = (obj) => {
+  LocationsController.getById(obj.id).then((updatedLocation) => {
+    if (!updatedLocation.data.subscribers || !updatedLocation.data.subscribers.length) {
+      return buildfire.dialog.toast({ message: "This location has no subscribers to notify.", type: 'danger' });
+    }
+
+    notificationDialog = new DialogComponent(
+      "dialogComponent",
+      "sendNotificationTemplate"
+    );
+
+    const notificationTitleInput = notificationDialog.container.querySelector('#notification-title-input');
+    const notificationMessageInput = notificationDialog.container.querySelector('#notification-message-input');
+    const notificationTitleError = notificationDialog.container.querySelector('#notification-title-input-error');
+    const notificationMessageError = notificationDialog.container.querySelector('#notification-message-input-error');
+    const sendBtn = notificationDialog.container.querySelector('.dialog-save-btn');
+    const closeIcon = notificationDialog.container.querySelector('.close-modal');
+    const cancelBtn = notificationDialog.container.querySelector('.dialog-cancel-btn');
+
+    notificationDialog.showDialog(
+      {
+        title: `Notify Users of Location Update`,
+        saveText: "Send",
+        hideDelete: false,
+      }, (e) => {
+        e.preventDefault();
+
+        const title = notificationTitleInput.value;
+        const message = notificationMessageInput.value;
+
+        if (!title) {
+          notificationTitleInput.classList.add('border-danger');
+          notificationTitleError.classList.remove('hidden');
+        } else if (!message) {
+          notificationMessageInput.classList.add('border-danger');
+          notificationMessageError.classList.remove('hidden');
+        } else {
+          sendBtn.classList.add('disabled');
+          closeIcon.classList.add('disabled');
+          cancelBtn.classList.add('disabled');
+
+          buildfire.notifications.pushNotification.schedule({
+            title,
+            text: message,
+            users: updatedLocation.data.subscribers,
+            queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: updatedLocation.id }))}`,
+          }, (err, result) => {
+            sendBtn.classList.remove('disabled');
+            closeIcon.classList.remove('disabled');
+            cancelBtn.classList.remove('disabled');
+
+            notificationDialog.close();
+            if (err) return buildfire.dialog.toast({ message: "Failed to send notification. Please try again later.", type: 'danger' });
+            return buildfire.dialog.toast({ message: "Notification sent successfully.", type: 'success' });
+          });
+        }
+      });
+  })
+};
+
 const updateLocationImage = (obj, tr) => {
   buildfire.imageLib.showDialog(
     { showIcons: false, multiSelection: false }, (err, result) => {
@@ -1884,13 +1947,13 @@ const updateLocationImage = (obj, tr) => {
 };
 
 const createLocation = (location) => LocationsController.createLocation(location).then((res) => {
-    refreshLocations();
-    cancelAddLocation();
-    triggerWidgetOnLocationsUpdate({});
-    return true;
-  }).catch(() => {
-    addLocationControls.saveBtn.disabled = false;
-  });
+  refreshLocations();
+  cancelAddLocation();
+  triggerWidgetOnLocationsUpdate({});
+  return true;
+}).catch(() => {
+  addLocationControls.saveBtn.disabled = false;
+});
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {
@@ -1948,19 +2011,23 @@ const triggerWidgetOnSettingsUpdate = () => {
 
 // this called in content.js;
 window.initLocations = () => {
+  const { settings } = globalState;
   locationsTable = new SearchTableHelper(
     "locations-items",
-    searchTableConfig
+    searchTableConfig,
+    settings
   );
   handleLocationEmptyState(true);
   state.filter = {};
 
-  loadCategories((err, result)=> {
+  loadCategories((err, result) => {
     refreshLocations();
   });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
-    window.addEditLocation(obj);
+    LocationsController.getById(obj.id).then((updatedLocation) => {
+      window.addEditLocation({ ...updatedLocation.data, id: updatedLocation.id });
+    });
   };
 
   locationsTable.onRowDeleted = deleteLocation;
@@ -1971,6 +2038,7 @@ window.initLocations = () => {
     refreshLocations();
   };
   locationsTable.onCopy = copyLocationDeepling;
+  locationsTable.onShowNotificationForm = showNotificationForm;
   locationsTable.onShowReport = showAnalyticsReport;
   locationsTable.onCopyMouseOut = onCopyMouseOut;
   locationsTable.onLoadMore = loadMoreLocations;
