@@ -88,7 +88,7 @@ const initFormListeners = () => {
 const showNotificationForm = () => new Promise((resolve, reject) => {
   const { selectedLocation } = state;
   widgetController.getLocation(selectedLocation.id).then((updatedLocation) => {
-    if (!updatedLocation.subscribers || !updatedLocation.subscribers.length) {
+    if (!updatedLocation.data.subscribers || !updatedLocation.data.subscribers.length) {
       return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
     }
 
