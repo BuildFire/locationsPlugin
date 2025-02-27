@@ -608,6 +608,9 @@ button span {
 #notificationForm .mdc-text-field.notification-message-container .mdc-floating-label {
   top: 15%;
 }
+#notificationForm .mdc-text-field__input {
+  color: var(--bf-theme-body-text) !important;
+}
 .submit-button-container {
   align-items: center;
   background-color: var(--bf-theme-background);

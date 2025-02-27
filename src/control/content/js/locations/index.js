@@ -1862,61 +1862,63 @@ const showAnalyticsReport = (obj) => {
 };
 
 const showNotificationForm = (obj) => {
-  if (!obj.subscribers || !obj.subscribers.length) {
-    return buildfire.dialog.toast({ message: "This location has no subscribers to notify.", type: 'danger' });
-  }
+  Locations.getById(obj.id).then((updatedLocation) => {
+    if (!updatedLocation.data.subscribers || !updatedLocation.data.subscribers.length) {
+      return buildfire.dialog.toast({ message: "This location has no subscribers to notify.", type: 'danger' });
+    }
 
-  notificationDialog = new DialogComponent(
-    "dialogComponent",
-    "sendNotificationTemplate"
-  );
+    notificationDialog = new DialogComponent(
+      "dialogComponent",
+      "sendNotificationTemplate"
+    );
 
-  const notificationTitleInput = notificationDialog.container.querySelector('#notification-title-input');
-  const notificationMessageInput = notificationDialog.container.querySelector('#notification-message-input');
-  const notificationTitleError = notificationDialog.container.querySelector('#notification-title-input-error');
-  const notificationMessageError = notificationDialog.container.querySelector('#notification-message-input-error');
-  const sendBtn = notificationDialog.container.querySelector('.dialog-save-btn');
-  const closeIcon = notificationDialog.container.querySelector('.close-modal');
-  const cancelBtn = notificationDialog.container.querySelector('.dialog-cancel-btn');
+    const notificationTitleInput = notificationDialog.container.querySelector('#notification-title-input');
+    const notificationMessageInput = notificationDialog.container.querySelector('#notification-message-input');
+    const notificationTitleError = notificationDialog.container.querySelector('#notification-title-input-error');
+    const notificationMessageError = notificationDialog.container.querySelector('#notification-message-input-error');
+    const sendBtn = notificationDialog.container.querySelector('.dialog-save-btn');
+    const closeIcon = notificationDialog.container.querySelector('.close-modal');
+    const cancelBtn = notificationDialog.container.querySelector('.dialog-cancel-btn');
 
-  notificationDialog.showDialog(
-    {
-      title: `Notify Users of Location Update`,
-      saveText: "Send",
-      hideDelete: false,
-    }, (e) => {
-      e.preventDefault();
+    notificationDialog.showDialog(
+      {
+        title: `Notify Users of Location Update`,
+        saveText: "Send",
+        hideDelete: false,
+      }, (e) => {
+        e.preventDefault();
 
-      const title = notificationTitleInput.value;
-      const message = notificationMessageInput.value;
+        const title = notificationTitleInput.value;
+        const message = notificationMessageInput.value;
 
-      if (!title) {
-        notificationTitleInput.classList.add('border-danger');
-        notificationTitleError.classList.remove('hidden');
-      } else if (!message) {
-        notificationMessageInput.classList.add('border-danger');
-        notificationMessageError.classList.remove('hidden');
-      } else {
-        sendBtn.classList.add('disabled');
-        closeIcon.classList.add('disabled');
-        cancelBtn.classList.add('disabled');
+        if (!title) {
+          notificationTitleInput.classList.add('border-danger');
+          notificationTitleError.classList.remove('hidden');
+        } else if (!message) {
+          notificationMessageInput.classList.add('border-danger');
+          notificationMessageError.classList.remove('hidden');
+        } else {
+          sendBtn.classList.add('disabled');
+          closeIcon.classList.add('disabled');
+          cancelBtn.classList.add('disabled');
 
-        buildfire.notifications.pushNotification.schedule({
-          title,
-          text: message,
-          users: obj.subscribers,
-          queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: obj.id }))}`,
-        }, (err, result) => {
-          sendBtn.classList.remove('disabled');
-          closeIcon.classList.remove('disabled');
-          cancelBtn.classList.remove('disabled');
+          buildfire.notifications.pushNotification.schedule({
+            title,
+            text: message,
+            users: updatedLocation.data.subscribers,
+            queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: updatedLocation.id }))}`,
+          }, (err, result) => {
+            sendBtn.classList.remove('disabled');
+            closeIcon.classList.remove('disabled');
+            cancelBtn.classList.remove('disabled');
 
-          notificationDialog.close();
-          if (err) return buildfire.dialog.toast({ message: "Failed to send notification. Please try again later.", type: 'danger' });
-          return buildfire.dialog.toast({ message: "Notification sent successfully.", type: 'success' });
-        });
-      }
-    });
+            notificationDialog.close();
+            if (err) return buildfire.dialog.toast({ message: "Failed to send notification. Please try again later.", type: 'danger' });
+            return buildfire.dialog.toast({ message: "Notification sent successfully.", type: 'success' });
+          });
+        }
+      });
+  })
 };
 
 const updateLocationImage = (obj, tr) => {

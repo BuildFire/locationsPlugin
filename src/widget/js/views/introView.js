@@ -19,9 +19,9 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         <div class="d-flex">
           <img src=${n.listImage} alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header text-ellipsis">${n.title ?? ''}</p>
-            <p class="mdc-theme--text-body text-truncate text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-ellipsis">${n.address ?? ''}</p>
+            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title ?? ''}</p>
+            <p class="location-subtitle mdc-theme--text-body text-truncate text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="location-address mdc-theme--text-body text-ellipsis">${n.address ?? ''}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
@@ -50,9 +50,9 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
         <div class="d-flex">
           <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1" }) : "./images/empty_image.PNG"} alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header text-ellipsis">${n.title ?? ""}</p>
-            <p class="mdc-theme--text-body text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ""}</p>
-            <p class="mdc-theme--text-body text-ellipsis">${n.address ?? ""}</p>
+            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title ?? ""}</p>
+            <p class="location-subtitle mdc-theme--text-body text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ""}</p>
+            <p class="location-address mdc-theme--text-body text-ellipsis">${n.address ?? ""}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>

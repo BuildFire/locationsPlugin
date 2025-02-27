@@ -901,17 +901,22 @@ const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
   const addGlobalTagsButton = document.querySelector('#addGlobalTagsButton');
   const addGlobalEditorsButton = document.querySelector('#addGlobalEditorsButton');
+  const sendNotificationCheckboxContainer = document.querySelector('#sendNotificationCheckboxContainer');
   const allowSendingNotificationCheckbox = document.querySelector('#allowSendingNotification');
   const allowLocationCreatorsCheckbox = document.querySelector('#allowLocationCreatorsToEdit');
 
   const { tags, users } = state.settings.globalEditors;
   const { globalEditors } = state.settings;
 
-  allowSendingNotificationCheckbox.checked = state.settings.subscription.allowCustomNotifications;
-  allowSendingNotificationCheckbox.onchange = (e) => {
-    state.settings.subscription.allowCustomNotifications = e.target.checked;
-    saveSettingsWithDelay();
-  };
+  if (!state.settings.subscription.enabled) {
+    sendNotificationCheckboxContainer.classList.add('disabled-content');
+  } else {
+    allowSendingNotificationCheckbox.checked = state.settings.subscription.allowCustomNotifications;
+    allowSendingNotificationCheckbox.onchange = (e) => {
+      state.settings.subscription.allowCustomNotifications = e.target.checked;
+      saveSettingsWithDelay();
+    };
+  }
 
   allowLocationCreatorsCheckbox.checked = globalEditors.allowLocationCreatorsToEdit;
   allowLocationCreatorsCheckbox.onchange = (e) => {

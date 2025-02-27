@@ -2,6 +2,7 @@ import state from "../state";
 import notifications from "../../services/notifications";
 import views from "../Views";
 import { addBreadcrumb } from "../util/helpers";
+import widgetController from "../../widget.controller";
 
 let notificationTitleText = '';
 let notificationMessageText = '';
@@ -86,22 +87,29 @@ const initFormListeners = () => {
 
 const showNotificationForm = () => new Promise((resolve, reject) => {
   const { selectedLocation } = state;
-  if (!selectedLocation || !selectedLocation.subscribers || !selectedLocation.subscribers.length) {
-    return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
-  }
+  widgetController.getLocation(selectedLocation.id).then((updatedLocation) => {
+    if (!updatedLocation.subscribers || !updatedLocation.subscribers.length) {
+      return buildfire.dialog.toast({ message: window.strings.get('toast.locationHasNoSubscribers').v, type: 'danger' });
+    }
 
-  const currentActive = document.querySelector('section.active');
-  currentActive?.classList.remove('active');
+    state.selectedLocation = {
+      ...updatedLocation,
+      ...updatedLocation.data
+    };
 
-  const notificationForm = document.querySelector('section#notificationForm');
-  notificationForm.classList.add('active');
+    const currentActive = document.querySelector('section.active');
+    currentActive?.classList.remove('active');
 
-  views.fetch('notificationForm').then(() => {
-    views.inject('notificationForm');
-    window.strings.inject(document.querySelector('section#notificationForm'), false);
-    addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
+    const notificationForm = document.querySelector('section#notificationForm');
+    notificationForm.classList.add('active');
 
-    resolve();
+    views.fetch('notificationForm').then(() => {
+      views.inject('notificationForm');
+      window.strings.inject(document.querySelector('section#notificationForm'), false);
+      addBreadcrumb({ pageName: 'notificationForm', title: 'Notification Form' });
+
+      resolve();
+    });
   });
 });
 

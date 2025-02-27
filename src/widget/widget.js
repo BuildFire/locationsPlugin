@@ -464,7 +464,9 @@ const initEventListeners = () => {
       if (!authManager.currentUser) {
         authManager.enforceLogin(() => {
           if (authManager.currentUser) {
-            detailsView.handleLocationFollowingState();
+            if (state.selectedLocation.subscribers.indexOf(authManager.currentUser.userId) === -1) {
+              detailsView.handleLocationFollowingState();
+            }
           }
         });
       } else {
@@ -1441,12 +1443,47 @@ const handleResultsBookmark = () => {
   showMapView();
   initMapLocations();
 };
+const syncUpdatedLocation = (updatedLocationData) => {
+  state.listLocations = state.listLocations.map((location) => {
+    if (location.id === updatedLocationData.id) {
+      return updatedLocationData;
+    }
+    return location;
+  });
+  state.nearLocations = state.nearLocations.map((location) => {
+    if (location.id === updatedLocationData.id) {
+      return updatedLocationData;
+    }
+    return location;
+  });
+  state.pinnedLocations = state.pinnedLocations.map((location) => {
+    if (location.id === updatedLocationData.id) {
+      return updatedLocationData;
+    }
+    return location;
+  });
+
+  const itemCard = document.querySelector(`[data-id="${updatedLocationData.id}"]`);
+  if (itemCard) {
+    const titleContainer = itemCard.querySelector('.location-title');
+    const subtitleContainer = itemCard.querySelector('.location-subtitle');
+    const addressContainer = itemCard.querySelector('.location-address');
+
+    if (titleContainer) titleContainer.innerHTML = updatedLocationData.title;
+    if (subtitleContainer) subtitleContainer.innerHTML = updatedLocationData.subtitle;
+    if (addressContainer) addressContainer.innerHTML = updatedLocationData.address;
+  }
+  state.maps.map.clearMarkers();
+  state.listLocations.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
+};
+
 const navigateToLocationId = (locationId, pushToHistory = true) => {
   if (state.deepLinkData?.locationId) {
     refreshCategories()
       .then(() => WidgetController.getLocation(locationId))
       .then((response) => {
         state.selectedLocation = { ...response.data, id: response.id };
+        syncUpdatedLocation({ ...response.data, id: response.id });
         showLocationDetail(pushToHistory);
       })
       .catch((err) => {
@@ -1734,6 +1771,7 @@ const initApp = () => {
         reportAbuse.init();
         authManager.onUserChange(() => {
           views.refreshCurrentView();
+          introView.initCreateLocationButton();
         });
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);

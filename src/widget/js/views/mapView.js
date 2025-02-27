@@ -18,10 +18,10 @@ const renderListingLocations = (list) => {
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             </div>
             <div class="location-image-item__body">
-              <p class="margin-bottom-five text-ellipsis">${n.title ?? ''}</p>
+              <p class="location-title margin-bottom-five text-ellipsis">${n.title ?? ''}</p>
               <p class="margin-top-zero text-ellipsis">${transformCategoriesToText(n.categories, state.categories)}</p>
               <p>
-                <span class="text-ellipsis">${n.subtitle ?? ''}</span>
+                <span class="location-subtitle text-ellipsis">${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
                   <span class="location-image__open-status">${n.settings.showOpeningHours ? (window.strings.get(isLocationOpen(n) ? 'general.open' : 'general.closed').v) : ''}</span>
@@ -46,9 +46,9 @@ const renderListingLocations = (list) => {
         <div class="d-flex">
           <img src="${cdnImage(n.listImage)}" alt="Location image">
           <div class="location-item__description">
-            <p class="mdc-theme--text-header text-ellipsis">${n.title}</p>
-            <p class="mdc-theme--text-body text-ellipsis text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="mdc-theme--text-body text-ellipsis text-truncate">${n.address ?? ''}</p>
+            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title}</p>
+            <p class="location-subtitle mdc-theme--text-body text-ellipsis text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="location-address mdc-theme--text-body text-ellipsis text-truncate">${n.address ?? ''}</p>
           </div>
           <div class="location-item__actions">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
