@@ -714,7 +714,7 @@ export default {
       notificationWarningNote: {
         title: 'Notification Note',
         placeholder: 'Notification Note',
-        defaultValue: 'Notify users about changes to location. Only users who have subscribed to this location will receive this notification.',
+        defaultValue: 'Notify users about changes to this location. Only users who have subscribed to this location will receive this notification.',
         required: true,
         maxLength: 150,
       },
