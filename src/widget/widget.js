@@ -460,10 +460,20 @@ const initEventListeners = () => {
       initMapLocations();
     } else if (e.target.id === 'priceSortingBtn') {
       buildfire.components.swipeableDrawer.setStep('max');
-      setTimeout(() => { mdcPriceMenu.open = true; mdcSortingMenu.open = false; }, 200);
+      setTimeout(() => {
+        mdcPriceMenu.open = true;
+        if (mdcSortingMenu) {
+          mdcSortingMenu.open = false;
+        }
+      }, 200);
     } else if (e.target.id === 'otherSortingBtn') {
       buildfire.components.swipeableDrawer.setStep('max');
-      setTimeout(() => { mdcSortingMenu.open = true; mdcPriceMenu.open = false; }, 200);
+      setTimeout(() => {
+        mdcSortingMenu.open = true;
+        if (mdcPriceMenu) {
+          mdcPriceMenu.open = false;
+        }
+      }, 200);
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary')) {
       state.selectedLocation = state.pinnedLocations.concat(state.listLocations).find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
@@ -928,8 +938,12 @@ const initDrawer = () => {
 
     const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
     openNowSortingBtn.onpointerup =  () => {
-      mdcPriceMenu.open = false;
-      mdcSortingMenu.open = false;
+      if (mdcPriceMenu) {
+        mdcPriceMenu.open = false;
+      }
+      if (mdcSortingMenu) {
+        mdcSortingMenu.open = false;
+      }
       state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
       if (state.searchCriteria.openingNow) {
         openNowSortingBtn.classList.add('selected');
