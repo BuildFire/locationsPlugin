@@ -415,7 +415,7 @@ const initEventListeners = () => {
     }
   }, true);
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('pointerup', (e) => {
     if (!e.target) return;
 
     if (e.target.id === 'reportAbuseBtn') {
@@ -460,10 +460,10 @@ const initEventListeners = () => {
       initMapLocations();
     } else if (e.target.id === 'priceSortingBtn') {
       buildfire.components.swipeableDrawer.setStep('max');
-      setTimeout(() => { mdcPriceMenu.open = true; }, 200);
+      setTimeout(() => { mdcPriceMenu.open = true; mdcSortingMenu.open = false; }, 200);
     } else if (e.target.id === 'otherSortingBtn') {
       buildfire.components.swipeableDrawer.setStep('max');
-      setTimeout(() => { mdcSortingMenu.open = true; }, 200);
+      setTimeout(() => { mdcSortingMenu.open = true; mdcPriceMenu.open = false; }, 200);
     } else if (e.target.classList.contains('location-item') || e.target.classList.contains('location-image-item') || e.target.classList.contains('location-summary')) {
       state.selectedLocation = state.pinnedLocations.concat(state.listLocations).find((i) => i.id === e.target.dataset.id);
       showLocationDetail();
@@ -927,7 +927,9 @@ const initDrawer = () => {
     document.querySelector('.swipeable-drawer-content').addEventListener('scroll', fetchMoreListLocations, false);
 
     const openNowSortingBtn = document.querySelector('#openNowSortingBtn');
-    openNowSortingBtn.onclick = () => {
+    openNowSortingBtn.onpointerup =  () => {
+      mdcPriceMenu.open = false;
+      mdcSortingMenu.open = false;
       state.searchCriteria.openingNow = !state.searchCriteria.openingNow;
       if (state.searchCriteria.openingNow) {
         openNowSortingBtn.classList.add('selected');
@@ -1002,6 +1004,28 @@ const initDrawerFilterOptions = () => {
   ];
 
   [otherSortingContainer, priceFilterContainer, openNowFilterBtn, bookmarksContainer].forEach((el) => hideElement(el));
+  
+  function handleOtherSortingMenuBtnClick(value) {
+    if (value === 'distance') {
+      state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
+    } else if (value === 'A-Z') {
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
+    } else if (value === 'Z-A') {
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
+    } else if (value === 'date') {
+      state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
+    } else if (value === 'price-low-high') {
+      state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
+    } else if (value === 'price-high-low') {
+      state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
+    } else if (value === 'rating') {
+      state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
+    } else if (value === 'views') {
+      state.searchCriteria.sort = { sortBy: 'views', order: 1 };
+    }
+    resetResultsBookmark();
+    clearAndSearchWithDelay();
+  }
 
   if (bookmarks.enabled && bookmarks.allowForFilters) {
     bookmarksContainer.style.display = 'flex';
@@ -1030,26 +1054,21 @@ const initDrawerFilterOptions = () => {
       const value = event.detail.item.getAttribute('data-value');
       otherSortingMenuBtnLabel.textContent = event.detail.item.querySelector('.mdc-list-item__text').textContent;
       otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
-      if (value === 'distance') {
-        state.searchCriteria.sort = { sortBy: 'distance', order: 1 };
-      } else if (value === 'A-Z') {
-        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: 1 };
-      } else if (value === 'Z-A') {
-        state.searchCriteria.sort = { sortBy: '_buildfire.index.text', order: -1 };
-      } else if (value === 'date') {
-        state.searchCriteria.sort = { sortBy: '_buildfire.index.date1', order: 1 };
-      } else if (value === 'price-low-high') {
-        state.searchCriteria.sort = { sortBy: 'price.range', order: -1 };
-      } else if (value === 'price-high-low') {
-        state.searchCriteria.sort = { sortBy: 'price.range', order: 1 };
-      } else if (value === 'rating') {
-        state.searchCriteria.sort = { sortBy: 'rating.average', order: -1 };
-      } else if (value === 'views') {
-        state.searchCriteria.sort = { sortBy: 'views', order: 1 };
-      }
-      resetResultsBookmark();
-      clearAndSearchWithDelay();
+      handleOtherSortingMenuBtnClick(value);
     });
+    document.querySelectorAll('.other-sorting-menu .mdc-list-item').forEach((item) => {
+      item.addEventListener('touchend', (event) => {
+        const value = event.target.getAttribute('data-value');
+        otherSortingMenuBtnLabel.textContent = event.target.querySelector('.mdc-list-item__text').textContent;
+        otherSortingMenuBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+        handleOtherSortingMenuBtnClick(value);
+        setTimeout(() => {
+          mdcSortingMenu.open = false;
+        }, 200);
+      });
+    });
+    
+    
     showElement(otherSortingContainer);
   }
   if (!filter.hidePriceFilter) {
@@ -1071,6 +1090,27 @@ const initDrawerFilterOptions = () => {
       resetResultsBookmark();
       clearAndSearchWithDelay();
     });
+    document.querySelectorAll('.price-filter-menu .mdc-list-item').forEach((item) => {
+      item.addEventListener('touchend', (event) => {
+        const value = event.target.getAttribute('data-value');
+        if (value === '0') {
+          state.searchCriteria.priceRange = null;
+          priceSortingBtnLabel.textContent = window.strings?.get('general.price')?.v;
+          priceSortingBtn.style.removeProperty('background-color');
+        } else {
+          state.searchCriteria.priceRange = Number(value);
+          state.checkNearLocation = true;
+          priceSortingBtnLabel.textContent = event.target.querySelector('.mdc-list-item__text').textContent;
+          priceSortingBtn.style.setProperty('background-color', 'var(--mdc-theme-primary)', 'important');
+        }
+        resetResultsBookmark();
+        clearAndSearchWithDelay();
+        setTimeout(() => {
+          mdcPriceMenu.open = false;
+        }, 200);
+      });
+    });
+
     showElement(priceFilterContainer);
   }
   if (!filter.hideOpeningHoursFilter) {
