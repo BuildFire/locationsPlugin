@@ -312,3 +312,7 @@ p.info::before {
 	content:'\e60b';
 	font-family:"icomoon"
 }
+
+.radio input[type="radio"]:disabled + label {
+	cursor: default;
+}

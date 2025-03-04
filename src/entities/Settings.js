@@ -41,6 +41,7 @@ export default class Settings {
     };
     this.map = data.map || {
       distanceUnit: 'metric',
+      showPointsOfInterest: false,
       initialArea: true,
       offlineAreaSelection: true, // pending
       initialAreaCoordinates: { lat: null, lng: null },
@@ -54,6 +55,7 @@ export default class Settings {
     this.design = data.design ||  {
       listViewPosition: 'collapsed',
       listViewStyle: 'backgroundImage',
+      defaultMapStyle: 'light',
       defaultMapType: 'streets',
       enableMapTerrainView: false,
       hideQuickFilter: false,

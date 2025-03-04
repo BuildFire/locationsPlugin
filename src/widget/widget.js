@@ -1013,6 +1013,25 @@ const generateMapOptions = () => {
     options.mapTypeId = google.maps.MapTypeId.SATELLITE;
   }
 
+  if (!buildfire.getContext().apiKeys.googleMapId) {
+    if (design.defaultMapStyle === 'dark') {
+      selector.classList.add('dark');
+      options.styles = options.styles.concat(constants.getMapStyle('nightMode'));
+    } else {
+      selector.classList.remove('dark');
+    }
+
+    if (!map.showPointsOfInterest) {
+      options.styles.push({
+        featureType: 'poi',
+        elementType: 'labels',
+        stylers: [
+          { visibility: 'off' }
+        ]
+      });
+    }
+  }
+
   options.center = MapSearchService.getMapCenterPoint();
 
   return options;

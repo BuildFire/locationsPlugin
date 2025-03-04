@@ -972,8 +972,11 @@ const iniBookmarks = () => {
 
 const initMap = () => {
   const distanceUnitsRadios = document.querySelectorAll('input[name="distanceUnits"]');
+  const showPointsOfInterestBtn = document.querySelector('#show-points-of-interest');
   const enableMapInitialAreaBtn = document.querySelector('#enable-map-initial-area');
   // const enableOfflineAreaSelectionBtn = document.querySelector('#enable-offline-area-selection');
+  
+  showPointsOfInterestBtn.checked = state.settings.map?.showPointsOfInterest;
 
   enableMapInitialAreaBtn.checked = state.settings.map?.initialArea;
   enableMapInitialAreaBtn.onchange = (e) => {
