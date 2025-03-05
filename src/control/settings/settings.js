@@ -991,10 +991,6 @@ const initMap = () => {
   // const enableOfflineAreaSelectionBtn = document.querySelector('#enable-offline-area-selection');
 
   showPointsOfInterestBtn.checked = state.settings.map?.showPointsOfInterest;
-  showPointsOfInterestBtn.onchange = (e) => {
-    state.settings.map.showPointsOfInterest = e.target.checked;
-    saveSettingsWithDelay();
-  };
 
   enableMapInitialAreaBtn.checked = state.settings.map?.initialArea;
   enableMapInitialAreaBtn.onchange = (e) => {
@@ -1034,6 +1030,7 @@ window.intiGoogleMap = () => {
     streetViewControl: false,
     fullscreenControl: false,
     gestureHandling: "greedy",
+    mapId: buildfire.getContext().apiKeys.googleMapId || "bfSettingsMap",
   };
   if (isCameraControlVersion()) {
     options.cameraControl = true;
@@ -1054,10 +1051,9 @@ window.intiGoogleMap = () => {
 
   autocomplete.bindTo("bounds", map);
 
-  const marker = new google.maps.Marker({
+  const marker = new google.maps.marker.AdvancedMarkerElement({
     map,
-    anchorPoint: new google.maps.Point(0, -29),
-    draggable: true,
+    gmpDraggable: true,
   });
 
   const currentPosition = {
@@ -1071,14 +1067,14 @@ window.intiGoogleMap = () => {
 
   if (currentPosition.lat && currentPosition.lng) {
     const latlng  = new google.maps.LatLng(currentPosition.lat, currentPosition.lng);
-    marker.setVisible(true);
-    marker.setPosition(latlng);
+    marker.visible = true;
+    marker.position = (latlng);
     map.setCenter(latlng);
     map.setZoom(15);
   }
 
   autocomplete.addListener("places_changed", () => {
-    marker.setVisible(false);
+    marker.visible = false;
     const places = autocomplete.getPlaces();
     const place = places[0];
 
@@ -1093,8 +1089,8 @@ window.intiGoogleMap = () => {
       map.setZoom(17);
     }
 
-    marker.setPosition(place.geometry.location);
-    marker.setVisible(true);
+    marker.position = place.geometry.location;
+    marker.visible = true;
 
     state.settings.map.initialAreaCoordinates.lat = place.geometry.location.lat();
     state.settings.map.initialAreaCoordinates.lng = place.geometry.location.lng();
@@ -1133,7 +1129,7 @@ const loadMap = () => {
       const mapScript = document.getElementById("googleScript");
       const scriptEl = document.createElement("script");
       scriptEl.id = "googleScript";
-      scriptEl.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=intiGoogleMap&libraries=places&v=3.59.8`;
+      scriptEl.src = `https://maps.googleapis.com/maps/api/js?v=weekly&key=${key}&callback=intiGoogleMap&libraries=places,marker`;
       if (mapScript) {
         document.head.removeChild(mapScript);
       }

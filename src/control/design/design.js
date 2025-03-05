@@ -37,6 +37,12 @@ const render = () => {
       saveSettings();
     };
   }
+  
+  for (const radio of defaultMapStyleRadios) {
+    if (radio.value === state.settings.design?.defaultMapStyle) {
+      radio.checked = true;
+    }
+  }
 
   for (const radio of defaultListViewStyleRadios) {
     if (radio.value === state.settings.design?.listViewStyle) {
@@ -46,18 +52,6 @@ const render = () => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.settings.design.listViewStyle = value;
-      saveSettings();
-    };
-  }
-
-  for (const radio of defaultMapStyleRadios) {
-    if (radio.value === state.settings.design?.defaultMapStyle) {
-      radio.checked = true;
-    }
-
-    radio.onchange = (e) => {
-      const { value } = e.target;
-      state.settings.design.defaultMapStyle = value;
       saveSettings();
     };
   }

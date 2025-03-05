@@ -85,6 +85,11 @@
   padding: 2rem;
 }
 
+input:disabled + label {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .disabled-content {
   opacity: 0.5;
   pointer-events: none;
