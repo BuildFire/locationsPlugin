@@ -1741,19 +1741,21 @@ window.exportLocations = () => {
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
-        if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
-          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id))
-          if (subcategories && subcategories.length > 0) {
-            subcategories.forEach(e => {
-              categories.push({
-                title: category.title + " -> " + e.title
+        if (category) {
+          if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
+            var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id))
+            if (subcategories && subcategories.length > 0) {
+              subcategories.forEach(e => {
+                categories.push({
+                  title: category.title + " -> " + e.title
+                })
               })
-            })
+            } else {
+              categories.push({ title: category.title })
+            }
           } else {
             categories.push({ title: category.title })
           }
-        } else {
-          categories.push({ title: category.title })
         }
       });
       elem.categories = categories
