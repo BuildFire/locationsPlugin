@@ -36,6 +36,7 @@ class SortableListUI {
       this.sortableList.onToggleChange = this.onToggleChange;
       this.sortableList.onImageClick = this.onImageClick;
     } else {
+      this.sortableList.clear();
       this.sortableList.loadItems(items);
     }
   }
