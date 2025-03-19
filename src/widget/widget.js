@@ -397,13 +397,17 @@ const getDirections = () => {
 };
 
 const initEventListeners = () => {
-  window.addEventListener('resize', () => {
+  window.addEventListener('resize', (event) => {
+    if (event.target && event.target.tagName && event.target.tagName.toLowerCase() === 'gmp-advanced-marker') return;
     initDrawer();
     const currentActive = document.querySelector('section.active');
 
     if (currentActive.id === 'home' && document.querySelector('section#intro').style.display === "none") {
       buildfire.components.swipeableDrawer.show();
     }
+
+    mapView.clearMapViewList();
+    mapView.renderListingLocations(state.listLocations);
   }, true);
   document.querySelector('body').addEventListener('scroll', fetchMoreIntroductoryLocations, false);
   document.addEventListener('focus', (e) => {
