@@ -79,6 +79,8 @@ class SubcategoriesListUI extends SortableListUI {
       let t = this;
       this.onDeleteItem(item, index, (confirmed) => {
         if (confirmed) {
+          t.items = t.items.filter((_, i) => i !== index);
+
           divRow.parentNode.removeChild(divRow);
           t.reIndexRows();
         }

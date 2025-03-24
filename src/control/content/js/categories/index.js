@@ -247,6 +247,7 @@ window.addEditCategory = (category, callback = () => {}) => {
         handleSubcategoriesEmptyState(newCategory);
         for (const subcategory of subcategories) {
           subcategoriesListUI.addItem(subcategory);
+          newCategory.subcategories.push(subcategory);
         }
         inputCategoryControls.subcategory.fileInput.value = '';
       });
@@ -262,6 +263,12 @@ window.addEditCategory = (category, callback = () => {}) => {
       { category: newCategory, subcategory: item, action: "Edit" },
       (subcategory) => {
         subcategoriesListUI.updateItem(subcategory, index, divRow);
+        newCategory.subcategories = newCategory.subcategories.map((_subcategory) => {
+          if (_subcategory.id === subcategory.id) {
+            return subcategory;
+          }
+          return _subcategory;
+        });
       }
     );
   };
@@ -292,8 +299,10 @@ window.addEditCategory = (category, callback = () => {}) => {
     );
   };
 
-  subcategoriesListUI.onOrderChange = () => {
-    newCategory.subcategories = subcategoriesListUI.sortableList.items;
+  subcategoriesListUI.onOrderChange = (item, oldIndex, newIndex) => {
+    const currentIndex = newCategory.subcategories.findIndex((subcategory) => subcategory.id === item.id);
+    const sortedItem = newCategory.subcategories.splice(currentIndex, 1)[0];
+    newCategory.subcategories.splice(newIndex, 0, sortedItem);
     console.log(newCategory);
   };
 

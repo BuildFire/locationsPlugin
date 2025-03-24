@@ -484,8 +484,8 @@ window.addEditLocation = (location) => {
         return false;
       }
       actionItem.id = generateUUID();
-      state.locationObj.actionItems.push(actionItem);
       actionItemsUI.addItem(actionItem);
+      state.locationObj.actionItems = actionItemsUI.sortableList.items.filter((obj, index, self) => index === self.findIndex((o) => o.id === obj.id));
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     });
   };
@@ -509,6 +509,9 @@ window.addEditLocation = (location) => {
         if (e) console.error(e);
         if (data && data.selectedButton.key === "y") {
           state.locationObj.images = state.locationObj.images.filter((elem) => elem.id !== item.id);
+          locationImagesUI.sortableList.items = state.locationObj.images;
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+
           callback(item);
         }
       }
@@ -517,6 +520,7 @@ window.addEditLocation = (location) => {
 
   locationImagesUI.onOrderChange = () => {
     state.locationObj.images = locationImagesUI.sortableList.items;
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
   actionItemsUI.onDeleteItem = (item, index, callback) => {
     buildfire.notifications.confirm(
@@ -537,6 +541,9 @@ window.addEditLocation = (location) => {
         if (e) console.error(e);
         if (data && data.selectedButton.key === "y") {
           state.locationObj.actionItems = state.locationObj.actionItems.filter((elem) => elem.id !== item.id);
+          actionItemsUI.sortableList.items = state.locationObj.actionItems;
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+
           callback(item);
         }
       }
@@ -544,7 +551,8 @@ window.addEditLocation = (location) => {
   };
 
   actionItemsUI.onOrderChange = () => {
-    state.locationObj.actionItems = actionItemsUI.sortableList.items;
+    state.locationObj.actionItems = actionItemsUI.sortableList.items.filter((obj, index, self) => index === self.findIndex((o) => o.id === obj.id));
+    triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   };
 
   actionItemsUI.onUpdateItem = (item, index, divRow) => {
@@ -558,14 +566,13 @@ window.addEditLocation = (location) => {
 
       if (actionItem) {
         actionItem.id = item.id;
-        state.locationObj.actionItems.forEach((action, index) => {
-          if (action.id === item.id) {
-            state.locationObj.actionItems[index] = actionItem;
-          }
-        });
+        state.locationObj.actionItems = state.locationObj.actionItems
+          .map((action) => (action.id === item.id ? actionItem : action))
+          .filter((obj, index, self) => index === self.findIndex((o) => o.id === obj.id));
+
+        actionItemsUI.sortableList.items = state.locationObj.actionItems;
         actionItemsUI.updateItem(actionItem, index, divRow);
         triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
-
       }
     });
   };
@@ -578,6 +585,9 @@ window.addEditLocation = (location) => {
   addLocationControls.cancelBtn.onclick = cancelAddLocation;
 
   locationImagesUI.init(state.locationObj.images);
+
+  //  this filter to remove old duplicate actions from location record
+  state.locationObj.actionItems = state.locationObj.actionItems.filter((obj, index, self) => index === self.findIndex((o) => o.id === obj.id));
   actionItemsUI.init(state.locationObj.actionItems);
 };
 
@@ -1731,19 +1741,21 @@ window.exportLocations = () => {
       let categories = [];
       elem.categories.main.forEach(catId => {
         var category = state.categoriesLookup[catId]
-        if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
-          var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id))
-          if (subcategories && subcategories.length > 0) {
-            subcategories.forEach(e => {
-              categories.push({
-                title: category.title + " -> " + e.title
+        if (category) {
+          if (category.subcategories && category.subcategories.length > 0 && elem.categories.subcategories.length > 0) {
+            var subcategories = category.subcategories.filter(x => elem.categories.subcategories.includes(x.id))
+            if (subcategories && subcategories.length > 0) {
+              subcategories.forEach(e => {
+                categories.push({
+                  title: category.title + " -> " + e.title
+                })
               })
-            })
+            } else {
+              categories.push({ title: category.title })
+            }
           } else {
             categories.push({ title: category.title })
           }
-        } else {
-          categories.push({ title: category.title })
         }
       });
       elem.categories = categories
