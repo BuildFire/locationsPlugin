@@ -538,12 +538,12 @@ button span {
   cursor: pointer;
 }
 .location-detail .action-item {
-  /*width: 31%;*/
   padding: 5px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   margin-top: 10px;
+  justify-content: flex-end;
 }
 .location-detail .action-item .mdc-chip {
   height: 28px;
