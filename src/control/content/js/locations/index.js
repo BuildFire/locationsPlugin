@@ -742,7 +742,13 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.locationObj.marker.type = value;
-      state.locationObj.marker.color = state.locationObj.marker?.color || state.defaultCircleMarkerColor;
+      if (value === 'image') {
+        state.locationObj.marker.color = null;
+      }
+      if (value === 'circle') {
+        state.locationObj.marker.image = null;
+        state.locationObj.marker.color = state.locationObj.marker?.color || state.defaultCircleMarkerColor;
+      }
       handleMarkerType(state.locationObj.marker);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
