@@ -82,12 +82,10 @@ export default class Map {
     let marker;
     let labelText = location.addressAlias || location.title;
 
-
-
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (
-      (location.marker.type === "circle")
+      (location.marker.type === "circle" && location.marker.color?.color)
       || (location.marker.type === "image" && location.marker.image)
     ) {
       marker = new this.Marker(location, this.map, onClick);

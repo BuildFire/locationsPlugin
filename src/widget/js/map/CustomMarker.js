@@ -40,14 +40,13 @@ export default (function () {
         const svg = document.createElementNS(svgns, 'svg');
         const circle = document.createElementNS(svgns, 'circle');
         const label = document.createElementNS(svgns, 'text');
-        const markerColor = this.location.marker.color?.color || 'rgba(253,35,5,1)';
 
         circle.setAttributeNS(null, 'cx', '50%');
         circle.setAttributeNS(null, 'cy', 12.5);
         circle.setAttributeNS(null, 'r', 10);
         circle.setAttributeNS(null, 'stroke-width', 3);
         circle.setAttributeNS(null, 'stroke', '#efefef');
-        circle.setAttributeNS(null, 'fill', markerColor);
+        circle.setAttributeNS(null, 'fill', this.location.marker.color?.color);
         label.setAttributeNS(null, 'text-anchor', 'middle');
         label.setAttributeNS(null, 'x', '50%');
         label.setAttributeNS(null, 'y', '40');

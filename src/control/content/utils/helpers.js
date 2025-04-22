@@ -74,3 +74,24 @@ export const showProgressDialog = ({ title, message }) => {
   });
   return progressDialog;
 };
+
+export const isValidColor = (color) => {
+  const rgbRegex = /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i;
+  const rgbaRegex = /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i;
+
+  if (rgbRegex.test(color)) {
+    const [, r, g, b] = color.match(rgbRegex).map(Number);
+    return [r, g, b].every((v) => v >= 0 && v <= 255);
+  }
+
+  if (rgbaRegex.test(color)) {
+    const [, r, g, b, a] = color.match(rgbaRegex).map(Number);
+    return [r, g, b].every((v) => v >= 0 && v <= 255) && a >= 0 && a <= 1;
+  }
+
+  if (/^rgba?\(/i.test(color)) return false;
+
+  const s = new Option().style;
+  s.color = color;
+  return s.color !== '';
+};
