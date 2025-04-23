@@ -5,7 +5,7 @@ import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog, isValidColor } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -733,7 +733,14 @@ const openRequiredCategoriesDialog = () => {
 };
 
 const onMarkerTypeChanged = (marker) => {
-  handleMarkerType(marker);
+  handleMarkerType(marker?.type);
+  if (marker.image) {
+    setIcon(marker.image, "url", addLocationControls.selectMarkerImageBtn);
+  } else if (marker.color) {
+    addLocationControls.selectMarkerColorBtn.querySelector(
+      ".color"
+    ).style.background = marker?.color?.color;
+  }
   const radios = addLocationControls.markerTypeRadioBtns;
   for (const radio of radios) {
     if (radio.value === marker?.type) {
@@ -742,30 +749,19 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.locationObj.marker.type = value;
-      if (value === 'circle') {
-        if (!state.locationObj.marker.color?.color) {
-          state.locationObj.marker.color = state.defaultCircleMarkerColor;
-        }
-      }
-      handleMarkerType(state.locationObj.marker);
+      state.locationObj.marker.color = state.defaultCircleMarkerColor;
+      handleMarkerType(value);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
   }
 
-  function handleMarkerType(marker) {
-    if (marker.type === 'image') {
+  function handleMarkerType(type) {
+    if (type === 'image') {
       addLocationControls.selectMarkerImageContainer.classList.remove('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
-      if (marker.image) {
-        setIcon(marker.image, "url", addLocationControls.selectMarkerImageBtn);
-      }
-    } else if (marker.type === 'circle') {
+    } else if (type === 'circle') {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
-      const markerColor = marker?.color?.color || state.defaultCircleMarkerColor.color;
-      addLocationControls.selectMarkerColorBtn.querySelector(
-        ".color"
-      ).style.background = markerColor;
     } else {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
@@ -1502,20 +1498,6 @@ const validateLocationCsv = (items) => {
           message: `This file has wrong latitude or longitude in row number [${i + 1}], please fix it and upload it again.`,
         });
         return false;
-      }
-      if (item.markerType && item.markerType === 'circle') {
-        if (!item.markerColorRGBA) {
-          showImportErrorMessage({
-            message: `This file has missing marker color in row number [${i + 1}], please fix it and upload it again.`,
-          });
-          return false;
-        }
-        if (!isValidColor(item.markerColorRGBA)) {
-          showImportErrorMessage({
-            message: `This file has wrong marker color in row number [${i + 1}], please fix it and upload it again.`,
-          });
-          return false;
-        }
       }
     }
   }
