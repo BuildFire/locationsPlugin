@@ -5,7 +5,7 @@ import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog, isValidColor } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -733,14 +733,7 @@ const openRequiredCategoriesDialog = () => {
 };
 
 const onMarkerTypeChanged = (marker) => {
-  handleMarkerType(marker?.type);
-  if (marker.image) {
-    setIcon(marker.image, "url", addLocationControls.selectMarkerImageBtn);
-  } else if (marker.color) {
-    addLocationControls.selectMarkerColorBtn.querySelector(
-      ".color"
-    ).style.background = marker?.color?.color;
-  }
+  handleMarkerType(marker);
   const radios = addLocationControls.markerTypeRadioBtns;
   for (const radio of radios) {
     if (radio.value === marker?.type) {
@@ -749,19 +742,30 @@ const onMarkerTypeChanged = (marker) => {
     radio.onchange = (e) => {
       const { value } = e.target;
       state.locationObj.marker.type = value;
-      state.locationObj.marker.color = state.defaultCircleMarkerColor;
-      handleMarkerType(value);
+      if (value === 'circle') {
+        if (!state.locationObj.marker.color?.color) {
+          state.locationObj.marker.color = state.defaultCircleMarkerColor;
+        }
+      }
+      handleMarkerType(state.locationObj.marker);
       triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
     };
   }
 
-  function handleMarkerType(type) {
-    if (type === 'image') {
+  function handleMarkerType(marker) {
+    if (marker.type === 'image') {
       addLocationControls.selectMarkerImageContainer.classList.remove('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
-    } else if (type === 'circle') {
+      if (marker.image) {
+        setIcon(marker.image, "url", addLocationControls.selectMarkerImageBtn);
+      }
+    } else if (marker.type === 'circle') {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.remove('hidden');
+      const markerColor = marker?.color?.color || state.defaultCircleMarkerColor.color;
+      addLocationControls.selectMarkerColorBtn.querySelector(
+        ".color"
+      ).style.background = markerColor;
     } else {
       addLocationControls.selectMarkerImageContainer.classList.add('hidden');
       addLocationControls.selectMarkerColorContainer.classList.add('hidden');
@@ -1499,6 +1503,20 @@ const validateLocationCsv = (items) => {
         });
         return false;
       }
+      if (item.markerType && item.markerType === 'circle') {
+        if (!item.markerColorRGBA) {
+          showImportErrorMessage({
+            message: `This file has missing marker color in row number [${i + 1}], please fix it and upload it again.`,
+          });
+          return false;
+        }
+        if (!isValidColor(item.markerColorRGBA)) {
+          showImportErrorMessage({
+            message: `This file has wrong marker color in row number [${i + 1}], please fix it and upload it again.`,
+          });
+          return false;
+        }
+      }
     }
   }
 
@@ -1506,23 +1524,42 @@ const validateLocationCsv = (items) => {
   // return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
 
+function rgbaToHex(rgba) {
+  const [r, g, b] = rgba.match(/\d+/g).map(Number);
+  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function getOpacityFromRGBA(rgba) {
+  const match = rgba.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d?\.?\d+)\s*\)/);
+  if (!match) return "100";
+  return String(Math.round(parseFloat(match[1]) * 100));
+}
+
+const applyMarkerColors = (color) => ({
+  backgroundCSS: `background: ${color}`,
+  color,
+  colorCSS: `color: ${color}`,
+  colorHex: rgbaToHex(color),
+  opacity: getOpacityFromRGBA(color),
+});
 window.importLocations = () => {
   const fileInput = locationsSection.querySelector("#location-file-input");
   fileInput.click();
-  fileInput.onchange = function (e) {
+
+  fileInput.onchange = function () {
     readCSVFile(this.files[0], (err, result) => {
-      if (!validateLocationCsv(result)) {
-        return;
-      }
+      if (!validateLocationCsv(result)) return;
+
       const dialogRef = showProgressDialog({
         title: 'Importing Locations',
         message: 'We’re importing your locations, please wait.'
       });
+
       insertData(result, (err, result) => {
         if (err) console.error(err);
         fileInput.value = '';
         dialogRef.close();
-      })
+      });
     });
   };
 };
@@ -1632,7 +1669,11 @@ const insertLocations = (result, callback) => {
     elem.listImage = elem.listImage?.trim();
     elem.description = elem.description?.trim();
     elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
-    elem.marker = { type: elem.markerType?.toLowerCase() || 'pin', color: { color: elem.markerColorRGBA } || null, image: elem.markerImage || null };
+    elem.marker = {
+      type: elem.markerType?.toLowerCase() || 'circle', 
+      color: elem.markerColorRGBA ? applyMarkerColors(elem.markerColorRGBA) : null, 
+      image: elem.markerImage || null
+    };
     elem.settings = {
       showCategory: elem.showCategory || true,
       showOpeningHours: elem.showOpeningHours || false,
