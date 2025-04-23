@@ -5,7 +5,8 @@ import buildfire from "buildfire";
 import Location from "../../../../entities/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude, showProgressDialog, isValidColor } from "../../utils/helpers";
+import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
+  showProgressDialog, isValidColor, rgbaToHex, getOpacityFromRGBA } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -1523,17 +1524,6 @@ const validateLocationCsv = (items) => {
   return true;
   // return items.every((item, index, array) =>  item.title && item.address &&  item.lat && item.lng && item.description);
 };
-
-function rgbaToHex(rgba) {
-  const [r, g, b] = rgba.match(/\d+/g).map(Number);
-  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-}
-
-function getOpacityFromRGBA(rgba) {
-  const match = rgba.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d?\.?\d+)\s*\)/);
-  if (!match) return "100";
-  return String(Math.round(parseFloat(match[1]) * 100));
-}
 
 const applyMarkerColors = (color) => ({
   backgroundCSS: `background: ${color}`,

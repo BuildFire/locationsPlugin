@@ -94,3 +94,14 @@ export const isValidColor = (color) => {
   // Explicitly reject all other formats
   return false;
 };
+
+export const rgbaToHex = (rgba) => {
+  const [r, g, b] = rgba.match(/\d+/g).map(Number);
+  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+};
+
+export const getOpacityFromRGBA = (rgba)=> {
+  const match = rgba.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d?\.?\d+)\s*\)/);
+  if (!match) return "100";
+  return String(Math.round(parseFloat(match[1]) * 100));
+};
