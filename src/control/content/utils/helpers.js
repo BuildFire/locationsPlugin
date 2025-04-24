@@ -75,7 +75,7 @@ export const showProgressDialog = ({ title, message }) => {
   return progressDialog;
 };
 
-export const isValidColor = (color) => {
+export const isValidRGBColor = (color) => {
   const rgbRegex = /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i;
   const rgbaRegex = /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i;
 

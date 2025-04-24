@@ -6,7 +6,7 @@ import Location from "../../../../entities/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
 import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
-  showProgressDialog, isValidColor, rgbaToHex, getOpacityFromRGBA } from "../../utils/helpers";
+  showProgressDialog, isValidRGBColor, rgbaToHex, getOpacityFromRGBA } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -1511,7 +1511,7 @@ const validateLocationCsv = (items) => {
           });
           return false;
         }
-        if (!isValidColor(item.markerColorRGBA)) {
+        if (!isValidRGBColor(item.markerColorRGBA)) {
           showImportErrorMessage({
             message: `This file has wrong marker color in row number [${i + 1}], please fix it and upload it again.`,
           });
@@ -1660,7 +1660,7 @@ const insertLocations = (result, callback) => {
     elem.description = elem.description?.trim();
     elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
     elem.marker = {
-      type: elem.markerType?.toLowerCase() || 'circle', 
+      type: elem.markerType?.toLowerCase() || 'pin', 
       color: elem.markerColorRGBA ? applyMarkerColors(elem.markerColorRGBA) : null, 
       image: elem.markerImage || null
     };
