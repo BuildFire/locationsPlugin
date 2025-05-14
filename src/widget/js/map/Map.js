@@ -82,8 +82,6 @@ export default class Map {
     let marker;
     let labelText = location.addressAlias || location.title;
 
-
-
     if (labelText.length > 13) labelText = labelText.slice(0, 10).concat('...');
 
     if (

@@ -74,3 +74,34 @@ export const showProgressDialog = ({ title, message }) => {
   });
   return progressDialog;
 };
+
+export const isValidRGBColor = (color) => {
+  const rgbRegex = /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i;
+  const rgbaRegex = /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i;
+
+  const rgbMatch = color.match(rgbRegex);
+  if (rgbMatch) {
+    const [, r, g, b] = rgbMatch.map(Number);
+    return [r, g, b].every((v) => v >= 0 && v <= 255);
+  }
+
+  const rgbaMatch = color.match(rgbaRegex);
+  if (rgbaMatch) {
+    const [, r, g, b, a] = rgbaMatch.map(Number);
+    return [r, g, b].every((v) => v >= 0 && v <= 255) && a >= 0 && a <= 1;
+  }
+
+  // Explicitly reject all other formats
+  return false;
+};
+
+export const rgbaToHex = (rgba) => {
+  const [r, g, b] = rgba.match(/\d+/g).map(Number);
+  return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+};
+
+export const getOpacityFromRGBA = (rgba)=> {
+  const match = rgba.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d?\.?\d+)\s*\)/);
+  if (!match) return "100";
+  return String(Math.round(parseFloat(match[1]) * 100));
+};
