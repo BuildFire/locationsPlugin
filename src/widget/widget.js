@@ -1371,7 +1371,8 @@ const handleCPSync = (message) => {
         state.clearLocations();
         searchLocations().then((result) => {
           mapView.clearMapViewList();
-          mapView.renderListingLocations(state.listLocations);
+          mapView.renderListingLocations(result);
+          result.forEach((location) => state.maps.map.addMarker(location, handleMarkerClick));
         });
       }
     }

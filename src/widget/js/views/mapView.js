@@ -96,13 +96,14 @@ const triggerSearchOnMapIdle = () => {
   }
 
   MapSearchService.searchLocations().then((_data) => {
-    handleMapSearchResponse(_data);
-    clearMapViewList();
-    renderListingLocations(state.listLocations);
+    handleMapSearchResponse(_data).then(() => {
+      clearMapViewList();
+      renderListingLocations(state.listLocations);
+    });
   });
 };
 
-const handleMapSearchResponse = (data) => {
+const handleMapSearchResponse = (data) => new Promise((resolve, reject) => {
   if (!data.aggregateLocations || !data.aggregateLocations.length) {
     if (!state.listLocations.length) {
       // if there's no result and no cached data then call "renderListingLocations" to show the empty state
@@ -143,7 +144,7 @@ const handleMapSearchResponse = (data) => {
     if (searchableTitles && searchableTitles.length > 0) {
       state.searchableTitles = searchableTitles;
       return MapSearchService.searchLocations().then((_data) => {
-        handleMapSearchResponse(_data);
+        resolve(handleMapSearchResponse(_data));
       });
     }
   }
@@ -155,11 +156,11 @@ const handleMapSearchResponse = (data) => {
 
   if (!state.fetchingEndReached && state.listLocations.length < 200) {
     return MapSearchService.searchLocations().then((_data) => {
-      handleMapSearchResponse(_data);
+      resolve(handleMapSearchResponse(_data));
     });
   }
 
-  return result;
-};
+  return resolve(state.listLocations);
+});
 
 export default { renderListingLocations, clearMapViewList, handleMapSearchResponse };
