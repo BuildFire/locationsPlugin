@@ -53,9 +53,18 @@ if (!buildfire.components.carousel.view.prototype.clear) {
   };
 }
 
+const applyTheme = () => {
+  if (!state.settings || !state.settings.design) return;
+  document.body.classList.toggle('theme-dark', state.settings.design.darkTheme);
+};
+
 const refreshSettings = () => WidgetController
   .getAppSettings()
-  .then((response) => state.settings = response);
+  .then((response) => {
+    state.settings = response;
+    applyTheme();
+    return response;
+  });
 
 const refreshCategories = () => WidgetController
   .searchCategories({
