@@ -51,8 +51,8 @@ export const transformCategoriesToText = (locationCategories, categories) => {
 };
 
 export const cdnImage = (imageUrl) => {
-  const { cloudImageHost } = buildfire.getContext().endPoints;
-  return `${cloudImageHost}/${imageUrl}`;
+  const { appId } = buildfire.getContext();
+  return `https://buidfire-proxy.imgix.net/app_${appId}/${imageUrl}`;
 };
 
 export const generateUUID = () => {
