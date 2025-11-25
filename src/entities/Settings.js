@@ -64,6 +64,7 @@ export default class Settings {
       detailsMapPosition: 'top',
       showDetailsCategory: true,
       showContributorName: false,
+      darkTheme: false,
     };
     this.globalEntries = data.globalEntries || {
       locations: {
@@ -98,6 +99,9 @@ export default class Settings {
 
     if (typeof this.globalEditors.allowLocationCreatorsToEdit === 'undefined') {
       this.globalEditors.allowLocationCreatorsToEdit = true;
+    }
+    if (typeof this.design.darkTheme === 'undefined') {
+      this.design.darkTheme = false;
     }
   }
 

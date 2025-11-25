@@ -1520,3 +1520,13 @@ h4.light-text {
 .hidden {
   display: none !important;
 }
+
+body.theme-dark {
+  --bf-theme-background: #121212;
+  --bf-theme-body-text: #ffffff;
+  --bf-theme-header-text: #ffffff;
+  --bf-theme-primary: #1E88E5;
+  --bf-theme-warning: #FFC107;
+  --bf-theme-success: #4CAF50;
+  --bf-theme-default: #BDBDBD;
+}

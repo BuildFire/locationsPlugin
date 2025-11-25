@@ -25,6 +25,7 @@ const render = () => {
   const allowMapStyleSelectionBtn = document.querySelector('#allow-map-style-selection-btn');
   const showCategoryOnLocDetailsBtn = document.querySelector('#show-category-on-loc-details-btn');
   const showContributorNameToggle = document.querySelector('#show-contributor-name');
+  const darkThemeToggle = document.querySelector('#dark-theme-toggle');
 
   for (const radio of listViewPositionRadios) {
     if (radio.value === state.settings.design?.listViewPosition) {
@@ -107,6 +108,12 @@ const render = () => {
   showContributorNameToggle.checked = state.settings.design.showContributorName;
   showContributorNameToggle.onchange = (e) => {
     state.settings.design.showContributorName = e.target.checked;
+    saveSettings();
+  };
+
+  darkThemeToggle.checked = state.settings.design.darkTheme;
+  darkThemeToggle.onchange = (e) => {
+    state.settings.design.darkTheme = e.target.checked;
     saveSettings();
   };
 };
