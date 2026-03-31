@@ -1,3 +1,5 @@
+import constants from "../widget/js/constants";
+
 /**
  * Settings data model
  * @class
@@ -22,7 +24,7 @@ export default class Settings {
         areaRadiusOptions: {}
       },
       visibilityOptions: {
-        value: 'ALL',
+        value: constants.IntroViewVisibilityOptions.ALL,
         tags: []
       }
     };

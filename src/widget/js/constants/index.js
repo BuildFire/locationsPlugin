@@ -22,4 +22,10 @@ const SearchLocationsModes = {
   AreaRadius: "AreaRadius",
 };
 
-export default { getMapStyle, getDefaultLocation, SearchLocationsModes };
+const IntroViewVisibilityOptions = {
+  ALL: "ALL",
+  TAGS: "TAGS",
+  NONE: "NONE",
+};
+
+export default { getMapStyle, getDefaultLocation, SearchLocationsModes, IntroViewVisibilityOptions };

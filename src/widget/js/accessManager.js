@@ -1,4 +1,5 @@
 import authManager from '../../UserAccessControl/authManager';
+import constants from './constants';
 import state from './state';
 
 export default {
@@ -79,10 +80,10 @@ export default {
     const { currentUser } = authManager;
     const { visibilityOptions } = state.settings.introductoryListView;
 
-    if (visibilityOptions.value === 'ALL') return true;
+    if (visibilityOptions.value === constants.IntroViewVisibilityOptions.ALL) return true;
 
     const appId = buildfire.getContext().appId;
-    if (currentUser && currentUser.tags && currentUser.tags[appId] && visibilityOptions.value === 'TAGS') {
+    if (currentUser && currentUser.tags && currentUser.tags[appId] && visibilityOptions.value === constants.IntroViewVisibilityOptions.TAGS) {
       const allowedTagNames = visibilityOptions.tags.map((t) => t.tagName);
 
       const userTagNames = currentUser.tags[appId].map((tag) => tag.tagName);

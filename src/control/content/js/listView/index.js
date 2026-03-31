@@ -40,7 +40,7 @@ window.onShowListViewChanged = (value) => {
   saveSettingsWithDelay();
 
   const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
-  if (value === 'TAGS') {
+  if (value === constants.IntroViewVisibilityOptions.TAGS) {
     introVisibilityTagsSelection?.classList?.remove('hidden');
   } else {
     introVisibilityTagsSelection?.classList?.add('hidden');
@@ -91,7 +91,7 @@ const patchListViewValues = () => {
   for (const radio of introVisibilityRadioBtns) {
     if (radio.value === state.settings.introductoryListView.visibilityOptions?.value) {
       radio.checked = true;
-      if (radio.value === 'TAGS') {
+      if (radio.value === constants.IntroViewVisibilityOptions.TAGS) {
         const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
         introVisibilityTagsSelection?.classList?.remove('hidden');
       }

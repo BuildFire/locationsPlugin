@@ -1,4 +1,5 @@
 import Setting from "../entities/Settings";
+import constants from "../widget/js/constants";
 
 export default class Settings {
   /**
@@ -34,7 +35,7 @@ export default class Settings {
           if (!res.data.introductoryListView.visibilityOptions) {
             res.data.introductoryListView.visibilityOptions = {
               tags: [],
-              value: res.data.showIntroductoryListView ? "ALL" : "NONE"
+              value: res.data.showIntroductoryListView ? constants.IntroViewVisibilityOptions.ALL : constants.IntroViewVisibilityOptions.NONE
             }
           }
 
