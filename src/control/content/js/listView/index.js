@@ -9,6 +9,7 @@ import Location from "../../../../entities/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
 import constants from "../../../../widget/js/constants";
+import CpDropdown from "../../../../shared/CpDropdown";
 
 const listViewSection = document.querySelector("#main");
 
@@ -47,30 +48,55 @@ window.onShowListViewChanged = (value) => {
   }
 };
 
-window.onSortLocationsChanged = (sorting) => {
+const onSortLocationsChanged = (sorting) => {
   if (!sorting) {
     return;
   }
-  state.settings.introductoryListView.sorting = sorting;
+  state.settings.introductoryListView.sorting = sorting.value;
   saveSettingsWithDelay();
 };
 
-window.onShowLocationsModeChanged = (showMode) => {
+const onShowLocationsModeChanged = (showMode) => {
   const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
-  if (showMode === constants.SearchLocationsModes.AreaRadius) {
+  if (showMode.value === constants.SearchLocationsModes.AreaRadius) {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');
   }
 
   if (state.settings.introductoryListView.searchOptions) {
-    state.settings.introductoryListView.searchOptions.mode = showMode;
+    state.settings.introductoryListView.searchOptions.mode = showMode.value;
   } else {
-    state.settings.introductoryListView.searchOptions = { mode: showMode };
+    state.settings.introductoryListView.searchOptions = { mode: showMode.value };
   }
 
   saveSettingsWithDelay();
 };
+
+const initIntroDropDowns = () => {
+  const sourceDropdown = new CpDropdown('#locationsSourceContainer', {
+    items: [
+      { label: 'All Locations', value: constants.SearchLocationsModes.All, id: constants.SearchLocationsModes.All },
+      { label: "User's Position", value: constants.SearchLocationsModes.UserPosition, id: constants.SearchLocationsModes.UserPosition },
+      { label: 'Local Area', value: constants.SearchLocationsModes.AreaRadius, id: constants.SearchLocationsModes.AreaRadius },
+      { label: 'My Locations', value: constants.SearchLocationsModes.MyLocations, id: constants.SearchLocationsModes.MyLocations }
+    ],
+    dropToTop: true,
+    selectedId: state.settings.introductoryListView.searchOptions?.mode || constants.SearchLocationsModes.All,
+    handleSelect: onShowLocationsModeChanged,
+  });
+
+  const sortDropdown = new CpDropdown('#sortLocationsContainer', {
+    items: [
+      { label: 'Distance', value: constants.SortingOptions.Distance, id: constants.SortingOptions.Distance },
+      { label: 'Alphabetical', value: constants.SortingOptions.Alphabetical, id: constants.SortingOptions.Alphabetical },
+      { label: 'Newest', value: constants.SortingOptions.Newest, id: constants.SortingOptions.Newest }
+    ],
+    dropToTop: true,
+    selectedId: state.settings.introductoryListView.sorting || constants.SortingOptions.Distance,
+    handleSelect: onSortLocationsChanged,
+  });
+}
 
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
@@ -108,6 +134,8 @@ const patchListViewValues = () => {
     saveSettingsWithDelay();
   }
   userTagsInput.append(state.settings.introductoryListView.visibilityOptions.tags);
+
+  initIntroDropDowns();
 };
 
 const handlePinnedLocationEmptyState = (isLoading) => {

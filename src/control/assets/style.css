@@ -316,3 +316,9 @@ p.info::before {
 .radio input[type="radio"]:disabled + label {
 	cursor: default;
 }
+
+.dropdown-menu.dropup {
+	top: unset !important;
+	bottom: 100% !important;
+	margin-bottom: 2px;
+}

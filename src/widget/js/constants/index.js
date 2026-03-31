@@ -20,7 +20,14 @@ const SearchLocationsModes = {
   All: "All",
   UserPosition: "UserPosition",
   AreaRadius: "AreaRadius",
+  MyLocations: "MyLocations",
 };
+
+const SortingOptions = {
+  Distance: "distance",
+  Alphabetical: "alphabetical",
+  Newest: "newest",
+}
 
 const IntroViewVisibilityOptions = {
   ALL: "ALL",
@@ -28,4 +35,4 @@ const IntroViewVisibilityOptions = {
   NONE: "NONE",
 };
 
-export default { getMapStyle, getDefaultLocation, SearchLocationsModes, IntroViewVisibilityOptions };
+export default { getMapStyle, getDefaultLocation, SearchLocationsModes, SortingOptions, IntroViewVisibilityOptions };
