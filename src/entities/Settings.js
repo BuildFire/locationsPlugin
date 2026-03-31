@@ -8,7 +8,6 @@ export default class Settings {
    * @constructor
    */
   constructor(data = {}) {
-    this.showIntroductoryListView = typeof data.showIntroductoryListView === 'undefined' ? true : data.showIntroductoryListView;
     this.subscription = data.subscription || {
       enabled: false,
       allowCustomNotifications: false,
@@ -21,6 +20,10 @@ export default class Settings {
       searchOptions: {
         mode: null,
         areaRadiusOptions: {}
+      },
+      visibilityOptions: {
+        value: 'ALL',
+        tags: []
       }
     };
     this.sorting = data.sorting || {
@@ -104,7 +107,6 @@ export default class Settings {
   toJSON() {
     return {
       subscription: this.subscription,
-      showIntroductoryListView: this.showIntroductoryListView,
       measurementUnit: this.measurementUnit,
       introductoryListView: this.introductoryListView,
       sorting: this.sorting,

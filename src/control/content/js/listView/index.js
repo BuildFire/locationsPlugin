@@ -35,9 +35,16 @@ const initListViewWysiwyg = () => {
   });
 };
 
-window.onShowListViewChanged = (e) => {
-  state.settings.showIntroductoryListView = e.target.checked;
+window.onShowListViewChanged = (value) => {
+  state.settings.introductoryListView.visibilityOptions.value = value;
   saveSettingsWithDelay();
+
+  const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
+  if (value === 'TAGS') {
+    introVisibilityTagsSelection?.classList?.remove('hidden');
+  } else {
+    introVisibilityTagsSelection?.classList?.add('hidden');
+  }
 };
 
 window.onSortLocationsChanged = (sorting) => {
@@ -67,8 +74,6 @@ window.onShowLocationsModeChanged = (showMode) => {
 
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
-  const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
-  showBtn.checked = state.settings.showIntroductoryListView;
   listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
@@ -82,6 +87,27 @@ const patchListViewValues = () => {
       radio.checked = true;
     }
   }
+  const introVisibilityRadioBtns = listViewSection.querySelectorAll('input[name="introVisibility"]');
+  for (const radio of introVisibilityRadioBtns) {
+    if (radio.value === state.settings.introductoryListView.visibilityOptions?.value) {
+      radio.checked = true;
+      if (radio.value === 'TAGS') {
+        const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
+        introVisibilityTagsSelection?.classList?.remove('hidden');
+      }
+    }
+  }
+
+  const userTagsInput = new buildfire.components.control.userTagsInput("#introVisibilityTagsSelection", {
+    languageSettings: {
+      placeholder: "User Tags"
+    }
+  });
+  userTagsInput.onUpdate = (data) => {
+    state.settings.introductoryListView.visibilityOptions.tags = data;
+    saveSettingsWithDelay();
+  }
+  userTagsInput.append(state.settings.introductoryListView.visibilityOptions.tags);
 };
 
 const handlePinnedLocationEmptyState = (isLoading) => {

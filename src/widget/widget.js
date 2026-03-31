@@ -40,6 +40,7 @@ import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
 import renderNotificationForm from './js/views/sendNotificationView';
+import accessManager from './js/accessManager';
 
 let SEARCH_TIMOUT;
 
@@ -148,11 +149,11 @@ const initChipSetInteractionListener = (event) => {
 
 const searchLocations = () => (
   new Promise((resolve, reject) => {
-    const { showIntroductoryListView } = state.settings;
     const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
     state.fetchingNextPage = true;
 
-    if (activeTemplate === 'intro' && showIntroductoryListView) {
+    const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+    if (activeTemplate === 'intro' && _hasIntroAccess) {
       // fetch locations within intro list view
       IntroSearchService.searchIntroLocations().then((data) => resolve(introView.handleIntroSearchResponse(data)));
     } else {
@@ -326,8 +327,9 @@ const viewFullImage = (url, selectedId) => {
 };
 
 const setDefaultSorting = () => {
-  const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
-  if (showIntroductoryListView && introductoryListView.sorting) {
+  const { introductoryListView, sorting } = state.settings;
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+  if (_hasIntroAccess && introductoryListView.sorting) {
     if (introductoryListView.sorting === 'distance') {
       state.introSort = { sortBy: 'distance', order: 1 };
     } else if (introductoryListView.sorting === 'alphabetical') {
@@ -1090,7 +1092,7 @@ const initDrawerFilterOptions = () => {
 };
 const initHomeView = () => {
   views.inject('home');
-  const { showIntroductoryListView } = state.settings;
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
   refreshQuickFilter();
   initMainMap();
   initAreaAutocompleteField('areaSearchTextField', (autocomplete) => {
@@ -1121,7 +1123,7 @@ const initHomeView = () => {
 
   if (state.deepLinkData?.isResultsBookmark) {
     handleResultsBookmark();
-  } else if (showIntroductoryListView) {
+  } else if (_hasIntroAccess) {
     Analytics.listViewUsed();
     initIntroLocations();
   } else {
@@ -1291,7 +1293,8 @@ const handleCPSync = (message) => {
     state.currentLocation = null;
     refreshSettings()
       .then(() => {
-        if (state.settings.showIntroductoryListView) {
+        const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+        if (_hasIntroAccess) {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
           setDefaultSorting();
@@ -1513,6 +1516,7 @@ const navigateToLocationId = (locationId, pushToHistory = true) => {
 };
 
 const onPopHandler = (breadcrumb) => {
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
   // handle going back from advanced filter
   console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name);
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesEdit') {
@@ -1532,12 +1536,11 @@ const onPopHandler = (breadcrumb) => {
     state.breadcrumbs.length
     && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
       || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
-    && state.settings.showIntroductoryListView
+    && _hasIntroAccess
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    const { showIntroductoryListView } = state.settings;
-    if (showIntroductoryListView) {
+    if (_hasIntroAccess) {
       clearAndSearchAllLocation();
     }
   }

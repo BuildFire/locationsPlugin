@@ -75,4 +75,20 @@ export default {
     }
     return authed;
   },
+  hasIntroScreenAccess() {
+    const { currentUser } = authManager;
+    const { visibilityOptions } = state.settings.introductoryListView;
+
+    if (visibilityOptions.value === 'ALL') return true;
+
+    const appId = buildfire.getContext().appId;
+    if (currentUser && currentUser.tags && currentUser.tags[appId] && visibilityOptions.value === 'TAGS') {
+      const allowedTagNames = visibilityOptions.tags.map((t) => t.tagName);
+
+      const userTagNames = currentUser.tags[appId].map((tag) => tag.tagName);
+
+      return userTagNames.some((tagName) => allowedTagNames.includes(tagName));
+    }
+    return false;
+  }
 };

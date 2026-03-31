@@ -7,6 +7,8 @@
 @import "./reset.css";
 @import "../../assets/style.css";
 @import "../../../../../../styles/control/siteIcons-control.css";
+@import "../../../../../../styles/siteIcons.css";
+@import "../../../../../../styles/components/control/tagsInput/tagsInput.min.css";
 
 
 
@@ -81,4 +83,10 @@ table#locations-items tbody {
   pointer-events: none;
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.intro-visibility-container {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
 }

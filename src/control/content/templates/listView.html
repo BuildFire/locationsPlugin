@@ -1,11 +1,25 @@
 <template>
-    <div class="flex-row space-between">
-      <div class="section-title">Introduction Screen</div>
-      <div class="form-group margin-top-ten">
-        <div class="button-switch">
-            <input id="listview-show-introduction-btn" type="checkbox"  onchange="onShowListViewChanged(event)"/>
-            <label for="listview-show-introduction-btn" class="label-success"></label>
+    <div class="space-between">
+      <div class="section-title margin-bottom-five">Introduction Screen</div>
+      <div class="form-group margin-top-ten intro-visibility-container">
+        <div class="padding-right-zero">
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-all" value="NONE"
+              onchange="onShowListViewChanged('NONE')" />
+            <label for="listview-show-locations-by-all">No Users</label>
+          </div>
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-user-position" value="TAGS"
+              onchange="onShowListViewChanged('TAGS')" />
+            <label for="listview-show-locations-by-user-position">Users With</label>
+          </div>
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-area-radius" value="ALL"
+              onchange="onShowListViewChanged('ALL')" />
+            <label for="listview-show-locations-by-area-radius">All Users</label>
+          </div>
         </div>
+        <div id="introVisibilityTagsSelection" class="hidden" />
       </div>
     </div>
     <div class="clearfix">

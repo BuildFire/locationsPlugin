@@ -29,6 +29,18 @@ export default class Settings {
           resolve(settings);
           return;
         }
+
+        if (res.data.hasOwnProperty('showIntroductoryListView')) {
+          if (!res.data.introductoryListView.visibilityOptions) {
+            res.data.introductoryListView.visibilityOptions = {
+              tags: [],
+              value: res.data.showIntroductoryListView ? "ALL" : "NONE"
+            }
+          }
+
+          delete res.data.showIntroductoryListView;
+        }
+
         resolve(new Setting(res.data));
       });
     });
