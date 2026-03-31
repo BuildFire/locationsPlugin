@@ -3,6 +3,7 @@ import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
 import constants from "../../js/constants";
+import authManager from "../../../UserAccessControl/authManager";
 
 const IntroSearchService = {
   _getUserCoordinates() {
@@ -52,7 +53,9 @@ const IntroSearchService = {
         }
       }
     };
-    pipelines.push({ $geoNear });
+    if (state.settings.introductoryListView.searchOptions?.mode !== constants.SearchLocationsModes.MyLocations) {
+      $match['createdBy.userId'] = authManager.currentUser?.userId || '';
+    }
     pipelines.push({ $match });
 
     if (state.searchCriteria.sort) {

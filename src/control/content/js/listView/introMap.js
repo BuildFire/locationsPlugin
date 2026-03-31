@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import state from "../../state";
 import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
+import constants from "../../../../widget/js/constants";
 
 const convertMileToMeter = (distanceInMiles) => {
   if (typeof distanceInMiles === "number") {
@@ -180,8 +181,12 @@ const setGoogleMapsScript = (key) => {
 
 const loadAreaRadiusMap = () => {
   const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
-  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.mode === "AreaRadius") {
+  if (state.settings.introductoryListView.searchOptions && state.settings.introductoryListView.searchOptions.mode === constants.SearchLocationsModes.AreaRadius) {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
+  }
+  const locationSourceNote = document.querySelector("#locationSourceNote");
+  if (state.settings.introductoryListView.searchOptions.mode && state.settings.introductoryListView.searchOptions.mode === constants.SearchLocationsModes.MyLocations) {
+    locationSourceNote?.classList?.remove('hidden');
   }
   buildfire.getContext((error, context) => {
     setGoogleMapsScript(context.apiKeys.googleMapKey);

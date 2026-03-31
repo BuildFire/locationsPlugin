@@ -63,6 +63,12 @@ const onShowLocationsModeChanged = (showMode) => {
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');
   }
+  const locationSourceNote = document.querySelector("#locationSourceNote");
+  if (showMode.value === constants.SearchLocationsModes.MyLocations) {
+    locationSourceNote?.classList?.remove('hidden');
+  } else {
+    locationSourceNote?.classList?.add('hidden');
+  }
 
   if (state.settings.introductoryListView.searchOptions) {
     state.settings.introductoryListView.searchOptions.mode = showMode.value;
@@ -74,7 +80,7 @@ const onShowLocationsModeChanged = (showMode) => {
 };
 
 const initIntroDropDowns = () => {
-  const sourceDropdown = new CpDropdown('#locationsSourceContainer', {
+  const sourceDropdown = new CpDropdown('#locationsSourceDropdown', {
     items: [
       { label: 'All Locations', value: constants.SearchLocationsModes.All, id: constants.SearchLocationsModes.All },
       { label: "User's Position", value: constants.SearchLocationsModes.UserPosition, id: constants.SearchLocationsModes.UserPosition },
@@ -86,7 +92,7 @@ const initIntroDropDowns = () => {
     handleSelect: onShowLocationsModeChanged,
   });
 
-  const sortDropdown = new CpDropdown('#sortLocationsContainer', {
+  const sortDropdown = new CpDropdown('#sortLocationsDropdown', {
     items: [
       { label: 'Distance', value: constants.SortingOptions.Distance, id: constants.SortingOptions.Distance },
       { label: 'Alphabetical', value: constants.SortingOptions.Alphabetical, id: constants.SortingOptions.Alphabetical },
@@ -130,7 +136,7 @@ const patchListViewValues = () => {
     }
   });
   userTagsInput.onUpdate = (data) => {
-    state.settings.introductoryListView.visibilityOptions.tags = data;
+    state.settings.introductoryListView.visibilityOptions.tags = data.tags;
     saveSettingsWithDelay();
   }
   userTagsInput.append(state.settings.introductoryListView.visibilityOptions.tags);
