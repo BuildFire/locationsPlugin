@@ -160,8 +160,13 @@ span.required{
   flex: auto;
 }
 
-.input-control.has-error input{
-  border: 1px solid var(--c-danger);
+.has-error .form-control,
+.input-control.has-error input {
+  border-color: var(--c-danger) !important;
+}
+
+#locationCustomFieldsContainer .custom-field-label {
+  border-color: var(--c-gray3) !important;
 }
 .date__group input {
     margin: 0 1.5rem;

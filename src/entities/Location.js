@@ -54,6 +54,10 @@ export default class Location {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
+    this.customFields = {
+      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
+      content: (data.customFields?.content || []).map(field => new CustomField(field))
+    };
   }
 
   get instanceId() {
@@ -93,6 +97,7 @@ export default class Location {
       deletedOn: this.deletedOn,
       deletedBy: this.deletedBy,
       isActive: this.isActive,
+      customFields: this.customFields,
       _buildfire: {
         index: {
           text: `${this.title.toLowerCase()} ${this.subtitle ? this.subtitle : ''} ${this.address} ${this.formattedAddress} ${this.addressAlias ? this.addressAlias : ''}`,
@@ -113,5 +118,13 @@ export default class Location {
         }
       }
     };
+  }
+}
+
+class CustomField {
+  constructor(data = {}) {
+    this.id = data.id || null;
+    this.customLabel = data.customLabel || null;
+    this.value = data.value || null;
   }
 }

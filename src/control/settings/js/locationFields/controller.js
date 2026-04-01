@@ -1,8 +1,8 @@
 import buildfire from 'buildfire';
-import CustomFieldsListUI from './ui/customFieldsListUI';
-import SettingsController from "../settings.controller";
-import { generateUUID } from '../../../shared/utils/helpers';
-import constants from '../../../widget/js/constants';
+import CustomFieldsListUI from '../ui/customFieldsListUI';
+import SettingsController from "../../settings.controller";
+import { generateUUID } from '../../../../shared/utils/helpers';
+import constants from '../../../../widget/js/constants';
 
 let _saveTimer;
 const updateCustomFieldsWithDeilay = (customFields) => {

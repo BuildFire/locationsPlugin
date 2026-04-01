@@ -21,7 +21,7 @@ class CustomFieldsListUI extends SortableListUI {
 
     // Drag handle
     const dragHandle = document.createElement("span");
-    dragHandle.className = "icon icon-menu cursor-grab pull-left";
+    dragHandle.className = "icon icon-menu cursor-grab pull-left margin-zero padding-right-ten";
     dragHandle.style.marginTop = "10px";
     divRow.appendChild(dragHandle);
 
@@ -134,7 +134,7 @@ class CustomFieldsListUI extends SortableListUI {
     // Delete Button
     const delCol = document.createElement("div");
     const deleteBtn = document.createElement("span");
-    deleteBtn.className = "btn--icon icon icon-cross2 cursor-pointer delete-btn margin-left-five";
+    deleteBtn.className = "btn--icon icon icon-cross2 cursor-pointer delete-btn margin-left-ten";
     deleteBtn.onclick = () => {
       let currentIndex = divRow.getAttribute("arrayIndex");
       currentIndex = parseInt(currentIndex, 10);

@@ -22,6 +22,7 @@ import Category from "../../../../entities/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
 import constants from '../../../../widget/js/constants';
 import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
+import locationCustomFieldsController from "./customFields";
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -254,6 +255,7 @@ window.addEditLocation = (location) => {
   renderOpeningHours(state.locationObj.openingHours);
   onMarkerTypeChanged(state.locationObj.marker);
   onPriceRangeChanged(state.locationObj.price);
+  locationCustomFieldsController.init(state.locationObj);
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
@@ -684,6 +686,12 @@ const locationInputValidation = () => {
 
   if (!validateOpeningHours(openingHours)) {
     isValid = false;
+  }
+
+  if (!locationCustomFieldsController.validateCustomFields()) {
+    isValid = false;
+  } else {
+    state.locationObj.customFields = locationCustomFieldsController.getCustomFieldsValues();
   }
 
   const invalidInput = document.querySelector(".has-error");
