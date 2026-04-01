@@ -39,6 +39,10 @@ export default class Settings {
       allowSortByRating: true,
       allowSortByViews: true,
     };
+    this.customFields = {
+      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
+      content: (data.customFields?.content || []).map(field => new CustomField(field))
+    };
     this.filter = data.filter || {
       allowFilterByArea: true,
       allowFilterByBookmarks: false,
@@ -131,5 +135,15 @@ export default class Settings {
         index: {}
       }
     };
+  }
+}
+
+class CustomField {
+  constructor(data = {}) {
+    this.id = data.id || null;
+    this.label = data.label || null;
+    this.type = data.type || null;
+    this.required = data.required || false;
+    this.enableCustomLabel = data.enableCustomLabel || false;
   }
 }

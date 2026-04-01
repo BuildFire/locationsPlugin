@@ -35,4 +35,18 @@ const IntroViewVisibilityOptions = {
   NONE: "NONE",
 };
 
-export default { getMapStyle, getDefaultLocation, SearchLocationsModes, SortingOptions, IntroViewVisibilityOptions };
+const QuickActionsOptions = {
+  URL: "URL",
+  PHONE: "PHONE",
+  EMAIL: "EMAIL",
+}
+
+const ContentOptions = {
+  TEXT: "TEXT",
+  RICH_TEXT: "RICH_TEXT",
+  URL: "URL",
+  PHONE: "PHONE",
+  EMAIL: "EMAIL",
+}
+
+export default { getMapStyle, getDefaultLocation, SearchLocationsModes, SortingOptions, IntroViewVisibilityOptions, QuickActionsOptions, ContentOptions, QuickActionsOptions, ContentOptions };

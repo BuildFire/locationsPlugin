@@ -13,6 +13,7 @@ import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../repository/Locations';
 import { getDisplayName } from './js/util/helpers';
 import { isCameraControlVersion } from '../../shared/utils/mapUtils';
+import initLocationFields from './js/locationFields.controller';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -1209,6 +1210,12 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('globalSettings');
       navigate('globalSettings', () => {
         initGlobalSettings();
+      });
+      break;
+    case 'locationFields':
+      setActiveSidenavTab('locationFields');
+      navigate('locationFields', () => {
+        initLocationFields(state.settings);
       });
       break;
     case 'sorting':

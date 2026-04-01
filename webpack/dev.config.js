@@ -103,6 +103,13 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationFields.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationFields.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
