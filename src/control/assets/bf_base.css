@@ -167,6 +167,7 @@ span.required{
 
 #locationCustomFieldsContainer .custom-field-label {
   border-color: var(--c-gray3) !important;
+  box-shadow: none !important;
 }
 .date__group input {
     margin: 0 1.5rem;

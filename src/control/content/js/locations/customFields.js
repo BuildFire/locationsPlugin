@@ -177,6 +177,7 @@ const locationCustomFieldsController = {
 		valueInput.className = 'form-control';
 		valueInput.placeholder = this._getCustomFieldPlaceholder(field.type);
 		valueInput.value = initialValue;
+		valueInput.setAttribute('maxlength', 150);
 		return valueInput;
 	},
 
@@ -223,6 +224,7 @@ const locationCustomFieldsController = {
 				customLabelInput.className = 'form-control custom-field-label';
 				customLabelInput.placeholder = 'Label (optional)';
 				customLabelInput.value = activeField.customLabel || '';
+				customLabelInput.setAttribute('maxlength', 50);
 				customLabelCol.appendChild(customLabelInput);
 				innerRow.appendChild(customLabelCol);
 
