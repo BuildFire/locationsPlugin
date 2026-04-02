@@ -174,6 +174,10 @@ const _validateLocationSave = () => {
     isValid = false;
   }
 
+  if (!customFieldsController.validate()) {
+    isValid = false;
+  }
+
   return isValid;
 };
 
@@ -315,6 +319,8 @@ const _saveChanges = (e) => {
 
   if (!_validateLocationSave()) return;
   if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
+
+  pendingLocation.customFields = customFieldsController.getFieldsValues();
 
   e.target.disabled = true;
 

@@ -211,6 +211,144 @@ const customFieldsController = {
 				new mdc.textField.MDCTextField(el);
 			});
 		});
+	},
+
+	validate() {
+		const { settings } = state;
+		let isValid = true;
+		const allFields = [
+			...(settings.customFields?.quickActions || []),
+			...(settings.customFields?.content || [])
+		];
+
+		allFields.forEach(field => {
+			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
+			let inputElement;
+			let valueStr = '';
+
+			if (isRichText) {
+				inputElement = document.querySelector(`#custom-field-input-${field.id}Container`);
+				valueStr = inputElement ? (inputElement.dataset.value || '') : '';
+			} else {
+				inputElement = document.querySelector(`#custom-field-input-${field.id}`);
+				valueStr = inputElement ? (inputElement.value || '') : '';
+			}
+
+			if (!isRichText && inputElement) {
+				valueStr = valueStr.trim();
+				inputElement.value = valueStr;
+			} else if (isRichText && inputElement) {
+				valueStr = valueStr.trim();
+				inputElement.dataset.value = valueStr;
+			}
+
+			const helperLine = document.querySelector(`.custom-field-input-${field.id}Helper`);
+			const helperText = helperLine ? helperLine.querySelector('.error-msg') : null;
+
+			if (helperLine) helperLine.classList.add('hidden');
+			if (inputElement && !isRichText) {
+				const mdcField = inputElement.closest('.mdc-text-field');
+				if (mdcField) mdcField.classList.remove('mdc-text-field--invalid');
+			}
+
+			let errorMessage = '';
+
+			if (field.required && !valueStr) {
+				errorMessage = 'This field is required';
+			} else if (valueStr) {
+				if (field.type === constants.QuickActionsOptions.EMAIL || field.type === constants.ContentOptions.EMAIL) {
+					const emailHasAt = valueStr.includes('@');
+					const emailHasDotAfterAt = emailHasAt && valueStr.indexOf('.', valueStr.indexOf('@')) !== -1;
+					const emailNoSpaces = !valueStr.includes(' ');
+
+					if (!emailHasAt || !emailHasDotAfterAt || !emailNoSpaces) {
+						errorMessage = 'Enter a valid email address';
+					}
+				} else if (field.type === constants.QuickActionsOptions.PHONE || field.type === constants.ContentOptions.PHONE) {
+					const phoneRegex = /^[\d\s+\-()]+$/;
+					const hasLetters = /[a-zA-Z]/.test(valueStr);
+					if (!phoneRegex.test(valueStr) || hasLetters) {
+						errorMessage = 'Enter a valid phone number';
+					}
+				} else if (field.type === constants.QuickActionsOptions.URL || field.type === constants.ContentOptions.URL) {
+					if (valueStr.includes(' ') || !valueStr.includes('.')) {
+						errorMessage = 'Enter a valid URL';
+					} else {
+						if (!/^https?:\/\//i.test(valueStr)) {
+							valueStr = 'https://' + valueStr;
+							if (inputElement && !isRichText) {
+								inputElement.value = valueStr;
+							}
+						}
+					}
+				}
+			}
+
+			if (errorMessage) {
+				isValid = false;
+				if (helperLine && helperText) {
+					helperText.textContent = errorMessage;
+					helperLine.classList.remove('hidden');
+					helperLine.classList.add('has-error');
+				}
+				if (inputElement && !isRichText) {
+					const mdcField = inputElement.closest('.mdc-text-field');
+					if (mdcField) mdcField.classList.add('mdc-text-field--invalid');
+				}
+			}
+		});
+
+		return isValid;
+	},
+
+	getFieldsValues() {
+		const { settings } = state;
+		const values = {
+			quickActions: [],
+			content: []
+		};
+
+		const allFields = [
+			...(settings.customFields?.quickActions || []),
+			...(settings.customFields?.content || [])
+		];
+
+		allFields.forEach(field => {
+			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
+			let inputElement;
+			let valueStr = '';
+			let customLabelStr = '';
+
+			if (isRichText) {
+				inputElement = document.querySelector(`#custom-field-input-${field.id}Container`);
+				valueStr = inputElement ? (inputElement.dataset.value || '') : '';
+			} else {
+				inputElement = document.querySelector(`#custom-field-input-${field.id}`);
+				valueStr = inputElement ? (inputElement.value || '') : '';
+			}
+
+			if (field.enableCustomLabel) {
+				const labelInput = document.querySelector(`#custom-field-label-${field.id}`);
+				customLabelStr = labelInput ? (labelInput.value || '') : '';
+			}
+
+			const fieldData = {
+				id: field.id,
+				value: valueStr.trim()
+			};
+
+			if (field.enableCustomLabel) {
+				fieldData.customLabel = customLabelStr.trim();
+			}
+
+			if (settings.customFields?.quickActions?.find(q => q.id === field.id)) {
+				values.quickActions.push(fieldData);
+			} else {
+				values.content.push(fieldData);
+			}
+		});
+
+		return values;
 	}
 };
 

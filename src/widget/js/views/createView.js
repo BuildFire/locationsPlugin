@@ -293,6 +293,10 @@ export default {
       isValid = false;
     }
 
+    if (!customFieldsController.validate()) {
+      isValid = false;
+    }
+
     return { isValid };
   },
   submit(e) {
@@ -314,6 +318,8 @@ export default {
       e.target.disabled = false;
       return;
     }
+
+    this.payload.customFields = customFieldsController.getFieldsValues();
 
     widgetController.createLocation(this.payload)
       .then((result) => {
