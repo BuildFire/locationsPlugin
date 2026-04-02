@@ -294,6 +294,20 @@ export default {
         required: true,
         maxLength: 35,
       },
+      additionalDetails: {
+        title: 'Additional Details',
+        placeholder: 'Enter text here',
+        defaultValue: 'Additional Details',
+        required: true,
+        maxLength: 35,
+      },
+      locationCustomLabel: {
+        title: 'Location Custom Label',
+        placeholder: 'Enter text here',
+        defaultValue: 'Label (optional)',
+        required: true,
+        maxLength: 35,
+      },
       locationStreetNameAndNumber: {
         title: 'Street Name and Number',
         placeholder: 'Enter text here',

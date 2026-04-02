@@ -23,6 +23,7 @@ import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
 import constants from '../constants';
 import accessManager from '../accessManager';
+import customFieldsController from './customFields';
 
 const localState = {
   pendingLocation: null,
@@ -887,6 +888,7 @@ const init = () => {
       _refreshLocationImages();
       _renderOpeningHours();
       _initAddressAutocompleteField('locationAddressFieldInput');
+      customFieldsController.init();
 
       editView.addEventListener('click', onViewClick);
       editView.querySelectorAll('.mdc-text-field').forEach((i) => {

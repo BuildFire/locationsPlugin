@@ -24,6 +24,7 @@ import {
   uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
 } from '../util/forms';
 import constants from '../constants';
+import customFieldsController from './customFields';
 
 export default {
   get _defaultFieldsInfo() {
@@ -848,6 +849,7 @@ export default {
         this.buildEventsHandlers();
         this.buildMap();
         this.show();
+        customFieldsController.init();
         window.strings.inject(document.querySelector('section#create'), false);
       });
   },

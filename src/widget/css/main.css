@@ -124,6 +124,9 @@ section#categories.overlay {
   display: flex;
   flex-direction: column;
 }
+.gap-half-rem {
+  gap: 0.5rem;
+}
 .d-block {
   display: block;
 }
@@ -1425,7 +1428,8 @@ h4.light-text {
   text-transform: unset;
 }
 #locationDescriptionTextField,
-#locationDescriptionContainer {
+#locationDescriptionContainer,
+.custom-wysiwyg-container {
   background-color: rgba(150,150,150,.1);
   height: 165px;
   padding: 4px 16px 6px;
@@ -1436,24 +1440,29 @@ h4.light-text {
   position: relative;
 }
 #locationDescriptionTextField.has-error,
-#locationDescriptionContainer.has-error {
+#locationDescriptionContainer.has-error,
+.custom-wysiwyg-container.has-error {
   border-bottom-color:   var(--mdc-theme-error, #EB4747) !important;
 }
 #locationDescriptionTextField *,
-#locationDescriptionContainer * {
+#locationDescriptionContainer *,
+.custom-wysiwyg-container * {
   pointer-events: none;
 }
 #locationDescriptionTextField:not(.disabled),
-#locationDescriptionContainer:not(.disabled) {
+#locationDescriptionContainer:not(.disabled),
+.custom-wysiwyg-container:not(.disabled) {
   cursor: text;
 }
 #locationDescriptionTextField.disabled,
-#locationDescriptionContainer.disabled {
+#locationDescriptionContainer.disabled,
+.custom-wysiwyg-container.disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 #locationDescriptionTextField .mdc-floating-label,
-#locationDescriptionContainer .mdc-floating-label {
+#locationDescriptionContainer .mdc-floating-label,
+.custom-wysiwyg-container .mdc-floating-label {
   left: 16px;
   top: 20px;
   color: var(--mdc-theme-on-background, #000000);
@@ -1517,6 +1526,17 @@ h4.light-text {
   padding: 20px 0;
 }
 
+.custom-field-title {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bf-theme-header-text);
+}
+
+.custom-field-title.required::after {
+  margin-left: 1px;
+  content: "*";
+  font-size: 15px;
+}
 .hidden {
   display: none !important;
 }

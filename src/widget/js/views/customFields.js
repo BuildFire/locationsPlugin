@@ -1,0 +1,217 @@
+import state from '../state';
+import constants from '../constants';
+
+const customFieldsController = {
+	init() {
+		const { settings } = state;
+		const locationCustomFields = document.querySelector('#locationCustomFields');
+
+		if (settings.customFields.quickActions.length || settings.customFields.content.length) {
+			const locationAdditionalDetailsContainer = document.querySelector('#locationAdditionalDetailsContainer');
+			locationAdditionalDetailsContainer.innerHTML = '';
+
+			this._injectCustomFields();
+
+			locationCustomFields.classList.remove('hidden');
+		} else {
+			locationCustomFields.classList.add('hidden');
+		}
+	},
+
+	_getCustomFieldPlaceholder(fieldType) {
+		switch (fieldType) {
+			case constants.QuickActionsOptions.EMAIL:
+			case constants.ContentOptions.EMAIL:
+				return 'Enter email address';
+			case constants.QuickActionsOptions.PHONE:
+			case constants.ContentOptions.PHONE:
+				return 'Enter phone number';
+			case constants.QuickActionsOptions.URL:
+			case constants.ContentOptions.URL:
+				return 'Enter URL';
+			case constants.ContentOptions.RICH_TEXT:
+				return 'Add description';
+			default:
+				return 'Enter details';
+		}
+	},
+
+	_createMDCInput(id, title, value = '', type = 'text', maxLength = 150) {
+		const container = document.createElement('div');
+		container.className = 'text-field-container';
+
+		const mdcField = document.createElement('div');
+		mdcField.className = 'mdc-text-field';
+		mdcField.id = `${id}Field`;
+
+		const input = document.createElement('input');
+		input.className = 'mdc-text-field__input mdc-theme--text-primary-on-background';
+		input.id = id;
+		input.maxLength = maxLength;
+		input.type = type;
+		input.value = value;
+		mdcField.appendChild(input);
+
+		const lineRipple = document.createElement('div');
+		lineRipple.className = 'mdc-line-ripple';
+		mdcField.appendChild(lineRipple);
+
+		const floatingLabel = document.createElement('label');
+		floatingLabel.className = 'mdc-floating-label';
+		floatingLabel.setAttribute('for', id);
+		floatingLabel.textContent = title;
+		mdcField.appendChild(floatingLabel);
+
+		container.appendChild(mdcField);
+
+		const helperLine = document.createElement('div');
+		helperLine.className = `mdc-text-field-helper-line ${id}Helper hidden`;
+
+		const helperText = document.createElement('p');
+		helperText.className = 'mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg error-msg';
+		helperText.textContent = 'Required';
+		helperLine.appendChild(helperText);
+		container.appendChild(helperLine);
+
+		return { container, input };
+	},
+
+	_createMDCDialogTrigger(id, title, value = '') {
+		const container = document.createElement('div');
+		container.className = 'text-field-container';
+
+		const descriptionId = `${id}Container`;
+
+		const wysiwygContainer = document.createElement('div');
+		wysiwygContainer.id = descriptionId;
+		wysiwygContainer.className = 'custom-wysiwyg-container';
+
+		if (value) {
+			wysiwygContainer.innerHTML = value;
+		} else {
+			const labelSpan = document.createElement('label');
+			labelSpan.className = 'mdc-floating-label mdc-theme--text-primary-on-background';
+			labelSpan.textContent = title;
+			wysiwygContainer.appendChild(labelSpan);
+		}
+
+		wysiwygContainer.dataset.value = value;
+		container.appendChild(wysiwygContainer);
+
+		const helperLine = document.createElement('div');
+		helperLine.className = `mdc-text-field-helper-line ${id}Helper hidden`;
+
+		const helperText = document.createElement('p');
+		helperText.className = 'mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg error-msg';
+		helperText.textContent = window.strings?.get('locationEditing.fieldRequired')?.v || 'Required';
+		helperLine.appendChild(helperText);
+		container.appendChild(helperLine);
+
+		wysiwygContainer.onclick = (e) => {
+			if (wysiwygContainer.classList.contains('disabled')) return;
+			wysiwygContainer.classList.add('disabled');
+			buildfire.input.showTextDialog(
+				{
+					placeholder: title,
+					saveText: window.strings?.get('locationEditing.descriptionDialogSave')?.v || 'Save',
+					cancelText: window.strings?.get('locationEditing.descriptionDialogCancel')?.v || 'Cancel',
+					defaultValue: wysiwygContainer.dataset.value || '',
+					wysiwyg: true,
+				},
+				(err, response) => {
+					wysiwygContainer.classList.remove('disabled');
+					if (err) return console.error(err);
+					if (response.cancelled) return;
+
+					wysiwygContainer.dataset.value = response.results[0].wysiwygValue;
+					wysiwygContainer.innerHTML = '';
+
+					if (response.results[0].wysiwygValue) {
+						wysiwygContainer.innerHTML = response.results[0].wysiwygValue;
+					} else {
+						const labelSpan = document.createElement('label');
+						labelSpan.className = 'mdc-floating-label mdc-theme--text-primary-on-background';
+						labelSpan.textContent = title;
+						wysiwygContainer.appendChild(labelSpan);
+					}
+				}
+			);
+		};
+
+		return { container, input: wysiwygContainer };
+	},
+
+	_injectCustomFields() {
+		const { settings, selectedLocation } = state;
+		const locationAdditionalDetailsContainer = document.querySelector('#locationAdditionalDetailsContainer');
+
+		const allFields = [
+			...(settings.customFields?.quickActions || []),
+			...(settings.customFields?.content || [])
+		];
+
+		const activeLocationFields = [
+			...(selectedLocation?.customFields?.quickActions || []),
+			...(selectedLocation?.customFields?.content || [])
+		];
+
+		allFields.forEach(field => {
+			const activeField = activeLocationFields.find(f => f.id === field.id) || {};
+			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
+
+			const row = document.createElement('div');
+			row.id = `custom-field-container-${field.id}`;
+			row.className = 'custom-field-wrapper margin-bottom-twenty d-flex-column gap-half-rem';
+
+			const fieldTitle = field.label;
+			const fieldTitleSpan = document.createElement('span');
+			fieldTitleSpan.className = field.required ? 'custom-field-title required' : 'custom-field-title';
+			fieldTitleSpan.textContent = fieldTitle;
+			row.appendChild(fieldTitleSpan);
+			const placeholder = this._getCustomFieldPlaceholder(field.type);
+
+			if (field.enableCustomLabel) {
+				const innerFlex = document.createElement('div');
+				innerFlex.className = 'd-flex-column gap-half-rem';
+
+				const labelCol = document.createElement('div');
+				labelCol.className = 'w-100';
+
+				const { container: labelMdc } = this._createMDCInput(`custom-field-label-${field.id}`, window.strings?.get('locationEditing.locationCustomLabel')?.v || 'Label (optional)', activeField.customLabel || '', 'text', 50);
+				labelCol.appendChild(labelMdc);
+
+				const valueCol = document.createElement('div');
+				valueCol.className = 'w-100';
+
+				if (isRichText) {
+					const { container: valueMdc } = this._createMDCDialogTrigger(`custom-field-input-${field.id}`, placeholder, activeField.value || '');
+					valueCol.appendChild(valueMdc);
+				} else {
+					const { container: valueMdc } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					valueCol.appendChild(valueMdc);
+				}
+
+				innerFlex.appendChild(labelCol);
+				innerFlex.appendChild(valueCol);
+				row.appendChild(innerFlex);
+
+			} else {
+				if (isRichText) {
+					const { container: valueMdc } = this._createMDCDialogTrigger(`custom-field-input-${field.id}`, placeholder, activeField.value || '');
+					row.appendChild(valueMdc);
+				} else {
+					const { container: valueMdc } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					row.appendChild(valueMdc);
+				}
+			}
+
+			locationAdditionalDetailsContainer.appendChild(row);
+
+			row.querySelectorAll('.mdc-text-field').forEach((el) => {
+				new mdc.textField.MDCTextField(el);
+			});
+		});
+	}
+};
+
+export default customFieldsController;
