@@ -263,11 +263,13 @@ window.addEditLocation = (location) => {
   tinymce.init({
     selector: "#location-description-wysiwyg",
     setup: (ed) => {
-      ed.on('keyup change', () => {
-        state.locationObj.description = tinymce.activeEditor.getContent();
-        state.locationObj.wysiwygSource = 'control';
-        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
-        checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
+      ed.on('keyup change', (e) => {
+        if (tinymce.activeEditor.id === 'location-description-wysiwyg') {
+          state.locationObj.description = tinymce.activeEditor.getContent();
+          state.locationObj.wysiwygSource = 'control';
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+          checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
+        }
       });
     }
   });
@@ -2040,7 +2042,8 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
         rating: state.locationObj.rating,
         price: state.locationObj.price,
         editingPermissions: state.locationObj.editingPermissions,
-        openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours }
+        openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours },
+        customFields: state.locationObj.customFields
       };
     }
     buildfire.messaging.sendMessageToWidget({
@@ -2052,6 +2055,7 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
     });
   }, 500);
 };
+window.triggerWidgetOnLocationsUpdate = triggerWidgetOnLocationsUpdate;
 
 const triggerWidgetOnSettingsUpdate = () => {
   buildfire.messaging.sendMessageToWidget({

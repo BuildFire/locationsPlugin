@@ -22,17 +22,17 @@ const customFieldsController = {
 		switch (fieldType) {
 			case constants.QuickActionsOptions.EMAIL:
 			case constants.ContentOptions.EMAIL:
-				return 'Enter email address';
+				return window.strings?.get('locationEditing.enterEmailAddress')?.v || 'Enter email address';
 			case constants.QuickActionsOptions.PHONE:
 			case constants.ContentOptions.PHONE:
-				return 'Enter phone number';
+				return window.strings?.get('locationEditing.enterPhoneNumber')?.v || 'Enter phone number';
 			case constants.QuickActionsOptions.URL:
 			case constants.ContentOptions.URL:
-				return 'Enter URL';
+				return window.strings?.get('locationEditing.enterURL')?.v || 'Enter URL';
 			case constants.ContentOptions.RICH_TEXT:
-				return 'Add description';
+				return window.strings?.get('locationEditing.addDescription')?.v || 'Add description';
 			default:
-				return 'Enter details';
+				return window.strings?.get('locationEditing.enterDetails')?.v || 'Enter details';
 		}
 	},
 
@@ -69,7 +69,7 @@ const customFieldsController = {
 
 		const helperText = document.createElement('p');
 		helperText.className = 'mdc-theme--text-primary-on-background mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg error-msg';
-		helperText.textContent = 'Required';
+		helperText.textContent = window.strings?.get('locationEditing.required')?.v || 'Required';
 		helperLine.appendChild(helperText);
 		container.appendChild(helperLine);
 
@@ -187,7 +187,8 @@ const customFieldsController = {
 					const { container: valueMdc } = this._createMDCDialogTrigger(`custom-field-input-${field.id}`, placeholder, activeField.value || '');
 					valueCol.appendChild(valueMdc);
 				} else {
-					const { container: valueMdc } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					const { container: valueMdc, input } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					input.addEventListener('blur', () => this.validateField(field));
 					valueCol.appendChild(valueMdc);
 				}
 
@@ -200,7 +201,8 @@ const customFieldsController = {
 					const { container: valueMdc } = this._createMDCDialogTrigger(`custom-field-input-${field.id}`, placeholder, activeField.value || '');
 					row.appendChild(valueMdc);
 				} else {
-					const { container: valueMdc } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					const { container: valueMdc, input } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
+					input.addEventListener('blur', () => this.validateField(field));
 					row.appendChild(valueMdc);
 				}
 			}
@@ -222,81 +224,93 @@ const customFieldsController = {
 		];
 
 		allFields.forEach(field => {
-			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
-			let inputElement;
-			let valueStr = '';
-
-			if (isRichText) {
-				inputElement = document.querySelector(`#custom-field-input-${field.id}Container`);
-				valueStr = inputElement ? (inputElement.dataset.value || '') : '';
-			} else {
-				inputElement = document.querySelector(`#custom-field-input-${field.id}`);
-				valueStr = inputElement ? (inputElement.value || '') : '';
+			if (!this.validateField(field)) {
+				isValid = false;
 			}
+		});
 
-			if (!isRichText && inputElement) {
-				valueStr = valueStr.trim();
-				inputElement.value = valueStr;
-			} else if (isRichText && inputElement) {
-				valueStr = valueStr.trim();
-				inputElement.dataset.value = valueStr;
-			}
+		return isValid;
+	},
 
-			const helperLine = document.querySelector(`.custom-field-input-${field.id}Helper`);
-			const helperText = helperLine ? helperLine.querySelector('.error-msg') : null;
+	validateField(field) {
+		let isValid = true;
+		const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
+		let inputElement;
+		let valueStr = '';
 
-			if (helperLine) helperLine.classList.add('hidden');
-			if (inputElement && !isRichText) {
-				const mdcField = inputElement.closest('.mdc-text-field');
-				if (mdcField) mdcField.classList.remove('mdc-text-field--invalid');
-			}
+		if (isRichText) {
+			inputElement = document.querySelector(`#custom-field-input-${field.id}Container`);
+			valueStr = inputElement ? (inputElement.dataset.value || '') : '';
+		} else {
+			inputElement = document.querySelector(`#custom-field-input-${field.id}`);
+			valueStr = inputElement ? (inputElement.value || '') : '';
+		}
 
-			let errorMessage = '';
+		if (!isRichText && inputElement) {
+			valueStr = valueStr.trim();
+			inputElement.value = valueStr;
+		} else if (isRichText && inputElement) {
+			valueStr = valueStr.trim();
+			inputElement.dataset.value = valueStr;
+		}
 
-			if (field.required && !valueStr) {
-				errorMessage = 'This field is required';
-			} else if (valueStr) {
-				if (field.type === constants.QuickActionsOptions.EMAIL || field.type === constants.ContentOptions.EMAIL) {
-					const emailHasAt = valueStr.includes('@');
-					const emailHasDotAfterAt = emailHasAt && valueStr.indexOf('.', valueStr.indexOf('@')) !== -1;
-					const emailNoSpaces = !valueStr.includes(' ');
+		const helperLine = document.querySelector(`.custom-field-input-${field.id}Helper`);
+		const helperText = helperLine ? helperLine.querySelector('.error-msg') : null;
 
-					if (!emailHasAt || !emailHasDotAfterAt || !emailNoSpaces) {
-						errorMessage = 'Enter a valid email address';
-					}
-				} else if (field.type === constants.QuickActionsOptions.PHONE || field.type === constants.ContentOptions.PHONE) {
-					const phoneRegex = /^[\d\s+\-()]+$/;
-					const hasLetters = /[a-zA-Z]/.test(valueStr);
-					if (!phoneRegex.test(valueStr) || hasLetters) {
-						errorMessage = 'Enter a valid phone number';
-					}
-				} else if (field.type === constants.QuickActionsOptions.URL || field.type === constants.ContentOptions.URL) {
-					if (valueStr.includes(' ') || !valueStr.includes('.')) {
-						errorMessage = 'Enter a valid URL';
-					} else {
-						if (!/^https?:\/\//i.test(valueStr)) {
-							valueStr = 'https://' + valueStr;
-							if (inputElement && !isRichText) {
-								inputElement.value = valueStr;
-							}
+		if (helperLine) {
+			helperLine.classList.add('hidden');
+			helperLine.classList.remove('has-error');
+		}
+		if (inputElement && !isRichText) {
+			const mdcField = inputElement.closest('.mdc-text-field');
+			if (mdcField) mdcField.classList.remove('mdc-text-field--invalid');
+		}
+
+		let errorMessage = '';
+
+		if (field.required && !valueStr) {
+			errorMessage = window.strings?.get('locationEditing.fieldRequired')?.v || 'This field is required';
+		} else if (valueStr) {
+			if (field.type === constants.QuickActionsOptions.EMAIL || field.type === constants.ContentOptions.EMAIL) {
+				const emailHasAt = valueStr.includes('@');
+				const emailHasDotAfterAt = emailHasAt && valueStr.indexOf('.', valueStr.indexOf('@')) !== -1;
+				const emailNoSpaces = !valueStr.includes(' ');
+
+				if (!emailHasAt || !emailHasDotAfterAt || !emailNoSpaces) {
+					errorMessage = window.strings?.get('locationEditing.validEmail')?.v || 'Enter a valid email address';
+				}
+			} else if (field.type === constants.QuickActionsOptions.PHONE || field.type === constants.ContentOptions.PHONE) {
+				const phoneRegex = /^[\d\s+\-()]+$/;
+				const hasLetters = /[a-zA-Z]/.test(valueStr);
+				if (!phoneRegex.test(valueStr) || hasLetters) {
+					errorMessage = window.strings?.get('locationEditing.validPhone')?.v || 'Enter a valid phone number';
+				}
+			} else if (field.type === constants.QuickActionsOptions.URL || field.type === constants.ContentOptions.URL) {
+				if (valueStr.includes(' ') || !valueStr.includes('.')) {
+					errorMessage = window.strings?.get('locationEditing.validURL')?.v || 'Enter a valid URL';
+				} else {
+					if (!/^https?:\/\//i.test(valueStr)) {
+						valueStr = 'https://' + valueStr;
+						if (inputElement && !isRichText) {
+							inputElement.value = valueStr;
 						}
 					}
 				}
 			}
+		}
 
-			if (errorMessage) {
-				isValid = false;
-				if (helperLine && helperText) {
-					helperText.textContent = errorMessage;
-					helperLine.classList.remove('hidden');
-					helperLine.classList.add('has-error');
-				}
-				if (inputElement && !isRichText) {
-					const mdcField = inputElement.closest('.mdc-text-field');
-					if (mdcField) mdcField.classList.add('mdc-text-field--invalid');
-				}
+		if (errorMessage) {
+			isValid = false;
+			if (helperLine && helperText) {
+				helperText.textContent = errorMessage;
+				helperLine.classList.remove('hidden');
+				helperLine.classList.add('has-error');
 			}
-		});
+			if (inputElement && !isRichText) {
+				const mdcField = inputElement.closest('.mdc-text-field');
+				if (mdcField) mdcField.classList.add('mdc-text-field--invalid');
+			}
+		}
 
 		return isValid;
 	},

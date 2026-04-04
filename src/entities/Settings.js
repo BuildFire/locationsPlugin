@@ -119,6 +119,7 @@ export default class Settings {
       filter: this.filter,
       map: this.map,
       bookmarks: this.bookmarks,
+      customFields: this.customFields,
       design: this.design,
       globalEntries: this.globalEntries,
       globalEditors: this.globalEditors,

@@ -353,6 +353,113 @@ export default {
     }
   },
 
+  buildCustomActions() {
+    const { selectedLocation } = state;
+    const customFields = selectedLocation.customFields || {};
+    const quickActions = customFields.quickActions || [];
+    const content = customFields.content || [];
+
+    state.settings?.customFields?.quickActions.forEach(fieldSchema => {
+      const field = quickActions.find(q => q.id === fieldSchema.id);
+      if (!fieldSchema.type || !field || !field.value) return;
+
+      let icon = '';
+      let actionObject = null;
+
+      if (fieldSchema.type === constants.QuickActionsOptions.EMAIL) {
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32">alternate_email</i>';
+        actionObject = { action: 'sendEmail', email: field.value };
+      } else if (fieldSchema.type === constants.QuickActionsOptions.PHONE) {
+        icon = '<i class="iconsTheme material-icons pointer text-32">call</i>';
+        actionObject = { action: 'callNumber', phoneNumber: field.value };
+      } else if (fieldSchema.type === constants.QuickActionsOptions.URL) {
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32">link</i>';
+        actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
+      }
+
+      const title = field.customLabel || fieldSchema.label;
+
+      const div = document.createElement('div');
+      div.className = 'action-item';
+      div.innerHTML = `
+        ${icon}
+        <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
+          <div class="mdc-chip__ripple"></div>
+          <span role="gridcell">
+            <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+              <span class="mdc-chip__text">${title}</span>
+            </span>
+          </span>
+        </div>
+      `;
+
+      div.onclick = (e) => {
+        e.stopPropagation();
+        if (actionObject) {
+          buildfire.actionItems.execute(actionObject, (err) => {
+            if (err) console.error(err);
+          });
+        }
+      };
+
+      selectors.actionItems.appendChild(div);
+    });
+
+    state.settings?.customFields?.content.forEach(fieldSchema => {
+      const field = content.find(q => q.id === fieldSchema.id);
+
+      if (!fieldSchema.type || !field || !field.value) return;
+
+      let descriptionContainer = selectors.actionItems.querySelector('.location-custom_content_container');
+      if (!descriptionContainer) {
+        descriptionContainer = document.createElement('div');
+        descriptionContainer.className = 'location-custom_content_container flex d-flex-column gap-2-rem padded-md';
+        selectors.actionItems.appendChild(descriptionContainer);
+      }
+
+      const fieldContainer = document.createElement('div');
+      fieldContainer.className = 'location-custom_content_item d-flex-column gap-half-rem';
+
+      const title = field.customLabel || fieldSchema.label;
+
+      const titleEl = document.createElement('p');
+      titleEl.innerHTML = title;
+      titleEl.classList.add('headerTextTheme');
+      titleEl.style.margin = '0';
+
+      const valueEl = document.createElement('div');
+      valueEl.innerHTML = field.value;
+      valueEl.className = 'custom-content-value';
+      let actionObject = null;
+
+      if (fieldSchema.type === constants.ContentOptions.EMAIL) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'sendEmail', email: field.value };
+      } else if (fieldSchema.type === constants.ContentOptions.PHONE) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'callNumber', phoneNumber: field.value };
+      } else if (fieldSchema.type === constants.ContentOptions.URL) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
+      } else {
+        valueEl.classList.add('bodyTextTheme');
+      }
+
+      valueEl.onclick = (e) => {
+        e.stopPropagation();
+        if (actionObject) {
+          buildfire.actionItems.execute(actionObject, (err) => {
+            if (err) console.error(err);
+          });
+        }
+      };
+
+      fieldContainer.appendChild(titleEl);
+      fieldContainer.appendChild(valueEl);
+      descriptionContainer.appendChild(fieldContainer);
+    });
+  },
+
   initLocationDetails() {
     return new Promise((resolve, reject) => {
       const { selectedLocation } = state;
@@ -497,7 +604,7 @@ export default {
           }
 
           selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon ${a.iconClassName}"></i>` : ''}
+            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon iconsTheme ${a.iconClassName}"></i>` : ''}
               <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
@@ -508,6 +615,8 @@ export default {
               </div>
             </div>`).join('\n');
           selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+          this.buildCustomActions();
+
           resolve();
         });
     });

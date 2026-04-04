@@ -164,7 +164,10 @@ const locationCustomFieldsController = {
 								ed.setContent(initialValue);
 							}
 						});
-						ed.on('keyup change', () => { });
+						ed.on('keyup change', () => {
+							this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+							if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+						});
 					}
 				});
 			}, 0);
@@ -178,6 +181,12 @@ const locationCustomFieldsController = {
 		valueInput.placeholder = this._getCustomFieldPlaceholder(field.type);
 		valueInput.value = initialValue;
 		valueInput.setAttribute('maxlength', 150);
+
+		valueInput.addEventListener('keyup', () => {
+			this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+			if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+		});
+
 		return valueInput;
 	},
 
@@ -225,6 +234,12 @@ const locationCustomFieldsController = {
 				customLabelInput.placeholder = 'Label (optional)';
 				customLabelInput.value = activeField.customLabel || '';
 				customLabelInput.setAttribute('maxlength', 50);
+
+				customLabelInput.addEventListener('keyup', () => {
+					this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+					if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+				});
+
 				customLabelCol.appendChild(customLabelInput);
 				innerRow.appendChild(customLabelCol);
 
