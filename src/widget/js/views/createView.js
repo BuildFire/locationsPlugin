@@ -1,5 +1,5 @@
 import state from '../state';
-import Location from '../../../entities/Location';
+import Location from '../global/data/Location';
 import views from '../Views';
 import {
   createTemplate,
@@ -23,7 +23,7 @@ import {
   validateTimeInterval,
   uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
 } from '../util/forms';
-import constants from '../constants';
+import constants from '../global/constants';
 import customFieldsController from './customFields';
 
 export default {

@@ -4,7 +4,7 @@
 // Feel free to require any local or npm modules you've installed.
 //
 import buildfire from 'buildfire';
-import Settings from '../../entities/Settings';
+import Settings from '../../widget/js/global/data/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import DesignController from "./design.controller";
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable no-restricted-syntax */
-import Categories from '../../../../repository/Categories';
+import Categories from '../../../../widget/js/global/repository/Categories';
 import authManager from '../../../../UserAccessControl/authManager';
 import Analytics from '../../../../utils/analytics';
 

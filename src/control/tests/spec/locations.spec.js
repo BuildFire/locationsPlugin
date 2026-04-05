@@ -2,10 +2,10 @@ import "../lib/jasmine";
 import "../lib/jasmine-html";
 import "../lib/boot";
 
-import Categories from "../../../repository/Categories";
-import Locations from "../../../repository/Locations";
+import Categories from "../../../widget/js/global/repository/Categories";
+import Locations from "../../../widget/js/global/repository/Locations";
 import authManager from "../../../UserAccessControl/authManager";
-import Location from "../../../entities/Location";
+import Location from "../../../widget/js/global/data/Location";
 
 const run = () => {
   describe("Locations", () => {

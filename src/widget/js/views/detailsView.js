@@ -5,7 +5,6 @@ import state from '../state';
 import {
   shareLocation,
   bookmarkLocation,
-  generateUUID,
   showToastMessage,
   getActiveTemplate,
   transformCategoriesToText,
@@ -13,20 +12,21 @@ import {
   isLocationOpen,
   cdnImage
 } from '../util/helpers';
+import { generateUUID } from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import accessManager from '../accessManager';
 import reportAbuse from '../reportAbuse';
-import Locations from '../../../repository/Locations';
-import Location from '../../../entities/Location';
+import Locations from '../global/repository/Locations';
+import Location from '../global/data/Location';
 import DeepLink from '../../../utils/deeplink';
-import SearchEngine from '../../../repository/searchEngine';
+import SearchEngine from '../global/repository/searchEngine';
 import introView from './introView';
 import mapView from './mapView';
 import authManager from '../../../UserAccessControl/authManager';
 import notifications from '../../services/notifications';
 import widgetController from '../../widget.controller';
 import views from '../Views';
-import constants from '../constants';
+import constants from '../global/constants';
 import MainMap from '../map/Map';
 
 let selectors = {};
@@ -37,7 +37,7 @@ export default {
     const location = state.selectedLocation;
     const carouselContainer = document.querySelector('.location-detail__carousel');
 
-    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}');" data-id="${n.id}"></div>`).join('\n');
 
     const indexInList = state.listLocations.findIndex((i) => i.id === location.id);
     const indexInPinned = state.pinnedLocations.findIndex((i) => i.id === location.id);
@@ -538,10 +538,10 @@ export default {
 
           if (selectedLocation.images?.length > 0) {
             if (pageMapPosition === 'top') {
-              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
+              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" }) + '&crop=entropy'}')`;
               selectors.cover.style.display = 'block';
             } else {
-              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
+              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" }) + '&crop=entropy'}')`;
             }
           }
 
@@ -614,7 +614,7 @@ export default {
                 </span>
               </div>
             </div>`).join('\n');
-          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}');" data-id="${n.id}"></div>`).join('\n');
           this.buildCustomActions();
 
           resolve();

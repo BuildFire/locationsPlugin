@@ -2,7 +2,7 @@ import "../lib/jasmine";
 import "../lib/jasmine-html";
 import "../lib/boot";
 
-import Settings from "../../../repository/Settings";
+import Settings from "../../../widget/js/global/repository/Settings";
 
 const run = () => {
   describe("Settings", () => {

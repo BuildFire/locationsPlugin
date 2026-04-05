@@ -1,4 +1,4 @@
-import Settings from '../../repository/Settings';
+import Settings from '../../widget/js/global/repository/Settings';
 import authManager from '../../UserAccessControl/authManager';
 
 export default {

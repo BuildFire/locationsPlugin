@@ -164,8 +164,8 @@ p.info::before {
 }
 
 .list-image-holder {
-	width: 120px;
-	height: 80px;
+	width: 96px;
+		height: 96px;
 }
 
 .icon-holder img, .list-image-holder img {

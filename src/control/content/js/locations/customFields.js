@@ -1,4 +1,4 @@
-import constants from '../../../../widget/js/constants';
+import constants from '../../../../widget/js/global/constants';
 import globalState from '../../state';
 
 const locationCustomFieldsController = {

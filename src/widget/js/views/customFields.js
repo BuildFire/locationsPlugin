@@ -1,5 +1,5 @@
 import state from '../state';
-import constants from '../constants';
+import constants from '../global/constants';
 
 const customFieldsController = {
 	init() {

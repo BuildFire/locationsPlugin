@@ -2,7 +2,7 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
-import constants from "../../js/constants";
+import constants from "../../js/global/constants";
 import authManager from "../../../UserAccessControl/authManager";
 
 const IntroSearchService = {

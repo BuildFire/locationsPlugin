@@ -3,12 +3,12 @@
 /* eslint-disable no-use-before-define */
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
-import { generateUUID } from "../../utils/helpers";
+import { generateUUID } from "../../../../widget/js/global/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
-import Location from "../../../../entities/Location";
+import Location from "../../../../widget/js/global/data/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
-import constants from "../../../../widget/js/constants";
+import constants from "../../../../widget/js/global/constants";
 import CpDropdown from "../../../../shared/CpDropdown";
 
 const listViewSection = document.querySelector("#main");

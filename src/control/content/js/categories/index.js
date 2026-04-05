@@ -7,11 +7,12 @@ import CategoriesController from "./controller";
 import CategoriesListUI from "./categoriesListUI";
 import SubcategoriesListUI from "./subcategoriesListUI";
 import DialogComponent from "../dialog/dialog";
-import Category from "../../../../entities/Category";
-import { generateUUID, createTemplate, handleInputError, showProgressDialog } from "../../utils/helpers";
+import Category from "../../../../widget/js/global/data/Category";
+import { createTemplate, handleInputError, showProgressDialog } from "../../utils/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import globalState from '../../state';
 import authManager from '../../../../UserAccessControl/authManager';
+import { generateUUID } from "../../../../widget/js/global/helpers";
 
 const state = {
   categories: [],
@@ -105,7 +106,7 @@ const cropImage = (url, options) => {
   if (!url) {
     return "";
   }
-  return buildfire.imageLib.cropImage(url, options);
+  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
 };
 
 const setCategoryIcon = (icon, type) => {

@@ -1,13 +1,13 @@
-import Locations from '../repository/Locations';
-import Categories from '../repository/Categories';
-import Settings from '../repository/Settings';
-import searchEngine from '../repository/searchEngine';
-import Location from '../repository/Locations';
-import { generateUUID } from '../control/content/utils/helpers';
+import Locations from './js/global/repository/Locations';
+import Categories from './js/global/repository/Categories';
+import Settings from './js/global/repository/Settings';
+import searchEngine from './js/global/repository/searchEngine';
+import Location from './js/global/repository/Locations';
+import { generateUUID } from './js/global/helpers';
 import state from './js/state';
 import Analytics from '../utils/analytics';
 import DeepLink from '../utils/deeplink';
-import SearchEngine from '../repository/searchEngine';
+import SearchEngine from './js/global/repository/searchEngine';
 
 const DEFAULT_PAGE = 0;
 

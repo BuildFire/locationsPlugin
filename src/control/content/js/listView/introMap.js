@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import state from "../../state";
 import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
-import constants from "../../../../widget/js/constants";
+import constants from "../../../../widget/js/global/constants";
 
 const convertMileToMeter = (distanceInMiles) => {
   if (typeof distanceInMiles === "number") {

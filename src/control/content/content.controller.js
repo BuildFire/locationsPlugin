@@ -1,5 +1,5 @@
-import Categories from '../../repository/Categories';
-import Settings from '../../repository/Settings';
+import Categories from '../../widget/js/global/repository/Categories';
+import Settings from '../../widget/js/global/repository/Settings';
 
 export default {
   getSettings() {

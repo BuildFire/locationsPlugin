@@ -1,4 +1,4 @@
-import Category from "../entities/Category";
+import Category from "../data/Category";
 /**
  * Categories data access
  * @class
