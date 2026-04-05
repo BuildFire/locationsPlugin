@@ -1241,7 +1241,9 @@ const handleCPSync = (message) => {
         // outdated design
         const o = outdatedSettings.design;
 
-        if (d.listViewStyle !== o.listViewStyle) {
+        if (d.detailsMapPosition !== o.detailsMapPosition) {
+          views.refreshCurrentView();
+        } else if (d.listViewStyle !== o.listViewStyle) {
           hideOverlays();
           navigateTo('home');
           showMapView();
@@ -1844,3 +1846,15 @@ const initApp = () => {
 };
 
 initApp();
+
+/**
+  * TODO for Alaa
+  - add validation for custom fields
+  - add save custom fields
+  - add update custom fields
+  ---------------------------------------------------
+  - handle real time sync between settings and widget
+  - handle mentioned issues by mahmoud
+  - handle some design refactors that mentioned in the mockups
+  - Critical:::: check scenarios that deleting the custom fields in admin panel
+  */
