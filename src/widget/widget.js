@@ -1289,6 +1289,11 @@ const handleCPSync = (message) => {
           window.location.reload();
         }
       });
+  } else if (scope === 'customFields') {
+    refreshSettings()
+      .then(() => {
+        views.refreshCurrentView();
+      });
   } else if (scope === 'intro') {
     state.currentLocation = null;
     refreshSettings()

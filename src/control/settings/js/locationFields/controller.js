@@ -12,7 +12,13 @@ const updateCustomFieldsWithDeilay = (customFields) => {
 			quickActions: customFields.quickActions.filter(item => item.label && item.type),
 			content: customFields.content.filter(item => item.label && item.type)
 		}
-		SettingsController.updateSettings({ customFields });
+		SettingsController.updateSettings({ customFields }).then(() => {
+			updateAddButtonsState({ customFields });
+			buildfire.messaging.sendMessageToWidget({
+				cmd: 'sync',
+				scope: 'customFields'
+			});
+		})
 	}, 500);
 }
 
@@ -111,6 +117,8 @@ const initLocationFields = (settings) => {
 			enableCustomLabel: false
 		});
 		settings.customFields.quickActions = quickActionsList.items;
+
+		updateAddButtonsState(settings);
 	};
 
 	const addTextContentBtn = document.getElementById('add-text-content-field');
@@ -123,7 +131,27 @@ const initLocationFields = (settings) => {
 			enableCustomLabel: false
 		});
 		settings.customFields.content = textContentList.items;
+
+		updateAddButtonsState(settings);
 	};
+
+	updateAddButtonsState(settings);
+};
+
+const updateAddButtonsState = (settings) => {
+	const { customFields } = settings;
+	const allFields = [...customFields.quickActions, ...customFields.content];
+
+	const addTextContentBtn = document.getElementById('add-text-content-field');
+	const addQuickActionBtn = document.getElementById('add-quick-action-field');
+
+	if (allFields.length < 10) {
+		addTextContentBtn.classList.remove('disabled');
+		addQuickActionBtn.classList.remove('disabled');
+	} else {
+		addTextContentBtn.classList.add('disabled');
+		addQuickActionBtn.classList.add('disabled');
+	}
 };
 
 export default initLocationFields;
