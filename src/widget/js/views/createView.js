@@ -3,7 +3,6 @@ import Location from '../global/data/Location';
 import views from '../Views';
 import {
   createTemplate,
-  generateUUID,
   getDefaultOpeningHours,
   showToastMessage,
   transformCategoriesToText,
@@ -11,7 +10,8 @@ import {
   getActiveTemplate,
   cropImage
 } from '../util/helpers';
-import { navigateTo, resetBodyScroll, showElement } from '../util/ui';
+import { generateUUID } from '../global/helpers';
+import { hideElement, navigateTo, resetBodyScroll, showElement } from '../util/ui';
 import Accordion from '../Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
@@ -342,6 +342,7 @@ export default {
     if (activeTemplate === 'intro') {
       introView.clearIntroViewList();
       introView.renderIntroductoryLocations(state.listLocations, true);
+      hideElement('#intro div.empty-page');
     } else {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);

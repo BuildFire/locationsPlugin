@@ -92,7 +92,7 @@ class CustomFieldsListUI extends SortableListUI {
     reqCheckboxWrap.appendChild(reqLabel);
 
     const reqSpan = document.createElement("span");
-    reqSpan.textContent = "Required";
+    reqSpan.innerHTML = `<label class="font-size-14 text--black margin-zero" for='req_${uniqueId}'>Required</label>`;
 
     reqCol.appendChild(reqCheckboxWrap);
     reqCol.appendChild(reqSpan);
@@ -125,7 +125,7 @@ class CustomFieldsListUI extends SortableListUI {
     custCheckboxWrap.appendChild(custLabel);
 
     const custSpan = document.createElement("span");
-    custSpan.textContent = "Allow Custom Label";
+    custSpan.innerHTML = `<label class="font-size-14 text--black margin-zero" for='cust_${uniqueId}'>Allow Custom Label</label>`;
 
     custCol.appendChild(custCheckboxWrap);
     custCol.appendChild(custSpan);

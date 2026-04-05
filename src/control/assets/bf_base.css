@@ -53,6 +53,11 @@ margin-bottom: .5em;
   margin-bottom: 1.5rem;
   margin-top: 0;
 }
+.section-subtitle {
+  color: var(--c-info);
+  font-size: 16px !important;
+  font-weight: 500;
+}
 
 .text-secondary {
   color: var(--c-gray6);

@@ -1001,7 +1001,7 @@ const renderSelectedCategoriesList = (locationCategories) => {
     categoryListItem.className = 'item-list';
     const itemContent = `
     <div class="item-list">
-       <h5 class="text-bold">${category.title}</h5>
+       <h5 class="section-subtitle">${category.title}</h5>
        <span class="text-muted">${subcategories.map((elem) => elem.title).join(', ')}</span>
      </div>
     `;
