@@ -367,13 +367,13 @@ export default {
       let actionObject = null;
 
       if (fieldSchema.type === constants.QuickActionsOptions.EMAIL) {
-        icon = '<i class="iconsTheme material-icons-outlined pointer text-32">alternate_email</i>';
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32 margin-auto">alternate_email</i>';
         actionObject = { action: 'sendEmail', email: field.value };
       } else if (fieldSchema.type === constants.QuickActionsOptions.PHONE) {
-        icon = '<i class="iconsTheme material-icons pointer text-32">call</i>';
+        icon = '<i class="iconsTheme material-icons pointer text-32 margin-auto">call</i>';
         actionObject = { action: 'callNumber', phoneNumber: field.value };
       } else if (fieldSchema.type === constants.QuickActionsOptions.URL) {
-        icon = '<i class="iconsTheme material-icons-outlined pointer text-32">link</i>';
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32 margin-auto">link</i>';
         actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
       }
 
@@ -604,7 +604,7 @@ export default {
           }
 
           selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon iconsTheme ${a.iconClassName}"></i>` : ''}
+            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon iconsTheme margin-auto ${a.iconClassName}"></i>` : ''}
               <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">

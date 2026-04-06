@@ -365,5 +365,9 @@ p.info::before {
 	background-color: var(--c-info);
 	margin-right: .5rem;
 	position: absolute;
+}
 
+.custom-field-section .d-item .icon-cross2::before {
+	font-size: 14px;
+	color: var(--c-gray5);
 }

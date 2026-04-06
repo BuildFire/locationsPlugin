@@ -70,7 +70,7 @@ class CustomFieldsListUI extends SortableListUI {
     const reqCol = document.createElement("div");
     reqCol.style.display = "flex";
     reqCol.style.alignItems = "center";
-    reqCol.style.gap = "5px";
+    reqCol.style.gap = "10px";
 
     const reqCheckboxWrap = document.createElement("div");
     reqCheckboxWrap.className = "checkbox checkbox-primary no-label margin-zero";
@@ -102,7 +102,7 @@ class CustomFieldsListUI extends SortableListUI {
     const custCol = document.createElement("div");
     custCol.style.display = "flex";
     custCol.style.alignItems = "center";
-    custCol.style.gap = "5px";
+    custCol.style.gap = "10px";
     custCol.style.gridColumn = "span 2";
 
     const custCheckboxWrap = document.createElement("div");

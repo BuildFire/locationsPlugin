@@ -584,7 +584,7 @@ p.info-note.info-note-transparent {
     padding: 8px;
     position: absolute;
     font-size: 12px;
-    z-index: 2;
+    z-index: 1001;
     bottom: 50%;
     transform-origin: left;
     pointer-events: none;
