@@ -5,7 +5,8 @@ import { convertTimeToDate, getCurrentDayName, openingNowDate } from '../../../u
 import state from '../state';
 import Analytics from '../../../utils/analytics';
 import WidgetController from '../../widget.controller';
-import Location from '../../../entities/Location';
+import Location from '../global/data/Location';
+import { generateUUID } from '../global/helpers';
 
 export const deepObjectDiff = (a, b, reversible) => {
   const r = {};
@@ -55,15 +56,6 @@ export const cdnImage = (imageUrl) => {
   return `https://buidfire-proxy.imgix.net/app_${appId}/${encodeURIComponent(imageUrl)}`;
 };
 
-export const generateUUID = () => {
-  let dt = new Date().getTime();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const replace = (dt + Math.random() * 16) % 16 | 0;
-    dt = Math.floor(dt / 16);
-    return (c === "x" ? replace : (replace & 0x3) | 0x8).toString(16);
-  });
-};
-
 export const getDefaultOpeningHours = () => {
   const intervals = [{ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") }];
   return {
@@ -104,7 +96,7 @@ export const cropImage = (url, options) => {
   if (!url) {
     return '';
   }
-  return buildfire.imageLib.cropImage(url, options);
+  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
 };
 
 export const isLocationOpen = (location) => {

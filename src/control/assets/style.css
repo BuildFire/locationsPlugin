@@ -164,8 +164,8 @@ p.info::before {
 }
 
 .list-image-holder {
-	width: 120px;
-	height: 80px;
+	width: 96px;
+		height: 96px;
 }
 
 .icon-holder img, .list-image-holder img {
@@ -322,6 +322,9 @@ p.info::before {
 	bottom: 100% !important;
 	margin-bottom: 2px;
 }
+.font-size-14 {
+	font-size: 14px;
+}
 .font-size-15 {
 	font-size: 15px;
 }
@@ -362,5 +365,9 @@ p.info::before {
 	background-color: var(--c-info);
 	margin-right: .5rem;
 	position: absolute;
+}
 
+.custom-field-section .d-item .icon-cross2::before {
+	font-size: 14px;
+	color: var(--c-gray5);
 }

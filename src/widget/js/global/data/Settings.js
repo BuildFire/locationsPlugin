@@ -1,4 +1,4 @@
-import constants from "../widget/js/constants";
+import constants from "../constants";
 
 /**
  * Settings data model
@@ -62,7 +62,7 @@ export default class Settings {
       allowForLocations: true,
       allowForFilters: true
     };
-    this.design = data.design ||  {
+    this.design = data.design || {
       listViewPosition: 'collapsed',
       listViewStyle: 'backgroundImage',
       defaultMapStyle: 'light',
@@ -76,7 +76,7 @@ export default class Settings {
     };
     this.globalEntries = data.globalEntries || {
       locations: {
-        allowAdding:  'none', // all || none || limited
+        allowAdding: 'none', // all || none || limited
         tags: [],
       },
       photos: {
@@ -96,7 +96,7 @@ export default class Settings {
       enabled: true,
       time: "12H"
     };
-    this.categoriesSortBy =  data.categoriesSortBy || "Asc";
+    this.categoriesSortBy = data.categoriesSortBy || "Asc";
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();

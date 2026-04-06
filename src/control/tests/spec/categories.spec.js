@@ -2,9 +2,9 @@ import "../lib/jasmine";
 import "../lib/jasmine-html";
 import "../lib/boot";
 
-import Categories from "../../../repository/Categories";
+import Categories from "../../../widget/js/global/repository/Categories";
 import authManager from "../../../UserAccessControl/authManager";
-import Category from "../../../entities/Category";
+import Category from "../../../widget/js/global/data/Category";
 
 const run = () => {
   describe("Categories", () => {

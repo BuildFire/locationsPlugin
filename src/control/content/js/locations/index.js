@@ -2,11 +2,13 @@
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
 import buildfire from "buildfire";
-import Location from "../../../../entities/Location";
+import Location from "../../../../widget/js/global/data/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
+import {
+  createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
   showProgressDialog, isValidRGBColor, rgbaToHex, getOpacityFromRGBA } from "../../utils/helpers";
+import { generateUUID } from "../../../../widget/js/global/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -17,10 +19,10 @@ import globalState from '../../state';
 import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
-import Locations from "../../../../repository/Locations";
-import Category from "../../../../entities/Category";
+import Locations from "../../../../widget/js/global/repository/Locations";
+import Category from "../../../../widget/js/global/data/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
-import constants from '../../../../widget/js/constants';
+import constants from '../../../../widget/js/global/constants';
 import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
 import locationCustomFieldsController from "./customFields";
 
@@ -246,7 +248,7 @@ window.addEditLocation = (location) => {
     addLocationControls.showOpeningHoursBtn.checked = state.locationObj.settings.showOpeningHours;
     addLocationControls.showPriceRangeBtn.checked = state.locationObj.settings.showPriceRange;
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
-    setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+    setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 96, height: 96 });
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   }
   renderBreadcrumbs();
@@ -442,7 +444,7 @@ window.addEditLocation = (location) => {
         }
 
         if (iconUrl) {
-          setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+          setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 96, height: 96 });
           state.locationObj.listImage = iconUrl;
           if (state.saveBtnClicked) {
             addLocationControls.listImageError.parentNode.classList.remove('has-error');
@@ -809,7 +811,7 @@ const cropImage = (url, options) => {
   if (!url) {
     return "";
   }
-  return buildfire.imageLib.cropImage(url, options);
+  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
 };
 
 const setIcon = (icon, type, selector, options = {}) => {
@@ -833,8 +835,8 @@ const setIcon = (icon, type, selector, options = {}) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: options.width ? options.width : 40,
-      height: options.height ? options.height : 40,
+      width: options.width ? options.width : 96,
+      height: options.height ? options.height : 96,
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -999,7 +1001,7 @@ const renderSelectedCategoriesList = (locationCategories) => {
     categoryListItem.className = 'item-list';
     const itemContent = `
     <div class="item-list">
-       <h5 class="text-bold">${category.title}</h5>
+       <h5 class="section-subtitle">${category.title}</h5>
        <span class="text-muted">${subcategories.map((elem) => elem.title).join(', ')}</span>
      </div>
     `;

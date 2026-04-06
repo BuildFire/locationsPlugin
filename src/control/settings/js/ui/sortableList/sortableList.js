@@ -118,7 +118,7 @@ export default class SortableList {
     if (!url) {
       return "";
     }
-    return buildfire.imageLib.cropImage(url, options);
+    return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
   }
 
   /* This will be triggered when the order of items changes

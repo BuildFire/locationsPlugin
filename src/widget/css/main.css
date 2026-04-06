@@ -660,10 +660,15 @@ button span {
 .location-detail__actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   margin: 10px -15px 0;
   padding: 15px;
   box-shadow: rgb(0 0 0 / 12%) 0px 3px 6px -1px;
+  column-gap: 16px;
+}
+.location-detail__actions .action-item {
+  flex: 1;
+  max-width: 30%;
 }
 .location-detail__actions .location-custom_content_container {
   min-width: 100% !important;
@@ -1568,4 +1573,7 @@ h4.light-text {
 
 .iconsTheme {
   color: var(--bf-theme-icons);
+}
+.margin-auto {
+  margin: auto;
 }

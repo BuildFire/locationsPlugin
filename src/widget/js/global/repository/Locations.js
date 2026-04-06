@@ -1,4 +1,4 @@
-import Location from "../entities/Location";
+import Location from "../data/Location";
 
 /**
  * Locations data access

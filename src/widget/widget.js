@@ -6,7 +6,7 @@ import WidgetController from './widget.controller';
 import Accordion from './js/Accordion';
 import MainMap from './js/map/Map';
 import state from './js/state';
-import constants from './js/constants';
+import constants from './js/global/constants';
 import views from './js/Views';
 import IntroSearchService from './services/search/introSearchService';
 import MapSearchService from './services/search/mapSearchService';
@@ -26,8 +26,9 @@ import {
   bookmarkLocation,
   shareLocation,
   transformCategoriesToText,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
+  showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
+import { generateUUID } from './js/global/helpers';
 import Analytics from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
@@ -880,7 +881,7 @@ window.addEventListener("click", (e) => {
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   const { bookmarks } = state.settings;
-  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage, { size: "xl", aspect: "16:9" }) : './images/default-location-cover.png'}');">
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage, { size: "xl", aspect: "1:1" }) + '&crop=entropy' : './images/default-location-cover.png'}');">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.clientId) ? 'star' : 'star_outline'}</i>
@@ -1846,15 +1847,3 @@ const initApp = () => {
 };
 
 initApp();
-
-/**
-  * TODO for Alaa
-  - add validation for custom fields
-  - add save custom fields
-  - add update custom fields
-  ---------------------------------------------------
-  - handle real time sync between settings and widget
-  - handle mentioned issues by mahmoud
-  - handle some design refactors that mentioned in the mockups
-  - Critical:::: check scenarios that deleting the custom fields in admin panel
-  */

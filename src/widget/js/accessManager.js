@@ -1,5 +1,5 @@
 import authManager from '../../UserAccessControl/authManager';
-import constants from './constants';
+import constants from './global/constants';
 import state from './state';
 
 export default {

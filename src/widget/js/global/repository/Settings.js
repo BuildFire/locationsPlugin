@@ -1,5 +1,5 @@
-import Setting from "../entities/Settings";
-import constants from "../widget/js/constants";
+import Setting from "../data/Settings";
+import constants from "../constants";
 
 export default class Settings {
   /**

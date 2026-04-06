@@ -50,7 +50,7 @@ class CustomFieldsListUI extends SortableListUI {
     const labelInput = document.createElement("input");
     labelInput.type = "text";
     labelInput.className = "form-control label-input";
-    labelInput.placeholder = "Field Name";
+    labelInput.placeholder = "Field Name (Required)";
     labelInput.value = item.label || "";
     labelInput.oninput = (e) => {
       item.label = e.target.value;
@@ -70,7 +70,7 @@ class CustomFieldsListUI extends SortableListUI {
     const reqCol = document.createElement("div");
     reqCol.style.display = "flex";
     reqCol.style.alignItems = "center";
-    reqCol.style.gap = "5px";
+    reqCol.style.gap = "10px";
 
     const reqCheckboxWrap = document.createElement("div");
     reqCheckboxWrap.className = "checkbox checkbox-primary no-label margin-zero";
@@ -92,7 +92,7 @@ class CustomFieldsListUI extends SortableListUI {
     reqCheckboxWrap.appendChild(reqLabel);
 
     const reqSpan = document.createElement("span");
-    reqSpan.textContent = "Required";
+    reqSpan.innerHTML = `<label class="font-size-14 text--black margin-zero" for='req_${uniqueId}'>Required</label>`;
 
     reqCol.appendChild(reqCheckboxWrap);
     reqCol.appendChild(reqSpan);
@@ -102,7 +102,7 @@ class CustomFieldsListUI extends SortableListUI {
     const custCol = document.createElement("div");
     custCol.style.display = "flex";
     custCol.style.alignItems = "center";
-    custCol.style.gap = "5px";
+    custCol.style.gap = "10px";
     custCol.style.gridColumn = "span 2";
 
     const custCheckboxWrap = document.createElement("div");
@@ -125,7 +125,7 @@ class CustomFieldsListUI extends SortableListUI {
     custCheckboxWrap.appendChild(custLabel);
 
     const custSpan = document.createElement("span");
-    custSpan.textContent = "Allow Custom Label";
+    custSpan.innerHTML = `<label class="font-size-14 text--black margin-zero" for='cust_${uniqueId}'>Allow Custom Label</label>`;
 
     custCol.appendChild(custCheckboxWrap);
     custCol.appendChild(custSpan);

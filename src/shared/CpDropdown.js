@@ -102,7 +102,7 @@ export default class CpDropdown {
         btnGroup.appendChild(button);
 
         const ul = document.createElement('ul');
-        ul.className = "dropdown-menu";
+        ul.className = "dropdown-menu min-width-unset";
         if (this.props.dropToTop) {
             ul.classList.add('dropup');
         }

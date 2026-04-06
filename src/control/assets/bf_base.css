@@ -53,6 +53,11 @@ margin-bottom: .5em;
   margin-bottom: 1.5rem;
   margin-top: 0;
 }
+.section-subtitle {
+  color: var(--c-info);
+  font-size: 16px !important;
+  font-weight: 500;
+}
 
 .text-secondary {
   color: var(--c-gray6);
@@ -579,7 +584,7 @@ p.info-note.info-note-transparent {
     padding: 8px;
     position: absolute;
     font-size: 12px;
-    z-index: 2;
+    z-index: 1001;
     bottom: 50%;
     transform-origin: left;
     pointer-events: none;

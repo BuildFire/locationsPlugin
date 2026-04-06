@@ -81,7 +81,7 @@ export default class SearchTableHelper {
     if (!url) {
       return "";
     }
-    return buildfire.imageLib.cropImage(url, options);
+    return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
   }
 
   search(filter) {

@@ -2,7 +2,7 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
-import constants from "../../js/constants";
+import constants from "../../js/global/constants";
 import authManager from "../../../UserAccessControl/authManager";
 
 const IntroSearchService = {
@@ -53,7 +53,7 @@ const IntroSearchService = {
         }
       }
     };
-    if (state.settings.introductoryListView.searchOptions?.mode !== constants.SearchLocationsModes.MyLocations) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
       $match['createdBy.userId'] = authManager.currentUser?.userId || '';
     }
     pipelines.push({ $match });
@@ -84,6 +84,10 @@ const IntroSearchService = {
       ...$match,
       "_buildfire.index.string1": { $nin: existLocationStrings },
     };
+
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
+      $match['createdBy.userId'] = authManager.currentUser?.userId || '';
+    }
 
     pipelines.push({ $match });
     pipelines.push({ $sort });
