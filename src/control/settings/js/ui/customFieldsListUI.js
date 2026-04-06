@@ -50,7 +50,7 @@ class CustomFieldsListUI extends SortableListUI {
     const labelInput = document.createElement("input");
     labelInput.type = "text";
     labelInput.className = "form-control label-input";
-    labelInput.placeholder = "Field Name";
+    labelInput.placeholder = "Field Name (Required)";
     labelInput.value = item.label || "";
     labelInput.oninput = (e) => {
       item.label = e.target.value;
