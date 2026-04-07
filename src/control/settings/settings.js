@@ -13,7 +13,7 @@ import DialogComponent from './js/ui/dialog/dialog';
 import Locations from '../../widget/js/global/repository/Locations';
 import { getDisplayName } from './js/util/helpers';
 import { isCameraControlVersion } from '../../shared/utils/mapUtils';
-import initLocationFields from './js/locationFields/controller';
+import initLocationFields from './js/pages/locationFields';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');

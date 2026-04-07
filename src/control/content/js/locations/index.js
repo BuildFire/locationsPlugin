@@ -257,7 +257,7 @@ window.addEditLocation = (location) => {
   renderOpeningHours(state.locationObj.openingHours);
   onMarkerTypeChanged(state.locationObj.marker);
   onPriceRangeChanged(state.locationObj.price);
-  locationCustomFieldsController.init(state.locationObj);
+  locationCustomFieldsController.ui.init(state.locationObj);
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
@@ -691,11 +691,10 @@ const locationInputValidation = () => {
   if (!validateOpeningHours(openingHours)) {
     isValid = false;
   }
-
-  if (!locationCustomFieldsController.validateCustomFields()) {
+  if (!locationCustomFieldsController.helper.validateCustomFields()) {
     isValid = false;
   } else {
-    state.locationObj.customFields = locationCustomFieldsController.getCustomFieldsValues();
+    state.locationObj.additionalFields = locationCustomFieldsController.helper.getCustomFieldsValues();
   }
 
   const invalidInput = document.querySelector(".has-error");
@@ -2045,7 +2044,7 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
         price: state.locationObj.price,
         editingPermissions: state.locationObj.editingPermissions,
         openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours },
-        customFields: state.locationObj.customFields
+        additionalFields: state.locationObj.additionalFields
       };
     }
     buildfire.messaging.sendMessageToWidget({

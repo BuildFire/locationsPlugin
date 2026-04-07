@@ -12,7 +12,7 @@ import {
 } from '../util/helpers';
 import { generateUUID } from '../global/helpers';
 import { hideElement, navigateTo, resetBodyScroll, showElement } from '../util/ui';
-import Accordion from '../Accordion';
+import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
@@ -24,7 +24,7 @@ import {
   uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
 } from '../util/forms';
 import constants from '../global/constants';
-import customFieldsController from './customFields';
+import customFieldsController from './components/customFields';
 
 export default {
   get _defaultFieldsInfo() {
@@ -293,7 +293,7 @@ export default {
       isValid = false;
     }
 
-    if (!customFieldsController.validate()) {
+    if (!customFieldsController.helper.validate()) {
       isValid = false;
     }
 
@@ -319,7 +319,7 @@ export default {
       return;
     }
 
-    this.payload.customFields = customFieldsController.getFieldsValues();
+    this.payload.additionalFields = customFieldsController.helper.getFieldsValues();
 
     widgetController.createLocation(this.payload)
       .then((result) => {
@@ -856,7 +856,7 @@ export default {
         this.buildEventsHandlers();
         this.buildMap();
         this.show();
-        customFieldsController.init();
+        customFieldsController.ui.init();
         window.strings.inject(document.querySelector('section#create'), false);
       });
   },

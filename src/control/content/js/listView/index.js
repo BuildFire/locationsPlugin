@@ -9,7 +9,7 @@ import Location from "../../../../widget/js/global/data/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
 import constants from "../../../../widget/js/global/constants";
-import CpDropdown from "../../../../shared/CpDropdown";
+import BaseDropdown from "../../../../shared/baseDropdown";
 
 const listViewSection = document.querySelector("#main");
 
@@ -80,7 +80,7 @@ const onShowLocationsModeChanged = (showMode) => {
 };
 
 const initIntroDropDowns = () => {
-  const sourceDropdown = new CpDropdown('#locationsSourceDropdown', {
+  const sourceDropdown = new BaseDropdown('#locationsSourceDropdown', {
     items: [
       { label: 'All Locations', value: constants.SearchLocationsModes.All, id: constants.SearchLocationsModes.All },
       { label: "User's Position", value: constants.SearchLocationsModes.UserPosition, id: constants.SearchLocationsModes.UserPosition },
@@ -92,7 +92,7 @@ const initIntroDropDowns = () => {
     handleSelect: onShowLocationsModeChanged,
   });
 
-  const sortDropdown = new CpDropdown('#sortLocationsDropdown', {
+  const sortDropdown = new BaseDropdown('#sortLocationsDropdown', {
     items: [
       { label: 'Distance', value: constants.SortingOptions.Distance, id: constants.SortingOptions.Distance },
       { label: 'Alphabetical', value: constants.SortingOptions.Alphabetical, id: constants.SortingOptions.Alphabetical },

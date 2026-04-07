@@ -31,17 +31,6 @@ export default class Settings {
           return;
         }
 
-        if (res.data.hasOwnProperty('showIntroductoryListView')) {
-          if (!res.data.introductoryListView.visibilityOptions) {
-            res.data.introductoryListView.visibilityOptions = {
-              tags: [],
-              value: res.data.showIntroductoryListView ? constants.IntroViewVisibilityOptions.ALL : constants.IntroViewVisibilityOptions.NONE
-            }
-          }
-
-          delete res.data.showIntroductoryListView;
-        }
-
         resolve(new Setting(res.data));
       });
     });

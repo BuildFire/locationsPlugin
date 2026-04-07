@@ -23,11 +23,18 @@ export default class Settings {
         mode: null,
         areaRadiusOptions: {}
       },
-      visibilityOptions: {
-        value: constants.IntroViewVisibilityOptions.ALL,
-        tags: []
-      }
     };
+    if (!data.introductoryListView.visibilityOptions) {
+      this.introductoryListView.visibilityOptions = {
+        tags: [],
+        value: (data.showIntroductoryListView === true || typeof data.showIntroductoryListView === 'undefined') ? constants.IntroViewVisibilityOptions.ALL : constants.IntroViewVisibilityOptions.NONE
+      }
+    } else {
+      this.introductoryListView.visibilityOptions = {
+        tags: data.introductoryListView.visibilityOptions.tags || [],
+        value: data.introductoryListView.visibilityOptions.value || constants.IntroViewVisibilityOptions.ALL
+      };
+    }
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
       hideSorting: false,

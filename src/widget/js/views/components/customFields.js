@@ -1,5 +1,5 @@
-import state from '../state';
-import constants from '../global/constants';
+import state from '../../state';
+import constants from '../../global/constants';
 
 const customFieldsController = {
 	init() {
@@ -151,8 +151,8 @@ const customFieldsController = {
 		];
 
 		const activeLocationFields = [
-			...(selectedLocation?.customFields?.quickActions || []),
-			...(selectedLocation?.customFields?.content || [])
+			...(selectedLocation?.additionalFields?.quickActions || []),
+			...(selectedLocation?.additionalFields?.content || [])
 		];
 
 		allFields.forEach(field => {
@@ -188,7 +188,7 @@ const customFieldsController = {
 					valueCol.appendChild(valueMdc);
 				} else {
 					const { container: valueMdc, input } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
-					input.addEventListener('blur', () => this.validateField(field));
+					input.addEventListener('blur', () => this._validateField(field));
 					valueCol.appendChild(valueMdc);
 				}
 
@@ -202,7 +202,7 @@ const customFieldsController = {
 					row.appendChild(valueMdc);
 				} else {
 					const { container: valueMdc, input } = this._createMDCInput(`custom-field-input-${field.id}`, placeholder, activeField.value || '', 'text', 150);
-					input.addEventListener('blur', () => this.validateField(field));
+					input.addEventListener('blur', () => this._validateField(field));
 					row.appendChild(valueMdc);
 				}
 			}
@@ -224,7 +224,7 @@ const customFieldsController = {
 		];
 
 		allFields.forEach(field => {
-			if (!this.validateField(field)) {
+			if (!this._validateField(field)) {
 				isValid = false;
 			}
 		});
@@ -232,7 +232,7 @@ const customFieldsController = {
 		return isValid;
 	},
 
-	validateField(field) {
+	_validateField(field) {
 		let isValid = true;
 		const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
 		let inputElement;
@@ -366,4 +366,12 @@ const customFieldsController = {
 	}
 };
 
-export default customFieldsController;
+export default {
+	ui: {
+		init: customFieldsController.init
+	},
+	helper: {
+		validate: customFieldsController.validate,
+		getFieldsValues: customFieldsController.getFieldsValues
+	}
+};

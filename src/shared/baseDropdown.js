@@ -1,4 +1,4 @@
-export default class CpDropdown {
+export default class BaseDropdown {
     constructor(container, props) {
         this.container = typeof container === 'string' ? document.querySelector(container) : container;
         this.props = props || {};

@@ -56,6 +56,7 @@ const IntroSearchService = {
     if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
       $match['createdBy.userId'] = authManager.currentUser?.userId || '';
     }
+    pipelines.push({ $geoNear });
     pipelines.push({ $match });
 
     if (state.searchCriteria.sort) {

@@ -355,9 +355,9 @@ export default {
 
   buildCustomActions() {
     const { selectedLocation } = state;
-    const customFields = selectedLocation.customFields || {};
-    const quickActions = customFields.quickActions || [];
-    const content = customFields.content || [];
+    const additionalFields = selectedLocation.additionalFields || {};
+    const quickActions = additionalFields.quickActions || [];
+    const content = additionalFields.content || [];
 
     state.settings?.customFields?.quickActions.forEach(fieldSchema => {
       const field = quickActions.find(q => q.id === fieldSchema.id);

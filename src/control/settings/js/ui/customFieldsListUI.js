@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 
 import SortableListUI from "./sortableList/sortableListUI";
-import CpDropdown from "../../../../shared/CpDropdown";
+import BaseDropdown from "../../../../shared/baseDropdown";
 
 class CustomFieldsListUI extends SortableListUI {
   constructor(elementId, dropdownOptions) {
@@ -149,8 +149,8 @@ class CustomFieldsListUI extends SortableListUI {
     delCol.appendChild(deleteBtn);
     divRow.appendChild(delCol);
 
-    // Instantiate CpDropdown
-    new CpDropdown(typeDropdownContainer, {
+    // Instantiate BaseDropdown
+    new BaseDropdown(typeDropdownContainer, {
       items: this.options.dropdownOptions,
       selectedId: item.type,
       handleSelect: (selected) => {

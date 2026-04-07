@@ -16,14 +16,14 @@ import {
 import { generateUUID } from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
-import Accordion from '../Accordion';
+import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
 import constants from '../global/constants';
 import accessManager from '../accessManager';
-import customFieldsController from './customFields';
+import customFieldsController from './components/customFields';
 
 const localState = {
   pendingLocation: null,
@@ -174,7 +174,7 @@ const _validateLocationSave = () => {
     isValid = false;
   }
 
-  if (!customFieldsController.validate()) {
+  if (!customFieldsController.helper.validate()) {
     isValid = false;
   }
 
@@ -320,7 +320,7 @@ const _saveChanges = (e) => {
   if (!_validateLocationSave()) return;
   if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
 
-  pendingLocation.customFields = customFieldsController.getFieldsValues();
+  pendingLocation.additionalFields = customFieldsController.helper.getFieldsValues();
 
   e.target.disabled = true;
 
@@ -894,7 +894,7 @@ const init = () => {
       _refreshLocationImages();
       _renderOpeningHours();
       _initAddressAutocompleteField('locationAddressFieldInput');
-      customFieldsController.init();
+      customFieldsController.ui.init();
 
       editView.addEventListener('click', onViewClick);
       editView.querySelectorAll('.mdc-text-field').forEach((i) => {

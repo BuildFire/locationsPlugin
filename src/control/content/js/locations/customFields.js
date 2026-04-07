@@ -20,7 +20,7 @@ const locationCustomFieldsController = {
 		}
 	},
 
-	validateFieldValue(value, fieldType) {
+	_validateFieldValue(value, fieldType) {
 		if (!value) return { isValid: true, value };
 
 		let parsedValue = value.trim();
@@ -84,7 +84,7 @@ const locationCustomFieldsController = {
 				}
 			}
 
-			const validatedObj = this.validateFieldValue(value, field.type);
+			const validatedObj = this._validateFieldValue(value, field.type);
 			const formattedValue = validatedObj.isValid ? validatedObj.value : value;
 
 			const newFieldData = { id: field.id, value: formattedValue };
@@ -125,7 +125,7 @@ const locationCustomFieldsController = {
 				errorMsg = 'This field is required';
 				isCustomFieldsValid = false;
 			} else if (value.trim()) {
-				const validatedObj = this.validateFieldValue(value, configField.type);
+				const validatedObj = this._validateFieldValue(value, configField.type);
 				if (!validatedObj.isValid) {
 					errorMsg = validatedObj.error;
 					isCustomFieldsValid = false;
@@ -165,7 +165,7 @@ const locationCustomFieldsController = {
 							}
 						});
 						ed.on('keyup change', () => {
-							this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+							this.activeLocation.additionalFields = locationCustomFieldsController.getCustomFieldsValues();
 							if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
 						});
 					}
@@ -183,7 +183,7 @@ const locationCustomFieldsController = {
 		valueInput.setAttribute('maxlength', 150);
 
 		valueInput.addEventListener('keyup', () => {
-			this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+			this.activeLocation.additionalFields = locationCustomFieldsController.getCustomFieldsValues();
 			if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
 		});
 
@@ -199,8 +199,8 @@ const locationCustomFieldsController = {
 			...(settings.customFields.content || [])
 		];
 
-		const locationQuickActions = this.activeLocation?.customFields?.quickActions || [];
-		const locationContent = this.activeLocation?.customFields?.content || [];
+		const locationQuickActions = this.activeLocation?.additionalFields?.quickActions || [];
+		const locationContent = this.activeLocation?.additionalFields?.content || [];
 		const activeLocationFields = [...locationQuickActions, ...locationContent];
 
 		allFields.forEach(field => {
@@ -236,7 +236,7 @@ const locationCustomFieldsController = {
 				customLabelInput.setAttribute('maxlength', 50);
 
 				customLabelInput.addEventListener('keyup', () => {
-					this.activeLocation.customFields = locationCustomFieldsController.getCustomFieldsValues();
+					this.activeLocation.additionalFields = locationCustomFieldsController.getCustomFieldsValues();
 					if (window.triggerWidgetOnLocationsUpdate) window.triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
 				});
 
@@ -292,4 +292,12 @@ const locationCustomFieldsController = {
 	}
 };
 
-export default locationCustomFieldsController;
+export default {
+	helper: {
+		validateCustomFields: locationCustomFieldsController.validateCustomFields,
+		getCustomFieldsValues: locationCustomFieldsController.getCustomFieldsValues
+	},
+	ui: {
+		init: locationCustomFieldsController.init
+	}
+};

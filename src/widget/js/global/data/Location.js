@@ -54,9 +54,9 @@ export default class Location {
     this.deletedOn = data.deletedOn || null;
     this.deletedBy = data.deletedBy || null;
     this.isActive = [0, 1].includes(data.isActive) ? data.isActive : 1;
-    this.customFields = {
-      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
-      content: (data.customFields?.content || []).map(field => new CustomField(field))
+    this.additionalFields = {
+      quickActions: (data.additionalFields?.quickActions || []).map(field => new CustomField(field)),
+      content: (data.additionalFields?.content || []).map(field => new CustomField(field))
     };
   }
 
@@ -97,7 +97,7 @@ export default class Location {
       deletedOn: this.deletedOn,
       deletedBy: this.deletedBy,
       isActive: this.isActive,
-      customFields: this.customFields,
+      additionalFields: this.additionalFields,
       _buildfire: {
         index: {
           text: `${this.title.toLowerCase()} ${this.subtitle ? this.subtitle : ''} ${this.address} ${this.formattedAddress} ${this.addressAlias ? this.addressAlias : ''}`,
