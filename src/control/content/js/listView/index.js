@@ -88,7 +88,7 @@ const initIntroDropDowns = () => {
       { label: 'My Locations', value: constants.SearchLocationsModes.MyLocations, id: constants.SearchLocationsModes.MyLocations }
     ],
     dropToTop: true,
-    selectedId: state.settings.introductoryListView.searchOptions?.mode || constants.SearchLocationsModes.All,
+    selectedId: state.settings.introductoryListView.searchOptions?.mode || constants.SearchLocationsModes.UserPosition,
     handleSelect: onShowLocationsModeChanged,
   });
 
