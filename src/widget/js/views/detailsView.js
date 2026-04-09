@@ -377,7 +377,10 @@ export default {
         actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
       }
 
-      const title = field.customLabel || fieldSchema.label;
+      let title = field.customLabel;
+      if (!fieldSchema.enableCustomLabel || !field.customLabel) {
+        title = fieldSchema.label;
+      }
 
       const div = document.createElement('div');
       div.className = 'action-item';
@@ -420,7 +423,10 @@ export default {
       const fieldContainer = document.createElement('div');
       fieldContainer.className = 'location-custom_content_item d-flex-column gap-half-rem';
 
-      const title = field.customLabel || fieldSchema.label;
+      let title = field.customLabel;
+      if (!fieldSchema.enableCustomLabel || !field.customLabel) {
+        title = fieldSchema.label;
+      }
 
       const titleEl = document.createElement('p');
       titleEl.innerHTML = title;

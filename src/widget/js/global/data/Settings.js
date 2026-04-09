@@ -18,21 +18,21 @@ export default class Settings {
     this.introductoryListView = data.introductoryListView || {
       images: [],
       description: null,
-      sorting: null,
+      sorting: constants.SortingOptions.Distance,
       searchOptions: {
-        mode: null,
+        mode: constants.SearchLocationsModes.UserPosition,
         areaRadiusOptions: {}
       },
     };
-    if (!data.introductoryListView.visibilityOptions) {
+    if (!data.introductoryListView?.visibilityOptions) {
       this.introductoryListView.visibilityOptions = {
         tags: [],
         value: (data.showIntroductoryListView === true || typeof data.showIntroductoryListView === 'undefined') ? constants.IntroViewVisibilityOptions.ALL : constants.IntroViewVisibilityOptions.NONE
       }
     } else {
       this.introductoryListView.visibilityOptions = {
-        tags: data.introductoryListView.visibilityOptions.tags || [],
-        value: data.introductoryListView.visibilityOptions.value || constants.IntroViewVisibilityOptions.ALL
+        tags: data.introductoryListView?.visibilityOptions?.tags || [],
+        value: data.introductoryListView?.visibilityOptions?.value || constants.IntroViewVisibilityOptions.ALL
       };
     }
     this.sorting = data.sorting || {

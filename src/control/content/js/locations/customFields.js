@@ -294,10 +294,10 @@ const locationCustomFieldsController = {
 
 export default {
 	helper: {
-		validateCustomFields: locationCustomFieldsController.validateCustomFields,
-		getCustomFieldsValues: locationCustomFieldsController.getCustomFieldsValues
+		validateCustomFields: locationCustomFieldsController.validateCustomFields.bind(locationCustomFieldsController),
+		getCustomFieldsValues: locationCustomFieldsController.getCustomFieldsValues.bind(locationCustomFieldsController)
 	},
 	ui: {
-		init: locationCustomFieldsController.init
+		init: locationCustomFieldsController.init.bind(locationCustomFieldsController)
 	}
 };

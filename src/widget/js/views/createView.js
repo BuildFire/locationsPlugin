@@ -858,6 +858,15 @@ export default {
         this.show();
         customFieldsController.ui.init();
         window.strings.inject(document.querySelector('section#create'), false);
+
+        buildfire.device.onKeyboardShow(() => {
+          setTimeout(() => {
+            const currentActiveInput = document.querySelector('.mdc-text-field.mdc-text-field--focused');
+            if (currentActiveInput) {
+              currentActiveInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        });
       });
   },
 };

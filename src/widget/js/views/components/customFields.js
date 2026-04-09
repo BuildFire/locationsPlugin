@@ -368,10 +368,10 @@ const customFieldsController = {
 
 export default {
 	ui: {
-		init: customFieldsController.init
+		init: customFieldsController.init.bind(customFieldsController)
 	},
 	helper: {
-		validate: customFieldsController.validate,
-		getFieldsValues: customFieldsController.getFieldsValues
+		validate: customFieldsController.validate.bind(customFieldsController),
+		getFieldsValues: customFieldsController.getFieldsValues.bind(customFieldsController)
 	}
 };

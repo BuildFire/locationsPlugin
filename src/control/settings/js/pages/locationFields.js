@@ -8,11 +8,11 @@ let _saveTimer;
 const updateCustomFieldsWithDeilay = (customFields) => {
 	clearTimeout(_saveTimer);
 	_saveTimer = setTimeout(() => {
-		customFields = {
+		const updatedCustomFields = {
 			quickActions: customFields.quickActions.filter(item => item.label && item.type),
 			content: customFields.content.filter(item => item.label && item.type)
 		}
-		SettingsController.updateSettings({ customFields }).then(() => {
+		SettingsController.updateSettings({ customFields: updatedCustomFields }).then(() => {
 			updateAddButtonsState({ customFields });
 			buildfire.messaging.sendMessageToWidget({
 				cmd: 'sync',

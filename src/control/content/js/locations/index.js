@@ -47,6 +47,7 @@ const state = {
   locationObj: new Location(),
   selectedLocationCategories: { main: [], subcategories: [] },
   selectedOpeningHours: getDefaultOpeningHours(),
+  isFetchingLocation: false,
   weekDays: {
     sunday: "Sun",
     monday: "Mon",
@@ -2081,8 +2082,11 @@ window.initLocations = () => {
   });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
+    if (state.isFetchingLocation) return;
+    state.isFetchingLocation = true;
     LocationsController.getById(obj.id).then((updatedLocation) => {
       window.addEditLocation({ ...updatedLocation.data, id: updatedLocation.id });
+      state.isFetchingLocation = false;
     });
   };
 

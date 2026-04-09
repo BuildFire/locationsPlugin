@@ -1146,8 +1146,10 @@ body section#home {
 }
 
 .fixed-footer button {
+  height: 40px;
   margin-right: auto;
   margin-left: auto;
+  width: 50%;
 }
 
 #create .fixed-footer button,

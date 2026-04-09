@@ -948,6 +948,15 @@ const init = () => {
         multi: true,
         expanded: true
       });
+
+      buildfire.device.onKeyboardShow(() => {
+        setTimeout(() => {
+          const currentActiveInput = document.querySelector('.mdc-text-field.mdc-text-field--focused');
+          if (currentActiveInput) {
+            currentActiveInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      });
     })
     .catch((err) => {
       console.error(`error initilizing editView ${err}`);
