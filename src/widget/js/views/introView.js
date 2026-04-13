@@ -9,7 +9,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   const container = document.querySelector('#introLocationsList');
   let reducedLocations = list.reduce((filtered, n) => {
     if (n.listImage != null) {
-      n.listImage = buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'
+      n.listImage = buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1", mode: 'entropy' })
     } else {
       n.listImage = "./images/empty_image.PNG"
     }
@@ -48,7 +48,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   if (includePinned) {
     reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
         <div class="d-flex">
-          <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1" }) + '&crop=entropy' : "./images/empty_image.PNG"} alt="Location image">
+          <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1", mode: 'entropy' }) : "./images/empty_image.PNG"} alt="Location image">
           <div class="location-item__description">
             <p class="location-title mdc-theme--text-header text-ellipsis">${n.title ?? ""}</p>
             <p class="location-subtitle mdc-theme--text-body text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ""}</p>

@@ -169,7 +169,8 @@ export default {
             hasImage: true,
             imageUrl: cropImage(image.imageUrl, {
               width: 64,
-              height: 64
+              height: 64,
+              mode: 'entropy'
             })
           },
           null,
@@ -462,7 +463,7 @@ export default {
     };
 
     listImageAddBtn.onclick = this._uploadListImage.bind(this);
-    listImageImg.src = cropImage(this.payload.listImage, { width: 64, height: 64, });
+    listImageImg.src = cropImage(this.payload.listImage, { width: 64, height: 64, mode: 'entropy' });
   },
   _uploadListImage() {
     const listImageInput = this._querySelect('#locationListImageInput');
@@ -508,6 +509,7 @@ export default {
           listImageImg.src = cropImage(url, {
             width: 64,
             height: 64,
+            mode: 'entropy'
           });
           listImageSelectBtn.classList.add('has-img');
         }

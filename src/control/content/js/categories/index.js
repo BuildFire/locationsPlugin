@@ -106,7 +106,7 @@ const cropImage = (url, options) => {
   if (!url) {
     return "";
   }
-  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
+  return buildfire.imageLib.cropImage(url, options);
 };
 
 const setCategoryIcon = (icon, type) => {
@@ -125,6 +125,7 @@ const setCategoryIcon = (icon, type) => {
     imageIcon.src = cropImage(icon, {
       width: 40,
       height: 40,
+      mode: 'entropy'
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");

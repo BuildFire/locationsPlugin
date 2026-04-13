@@ -377,7 +377,8 @@ const _refreshLocationImages = () => {
         hasImage: true,
         imageUrl: cropImage(image.imageUrl, {
           width: 64,
-          height: 64
+          height: 64,
+          mode: 'entropy'
         })
       },
       null,
@@ -770,6 +771,7 @@ const _uploadListImage = () => {
         listImageImg.src = cropImage(url, {
           width: 64,
           height: 64,
+          mode: 'entropy'
         });
         listImageSelectBtn.classList.add('has-img');
       }
@@ -887,7 +889,7 @@ const init = () => {
       };
 
       listImageSelectBtn.onclick = _uploadListImage;
-      listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, });
+      listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, mode: 'entropy' });
 
       _buildMap();
       refreshCategoriesText();

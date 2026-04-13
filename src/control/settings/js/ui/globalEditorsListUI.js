@@ -38,6 +38,7 @@ class CategoriesListUI extends SortableListUI {
     img.src = item.imageUrl ? this._cropImage(item.imageUrl, {
       width: 40,
       height: 40,
+      mode: 'entropy'
     }) : '../assets/images/avatar-2.png';
     mediaHolder.appendChild(img);
 

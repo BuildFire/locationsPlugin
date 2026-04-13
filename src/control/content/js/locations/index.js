@@ -811,7 +811,7 @@ const cropImage = (url, options) => {
   if (!url) {
     return "";
   }
-  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
+  return buildfire.imageLib.cropImage(url, options);
 };
 
 const setIcon = (icon, type, selector, options = {}) => {
@@ -837,6 +837,7 @@ const setIcon = (icon, type, selector, options = {}) => {
     imageIcon.src = cropImage(icon, {
       width: options.width ? options.width : 96,
       height: options.height ? options.height : 96,
+      mode: 'entropy'
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");

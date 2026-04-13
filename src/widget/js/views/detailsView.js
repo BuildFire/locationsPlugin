@@ -37,7 +37,7 @@ export default {
     const location = state.selectedLocation;
     const carouselContainer = document.querySelector('.location-detail__carousel');
 
-    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}');" data-id="${n.id}"></div>`).join('\n');
+    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}');" data-id="${n.id}"></div>`).join('\n');
 
     const indexInList = state.listLocations.findIndex((i) => i.id === location.id);
     const indexInPinned = state.pinnedLocations.findIndex((i) => i.id === location.id);
@@ -544,10 +544,10 @@ export default {
 
           if (selectedLocation.images?.length > 0) {
             if (pageMapPosition === 'top') {
-              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}')`;
+              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}')`;
               selectors.cover.style.display = 'block';
             } else {
-              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}')`;
+              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}')`;
             }
           }
 
@@ -620,7 +620,7 @@ export default {
                 </span>
               </div>
             </div>`).join('\n');
-          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" }) + '&crop=entropy'}');" data-id="${n.id}"></div>`).join('\n');
+          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}');" data-id="${n.id}"></div>`).join('\n');
           this.buildCustomActions();
 
           resolve();

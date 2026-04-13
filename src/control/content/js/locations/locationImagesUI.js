@@ -40,6 +40,7 @@ class LocationImagesUI extends SortableListUI {
       img.src = this._cropImage(item.imageUrl, {
         width: 40,
         height: 40,
+        mode: 'entropy'
       });
       mediaHolder.appendChild(img);
     }

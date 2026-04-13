@@ -96,7 +96,7 @@ export const cropImage = (url, options) => {
   if (!url) {
     return '';
   }
-  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
+  return buildfire.imageLib.cropImage(url, options);
 };
 
 export const isLocationOpen = (location) => {

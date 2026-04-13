@@ -503,7 +503,7 @@ const cropImage = (url, options) => {
   if (!url) {
     return "";
   }
-  return buildfire.imageLib.cropImage(url, options) + '&crop=entropy';
+  return buildfire.imageLib.cropImage(url, options);
 };
 
 const createEmptyHolder = (message = 'No Data', classes = '') => {
@@ -542,6 +542,7 @@ const createDialogLocationsList = (locations, locationsContainer) => {
     imageIcon.src = cropImage(_location.listImage, {
       width:  40,
       height: 40,
+      mode: 'entropy'
     });
 
     locationName.innerHTML = _location.title;
