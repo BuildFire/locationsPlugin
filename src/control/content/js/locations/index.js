@@ -604,8 +604,14 @@ const saveLocation = (action, callback = () => { }) => {
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
   state.locationObj.address = addLocationControls.locationAddress.value;
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
-  state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
+
+  const editor = tinymce.get(`location-description-wysiwyg`);
+  if (editor) {
+    const textContent = editor.getContent();
+    state.locationObj.description = textContent ? textContent.trim() : '';
+  }
+
   if (!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
     buildfire.dialog.alert(
       {

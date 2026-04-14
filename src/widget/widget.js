@@ -453,6 +453,7 @@ const initEventListeners = () => {
     } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'createNewLocationBtn') {
+      state.selectedLocation = null;
       createView.navigateTo();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
@@ -799,7 +800,7 @@ const fillDefaultAreaSearchField = () => {
   if (document.querySelector('#intro').style.display === "none") { // map view
     coordinates = MapSearchService.getMapCenterPoint();
   } else { // intro view
-    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All || state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
       areaSearchTextField.value = '';
     } else if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
       coordinates = {

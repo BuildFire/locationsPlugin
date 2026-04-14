@@ -482,9 +482,9 @@ export default {
         maxLength: 10,
       },
       fieldRequired: {
-        title: 'This Field is Required',
+        title: 'This field is required',
         placeholder: 'Enter text here',
-        defaultValue: 'This Field is Required',
+        defaultValue: 'This field is required',
         required: true,
         maxLength: 25,
       },
