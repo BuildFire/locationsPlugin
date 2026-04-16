@@ -3,10 +3,10 @@
 /* eslint-disable no-use-before-define */
 import buildfire from 'buildfire';
 import WidgetController from './widget.controller';
-import Accordion from './js/Accordion';
+import Accordion from './js/views/components/Accordion';
 import MainMap from './js/map/Map';
 import state from './js/state';
-import constants from './js/constants';
+import constants from './js/global/constants';
 import views from './js/Views';
 import IntroSearchService from './services/search/introSearchService';
 import MapSearchService from './services/search/mapSearchService';
@@ -26,8 +26,9 @@ import {
   bookmarkLocation,
   shareLocation,
   transformCategoriesToText,
-  generateUUID, showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
+  showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
+import { generateUUID } from './js/global/helpers';
 import Analytics from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
@@ -40,6 +41,7 @@ import detailsView from './js/views/detailsView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
 import renderNotificationForm from './js/views/sendNotificationView';
+import accessManager from './js/accessManager';
 
 let SEARCH_TIMOUT;
 
@@ -148,11 +150,11 @@ const initChipSetInteractionListener = (event) => {
 
 const searchLocations = () => (
   new Promise((resolve, reject) => {
-    const { showIntroductoryListView } = state.settings;
     const activeTemplate = getComputedStyle(document.querySelector('section#listing'), null).display !== 'none' ? 'listing' : 'intro';
     state.fetchingNextPage = true;
 
-    if (activeTemplate === 'intro' && showIntroductoryListView) {
+    const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+    if (activeTemplate === 'intro' && _hasIntroAccess) {
       // fetch locations within intro list view
       IntroSearchService.searchIntroLocations().then((data) => resolve(introView.handleIntroSearchResponse(data)));
     } else {
@@ -326,8 +328,9 @@ const viewFullImage = (url, selectedId) => {
 };
 
 const setDefaultSorting = () => {
-  const { showIntroductoryListView, introductoryListView, sorting } = state.settings;
-  if (showIntroductoryListView && introductoryListView.sorting) {
+  const { introductoryListView, sorting } = state.settings;
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+  if (_hasIntroAccess && introductoryListView.sorting) {
     if (introductoryListView.sorting === 'distance') {
       state.introSort = { sortBy: 'distance', order: 1 };
     } else if (introductoryListView.sorting === 'alphabetical') {
@@ -450,6 +453,7 @@ const initEventListeners = () => {
     } else if (e.target.id === 'locationDirectionsBtn') {
       getDirections();
     } else if (e.target.id === 'createNewLocationBtn') {
+      state.selectedLocation = null;
       createView.navigateTo();
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
@@ -796,7 +800,7 @@ const fillDefaultAreaSearchField = () => {
   if (document.querySelector('#intro').style.display === "none") { // map view
     coordinates = MapSearchService.getMapCenterPoint();
   } else { // intro view
-    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All || state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
       areaSearchTextField.value = '';
     } else if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.AreaRadius) {
       coordinates = {
@@ -878,7 +882,7 @@ window.addEventListener("click", (e) => {
 const handleMarkerClick = (location) => {
   const summaryContainer = document.querySelector('#locationSummary');
   const { bookmarks } = state.settings;
-  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage, { size: "xl", aspect: "16:9" }) : './images/default-location-cover.png'}');">
+  summaryContainer.innerHTML = `<div data-id="${location.id}" class="mdc-ripple-surface pointer location-summary" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${location.listImage ? buildfire.imageLib.cropImage(location.listImage, { size: "xl", aspect: "1:1", mode: 'entropy' }) : './images/default-location-cover.png'}');">
             <div class="location-summary__header">
               <p>${location.distance ? location.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarks.enabled || !bookmarks.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === location.clientId) ? 'star' : 'star_outline'}</i>
@@ -1090,7 +1094,7 @@ const initDrawerFilterOptions = () => {
 };
 const initHomeView = () => {
   views.inject('home');
-  const { showIntroductoryListView } = state.settings;
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
   refreshQuickFilter();
   initMainMap();
   initAreaAutocompleteField('areaSearchTextField', (autocomplete) => {
@@ -1121,7 +1125,7 @@ const initHomeView = () => {
 
   if (state.deepLinkData?.isResultsBookmark) {
     handleResultsBookmark();
-  } else if (showIntroductoryListView) {
+  } else if (_hasIntroAccess) {
     Analytics.listViewUsed();
     initIntroLocations();
   } else {
@@ -1239,7 +1243,9 @@ const handleCPSync = (message) => {
         // outdated design
         const o = outdatedSettings.design;
 
-        if (d.listViewStyle !== o.listViewStyle) {
+        if (d.detailsMapPosition !== o.detailsMapPosition) {
+          views.refreshCurrentView();
+        } else if (d.listViewStyle !== o.listViewStyle) {
           hideOverlays();
           navigateTo('home');
           showMapView();
@@ -1287,11 +1293,17 @@ const handleCPSync = (message) => {
           window.location.reload();
         }
       });
+  } else if (scope === 'customFields') {
+    refreshSettings()
+      .then(() => {
+        views.refreshCurrentView();
+      });
   } else if (scope === 'intro') {
     state.currentLocation = null;
     refreshSettings()
       .then(() => {
-        if (state.settings.showIntroductoryListView) {
+        const _hasIntroAccess = accessManager.hasIntroScreenAccess();
+        if (_hasIntroAccess) {
           const container = document.querySelector('#introLocationsList');
           container.innerHTML = '';
           setDefaultSorting();
@@ -1513,6 +1525,7 @@ const navigateToLocationId = (locationId, pushToHistory = true) => {
 };
 
 const onPopHandler = (breadcrumb) => {
+  const _hasIntroAccess = accessManager.hasIntroScreenAccess();
   // handle going back from advanced filter
   console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name);
   if (state.breadcrumbs.length && state.breadcrumbs[state.breadcrumbs.length - 1]?.name === 'categoriesEdit') {
@@ -1532,12 +1545,11 @@ const onPopHandler = (breadcrumb) => {
     state.breadcrumbs.length
     && (state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "Map"
       || state.breadcrumbs[state.breadcrumbs.length - 1]?.name === "home")
-    && state.settings.showIntroductoryListView
+    && _hasIntroAccess
   ) {
     hideElement("section#listing");
     showElement("section#intro");
-    const { showIntroductoryListView } = state.settings;
-    if (showIntroductoryListView) {
+    if (_hasIntroAccess) {
       clearAndSearchAllLocation();
     }
   }

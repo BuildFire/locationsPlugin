@@ -53,6 +53,11 @@ margin-bottom: .5em;
   margin-bottom: 1.5rem;
   margin-top: 0;
 }
+.section-subtitle {
+  color: var(--c-info);
+  font-size: 16px !important;
+  font-weight: 500;
+}
 
 .text-secondary {
   color: var(--c-gray6);
@@ -160,8 +165,14 @@ span.required{
   flex: auto;
 }
 
-.input-control.has-error input{
-  border: 1px solid var(--c-danger);
+.has-error .form-control,
+.input-control.has-error input {
+  border-color: var(--c-danger) !important;
+}
+
+#locationCustomFieldsContainer .custom-field-label {
+  border-color: var(--c-gray3) !important;
+  box-shadow: none !important;
 }
 .date__group input {
     margin: 0 1.5rem;
@@ -573,7 +584,7 @@ p.info-note.info-note-transparent {
     padding: 8px;
     position: absolute;
     font-size: 12px;
-    z-index: 2;
+    z-index: 1001;
     bottom: 50%;
     transform-origin: left;
     pointer-events: none;

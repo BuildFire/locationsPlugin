@@ -1,3 +1,5 @@
+@import "../../../../../../styles/siteIcons.css";
+@import "../../../../../../styles/components/control/tagsInput/tagsInput.min.css";
 @import "../../../../../styles/helper.css";
 @import "../../assets/bf_base.css";
 @import "../../assets/linearicons/cpIcons.css";
@@ -81,4 +83,10 @@ table#locations-items tbody {
   pointer-events: none;
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.intro-visibility-container {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
 }

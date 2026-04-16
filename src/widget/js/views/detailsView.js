@@ -5,7 +5,6 @@ import state from '../state';
 import {
   shareLocation,
   bookmarkLocation,
-  generateUUID,
   showToastMessage,
   getActiveTemplate,
   transformCategoriesToText,
@@ -13,20 +12,21 @@ import {
   isLocationOpen,
   cdnImage
 } from '../util/helpers';
+import { generateUUID } from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import accessManager from '../accessManager';
 import reportAbuse from '../reportAbuse';
-import Locations from '../../../repository/Locations';
-import Location from '../../../entities/Location';
+import Locations from '../global/repository/Locations';
+import Location from '../global/data/Location';
 import DeepLink from '../../../utils/deeplink';
-import SearchEngine from '../../../repository/searchEngine';
+import SearchEngine from '../global/repository/searchEngine';
 import introView from './introView';
 import mapView from './mapView';
 import authManager from '../../../UserAccessControl/authManager';
 import notifications from '../../services/notifications';
 import widgetController from '../../widget.controller';
 import views from '../Views';
-import constants from '../constants';
+import constants from '../global/constants';
 import MainMap from '../map/Map';
 
 let selectors = {};
@@ -37,7 +37,7 @@ export default {
     const location = state.selectedLocation;
     const carouselContainer = document.querySelector('.location-detail__carousel');
 
-    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}');" data-id="${n.id}"></div>`).join('\n');
 
     const indexInList = state.listLocations.findIndex((i) => i.id === location.id);
     const indexInPinned = state.pinnedLocations.findIndex((i) => i.id === location.id);
@@ -353,6 +353,119 @@ export default {
     }
   },
 
+  buildCustomActions() {
+    const { selectedLocation } = state;
+    const additionalFields = selectedLocation.additionalFields || {};
+    const quickActions = additionalFields.quickActions || [];
+    const content = additionalFields.content || [];
+
+    state.settings?.customFields?.quickActions.forEach(fieldSchema => {
+      const field = quickActions.find(q => q.id === fieldSchema.id);
+      if (!fieldSchema.type || !field || !field.value) return;
+
+      let icon = '';
+      let actionObject = null;
+
+      if (fieldSchema.type === constants.QuickActionsOptions.EMAIL) {
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32 margin-auto">alternate_email</i>';
+        actionObject = { action: 'sendEmail', email: field.value };
+      } else if (fieldSchema.type === constants.QuickActionsOptions.PHONE) {
+        icon = '<i class="iconsTheme material-icons pointer text-32 margin-auto">call</i>';
+        actionObject = { action: 'callNumber', phoneNumber: field.value };
+      } else if (fieldSchema.type === constants.QuickActionsOptions.URL) {
+        icon = '<i class="iconsTheme material-icons-outlined pointer text-32 margin-auto">link</i>';
+        actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
+      }
+
+      let title = field.customLabel;
+      if (!fieldSchema.enableCustomLabel || !field.customLabel) {
+        title = fieldSchema.label;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'action-item';
+      div.innerHTML = `
+        ${icon}
+        <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
+          <div class="mdc-chip__ripple"></div>
+          <span role="gridcell">
+            <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
+              <span class="mdc-chip__text">${title}</span>
+            </span>
+          </span>
+        </div>
+      `;
+
+      div.onclick = (e) => {
+        e.stopPropagation();
+        if (actionObject) {
+          buildfire.actionItems.execute(actionObject, (err) => {
+            if (err) console.error(err);
+          });
+        }
+      };
+
+      selectors.actionItems.appendChild(div);
+    });
+
+    state.settings?.customFields?.content.forEach(fieldSchema => {
+      const field = content.find(q => q.id === fieldSchema.id);
+
+      if (!fieldSchema.type || !field || !field.value) return;
+
+      let descriptionContainer = selectors.actionItems.querySelector('.location-custom_content_container');
+      if (!descriptionContainer) {
+        descriptionContainer = document.createElement('div');
+        descriptionContainer.className = 'location-custom_content_container flex d-flex-column gap-2-rem padded-md';
+        selectors.actionItems.appendChild(descriptionContainer);
+      }
+
+      const fieldContainer = document.createElement('div');
+      fieldContainer.className = 'location-custom_content_item d-flex-column gap-half-rem';
+
+      let title = field.customLabel;
+      if (!fieldSchema.enableCustomLabel || !field.customLabel) {
+        title = fieldSchema.label;
+      }
+
+      const titleEl = document.createElement('p');
+      titleEl.innerHTML = title;
+      titleEl.classList.add('headerTextTheme');
+      titleEl.style.margin = '0';
+
+      const valueEl = document.createElement('div');
+      valueEl.innerHTML = field.value;
+      valueEl.className = 'custom-content-value';
+      let actionObject = null;
+
+      if (fieldSchema.type === constants.ContentOptions.EMAIL) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'sendEmail', email: field.value };
+      } else if (fieldSchema.type === constants.ContentOptions.PHONE) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'callNumber', phoneNumber: field.value };
+      } else if (fieldSchema.type === constants.ContentOptions.URL) {
+        valueEl.classList.add('primaryTheme', 'pointer');
+        actionObject = { action: 'linkToWeb', url: field.value, openIn: '_blank' };
+      } else {
+        valueEl.classList.add('bodyTextTheme');
+      }
+
+      valueEl.onclick = (e) => {
+        e.stopPropagation();
+        if (actionObject) {
+          buildfire.actionItems.execute(actionObject, (err) => {
+            if (err) console.error(err);
+          });
+        }
+      };
+
+      fieldContainer.appendChild(titleEl);
+      fieldContainer.appendChild(valueEl);
+      descriptionContainer.appendChild(fieldContainer);
+    });
+  },
+
   initLocationDetails() {
     return new Promise((resolve, reject) => {
       const { selectedLocation } = state;
@@ -431,10 +544,10 @@ export default {
 
           if (selectedLocation.images?.length > 0) {
             if (pageMapPosition === 'top') {
-              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
+              selectors.cover.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}')`;
               selectors.cover.style.display = 'block';
             } else {
-              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "16:9" })}')`;
+              selectors.main.style.backgroundImage = `linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url('${buildfire.imageLib.cropImage(selectedLocation.images[0].imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}')`;
             }
           }
 
@@ -497,7 +610,7 @@ export default {
           }
 
           selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon ${a.iconClassName}"></i>` : ''}
+            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon iconsTheme margin-auto ${a.iconClassName}"></i>` : ''}
               <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
@@ -507,7 +620,9 @@ export default {
                 </span>
               </div>
             </div>`).join('\n');
-          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1", mode: 'entropy' })}');" data-id="${n.id}"></div>`).join('\n');
+          this.buildCustomActions();
+
           resolve();
         });
     });

@@ -3,16 +3,17 @@
 // This is the entry point of your plugin's settings control.
 // Feel free to require any local or npm modules you've installed.
 import buildfire from 'buildfire';
-import Settings from '../../entities/Settings';
+import Settings from '../../widget/js/global/data/Settings';
 import authManager from '../../UserAccessControl/authManager';
 import SettingsController from "./settings.controller";
 import GlobalTagsListUI from './js/ui/globalTagsListUI';
 import GlobalEditorsListUI from './js/ui/globalEditorsListUI';
 import LocationEditingListUI from './js/ui/locationEditingListUI';
 import DialogComponent from './js/ui/dialog/dialog';
-import Locations from '../../repository/Locations';
+import Locations from '../../widget/js/global/repository/Locations';
 import { getDisplayName } from './js/util/helpers';
 import { isCameraControlVersion } from '../../shared/utils/mapUtils';
+import initLocationFields from './js/pages/locationFields';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -541,6 +542,7 @@ const createDialogLocationsList = (locations, locationsContainer) => {
     imageIcon.src = cropImage(_location.listImage, {
       width:  40,
       height: 40,
+      mode: 'entropy'
     });
 
     locationName.innerHTML = _location.title;
@@ -1209,6 +1211,12 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('globalSettings');
       navigate('globalSettings', () => {
         initGlobalSettings();
+      });
+      break;
+    case 'locationFields':
+      setActiveSidenavTab('locationFields');
+      navigate('locationFields', () => {
+        initLocationFields(state.settings);
       });
       break;
     case 'sorting':

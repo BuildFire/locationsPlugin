@@ -2,7 +2,8 @@
 import { buildOpenNowCriteria, buildSearchCriteria } from "./shared";
 import state from "../../js/state";
 import WidgetController from "../../widget.controller";
-import constants from "../../js/constants";
+import constants from "../../js/global/constants";
+import authManager from "../../../UserAccessControl/authManager";
 
 const IntroSearchService = {
   _getUserCoordinates() {
@@ -52,6 +53,9 @@ const IntroSearchService = {
         }
       }
     };
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
+      $match['createdBy.userId'] = authManager.currentUser?.userId || '';
+    }
     pipelines.push({ $geoNear });
     pipelines.push({ $match });
 
@@ -82,6 +86,10 @@ const IntroSearchService = {
       "_buildfire.index.string1": { $nin: existLocationStrings },
     };
 
+    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) {
+      $match['createdBy.userId'] = authManager.currentUser?.userId || '';
+    }
+
     pipelines.push({ $match });
     pipelines.push({ $sort });
 
@@ -92,7 +100,7 @@ const IntroSearchService = {
     const query = buildSearchCriteria();
     let pipelines;
 
-    if (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All && !state.currentLocation) {
+    if ((state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All || state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations) && !state.currentLocation) {
       if (!state.fetchingAllNearReached) {
         pipelines = this._setUpIntroGeoQuery(query);
       } else {
@@ -123,7 +131,7 @@ const IntroSearchService = {
         state.fetchingNextPage = false;
         state.fetchingEndReached = aggregateLocations.length < state.searchCriteria.pageSize && state.fetchingAllNearReached;
 
-        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All) {
+        if (aggregateLocations.length < state.searchCriteria.pageSize && !state.fetchingAllNearReached && (state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.All || state.settings.introductoryListView.searchOptions?.mode === constants.SearchLocationsModes.MyLocations)) {
           state.fetchingAllNearReached = true;
           state.searchCriteria.page = 0;
           state.printOtherLocationMessage = true;

@@ -81,6 +81,12 @@ const WebpackConfig = {
       template: path.join(__dirname, '../src/control/settings/templates/globalSettings.html'),
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationFields.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationFields.html'),
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/sorting.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },

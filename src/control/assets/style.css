@@ -164,8 +164,8 @@ p.info::before {
 }
 
 .list-image-holder {
-	width: 120px;
-	height: 80px;
+	width: 96px;
+		height: 96px;
 }
 
 .icon-holder img, .list-image-holder img {
@@ -315,4 +315,59 @@ p.info::before {
 
 .radio input[type="radio"]:disabled + label {
 	cursor: default;
+}
+
+.dropdown-menu.dropup {
+	top: unset !important;
+	bottom: 100% !important;
+	margin-bottom: 2px;
+}
+.font-size-14 {
+	font-size: 14px;
+}
+.font-size-15 {
+	font-size: 15px;
+}
+
+.custom-field-section .add-field-btn {
+	text-align: left !important;
+	padding: 15px !important;
+	padding-left: 37px !important;
+	height: auto !important;
+	font-size: 15px !important;
+	color: var(--c-info) !important;
+	border: 1px dashed var(--c-gray4) !important;
+	border-radius: 8px;
+	position: relative;
+}
+
+.custom-field-section .add-field-btn::before {
+	content: "";
+	width: 1rem;
+	top: 50%;
+	transform: translateY(-50%);
+	left: 0.8rem;
+	display: inline-block;
+	height: 2px;
+	background-color: var(--c-info);
+	margin-right: .5rem;
+	position: absolute;
+}
+
+.custom-field-section .add-field-btn::after {
+	content: "";
+	width: 1rem;
+	top: 50%;
+	transform: translateY(-50%) rotate(90deg);
+	left: 0.8rem;
+	display: inline-block;
+	height: 2px;
+	background-color: var(--c-info);
+	margin-right: .5rem;
+	position: absolute;
+}
+
+.custom-field-section .d-item .icon-cross2::before {
+	font-size: 14px;
+	color: var(--c-gray5);
 }

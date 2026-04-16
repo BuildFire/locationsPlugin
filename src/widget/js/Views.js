@@ -5,6 +5,8 @@ import state from "./state";
 import detailsView from "./views/detailsView";
 import introView from "./views/introView";
 import mapView from "./views/mapView";
+import createView from './views/createView';
+import editView from './views/editView';
 
 class Views {
   constructor() {
@@ -70,6 +72,12 @@ class Views {
         break;
       case 'detail':
         detailsView.initLocationDetails();
+        break;
+      case 'create':
+        createView.navigateTo();
+        break;
+      case 'edit':
+        editView.init();
         break;
     }
   }

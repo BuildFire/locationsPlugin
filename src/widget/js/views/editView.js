@@ -1,12 +1,11 @@
 import state from '../state';
-import Location from '../../../entities/Location';
-import Locations from '../../../repository/Locations';
+import Location from '../global/data/Location';
+import Locations from '../global/repository/Locations';
 import DeepLink from '../../../utils/deeplink';
-import SearchEngine from '../../../repository/searchEngine';
+import SearchEngine from '../global/repository/searchEngine';
 import views from '../Views';
 import {
   createTemplate,
-  generateUUID,
   getDefaultOpeningHours,
   showToastMessage,
   transformCategoriesToText,
@@ -14,15 +13,17 @@ import {
   getActiveTemplate,
   cropImage,
 } from '../util/helpers';
+import { generateUUID } from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
-import Accordion from '../Accordion';
+import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
 import { validateOpeningHoursDuplication } from '../../../shared/utils';
-import constants from '../constants';
+import constants from '../global/constants';
 import accessManager from '../accessManager';
+import customFieldsController from './components/customFields';
 
 const localState = {
   pendingLocation: null,
@@ -173,6 +174,10 @@ const _validateLocationSave = () => {
     isValid = false;
   }
 
+  if (!customFieldsController.helper.validate()) {
+    isValid = false;
+  }
+
   return isValid;
 };
 
@@ -315,6 +320,8 @@ const _saveChanges = (e) => {
   if (!_validateLocationSave()) return;
   if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
 
+  pendingLocation.additionalFields = customFieldsController.helper.getFieldsValues();
+
   e.target.disabled = true;
 
   updateLocation(pendingLocation.id, pendingLocation)
@@ -370,7 +377,8 @@ const _refreshLocationImages = () => {
         hasImage: true,
         imageUrl: cropImage(image.imageUrl, {
           width: 64,
-          height: 64
+          height: 64,
+          mode: 'entropy'
         })
       },
       null,
@@ -763,6 +771,7 @@ const _uploadListImage = () => {
         listImageImg.src = cropImage(url, {
           width: 64,
           height: 64,
+          mode: 'entropy'
         });
         listImageSelectBtn.classList.add('has-img');
       }
@@ -880,13 +889,14 @@ const init = () => {
       };
 
       listImageSelectBtn.onclick = _uploadListImage;
-      listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, });
+      listImageImg.src = cropImage(pendingLocation.listImage, { width: 64, height: 64, mode: 'entropy' });
 
       _buildMap();
       refreshCategoriesText();
       _refreshLocationImages();
       _renderOpeningHours();
       _initAddressAutocompleteField('locationAddressFieldInput');
+      customFieldsController.ui.init();
 
       editView.addEventListener('click', onViewClick);
       editView.querySelectorAll('.mdc-text-field').forEach((i) => {
@@ -939,6 +949,15 @@ const init = () => {
         element: document.querySelector('.edit-location-accordion'),
         multi: true,
         expanded: true
+      });
+
+      buildfire.device.onKeyboardShow(() => {
+        setTimeout(() => {
+          const currentActiveInput = document.querySelector('.mdc-text-field.mdc-text-field--focused');
+          if (currentActiveInput) {
+            currentActiveInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       });
     })
     .catch((err) => {

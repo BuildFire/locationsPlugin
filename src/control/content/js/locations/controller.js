@@ -1,12 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable max-len */
-import Location from '../../../../repository/Locations';
+import Location from '../../../../widget/js/global/repository/Locations';
 import Analytics from '../../../../utils/analytics';
 import DeepLink from '../../../../utils/deeplink';
-import SearchEngine from '../../../../repository/searchEngine';
+import SearchEngine from '../../../../widget/js/global/repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
-import { generateUUID } from '../../utils/helpers';
-import Settings from '../../../../repository/Settings';
+import { generateUUID } from '../../../../widget/js/global/helpers';
+import Settings from '../../../../widget/js/global/repository/Settings';
 
 export default {
   createLocation(location) {

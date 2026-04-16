@@ -3,12 +3,13 @@
 /* eslint-disable no-use-before-define */
 import SettingsController from "./controller";
 import LocationsController from "../locations/controller";
-import { generateUUID } from "../../utils/helpers";
+import { generateUUID } from "../../../../widget/js/global/helpers";
 import PinnedLocationsList from "./pinnedLocationsList";
-import Location from "../../../../entities/Location";
+import Location from "../../../../widget/js/global/data/Location";
 import loadAreaRadiusMap from "./introMap";
 import state from "../../state";
-import constants from "../../../../widget/js/constants";
+import constants from "../../../../widget/js/global/constants";
+import BaseDropdown from "../../../../shared/baseDropdown";
 
 const listViewSection = document.querySelector("#main");
 
@@ -35,40 +36,76 @@ const initListViewWysiwyg = () => {
   });
 };
 
-window.onShowListViewChanged = (e) => {
-  state.settings.showIntroductoryListView = e.target.checked;
+window.onShowListViewChanged = (value) => {
+  state.settings.introductoryListView.visibilityOptions.value = value;
   saveSettingsWithDelay();
+
+  const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
+  if (value === constants.IntroViewVisibilityOptions.TAGS) {
+    introVisibilityTagsSelection?.classList?.remove('hidden');
+  } else {
+    introVisibilityTagsSelection?.classList?.add('hidden');
+  }
 };
 
-window.onSortLocationsChanged = (sorting) => {
+const onSortLocationsChanged = (sorting) => {
   if (!sorting) {
     return;
   }
-  state.settings.introductoryListView.sorting = sorting;
+  state.settings.introductoryListView.sorting = sorting.value;
   saveSettingsWithDelay();
 };
 
-window.onShowLocationsModeChanged = (showMode) => {
+const onShowLocationsModeChanged = (showMode) => {
   const areaRadiusOptionsContainer = document.querySelector("#areaRadiusOptionsContainer");
-  if (showMode === constants.SearchLocationsModes.AreaRadius) {
+  if (showMode.value === constants.SearchLocationsModes.AreaRadius) {
     areaRadiusOptionsContainer?.classList?.remove('hidden');
   } else {
     areaRadiusOptionsContainer?.classList?.add('hidden');
   }
+  const locationSourceNote = document.querySelector("#locationSourceNote");
+  if (showMode.value === constants.SearchLocationsModes.MyLocations) {
+    locationSourceNote?.classList?.remove('hidden');
+  } else {
+    locationSourceNote?.classList?.add('hidden');
+  }
 
   if (state.settings.introductoryListView.searchOptions) {
-    state.settings.introductoryListView.searchOptions.mode = showMode;
+    state.settings.introductoryListView.searchOptions.mode = showMode.value;
   } else {
-    state.settings.introductoryListView.searchOptions = { mode: showMode };
+    state.settings.introductoryListView.searchOptions = { mode: showMode.value };
   }
 
   saveSettingsWithDelay();
 };
 
+const initIntroDropDowns = () => {
+  const sourceDropdown = new BaseDropdown('#locationsSourceDropdown', {
+    items: [
+      { label: 'All Locations', value: constants.SearchLocationsModes.All, id: constants.SearchLocationsModes.All },
+      { label: "User's Position", value: constants.SearchLocationsModes.UserPosition, id: constants.SearchLocationsModes.UserPosition },
+      { label: 'Local Area', value: constants.SearchLocationsModes.AreaRadius, id: constants.SearchLocationsModes.AreaRadius },
+      { label: 'My Locations', value: constants.SearchLocationsModes.MyLocations, id: constants.SearchLocationsModes.MyLocations }
+    ],
+    dropToTop: true,
+    selectedId: state.settings.introductoryListView.searchOptions?.mode || constants.SearchLocationsModes.UserPosition,
+    handleSelect: onShowLocationsModeChanged,
+  });
+
+  const sortDropdown = new BaseDropdown('#sortLocationsDropdown', {
+    items: [
+      { label: 'Distance', value: constants.SortingOptions.Distance, id: constants.SortingOptions.Distance },
+      { label: 'Alphabetical', value: constants.SortingOptions.Alphabetical, id: constants.SortingOptions.Alphabetical },
+      { label: 'Newest', value: constants.SortingOptions.Newest, id: constants.SortingOptions.Newest }
+    ],
+    dropToTop: true,
+    selectedId: state.settings.introductoryListView.sorting || constants.SortingOptions.Distance,
+    handleSelect: onSortLocationsChanged,
+  });
+}
+
 const patchListViewValues = () => {
   console.log(state.settings.introductoryListView.images);
-  const showBtn = listViewSection.querySelector('#listview-show-introduction-btn');
-  showBtn.checked = state.settings.showIntroductoryListView;
   listViewImagesCarousel.loadItems(state.settings.introductoryListView.images);
   const sortRadioBtns = listViewSection.querySelectorAll('input[name="sortLocationBy"]');
   for (const radio of sortRadioBtns) {
@@ -82,6 +119,29 @@ const patchListViewValues = () => {
       radio.checked = true;
     }
   }
+  const introVisibilityRadioBtns = listViewSection.querySelectorAll('input[name="introVisibility"]');
+  for (const radio of introVisibilityRadioBtns) {
+    if (radio.value === state.settings.introductoryListView.visibilityOptions?.value) {
+      radio.checked = true;
+      if (radio.value === constants.IntroViewVisibilityOptions.TAGS) {
+        const introVisibilityTagsSelection = document.querySelector("#introVisibilityTagsSelection");
+        introVisibilityTagsSelection?.classList?.remove('hidden');
+      }
+    }
+  }
+
+  const userTagsInput = new buildfire.components.control.userTagsInput("#introVisibilityTagsSelection", {
+    languageSettings: {
+      placeholder: "User Tags"
+    }
+  });
+  userTagsInput.onUpdate = (data) => {
+    state.settings.introductoryListView.visibilityOptions.tags = data.tags;
+    saveSettingsWithDelay();
+  }
+  userTagsInput.append(state.settings.introductoryListView.visibilityOptions.tags);
+
+  initIntroDropDowns();
 };
 
 const handlePinnedLocationEmptyState = (isLoading) => {

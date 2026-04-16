@@ -81,6 +81,9 @@
 .min-height-unset {
   min-height: unset !important;
 }
+.min-width-unset {
+  min-width: unset !important;
+}
 .padding-2 {
   padding: 2rem;
 }

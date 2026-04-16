@@ -1,11 +1,25 @@
 <template>
-    <div class="flex-row space-between">
-      <div class="section-title">Introduction Screen</div>
-      <div class="form-group margin-top-ten">
-        <div class="button-switch">
-            <input id="listview-show-introduction-btn" type="checkbox"  onchange="onShowListViewChanged(event)"/>
-            <label for="listview-show-introduction-btn" class="label-success"></label>
+    <div class="space-between">
+      <div class="section-title margin-bottom-five">Introduction Screen</div>
+      <div class="form-group margin-top-ten intro-visibility-container">
+        <div class="padding-right-zero">
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-all" value="NONE"
+              onchange="onShowListViewChanged('NONE')" />
+            <label for="listview-show-locations-by-all">No Users</label>
+          </div>
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-user-position" value="TAGS"
+              onchange="onShowListViewChanged('TAGS')" />
+            <label for="listview-show-locations-by-user-position">Users With</label>
+          </div>
+          <div class="col-md-4 margin-top-zero radio radio-primary">
+            <input type="radio" name="introVisibility" id="listview-show-locations-by-area-radius" value="ALL"
+              onchange="onShowListViewChanged('ALL')" />
+            <label for="listview-show-locations-by-area-radius">All Users</label>
+          </div>
         </div>
+        <div id="introVisibilityTagsSelection" class="hidden" />
       </div>
     </div>
     <div class="clearfix">
@@ -22,7 +36,7 @@
     </div>
     <hr class="none" />
     <div>
-        <h5 class="text-bold">Pinned to top locations</h5>
+        <h5 class="section-subtitle">Pinned to top locations</h5>
         <hr class="none" />
         <div class="clearfix">
             <p class="info-note margin-bottom-fifteen">Pin locations to the top of the list to highlight them.</p>
@@ -34,35 +48,27 @@
     </div>
     <hr class="none" />
     <div>
-      <h5 class="text-bold">Other Locations</h5>
+      <h5 class="section-subtitle">Other Locations</h5>
       <hr class="none" />
       <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
-            <label class="btn-description">Show Locations
+          <div class="col-md-12 pull-left padding-left-zero">
+            <label class="btn-description">Location Source
               <div class="bf-tooltip margin-left-ten">
                 <div class="tooltip-content to-center">
-                  Display all existing locations, locations around the user's current position, or locations around the manually selected local area.
+                  Select which locations are shown on the Introduction screen: all locations,
+                  locations near the user,
+                  locations in the selected local area,
+                  or only locations created by the logged-in user.
                 </div>
               </div>
             </label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="searchOptions" id="listview-show-locations-by-all" value="All"
-                  onchange="onShowLocationsModeChanged('All')"/>
-              <label for="listview-show-locations-by-all">All</label>
-            </div>
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="searchOptions" id="listview-show-locations-by-user-position" value="UserPosition" checked
-                onchange="onShowLocationsModeChanged('UserPosition')"/>
-              <label for="listview-show-locations-by-user-position">User’s Position</label>
-            </div>
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio" name="searchOptions" id="listview-show-locations-by-area-radius" value="AreaRadius"
-                onchange="onShowLocationsModeChanged('AreaRadius')" />
-              <label for="listview-show-locations-by-area-radius">Local Area</label>
-            </div>
+          <div class="col-md-12 pull-right padding-zero">
+            <div id="locationsSourceDropdown"></div>
           </div>
+      </div>
+      <div class="clearfix hidden" id="locationSourceNote">
+        <p class="info-note">Note: Only locations created by the logged-in user are shown on the Introduction screen.</p>
       </div>
       <div id="areaRadiusOptionsContainer" class="hidden">
         <div class="form-group main clearfix">
@@ -94,7 +100,7 @@
       </div>
 
       <div class="form-group main clearfix">
-          <div class="col-md-4 pull-left padding-left-zero">
+          <div class="col-md-12 pull-left padding-left-zero">
             <label class="btn-description">Sort Locations by
               <div class="bf-tooltip margin-left-ten">
                 <div class="tooltip-content to-center">
@@ -103,22 +109,8 @@
               </div>
             </label>
           </div>
-          <div class="col-md-8 pull-right padding-right-zero">
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-dist" value="distance" checked
-                  onchange="onSortLocationsChanged('distance')"/>
-              <label for="listview-sort-location-by-dist">Distance</label>
-            </div>
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-alpha" value="alphabetical"
-                onchange="onSortLocationsChanged('alphabetical')"/>
-              <label for="listview-sort-location-by-alpha">Alphabetical</label>
-            </div>
-            <div class="col-md-4 margin-top-zero radio radio-primary">
-              <input type="radio"  name="sortLocationBy" id="listview-sort-location-by-newest" value="newest"
-                onchange="onSortLocationsChanged('newest')" />
-              <label for="listview-sort-location-by-newest">Newest</label>
-            </div>
+          <div class="col-md-12 pull-right padding-zero">
+            <div id="sortLocationsDropdown"></div>
           </div>
       </div>
     </div>

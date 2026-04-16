@@ -3,7 +3,7 @@ import WidgetController from '../../widget.controller';
 import mapSearchControl from '../../js/map/search-control';
 import state from "../../js/state";
 import { buildOpenNowCriteria, buildSearchCriteria } from './shared';
-import constants from '../../js/constants';
+import constants from '../../js/global/constants';
 
 const MapSearchService = {
   getMapCenterPoint() {

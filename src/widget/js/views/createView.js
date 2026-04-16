@@ -1,9 +1,8 @@
 import state from '../state';
-import Location from '../../../entities/Location';
+import Location from '../global/data/Location';
 import views from '../Views';
 import {
   createTemplate,
-  generateUUID,
   getDefaultOpeningHours,
   showToastMessage,
   transformCategoriesToText,
@@ -11,8 +10,9 @@ import {
   getActiveTemplate,
   cropImage
 } from '../util/helpers';
-import { navigateTo, resetBodyScroll, showElement } from '../util/ui';
-import Accordion from '../Accordion';
+import { generateUUID } from '../global/helpers';
+import { hideElement, navigateTo, resetBodyScroll, showElement } from '../util/ui';
+import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
@@ -23,7 +23,8 @@ import {
   validateTimeInterval,
   uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
 } from '../util/forms';
-import constants from '../constants';
+import constants from '../global/constants';
+import customFieldsController from './components/customFields';
 
 export default {
   get _defaultFieldsInfo() {
@@ -168,7 +169,8 @@ export default {
             hasImage: true,
             imageUrl: cropImage(image.imageUrl, {
               width: 64,
-              height: 64
+              height: 64,
+              mode: 'entropy'
             })
           },
           null,
@@ -292,6 +294,10 @@ export default {
       isValid = false;
     }
 
+    if (!customFieldsController.helper.validate()) {
+      isValid = false;
+    }
+
     return { isValid };
   },
   submit(e) {
@@ -314,6 +320,8 @@ export default {
       return;
     }
 
+    this.payload.additionalFields = customFieldsController.helper.getFieldsValues();
+
     widgetController.createLocation(this.payload)
       .then((result) => {
         showToastMessage('locationSaved', 5000);
@@ -335,6 +343,7 @@ export default {
     if (activeTemplate === 'intro') {
       introView.clearIntroViewList();
       introView.renderIntroductoryLocations(state.listLocations, true);
+      hideElement('#intro div.empty-page');
     } else {
       mapView.clearMapViewList();
       mapView.renderListingLocations(state.listLocations);
@@ -454,7 +463,7 @@ export default {
     };
 
     listImageAddBtn.onclick = this._uploadListImage.bind(this);
-    listImageImg.src = cropImage(this.payload.listImage, { width: 64, height: 64, });
+    listImageImg.src = cropImage(this.payload.listImage, { width: 64, height: 64, mode: 'entropy' });
   },
   _uploadListImage() {
     const listImageInput = this._querySelect('#locationListImageInput');
@@ -500,6 +509,7 @@ export default {
           listImageImg.src = cropImage(url, {
             width: 64,
             height: 64,
+            mode: 'entropy'
           });
           listImageSelectBtn.classList.add('has-img');
         }
@@ -848,7 +858,17 @@ export default {
         this.buildEventsHandlers();
         this.buildMap();
         this.show();
+        customFieldsController.ui.init();
         window.strings.inject(document.querySelector('section#create'), false);
+
+        buildfire.device.onKeyboardShow(() => {
+          setTimeout(() => {
+            const currentActiveInput = document.querySelector('.mdc-text-field.mdc-text-field--focused');
+            if (currentActiveInput) {
+              currentActiveInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        });
       });
   },
 };

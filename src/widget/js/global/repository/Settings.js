@@ -1,4 +1,5 @@
-import Setting from "../entities/Settings";
+import Setting from "../data/Settings";
+import constants from "../constants";
 
 export default class Settings {
   /**
@@ -29,6 +30,7 @@ export default class Settings {
           resolve(settings);
           return;
         }
+
         resolve(new Setting(res.data));
       });
     });

@@ -1,0 +1,39 @@
+<template>
+	<div class="section-title margin-bottom-fifteen">Location Fields</div>
+
+	<div class="clearfix">
+		<p class="info-note margin-bottom-ten">
+			Add custom fields that appear when adding or editing a location. Fields can be optional or required and will
+			be shown on all locations. You can allow users to customize the field label if needed. Add up to 10 fields
+			in total.
+		</p>
+	</div>
+
+	<section class="custom-field-section margin-bottom-ten">
+		<div class="section-title margin-bottom-ten font-size-15">Quick Actions</div>
+		<div class="clearfix">
+			<p class="info-note margin-bottom-ten">
+				Fields displayed at the top of the Additional Details section as compact icon buttons with short labels.
+				Best suited for email, phone numbers, and URLs with brief titles.
+			</p>
+		</div>
+
+		<div id="quick-actions-container" class="quick-actions-container margin-zero"></div>
+		<button class="btn btn-block add-field-btn" id="add-quick-action-field">Add Quick Action Field</button>
+	</section>
+
+	<section class="custom-field-section margin-bottom-thirty padding-bottom-thirty">
+		<div class="section-title margin-bottom-ten font-size-15">Text Content</div>
+		<div class="clearfix">
+			<p class="info-note margin-bottom-ten">
+				Fields displayed as full-width sections below Quick Actions. Used for descriptive content such as text,
+				rich
+				text, or links in a standard layout. Suitable for longer labels.
+			</p>
+		</div>
+
+		<div id="text-content-container" class="text-content-container margin-zero"></div>
+		<button class="btn btn-block add-field-btn" id="add-text-content-field">Add Text Content Field</button>
+	</section>
+
+</template>

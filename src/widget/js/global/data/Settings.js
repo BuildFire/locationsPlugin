@@ -1,3 +1,5 @@
+import constants from "../constants";
+
 /**
  * Settings data model
  * @class
@@ -8,7 +10,6 @@ export default class Settings {
    * @constructor
    */
   constructor(data = {}) {
-    this.showIntroductoryListView = typeof data.showIntroductoryListView === 'undefined' ? true : data.showIntroductoryListView;
     this.subscription = data.subscription || {
       enabled: false,
       allowCustomNotifications: false,
@@ -17,12 +18,23 @@ export default class Settings {
     this.introductoryListView = data.introductoryListView || {
       images: [],
       description: null,
-      sorting: null,
+      sorting: constants.SortingOptions.Distance,
       searchOptions: {
-        mode: null,
+        mode: constants.SearchLocationsModes.UserPosition,
         areaRadiusOptions: {}
-      }
+      },
     };
+    if (!data.introductoryListView?.visibilityOptions) {
+      this.introductoryListView.visibilityOptions = {
+        tags: [],
+        value: (data.showIntroductoryListView === true || typeof data.showIntroductoryListView === 'undefined') ? constants.IntroViewVisibilityOptions.ALL : constants.IntroViewVisibilityOptions.NONE
+      }
+    } else {
+      this.introductoryListView.visibilityOptions = {
+        tags: data.introductoryListView?.visibilityOptions?.tags || [],
+        value: data.introductoryListView?.visibilityOptions?.value || constants.IntroViewVisibilityOptions.ALL
+      };
+    }
     this.sorting = data.sorting || {
       defaultSorting: 'distance',
       hideSorting: false,
@@ -33,6 +45,10 @@ export default class Settings {
       allowSortByDate: true,
       allowSortByRating: true,
       allowSortByViews: true,
+    };
+    this.customFields = {
+      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
+      content: (data.customFields?.content || []).map(field => new CustomField(field))
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
@@ -53,7 +69,7 @@ export default class Settings {
       allowForLocations: true,
       allowForFilters: true
     };
-    this.design = data.design ||  {
+    this.design = data.design || {
       listViewPosition: 'collapsed',
       listViewStyle: 'backgroundImage',
       defaultMapStyle: 'light',
@@ -67,7 +83,7 @@ export default class Settings {
     };
     this.globalEntries = data.globalEntries || {
       locations: {
-        allowAdding:  'none', // all || none || limited
+        allowAdding: 'none', // all || none || limited
         tags: [],
       },
       photos: {
@@ -87,7 +103,7 @@ export default class Settings {
       enabled: true,
       time: "12H"
     };
-    this.categoriesSortBy =  data.categoriesSortBy || "Asc";
+    this.categoriesSortBy = data.categoriesSortBy || "Asc";
     this.createdOn = data.createdOn || new Date();
     this.createdBy = data.createdBy || null;
     this.lastUpdatedOn = data.lastUpdatedOn || new Date();
@@ -104,13 +120,13 @@ export default class Settings {
   toJSON() {
     return {
       subscription: this.subscription,
-      showIntroductoryListView: this.showIntroductoryListView,
       measurementUnit: this.measurementUnit,
       introductoryListView: this.introductoryListView,
       sorting: this.sorting,
       filter: this.filter,
       map: this.map,
       bookmarks: this.bookmarks,
+      customFields: this.customFields,
       design: this.design,
       globalEntries: this.globalEntries,
       globalEditors: this.globalEditors,
@@ -127,5 +143,15 @@ export default class Settings {
         index: {}
       }
     };
+  }
+}
+
+class CustomField {
+  constructor(data = {}) {
+    this.id = data.id || null;
+    this.label = data.label || null;
+    this.type = data.type || null;
+    this.required = data.required || false;
+    this.enableCustomLabel = data.enableCustomLabel || false;
   }
 }

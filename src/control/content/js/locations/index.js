@@ -2,11 +2,13 @@
 /* eslint-disable max-len */
 /* eslint-disable no-use-before-define */
 import buildfire from "buildfire";
-import Location from "../../../../entities/Location";
+import Location from "../../../../widget/js/global/data/Location";
 import SearchTableHelper from "../searchTable/searchTableHelper";
 import searchTableConfig from "../searchTable/searchTableConfig";
-import { generateUUID, createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
+import {
+  createTemplate, getDefaultOpeningHours, toggleDropdown, handleInputError, isLatitude, isLongitude,
   showProgressDialog, isValidRGBColor, rgbaToHex, getOpacityFromRGBA } from "../../utils/helpers";
+import { generateUUID } from "../../../../widget/js/global/helpers";
 import { downloadCsv, jsonToCsv, csvToJson, readCSVFile } from "../../utils/csv.helper";
 import DialogComponent from "../dialog/dialog";
 import LocationImagesUI from "./locationImagesUI";
@@ -17,11 +19,12 @@ import globalState from '../../state';
 import DeepLink from "../../../../utils/deeplink";
 import { convertTimeToDate, convertDateToTime } from "../../../../utils/datetime";
 import authManager from '../../../../UserAccessControl/authManager';
-import Locations from "../../../../repository/Locations";
-import Category from "../../../../entities/Category";
+import Locations from "../../../../widget/js/global/repository/Locations";
+import Category from "../../../../widget/js/global/data/Category";
 import { validateOpeningHoursDuplication } from '../../../../shared/utils';
-import constants from '../../../../widget/js/constants';
+import constants from '../../../../widget/js/global/constants';
 import { isCameraControlVersion } from "../../../../shared/utils/mapUtils";
+import locationCustomFieldsController from "./customFields";
 
 const breadcrumbsSelector = document.querySelector("#breadcrumbs");
 const sidenavContainer = document.querySelector("#sidenav-container");
@@ -44,6 +47,7 @@ const state = {
   locationObj: new Location(),
   selectedLocationCategories: { main: [], subcategories: [] },
   selectedOpeningHours: getDefaultOpeningHours(),
+  isFetchingLocation: false,
   weekDays: {
     sunday: "Sun",
     monday: "Mon",
@@ -245,7 +249,7 @@ window.addEditLocation = (location) => {
     addLocationControls.showOpeningHoursBtn.checked = state.locationObj.settings.showOpeningHours;
     addLocationControls.showPriceRangeBtn.checked = state.locationObj.settings.showPriceRange;
     addLocationControls.showStarRatingBtn.checked = state.locationObj.settings.showStarRating;
-    setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+    setIcon(state.locationObj.listImage, "url", addLocationControls.listImageBtn, { width: 96, height: 96 });
     triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
   }
   renderBreadcrumbs();
@@ -254,6 +258,7 @@ window.addEditLocation = (location) => {
   renderOpeningHours(state.locationObj.openingHours);
   onMarkerTypeChanged(state.locationObj.marker);
   onPriceRangeChanged(state.locationObj.price);
+  locationCustomFieldsController.ui.init(state.locationObj);
 
   locationImagesUI = new LocationImagesUI('location-image-items');
   actionItemsUI = new ActionItemsUI('location-action-items');
@@ -261,11 +266,13 @@ window.addEditLocation = (location) => {
   tinymce.init({
     selector: "#location-description-wysiwyg",
     setup: (ed) => {
-      ed.on('keyup change', () => {
-        state.locationObj.description = tinymce.activeEditor.getContent();
-        state.locationObj.wysiwygSource = 'control';
-        triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
-        checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
+      ed.on('keyup change', (e) => {
+        if (tinymce.activeEditor.id === 'location-description-wysiwyg') {
+          state.locationObj.description = tinymce.activeEditor.getContent();
+          state.locationObj.wysiwygSource = 'control';
+          triggerWidgetOnLocationsUpdate({ realtimeUpdate: true });
+          checkInputErrorOnChange(addLocationControls.locationDescription, addLocationControls.locationDescriptionError);
+        }
       });
     }
   });
@@ -438,7 +445,7 @@ window.addEditLocation = (location) => {
         }
 
         if (iconUrl) {
-          setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 120, height: 80 });
+          setIcon(iconUrl, "url", addLocationControls.listImageBtn, { width: 96, height: 96 });
           state.locationObj.listImage = iconUrl;
           if (state.saveBtnClicked) {
             addLocationControls.listImageError.parentNode.classList.remove('has-error');
@@ -597,8 +604,14 @@ const saveLocation = (action, callback = () => { }) => {
   state.locationObj.subtitle = addLocationControls.locationSubtitle.value;
   state.locationObj.address = addLocationControls.locationAddress.value;
   state.locationObj.addressAlias = addLocationControls.locationCustomName.value;
-  state.locationObj.description = tinymce.activeEditor.getContent();
   state.locationObj.openingHours = { ...state.locationObj.openingHours, ...state.selectedOpeningHours };
+
+  const editor = tinymce.get(`location-description-wysiwyg`);
+  if (editor) {
+    const textContent = editor.getContent();
+    state.locationObj.description = textContent ? textContent.trim() : '';
+  }
+
   if (!validateOpeningHoursDuplication(state.locationObj.openingHours)) {
     buildfire.dialog.alert(
       {
@@ -684,6 +697,11 @@ const locationInputValidation = () => {
 
   if (!validateOpeningHours(openingHours)) {
     isValid = false;
+  }
+  if (!locationCustomFieldsController.helper.validateCustomFields()) {
+    isValid = false;
+  } else {
+    state.locationObj.additionalFields = locationCustomFieldsController.helper.getCustomFieldsValues();
   }
 
   const invalidInput = document.querySelector(".has-error");
@@ -823,8 +841,9 @@ const setIcon = (icon, type, selector, options = {}) => {
     defaultIcon.classList.add("hidden");
     imageIcon.classList.remove("hidden");
     imageIcon.src = cropImage(icon, {
-      width: options.width ? options.width : 40,
-      height: options.height ? options.height : 40,
+      width: options.width ? options.width : 96,
+      height: options.height ? options.height : 96,
+      mode: 'entropy'
     });
   } else if (type === "font") {
     imageIcon.classList.add("hidden");
@@ -989,7 +1008,7 @@ const renderSelectedCategoriesList = (locationCategories) => {
     categoryListItem.className = 'item-list';
     const itemContent = `
     <div class="item-list">
-       <h5 class="text-bold">${category.title}</h5>
+       <h5 class="section-subtitle">${category.title}</h5>
        <span class="text-muted">${subcategories.map((elem) => elem.title).join(', ')}</span>
      </div>
     `;
@@ -2032,7 +2051,8 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
         rating: state.locationObj.rating,
         price: state.locationObj.price,
         editingPermissions: state.locationObj.editingPermissions,
-        openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours }
+        openingHours: { ...state.locationObj.openingHours, ...state.selectedOpeningHours },
+        additionalFields: state.locationObj.additionalFields
       };
     }
     buildfire.messaging.sendMessageToWidget({
@@ -2044,6 +2064,7 @@ const triggerWidgetOnLocationsUpdate = ({ realtimeUpdate = false, isCancel = fal
     });
   }, 500);
 };
+window.triggerWidgetOnLocationsUpdate = triggerWidgetOnLocationsUpdate;
 
 const triggerWidgetOnSettingsUpdate = () => {
   buildfire.messaging.sendMessageToWidget({
@@ -2068,8 +2089,11 @@ window.initLocations = () => {
   });
   getPinnedLocation();
   locationsTable.onEditRow = (obj, tr) => {
+    if (state.isFetchingLocation) return;
+    state.isFetchingLocation = true;
     LocationsController.getById(obj.id).then((updatedLocation) => {
       window.addEditLocation({ ...updatedLocation.data, id: updatedLocation.id });
+      state.isFetchingLocation = false;
     });
   };
 
