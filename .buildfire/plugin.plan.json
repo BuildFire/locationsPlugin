@@ -1,0 +1,3131 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-27T06:50:56Z",
+  "updatedAt": "2026-04-27T06:50:56Z",
+  "pluginPurpose": "A BuildFire locations plugin that lets control-panel admins manage locations, categories, list-view behavior, design options, map defaults, editing permissions, custom fields, and localized strings, while widget users browse locations by list or map, filter and sort results, open location details, bookmark searches and locations, follow locations for notifications, share records, get directions, and edit or add content when access rules allow it.",
+  "businessGoal": "Help app owners publish and maintain a location catalog with map-based discovery, configurable filters, localized UI text, and permissioned content editing so end users can find, save, share, and interact with places efficiently.",
+  "architectureOverview": "The widget is the runtime consumer of public location/category data and the saved settings record. It bootstraps auth, geolocation, strings, bookmarks, deep links, search, and map/list rendering, then reacts to control-panel sync messages to refresh its cached state. The control panel is split into content, design, settings, and strings tabs. Content manages publicData records for locations and categories, including imports, exports, soft delete for categories, hard delete for locations, pinned ordering, editing permissions, and preview synchronization. Design updates visual preferences inside the shared settings record. Settings updates access rules, global entries, bookmarks, map defaults, custom field definitions, and per-location editing permissions. The strings tab manages the language-string datastore used by the widget and other controls. Data ownership is mostly app-level for shared configuration and publicData records, with user-level behavior handled by BuildFire bookmarks, auth, and report-abuse services instead of plugin-owned storage.",
+  "designPrinciples": [
+    "Keep widget rendering and control-panel editing separate, with shared models and repositories instead of duplicated schema logic.",
+    "Treat BuildFire publicData records as the source of truth for locations and categories, and the datastore record as the source of truth for shared settings and strings.",
+    "Preserve unknown fields when updating shared records because several flows use partial updates or full-object saves on the same record type.",
+    "Use explicit validation before save actions in control and widget edit flows, especially for required fields, coordinates, images, opening hours, and custom fields.",
+    "Use BuildFire messaging to synchronize widget caches after control-panel changes instead of directly coupling control UI to widget DOM.",
+    "Use buildfire.auth and sanitized user objects for createdBy/lastUpdatedBy fields, but never store access tokens or other sensitive auth state in plugin records.",
+    "Index location and category records for search and map filtering, and keep that indexing behavior consistent with the model classes.",
+    "Favor soft removal for categories and hard removal for locations only where the code already does so; do not invent new deletion semantics."
+  ],
+  "runtimeSurfaces": {
+    "widget": {
+      "exists": true,
+      "purpose": "Public browsing and interaction surface for app users.",
+      "entrypoints": [
+        "src/widget/widget.js",
+        "src/widget/widget.controller.js",
+        "src/widget/index.html"
+      ],
+      "mainResponsibilities": [
+        "Load settings, categories, bookmarks, user position, strings, and deep-link state.",
+        "Render intro, map, list, detail, create, and edit views based on access and navigation state.",
+        "Apply filters, search, sorting, and location-distance calculations.",
+        "Handle bookmark toggles, follow/unfollow subscription updates, image uploads, rating updates, sharing, directions, and report-abuse actions.",
+        "Receive control-panel sync messages for settings, design, categories, strings, custom fields, and location changes."
+      ]
+    },
+    "control": {
+      "exists": true,
+      "enabledSections": [
+        "content",
+        "design",
+        "settings",
+        "strings",
+        "tests"
+      ],
+      "purpose": "Admin editing surface for content, configuration, and localized text.",
+      "entrypoints": [
+        "src/control/content/content.js",
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/strings/strings.js",
+        "src/control/content/index.html",
+        "src/control/design/index.html",
+        "src/control/settings/index.html",
+        "src/control/strings/index.html"
+      ],
+      "mainResponsibilities": [
+        "Create, update, soft delete, hard delete, import, export, reorder, and inspect locations and categories.",
+        "Manage global editor/tag access rules, location editing permissions, bookmarks, map defaults, intro list-view content, and custom fields.",
+        "Persist design flags and shared settings back to the settings datastore record.",
+        "Persist and synchronize language strings for widget copy and editor copy.",
+        "Push BuildFire sync messages to refresh widget caches after admin edits."
+      ]
+    },
+    "resources": {
+      "exists": true,
+      "purpose": "Static support files and repository documentation used by the plugin build and runtime assets.",
+      "importantFiles": [
+        "src/resources/README.md",
+        "src/widget/css/main.css",
+        "src/control/content/css/main.css",
+        "src/control/settings/css/main.css",
+        "src/control/design/css/main.css",
+        "src/control/strings/css/main.css"
+      ]
+    }
+  },
+  "executionFlows": [
+    {
+      "name": "Widget bootstrap and data hydration",
+      "trigger": "Widget script loads and Google Maps SDK becomes ready.",
+      "steps": [
+        "Initialize strings, auth state, bookmarks, geolocation, categories, and app settings.",
+        "Load the active widget template and initialize the map/list UI.",
+        "Register messaging, history, rating, and auth change listeners.",
+        "Fetch the first page of locations and pinned locations based on access rules.",
+        "Render the intro or map view depending on intro access and the current navigation state."
+      ],
+      "filesInvolved": [
+        "src/widget/widget.js",
+        "src/widget/widget.controller.js",
+        "src/widget/js/accessManager.js",
+        "src/shared/strings.js",
+        "src/widget/js/global/repository/Settings.js",
+        "src/widget/js/global/repository/Categories.js",
+        "src/utils/analytics.js",
+        "src/UserAccessControl/authManager.js"
+      ],
+      "dataMovement": "Reads settings from buildfire.datastore, categories and locations from buildfire.publicData, bookmarks from BuildFire bookmarks, and geo/auth state from BuildFire services.",
+      "failureHandling": [
+        "Falls back to empty states if no data is available.",
+        "Retries geolocation and leaves user position null if the platform cannot resolve it.",
+        "Shows a login prompt when the plugin requires auth for protected actions."
+      ],
+      "result": "Widget state is initialized and the user can browse locations or the intro list.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Control content edit and publish",
+      "trigger": "Admin creates, updates, imports, deletes, or reorders a category or location in the content tab.",
+      "steps": [
+        "Load the current publicData collection into control-side state.",
+        "Edit fields in forms, dialogs, list views, image pickers, and map pickers.",
+        "Validate required fields, opening hours, coordinates, custom fields, and image selection.",
+        "Save location or category changes through the repository/controller layer.",
+        "Trigger widget sync messages and, where needed, search-engine and deeplink updates."
+      ],
+      "filesInvolved": [
+        "src/control/content/content.js",
+        "src/control/content/content.controller.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/locations/controller.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/categories/controller.js",
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/Categories.js",
+        "src/utils/deeplink.js",
+        "src/widget/js/global/repository/searchEngine.js"
+      ],
+      "dataMovement": "Writes publicData location/category records, updates search-engine entries and deeplinks for locations, and sends sync messages back to the widget.",
+      "failureHandling": [
+        "Confirms destructive actions with BuildFire dialogs.",
+        "Blocks invalid form submissions and duplicate opening-hour intervals.",
+        "Shows progress/toast states during imports and long-running edits."
+      ],
+      "result": "Public content is saved and the widget receives refresh instructions.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Shared settings save",
+      "trigger": "Design or settings UI toggles a switch, changes a dropdown, edits intro text, modifies custom fields, or updates map defaults.",
+      "steps": [
+        "Mutate the in-memory Settings model.",
+        "Save the shared settings record, sometimes via full-object save and sometimes via `$set` partial update.",
+        "Stamp lastUpdatedOn and lastUpdatedBy before saving in control flows that do so.",
+        "Send a widget sync message for the relevant scope."
+      ],
+      "filesInvolved": [
+        "src/widget/js/global/data/Settings.js",
+        "src/widget/js/global/repository/Settings.js",
+        "src/control/design/design.js",
+        "src/control/design/design.controller.js",
+        "src/control/settings/settings.js",
+        "src/control/settings/settings.controller.js",
+        "src/control/settings/js/pages/locationFields.js",
+        "src/control/content/js/listView/index.js"
+      ],
+      "dataMovement": "Writes one shared settings datastore record and refreshes widget caches through BuildFire messaging.",
+      "failureHandling": [
+        "Debounces repeated saves on high-chatter UIs.",
+        "Shows loading and empty states while settings are fetched.",
+        "Preserves existing object shape by reusing the Settings model defaults."
+      ],
+      "result": "The widget loads the updated settings on the next sync message.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Widget location update from detail/edit",
+      "trigger": "User edits an allowed location, uploads photos, follows/unfollows, rates, bookmarks, or increments views.",
+      "steps": [
+        "Load the current location by id if a fresh record is needed.",
+        "Mutate the selected location model in memory.",
+        "Write the location update to publicData and mirror it into the search index and deeplink registry.",
+        "Refresh the visible list/detail UI and related bookmark/subscriber state."
+      ],
+      "filesInvolved": [
+        "src/widget/js/views/detailsView.js",
+        "src/widget/js/views/editView.js",
+        "src/widget/widget.js",
+        "src/widget/widget.controller.js",
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/searchEngine.js",
+        "src/utils/deeplink.js",
+        "src/widget/services/notifications.js"
+      ],
+      "dataMovement": "Writes the location record, updates indexed search data, and updates follower/bookmark state outside plugin-owned storage.",
+      "failureHandling": [
+        "Prevents save when validation fails.",
+        "Keeps the UI disabled during uploads or pending updates.",
+        "Rolls back visible state through refresh or toast errors when the write fails."
+      ],
+      "result": "The updated location is visible in the current widget view and future searches.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Widget follow subscription update",
+      "trigger": "A logged-in user follows or unfollows a location from the detail view.",
+      "steps": [
+        "Toggle the user id inside the location subscribers array in memory.",
+        "Push the change to publicData with `$push` or `$pull`.",
+        "Update the follow button label and show a toast message.",
+        "Schedule push notifications when the admin later uses the notification form."
+      ],
+      "filesInvolved": [
+        "src/widget/js/views/detailsView.js",
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/services/notifications.js",
+        "src/widget/js/views/sendNotificationView.js"
+      ],
+      "dataMovement": "Writes the subscribers array on the location record and relies on BuildFire push notifications for delivery.",
+      "failureHandling": [
+        "Requires auth before following.",
+        "Shows an error toast if the subscription update fails.",
+        "Disables repeated clicks while the toggle is in flight."
+      ],
+      "result": "The user is subscribed or unsubscribed and the location record reflects that state.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Strings language save",
+      "trigger": "Admin edits strings in the Language tab and clicks save.",
+      "steps": [
+        "Load the selected language record from the language-settings datastore collection.",
+        "Edit values through the strings UI and TinyMCE inputs.",
+        "Save the full nested string object back to the collection.",
+        "Refresh the widget strings cache through messaging."
+      ],
+      "filesInvolved": [
+        "src/control/strings/strings.js",
+        "src/control/strings/js/stringsUI.js",
+        "src/shared/strings.js",
+        "src/shared/stringsConfig.js",
+        "src/widget/widget.js"
+      ],
+      "dataMovement": "Writes the language-string datastore record used by both widget and control surfaces.",
+      "failureHandling": [
+        "Shows create/delete confirmation prompts for language records.",
+        "Injects defaults from stringsConfig when a string value is missing.",
+        "Reloads the widget after save so the new strings take effect."
+      ],
+      "result": "Widget and control text use the updated language string values.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Location deletion and report-abuse removal",
+      "trigger": "Admin deletes a location or a report-abuse review marks a location as abusive.",
+      "steps": [
+        "Confirm the destructive action in the UI or admin workflow.",
+        "Delete the location publicData record.",
+        "Unregister the deeplink and remove the search-engine entry.",
+        "Remove the record from the current widget list and clear related bookmarks if present."
+      ],
+      "filesInvolved": [
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/reportAbuse.js",
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/searchEngine.js",
+        "src/utils/deeplink.js"
+      ],
+      "dataMovement": "Hard-deletes the location record and then cleans up linked index/deeplink state.",
+      "failureHandling": [
+        "Uses confirmation dialogs before the delete path.",
+        "Checks for existing bookmarks tied to the deleted location and removes them.",
+        "Lets the widget continue if one cleanup step fails by using settled promises in the repository layer."
+      ],
+      "result": "The location no longer exists in the content store or the widget search index.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Category archive and soft removal",
+      "trigger": "Admin deletes a category from the content tab.",
+      "steps": [
+        "Confirm deletion in the control UI.",
+        "Set deletedOn and deletedBy on the category model.",
+        "Save the record back to publicData through an update call.",
+        "Refresh widget category caches and filter UI."
+      ],
+      "filesInvolved": [
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/categories/controller.js",
+        "src/widget/js/global/repository/Categories.js",
+        "src/widget/widget.js"
+      ],
+      "dataMovement": "Updates the category record instead of deleting it, preserving the record for soft-removal semantics.",
+      "failureHandling": [
+        "Confirms the action before it proceeds.",
+        "Re-renders the list after the update completes.",
+        "Keeps the widget from using stale category caches by sending a sync message."
+      ],
+      "result": "The category is archived rather than hard-deleted.",
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "Control-to-widget sync",
+      "trigger": "Control code sends a messaging event after content or settings changes.",
+      "steps": [
+        "Emit a sync message with a scope such as settings, design, category, locations, intro, customFields, or strings.",
+        "Widget receives the message and refreshes the affected cache or view.",
+        "Current state and active view are re-rendered or reloaded as needed."
+      ],
+      "filesInvolved": [
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/listView/index.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/strings/strings.js",
+        "src/widget/widget.js"
+      ],
+      "dataMovement": "Messages are out-of-band; the widget then re-reads settings or publicData rather than consuming payload copies.",
+      "failureHandling": [
+        "Widget falls back to a reload or a targeted view refresh depending on the scope.",
+        "Sync handling ignores unrelated message scopes."
+      ],
+      "result": "Widget UI reflects the latest control-side state without requiring a full app restart.",
+      "confidence": "high",
+      "notes": []
+    }
+  ],
+  "dataContracts": [
+    {
+      "name": "SettingsRecord",
+      "purpose": "Shared app configuration and control-panel preferences stored in the settings datastore.",
+      "usedBy": [
+        "widget",
+        "control",
+        "strings"
+      ],
+      "ownedBy": "shared",
+      "storage": {
+        "type": "unknown",
+        "key": "settings",
+        "collection": "",
+        "scope": "app"
+      },
+      "schema": {
+        "subscription": {
+          "type": "object",
+          "required": true,
+          "description": "Push-notification enablement and custom notification flag.",
+          "default": {
+            "enabled": false,
+            "allowCustomNotifications": false
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "allowCustomNotifications": true
+          }
+        },
+        "measurementUnit": {
+          "type": "enum",
+          "required": true,
+          "description": "Distance display unit.",
+          "default": "metric",
+          "allowedValues": [
+            "metric",
+            "imperial"
+          ],
+          "example": "metric"
+        },
+        "introductoryListView": {
+          "type": "object",
+          "required": true,
+          "description": "Intro list view content, search mode, visibility, and image carousel settings.",
+          "default": {
+            "images": [],
+            "description": null
+          },
+          "allowedValues": [],
+          "example": {
+            "images": [],
+            "description": "<p>Intro text</p>",
+            "sorting": "distance"
+          }
+        },
+        "sorting": {
+          "type": "object",
+          "required": true,
+          "description": "Widget-level sort options and default sort.",
+          "default": {
+            "defaultSorting": "distance",
+            "hideSorting": false
+          },
+          "allowedValues": [],
+          "example": {
+            "defaultSorting": "alphabetical",
+            "allowSortByNearest": true
+          }
+        },
+        "customFields": {
+          "type": "object",
+          "required": true,
+          "description": "Quick actions and content field definitions used by widget edit/create flows.",
+          "default": {
+            "quickActions": [],
+            "content": []
+          },
+          "allowedValues": [],
+          "example": {
+            "quickActions": [
+              {
+                "id": "field-1",
+                "label": "Phone",
+                "type": "Phone",
+                "required": false,
+                "enableCustomLabel": false
+              }
+            ]
+          }
+        },
+        "filter": {
+          "type": "object",
+          "required": true,
+          "description": "Feature flags for search and filter UI.",
+          "default": {
+            "allowFilterByArea": true,
+            "allowFilterByBookmarks": false
+          },
+          "allowedValues": [],
+          "example": {
+            "allowFilterByArea": true,
+            "hidePriceFilter": false
+          }
+        },
+        "map": {
+          "type": "object",
+          "required": true,
+          "description": "Map defaults and initial area configuration.",
+          "default": {
+            "distanceUnit": "metric",
+            "showPointsOfInterest": false
+          },
+          "allowedValues": [],
+          "example": {
+            "initialArea": true,
+            "initialAreaCoordinates": {
+              "lat": 32.7,
+              "lng": -117.1
+            }
+          }
+        },
+        "bookmarks": {
+          "type": "object",
+          "required": true,
+          "description": "Bookmarks feature toggles for locations and search results.",
+          "default": {
+            "enabled": true,
+            "allowForLocations": true
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "allowForFilters": true
+          }
+        },
+        "design": {
+          "type": "object",
+          "required": true,
+          "description": "Widget visual preferences saved from the design tab.",
+          "default": {
+            "listViewPosition": "collapsed",
+            "listViewStyle": "backgroundImage"
+          },
+          "allowedValues": [],
+          "example": {
+            "hideQuickFilter": true,
+            "showContributorName": true
+          }
+        },
+        "globalEntries": {
+          "type": "object",
+          "required": true,
+          "description": "Global entry permissions for location and photo creation.",
+          "default": {
+            "locations": {
+              "allowAdding": "none",
+              "tags": []
+            },
+            "photos": {
+              "allowAdding": "none",
+              "tags": []
+            }
+          },
+          "allowedValues": [],
+          "example": {
+            "locations": {
+              "allowAdding": "limited"
+            }
+          }
+        },
+        "globalEditors": {
+          "type": "object",
+          "required": true,
+          "description": "Global edit permissions and tag/user allow-list for locations.",
+          "default": {
+            "enabled": true,
+            "allowLocationCreatorsToEdit": true,
+            "tags": [],
+            "users": []
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "users": [
+              "user-id-1"
+            ]
+          }
+        },
+        "locationEditors": {
+          "type": "object",
+          "required": true,
+          "description": "Per-location edit rules and time display preference.",
+          "default": {
+            "enabled": true,
+            "time": "12H"
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "time": "24H"
+          }
+        },
+        "categoriesSortBy": {
+          "type": "enum",
+          "required": true,
+          "description": "Category display sort order.",
+          "default": "Asc",
+          "allowedValues": [
+            "Asc",
+            "Desc"
+          ],
+          "example": "Asc"
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Record creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized BuildFire user that created the settings record.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1",
+            "isCPUser": true
+          }
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last settings save timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized BuildFire user that last saved the settings.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          }
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Deletion marker used for backward compatibility only.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "User that deleted the settings record, if ever used.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility flag retained by the model.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1
+        }
+      },
+      "validation": [
+        "Preserve unknown fields on update because the store is saved as a full settings object in some flows and with `$set` in others.",
+        "Do not mutate timestamps or user metadata unless the operation is specifically a save action.",
+        "Keep nested arrays such as customFields, globalEditors, and globalEntries structurally intact when only one subtree changes."
+      ],
+      "example": {
+        "subscription": {
+          "enabled": true,
+          "allowCustomNotifications": true
+        },
+        "design": {
+          "hideQuickFilter": false
+        }
+      },
+      "backwardCompatibilityNotes": [
+        "New instances may start with subscription enabled by default, while older instances can have different defaults because the repository applies compatibility behavior on first load.",
+        "The model keeps legacy fields such as deletedOn, deletedBy, and isActive even though most control flows do not edit them."
+      ],
+      "confidence": "high",
+      "notes": [
+        "Stored through buildfire.datastore under the key settings.",
+        "Control code sometimes uses a partial `$set` payload, so updates must merge instead of replacing the whole object."
+      ]
+    },
+    {
+      "name": "LocationRecord",
+      "purpose": "Public location document stored in buildfire.publicData and shown in widget and control views.",
+      "usedBy": [
+        "widget",
+        "control"
+      ],
+      "ownedBy": "shared",
+      "storage": {
+        "type": "unknown",
+        "key": "locations",
+        "collection": "locations",
+        "scope": "app"
+      },
+      "schema": {
+        "id": {
+          "type": "string",
+          "required": false,
+          "description": "PublicData record id.",
+          "default": null,
+          "allowedValues": [],
+          "example": "location-record-id"
+        },
+        "clientId": {
+          "type": "string",
+          "required": false,
+          "description": "Client-side bookmark/deeplink identifier used by widget bookmark flows.",
+          "default": null,
+          "allowedValues": [],
+          "example": "uuid-123"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Location title.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Downtown Store"
+        },
+        "subtitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional subtitle.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Open daily"
+        },
+        "address": {
+          "type": "string",
+          "required": true,
+          "description": "Human-readable address.",
+          "default": null,
+          "allowedValues": [],
+          "example": "123 Main St, San Diego, CA"
+        },
+        "formattedAddress": {
+          "type": "string",
+          "required": true,
+          "description": "Geocoded formatted address.",
+          "default": null,
+          "allowedValues": [],
+          "example": "123 Main St, San Diego, CA 92101"
+        },
+        "addressAlias": {
+          "type": "string",
+          "required": false,
+          "description": "Custom display label for the address/location.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Flagship"
+        },
+        "coordinates": {
+          "type": "object",
+          "required": true,
+          "description": "Latitude/longitude pair used for maps and distance calculations.",
+          "default": {
+            "lat": null,
+            "lng": null
+          },
+          "allowedValues": [],
+          "example": {
+            "lat": 32.7157,
+            "lng": -117.1611
+          }
+        },
+        "marker": {
+          "type": "object",
+          "required": true,
+          "description": "Map marker style and optional image/color metadata.",
+          "default": {
+            "type": "pin",
+            "image": null,
+            "color": null,
+            "base64Image": null
+          },
+          "allowedValues": [],
+          "example": {
+            "type": "circle",
+            "color": {
+              "color": "rgba(253,35,5,1)"
+            }
+          }
+        },
+        "categories": {
+          "type": "object",
+          "required": true,
+          "description": "Selected main category ids and subcategory ids.",
+          "default": {
+            "main": [],
+            "subcategories": []
+          },
+          "allowedValues": [],
+          "example": {
+            "main": [
+              "category-id"
+            ],
+            "subcategories": [
+              "subcategory-id"
+            ]
+          }
+        },
+        "settings": {
+          "type": "object",
+          "required": true,
+          "description": "Per-location display toggles for category, opening hours, price, and rating.",
+          "default": {
+            "showCategory": true,
+            "showOpeningHours": false,
+            "showPriceRange": false,
+            "showStarRating": false
+          },
+          "allowedValues": [],
+          "example": {
+            "showCategory": true,
+            "showOpeningHours": true
+          }
+        },
+        "openingHours": {
+          "type": "object",
+          "required": true,
+          "description": "Weekly opening-hours structure with per-day intervals.",
+          "default": {
+            "timezone": null,
+            "days": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "days": {
+              "monday": {
+                "active": true,
+                "intervals": [
+                  {
+                    "from": "2026-04-27T08:00:00.000Z",
+                    "to": "2026-04-27T20:00:00.000Z"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "editingPermissions": {
+          "type": "object",
+          "required": true,
+          "description": "Optional per-location editor allow-list and activation flag.",
+          "default": {
+            "active": false,
+            "editors": [],
+            "tags": []
+          },
+          "allowedValues": [],
+          "example": {
+            "active": true,
+            "editors": [
+              "user-id-1"
+            ]
+          }
+        },
+        "images": {
+          "type": "array",
+          "required": true,
+          "description": "Detail-view image list in display order.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "img-1",
+              "imageUrl": "https://example.com/image.jpg"
+            }
+          ]
+        },
+        "listImage": {
+          "type": "string",
+          "required": true,
+          "description": "Primary list-card image.",
+          "default": null,
+          "allowedValues": [],
+          "example": "https://example.com/list.jpg"
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "Main HTML description content.",
+          "default": null,
+          "allowedValues": [],
+          "example": "<p>Description</p>"
+        },
+        "wysiwygSource": {
+          "type": "enum",
+          "required": true,
+          "description": "Tracks whether the description came from control or widget editing.",
+          "default": "control",
+          "allowedValues": [
+            "control",
+            "widget"
+          ],
+          "example": "widget"
+        },
+        "views": {
+          "type": "number",
+          "required": true,
+          "description": "View counter used by widget analytics and sorting.",
+          "default": 0,
+          "allowedValues": [],
+          "example": 42
+        },
+        "price": {
+          "type": "object",
+          "required": true,
+          "description": "Price range and currency metadata.",
+          "default": {
+            "range": 1,
+            "currency": "$"
+          },
+          "allowedValues": [],
+          "example": {
+            "range": 2,
+            "currency": "$"
+          }
+        },
+        "rating": {
+          "type": "object",
+          "required": true,
+          "description": "Aggregated rating totals.",
+          "default": {
+            "total": 0,
+            "count": 0,
+            "average": 0
+          },
+          "allowedValues": [],
+          "example": {
+            "total": 20,
+            "count": 5,
+            "average": 4
+          }
+        },
+        "bookmarksCount": {
+          "type": "number",
+          "required": true,
+          "description": "Bookmark counter retained by the model.",
+          "default": 0,
+          "allowedValues": [],
+          "example": 3
+        },
+        "subscribers": {
+          "type": "array",
+          "required": true,
+          "description": "User ids that follow the location for notifications.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            "user-id-1"
+          ]
+        },
+        "actionItems": {
+          "type": "array",
+          "required": true,
+          "description": "Action-item buttons rendered in widget intro/detail views.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "action-1",
+              "title": "Call"
+            }
+          ]
+        },
+        "additionalFields": {
+          "type": "object",
+          "required": true,
+          "description": "Custom field values for quick actions and content fields.",
+          "default": {
+            "quickActions": [],
+            "content": []
+          },
+          "allowedValues": [],
+          "example": {
+            "quickActions": [
+              {
+                "id": "field-1",
+                "customLabel": "Main phone",
+                "value": "+1 555 0100"
+              }
+            ]
+          }
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Record creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized creator user object.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          }
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last modification timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized last editor user object.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-2"
+          }
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Soft-delete timestamp retained for compatibility in some flows.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "User that deleted the record, if the plugin ever stores it.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility activation flag.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1
+        },
+        "_buildfire": {
+          "type": "object",
+          "required": true,
+          "description": "Search indexes and geo point used by BuildFire publicData queries.",
+          "default": {
+            "index": {},
+            "geo": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "index": {
+              "text": "downtown store",
+              "date1": "2026-04-27T06:50:56Z"
+            }
+          }
+        }
+      },
+      "validation": [
+        "Require title, address, formattedAddress/coordinates, listImage, description, and valid opening hours before create/update.",
+        "Preserve existing subscribers, views, bookmarksCount, createdBy, and index metadata unless the operation intentionally manages those fields.",
+        "Treat pinIndex and subscribers as sensitive because they affect widget ordering and follow state."
+      ],
+      "example": {
+        "title": "Downtown Store",
+        "address": "123 Main St, San Diego, CA",
+        "coordinates": {
+          "lat": 32.7157,
+          "lng": -117.1611
+        },
+        "listImage": "https://example.com/list.jpg",
+        "description": "<p>Open daily</p>"
+      },
+      "backwardCompatibilityNotes": [
+        "The widget and control code both add or update clientId for bookmark and deeplink support.",
+        "Views, rating, bookmarksCount, and subscribers are maintained by runtime flows and should not be reset during normal admin edits."
+      ],
+      "confidence": "high",
+      "notes": [
+        "Stored in buildfire.publicData under the locations tag.",
+        "The model writes _buildfire.index and geo metadata for search, distance, and map queries."
+      ]
+    },
+    {
+      "name": "CategoryRecord",
+      "purpose": "Public category document stored in buildfire.publicData and used by filters and location grouping.",
+      "usedBy": [
+        "widget",
+        "control"
+      ],
+      "ownedBy": "shared",
+      "storage": {
+        "type": "unknown",
+        "key": "categories",
+        "collection": "categories",
+        "scope": "app"
+      },
+      "schema": {
+        "id": {
+          "type": "string",
+          "required": false,
+          "description": "PublicData record id.",
+          "default": null,
+          "allowedValues": [],
+          "example": "category-record-id"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Category title.",
+          "default": "",
+          "allowedValues": [],
+          "example": "Food"
+        },
+        "iconUrl": {
+          "type": "string",
+          "required": false,
+          "description": "Optional image icon URL.",
+          "default": null,
+          "allowedValues": [],
+          "example": "https://example.com/icon.png"
+        },
+        "iconClassName": {
+          "type": "string",
+          "required": false,
+          "description": "Optional font-icon class name.",
+          "default": null,
+          "allowedValues": [],
+          "example": "icon-star"
+        },
+        "subcategories": {
+          "type": "array",
+          "required": true,
+          "description": "Nested subcategory records.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "sub-id-1",
+              "title": "Breakfast"
+            }
+          ]
+        },
+        "quickAccess": {
+          "type": "enum",
+          "required": true,
+          "description": "Quick-access flag used by category indexing.",
+          "default": 0,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized creator user object.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          }
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last update timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z"
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Sanitized last editor user object.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-2"
+          }
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Soft delete marker used by the control panel.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "User that archived the category.",
+          "default": null,
+          "allowedValues": [],
+          "example": null
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility activation flag.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1
+        },
+        "_buildfire": {
+          "type": "object",
+          "required": true,
+          "description": "Search index metadata used by category lookups and soft-delete filtering.",
+          "default": {
+            "index": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "index": {
+              "string1": "food",
+              "date1": null,
+              "number1": 1
+            }
+          }
+        }
+      },
+      "validation": [
+        "Require title before create/update.",
+        "Preserve subcategories as arrays of objects with id and title.",
+        "Treat deletedOn/deletedBy as archive metadata rather than user-editable content."
+      ],
+      "example": {
+        "title": "Food",
+        "subcategories": [
+          {
+            "id": "sub-1",
+            "title": "Breakfast"
+          }
+        ]
+      },
+      "backwardCompatibilityNotes": [
+        "Control delete uses a soft-delete update rather than publicData.delete.",
+        "Category search filters include _buildfire.index.date1; the exact active-vs-deleted semantics are not obvious from the code, so indexing behavior should be preserved."
+      ],
+      "confidence": "high",
+      "notes": [
+        "Stored in buildfire.publicData under the categories tag."
+      ]
+    },
+    {
+      "name": "LanguageStringsRecord",
+      "purpose": "Localized copy for widget and control text managed through the shared strings service.",
+      "usedBy": [
+        "widget",
+        "control"
+      ],
+      "ownedBy": "shared",
+      "storage": {
+        "type": "buildfire.datastore",
+        "key": "$bfLanguageSettings_en-us",
+        "collection": "$bfLanguageSettings_en-us",
+        "scope": "app"
+      },
+      "schema": {
+        "general": {
+          "type": "object",
+          "required": true,
+          "description": "General label strings such as search, bookmark, and open/closed text.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "search": {
+              "value": "Search"
+            }
+          }
+        },
+        "sortingOptions": {
+          "type": "object",
+          "required": true,
+          "description": "Sorting labels used by the widget and control UIs.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "distance": {
+              "value": "Distance"
+            }
+          }
+        },
+        "locationEditing": {
+          "type": "object",
+          "required": true,
+          "description": "Labels used by the widget edit/create flow.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "locationName": {
+              "value": "Location Title"
+            }
+          }
+        },
+        "toast": {
+          "type": "object",
+          "required": true,
+          "description": "Toast messages shown by widget interactions.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "bookmarksAdded": {
+              "value": "Added"
+            }
+          }
+        },
+        "details": {
+          "type": "object",
+          "required": true,
+          "description": "Detail-view labels.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "share": {
+              "value": "Share"
+            }
+          }
+        },
+        "emptyState": {
+          "type": "object",
+          "required": true,
+          "description": "Empty-state labels shown in the widget.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "locationsListBeforeSearch": {
+              "value": "Search for locations"
+            }
+          }
+        }
+      },
+      "validation": [
+        "Preserve nested section and label keys because the UI injects them by dot-path.",
+        "Keep value/defaultValue/required/isPlaceHolder shape intact for each label entry.",
+        "Do not invent new string sections outside stringsConfig."
+      ],
+      "example": {
+        "general": {
+          "search": {
+            "value": "Search"
+          }
+        }
+      },
+      "backwardCompatibilityNotes": [
+        "The control tab creates and deletes whole language records, but widget rendering assumes the loaded language has the same section keys as stringsConfig."
+      ],
+      "confidence": "high",
+      "notes": [
+        "Managed through buildfire.services.Strings and persisted with buildfire.datastore.save/insert/delete."
+      ]
+    },
+    {
+      "name": "LocationEditingPermissions",
+      "purpose": "Per-location editor allow-list used by the settings control and widget permission checks.",
+      "usedBy": [
+        "control",
+        "widget"
+      ],
+      "ownedBy": "shared",
+      "storage": {
+        "type": "unknown",
+        "key": "locations.editingPermissions",
+        "collection": "",
+        "scope": "instance"
+      },
+      "schema": {
+        "active": {
+          "type": "boolean",
+          "required": true,
+          "description": "Whether location editing permissions are enabled for the record.",
+          "default": false,
+          "allowedValues": [],
+          "example": true
+        },
+        "editors": {
+          "type": "array",
+          "required": true,
+          "description": "Allowed user ids.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            "user-id-1"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "required": true,
+          "description": "Allowed tag objects with id/tagName/value.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "tag-id",
+              "tagName": "Editors"
+            }
+          ]
+        }
+      },
+      "validation": [
+        "Maintain tag and editor arrays as arrays of unique entries.",
+        "Do not enable editing permissions without preserving the existing allow-list unless the user intentionally clears it."
+      ],
+      "example": {
+        "active": true,
+        "editors": [
+          "user-id-1"
+        ],
+        "tags": []
+      },
+      "backwardCompatibilityNotes": [
+        "The widget can also infer edit access from global editors and creator ownership, so this object is only one part of the permission model."
+      ],
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "WidgetSearchState",
+      "purpose": "In-memory widget search and filter state used to build search queries and bookmarks.",
+      "usedBy": [
+        "widget"
+      ],
+      "ownedBy": "widget",
+      "storage": {
+        "type": "inMemory",
+        "key": "",
+        "collection": "",
+        "scope": "instance"
+      },
+      "schema": {
+        "searchCriteria": {
+          "type": "object",
+          "required": true,
+          "description": "Search text, sort, price, open-now, and bookmark filters.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "searchValue": "museum",
+            "openingNow": false,
+            "bookmarked": false,
+            "sort": {
+              "sortBy": "distance",
+              "order": 1
+            }
+          }
+        },
+        "filterElements": {
+          "type": "object",
+          "required": true,
+          "description": "Advanced filter category state keyed by category id.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "category-id": {
+              "checked": true,
+              "subcategories": []
+            }
+          }
+        }
+      },
+      "validation": [
+        "This is not persisted plugin data and must not be exposed as an MCP write target."
+      ],
+      "example": {},
+      "backwardCompatibilityNotes": [],
+      "confidence": "high",
+      "notes": [
+        "Only included so future AI can recognize bookmark/search payloads and deep-link state."
+      ]
+    }
+  ],
+  "fileMap": [
+    {
+      "path": "plugin.json",
+      "purpose": "Root BuildFire plugin manifest.",
+      "responsibilities": [
+        "Declare enabled control tabs, custom tabs, media, and basic plugin metadata."
+      ],
+      "interactions": [
+        "Read by the build system, dev server, and generated metadata files."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "webpack/build.config.js",
+        "webpack/dev.config.js",
+        "server.js"
+      ],
+      "executionRole": "configuration",
+      "runtimeSurface": "root",
+      "updateRisks": [
+        "Changing enabled control tabs or custom tabs alters the plugin surface area."
+      ],
+      "safeToModifyAreas": [
+        "Metadata fields that do not affect data schema or runtime entry points."
+      ],
+      "contracts": [
+        "Control tabs and custom tabs must remain consistent with the HTML entry points."
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": false,
+        "reason": "Defines runtime surface, not plugin data."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/widget.js",
+      "purpose": "Main widget bootstrap and navigation controller.",
+      "responsibilities": [
+        "Initialize runtime state, maps, filters, and view rendering.",
+        "Handle messaging from control panels and react by refreshing state.",
+        "Wire user interactions for bookmarks, directions, share, create, edit, and notifications."
+      ],
+      "interactions": [
+        "Consumes settings, categories, locations, bookmarks, deeplinks, and strings.",
+        "Calls widgetController, accessManager, introView, mapView, detailsView, createView, and editView."
+      ],
+      "dependencies": [
+        "src/widget/widget.controller.js",
+        "src/widget/js/state.js",
+        "src/widget/js/accessManager.js",
+        "src/shared/strings.js"
+      ],
+      "dependents": [
+        "src/widget/js/views/detailsView.js",
+        "src/widget/js/views/introView.js",
+        "src/widget/js/views/mapView.js",
+        "src/widget/js/views/createView.js",
+        "src/widget/js/views/editView.js"
+      ],
+      "executionRole": "startup",
+      "runtimeSurface": "widget",
+      "updateRisks": [
+        "A small change can break navigation, map initialization, or control sync handling."
+      ],
+      "safeToModifyAreas": [
+        "View composition, event routing, and helper extraction that preserves existing APIs."
+      ],
+      "contracts": [
+        "buildfire.messaging scope handling",
+        "search and bookmark state",
+        "deep-link navigation"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Consumes and writes location/settings-related data through controller calls and sync handlers."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/widget.controller.js",
+      "purpose": "Widget-side repository facade for data access and mutations.",
+      "responsibilities": [
+        "Read settings, categories, and locations.",
+        "Create, update, delete, and subscribe/unsubscribe location records.",
+        "Keep search-engine and deeplink state aligned with location writes."
+      ],
+      "interactions": [
+        "Wraps repository classes and location/category models."
+      ],
+      "dependencies": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/Categories.js",
+        "src/widget/js/global/repository/Settings.js",
+        "src/utils/deeplink.js",
+        "src/utils/analytics.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js",
+        "src/widget/js/views/detailsView.js",
+        "src/widget/js/views/createView.js",
+        "src/widget/js/views/editView.js"
+      ],
+      "executionRole": "logic",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Changing repository behavior affects both widget and control flows."
+      ],
+      "safeToModifyAreas": [
+        "Repository orchestration without changing store schemas."
+      ],
+      "contracts": [
+        "Location CRUD and search synchronization",
+        "Settings retrieval"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Defines the actual data mutations used by the widget."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/js/global/data/Settings.js",
+      "purpose": "Settings model with defaults and serialization.",
+      "responsibilities": [
+        "Supply default settings shape for control and widget consumers.",
+        "Serialize to the stored settings record shape."
+      ],
+      "interactions": [
+        "Used by settings repositories and control UIs."
+      ],
+      "dependencies": [
+        "src/widget/js/global/constants/index.js"
+      ],
+      "dependents": [
+        "src/widget/js/global/repository/Settings.js",
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/listView/index.js"
+      ],
+      "executionRole": "logic",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Changing defaults can alter behavior for new and existing apps."
+      ],
+      "safeToModifyAreas": [
+        "Explicit defaults and serialization only when backward compatibility is preserved."
+      ],
+      "contracts": [
+        "SettingsRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Defines the app-level settings schema used by the datastore contract."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/js/global/data/Location.js",
+      "purpose": "Location model and BuildFire index/geo serialization.",
+      "responsibilities": [
+        "Normalize location fields, timestamps, and nested objects.",
+        "Build search indexes and geo coordinates for publicData."
+      ],
+      "interactions": [
+        "Used by location repositories and all location edit/create flows."
+      ],
+      "dependencies": [
+        "src/widget/js/global/constants/index.js"
+      ],
+      "dependents": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/views/createView.js",
+        "src/widget/js/views/editView.js"
+      ],
+      "executionRole": "logic",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Changing index fields or geo structure affects search, sorting, and map display."
+      ],
+      "safeToModifyAreas": [
+        "Default field normalization if the _buildfire index contract remains stable."
+      ],
+      "contracts": [
+        "LocationRecord schema",
+        "_buildfire index/geo format"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Defines the public location record shape and indexing contract."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/js/global/data/Category.js",
+      "purpose": "Category model and index serialization.",
+      "responsibilities": [
+        "Normalize category fields, subcategories, and delete metadata.",
+        "Build search indexes for category lookups."
+      ],
+      "interactions": [
+        "Used by category repositories and control content flows."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/js/global/repository/Categories.js",
+        "src/control/content/js/categories/controller.js",
+        "src/control/content/js/categories/index.js"
+      ],
+      "executionRole": "logic",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Changing subcategory shape can break filter UI and import/export code."
+      ],
+      "safeToModifyAreas": [
+        "Defaults and serialization only if delete/index behavior stays intact."
+      ],
+      "contracts": [
+        "CategoryRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Defines the category record used by publicData operations."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/js/global/repository/Locations.js",
+      "purpose": "PublicData repository for location documents.",
+      "responsibilities": [
+        "Read, insert, bulk insert, aggregate, update, delete, and subscriber toggle operations."
+      ],
+      "interactions": [
+        "Wraps buildfire.publicData calls and Location model serialization."
+      ],
+      "dependencies": [
+        "src/widget/js/global/data/Location.js"
+      ],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/control/content/js/locations/controller.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Update semantics affect both admin editing and widget runtime mutations."
+      ],
+      "safeToModifyAreas": [
+        "Method-level behavior that keeps repository method names and payload shapes stable."
+      ],
+      "contracts": [
+        "LocationRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This is the actual CRUD boundary for location data."
+      },
+      "confidence": "high",
+      "notes": [
+        "Uses buildfire.publicData, which is treated as unknown in the compact MCP schema."
+      ]
+    },
+    {
+      "path": "src/widget/js/global/repository/Categories.js",
+      "purpose": "PublicData repository for category documents.",
+      "responsibilities": [
+        "Search, create, bulk-create, update, and soft-delete categories."
+      ],
+      "interactions": [
+        "Wraps buildfire.publicData calls and Category model serialization."
+      ],
+      "dependencies": [
+        "src/widget/js/global/data/Category.js"
+      ],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/control/content/js/categories/controller.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Subcategory and archive semantics are used by both control and widget filters."
+      ],
+      "safeToModifyAreas": [
+        "Repository plumbing only if the soft-delete update contract is preserved."
+      ],
+      "contracts": [
+        "CategoryRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This is the CRUD boundary for categories."
+      },
+      "confidence": "high",
+      "notes": [
+        "Category delete is implemented as an update that stamps deletedOn/deletedBy."
+      ]
+    },
+    {
+      "path": "src/widget/js/global/repository/Settings.js",
+      "purpose": "Datastore repository for shared settings.",
+      "responsibilities": [
+        "Load the settings record, bootstrap defaults for new instances, and save updates."
+      ],
+      "interactions": [
+        "Used by widget and control settings/design/content flows."
+      ],
+      "dependencies": [
+        "src/widget/js/global/data/Settings.js"
+      ],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/control/design/design.controller.js",
+        "src/control/settings/settings.controller.js",
+        "src/control/content/js/listView/controller.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "A bad save can overwrite many unrelated settings subtrees."
+      ],
+      "safeToModifyAreas": [
+        "Default handling for new instances and merge-safe save behavior."
+      ],
+      "contracts": [
+        "SettingsRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This is the datastore boundary for all shared configuration."
+      },
+      "confidence": "high",
+      "notes": [
+        "Some control flows save a full object and others save a `$set` payload, so merge safety matters."
+      ]
+    },
+    {
+      "path": "src/widget/js/global/repository/searchEngine.js",
+      "purpose": "Search-engine index synchronization for locations.",
+      "responsibilities": [
+        "Insert, update, search, and delete search-engine entries that mirror location records."
+      ],
+      "interactions": [
+        "Used whenever a location is created, updated, or deleted."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/views/detailsView.js"
+      ],
+      "executionRole": "integration",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "If the search index drifts from publicData, widget search and deep-link search can become stale."
+      ],
+      "safeToModifyAreas": [
+        "Index payload composition only if it stays aligned with location fields."
+      ],
+      "contracts": [
+        "Search-engine payload contains title, description, imageUrl, keywords, and locationId."
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Location writes also update search index records."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/shared/strings.js",
+      "purpose": "BuildFire strings service wrapper and language record manager.",
+      "responsibilities": [
+        "Refresh strings from datastore and inject them into the DOM.",
+        "Create, delete, save, and reload language records."
+      ],
+      "interactions": [
+        "Used by widget startup and the control strings tab."
+      ],
+      "dependencies": [
+        "src/shared/stringsConfig.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js",
+        "src/control/strings/strings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "String-path mismatches break label injection and language editing."
+      ],
+      "safeToModifyAreas": [
+        "Service wrapping and refresh behavior only if the path contract is preserved."
+      ],
+      "contracts": [
+        "LanguageStringsRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Defines the plugin language-string storage format and CRUD path."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/shared/stringsConfig.js",
+      "purpose": "Canonical string section/label definitions for all language records.",
+      "responsibilities": [
+        "Define the sections and label keys the strings service expects."
+      ],
+      "interactions": [
+        "Consumed by shared strings service and control strings UI."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/shared/strings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "executionRole": "configuration",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Adding or renaming keys affects all translation storage and widget copy."
+      ],
+      "safeToModifyAreas": [
+        "Only when matching widget and control string lookups are updated together."
+      ],
+      "contracts": [
+        "LanguageStringsRecord schema"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": false,
+        "reason": "Defines string schema, not a data store itself."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/UserAccessControl/authManager.js",
+      "purpose": "Auth helper that enforces login and sanitizes user objects.",
+      "responsibilities": [
+        "Expose the current user, login enforcement, and sanitized profile data."
+      ],
+      "interactions": [
+        "Used by control save flows and widget edit/follow flows."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/widget.js",
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/categories/index.js"
+      ],
+      "executionRole": "integration",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "If sanitization is weakened, sensitive auth fields could be persisted into plugin records."
+      ],
+      "safeToModifyAreas": [
+        "Sanitized field list and login callbacks only if they stay privacy-safe."
+      ],
+      "contracts": [
+        "Sanitized user objects for createdBy/lastUpdatedBy fields"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Control write flows depend on sanitized user metadata."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/utils/analytics.js",
+      "purpose": "Plugin analytics event registration and tracking helper.",
+      "responsibilities": [
+        "Register and track list-view, map, bookmark, edit, share, direction, category, subcategory, and location-view events."
+      ],
+      "interactions": [
+        "Called by widget and content controller flows."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/widget/js/views/detailsView.js",
+        "src/control/content/js/locations/controller.js",
+        "src/control/content/js/categories/controller.js"
+      ],
+      "executionRole": "integration",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "Changing event keys breaks analytics continuity."
+      ],
+      "safeToModifyAreas": [
+        "Event labeling only if the key names remain stable."
+      ],
+      "contracts": [
+        "Analytics event keys"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": false,
+        "reason": "Analytics is tracked state, not managed plugin data."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/utils/deeplink.js",
+      "purpose": "Location deeplink registration helper.",
+      "responsibilities": [
+        "Generate and register deeplink payloads for locations and unregister them on deletion."
+      ],
+      "interactions": [
+        "Called from location create/update/delete flows."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/widget.controller.js",
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/views/detailsView.js"
+      ],
+      "executionRole": "integration",
+      "runtimeSurface": "shared",
+      "updateRisks": [
+        "If deeplink ids drift from location ids, sharing and deep-link routing can fail."
+      ],
+      "safeToModifyAreas": [
+        "Payload composition only if location id mapping remains unchanged."
+      ],
+      "contracts": [
+        "Location deeplink payload"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Location CRUD updates deeplink state."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/widget/services/notifications.js",
+      "purpose": "Push notification subscription and scheduling helper.",
+      "responsibilities": [
+        "Subscribe the app/user to notifications and schedule notifications from the control panel."
+      ],
+      "interactions": [
+        "Used by detail-view notification flows and admin notification forms."
+      ],
+      "dependencies": [],
+      "dependents": [
+        "src/widget/js/views/detailsView.js",
+        "src/widget/js/views/sendNotificationView.js"
+      ],
+      "executionRole": "integration",
+      "runtimeSurface": "widget",
+      "updateRisks": [
+        "Misconfigured notification payloads can spam subscribers or fail silently."
+      ],
+      "safeToModifyAreas": [
+        "Only payload validation and helper naming."
+      ],
+      "contracts": [
+        "BuildFire pushNotification schedule/subscribe payload"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": false,
+        "reason": "External notification transport, not plugin-owned data."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/content.js",
+      "purpose": "Content-tab entry point and template loader.",
+      "responsibilities": [
+        "Load content tabs, validate API key presence, and initialize category/location/list-view submodules."
+      ],
+      "interactions": [
+        "Hands off to the category, location, and list-view controllers."
+      ],
+      "dependencies": [
+        "src/control/content/content.controller.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/listView/index.js"
+      ],
+      "dependents": [
+        "src/control/content/js/categories/controller.js",
+        "src/control/content/js/locations/controller.js",
+        "src/control/content/js/listView/controller.js"
+      ],
+      "executionRole": "startup",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "Tab routing or template loading regressions affect the entire content editor."
+      ],
+      "safeToModifyAreas": [
+        "Template-loading flow and tab routing only."
+      ],
+      "contracts": [
+        "Control content tab routing"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": false,
+        "reason": "Entry point only; data logic lives in the child controllers."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/design/design.js",
+      "purpose": "Design-tab entry point for widget visual settings.",
+      "responsibilities": [
+        "Load shared settings, bind design controls, save updates, and sync the widget."
+      ],
+      "interactions": [
+        "Uses DesignController to persist changes."
+      ],
+      "dependencies": [
+        "src/control/design/design.controller.js",
+        "src/widget/js/global/data/Settings.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js"
+      ],
+      "executionRole": "startup",
+      "runtimeSurface": "control-design",
+      "updateRisks": [
+        "Design flags directly affect widget layout and visibility."
+      ],
+      "safeToModifyAreas": [
+        "Binding and rendering of design form fields."
+      ],
+      "contracts": [
+        "SettingsRecord.design subtree"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Writes into the shared settings datastore."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/settings/settings.js",
+      "purpose": "Settings-tab entry point for permissions, map defaults, bookmarks, global entries, and editing rules.",
+      "responsibilities": [
+        "Render settings sections, wire validation and dialogs, save settings, and send widget sync messages."
+      ],
+      "interactions": [
+        "Uses settings controller, auth, dialogs, image picker, and list UIs for global editors and location permissions."
+      ],
+      "dependencies": [
+        "src/control/settings/settings.controller.js",
+        "src/control/settings/js/pages/locationFields.js",
+        "src/widget/js/global/data/Settings.js",
+        "src/widget/js/global/repository/Locations.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js",
+        "src/control/settings/js/ui/globalEditorsListUI.js",
+        "src/control/settings/js/ui/globalTagsListUI.js",
+        "src/control/settings/js/ui/locationEditingListUI.js"
+      ],
+      "executionRole": "startup",
+      "runtimeSurface": "control-settings",
+      "updateRisks": [
+        "This file touches the broadest set of settings subtrees and permission flows."
+      ],
+      "safeToModifyAreas": [
+        "Section-specific UI wiring that preserves the current settings contract."
+      ],
+      "contracts": [
+        "SettingsRecord",
+        "LocationEditingPermissions",
+        "globalEntries/globalEditors/bookmarks/map/customFields subtrees"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "It saves the primary configuration record and per-location permission data."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/strings/strings.js",
+      "purpose": "Language-tab entry point for translation records.",
+      "responsibilities": [
+        "Load a language record, allow save/create/delete, and sync the widget."
+      ],
+      "interactions": [
+        "Uses the shared strings service and strings UI."
+      ],
+      "dependencies": [
+        "src/shared/strings.js",
+        "src/control/strings/js/stringsUI.js",
+        "src/shared/stringsConfig.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js"
+      ],
+      "executionRole": "startup",
+      "runtimeSurface": "control-settings",
+      "updateRisks": [
+        "Deleting or renaming labels can break widget text injection."
+      ],
+      "safeToModifyAreas": [
+        "Language management flow as long as the section/label schema remains intact."
+      ],
+      "contracts": [
+        "LanguageStringsRecord"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Writes language string records through buildfire.datastore."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/js/locations/index.js",
+      "purpose": "Location editor, importer, exporter, and map picker UI.",
+      "responsibilities": [
+        "Create, edit, delete, import, export, and reorder location records.",
+        "Manage opening hours, images, action items, categories, and editing permissions for a single location."
+      ],
+      "interactions": [
+        "Calls location controller methods and sends widget sync messages."
+      ],
+      "dependencies": [
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/global/data/Location.js",
+        "src/shared/utils/validateOpeningHoursDuplication.js",
+        "src/widget/js/global/helpers.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js"
+      ],
+      "executionRole": "ui",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "A change here can break save validation, map selection, or import/export formats."
+      ],
+      "safeToModifyAreas": [
+        "Form wiring and helper extraction that preserve record shape."
+      ],
+      "contracts": [
+        "LocationRecord",
+        "LocationEditingPermissions",
+        "Location additionalFields/actionItems/openingHours"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This file drives the main location CRUD path and bulk imports."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/js/categories/index.js",
+      "purpose": "Category editor and subcategory importer/exporter UI.",
+      "responsibilities": [
+        "Create, edit, soft-delete, import, export, and reorder categories and subcategories."
+      ],
+      "interactions": [
+        "Calls category controller methods and sends widget sync messages."
+      ],
+      "dependencies": [
+        "src/control/content/js/categories/controller.js",
+        "src/widget/js/global/data/Category.js",
+        "src/widget/js/global/helpers.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js"
+      ],
+      "executionRole": "ui",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "CSV import/export and subcategory structure are easy to break."
+      ],
+      "safeToModifyAreas": [
+        "List rendering and dialog wiring if the category schema is preserved."
+      ],
+      "contracts": [
+        "CategoryRecord"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This file drives category CRUD and archive behavior."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/js/listView/index.js",
+      "purpose": "Intro list-view settings and pinned-location management UI.",
+      "responsibilities": [
+        "Persist intro list copy, carousel images, sort mode, visibility tags, and search source mode.",
+        "Unpin locations and trigger intro-view refreshes."
+      ],
+      "interactions": [
+        "Calls the settings and location controllers and syncs the widget."
+      ],
+      "dependencies": [
+        "src/control/content/js/listView/controller.js",
+        "src/widget/js/global/data/Location.js",
+        "src/widget/js/global/helpers.js"
+      ],
+      "dependents": [
+        "src/widget/widget.js"
+      ],
+      "executionRole": "ui",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "This screen edits nested settings content that the widget uses directly on startup."
+      ],
+      "safeToModifyAreas": [
+        "UI wiring around intro list-view fields and pinned locations."
+      ],
+      "contracts": [
+        "SettingsRecord.introductoryListView subtree",
+        "LocationRecord.pinIndex"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Writes into the intro list-view portion of the settings record and updates pinIndex on locations."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/js/categories/controller.js",
+      "purpose": "Category repository wrapper for control content flows.",
+      "responsibilities": [
+        "Create, bulk-create, search, update, and soft-delete categories while stamping audit fields."
+      ],
+      "interactions": [
+        "Wraps the category repository and analytics event registration."
+      ],
+      "dependencies": [
+        "src/widget/js/global/repository/Categories.js",
+        "src/widget/js/global/data/Category.js",
+        "src/utils/analytics.js"
+      ],
+      "dependents": [
+        "src/control/content/js/categories/index.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "Archive semantics must remain update-based."
+      ],
+      "safeToModifyAreas": [
+        "Controller orchestration if the repository contract remains stable."
+      ],
+      "contracts": [
+        "CategoryRecord"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This is the control-side category data mutation boundary."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/content/js/locations/controller.js",
+      "purpose": "Location repository wrapper for control content flows.",
+      "responsibilities": [
+        "Create, bulk-create, search, update, delete, pin, and save settings for locations.",
+        "Keep deeplinks and search-engine indexes in sync with location records."
+      ],
+      "interactions": [
+        "Wraps the location repository, deeplink helper, search engine, and analytics registration."
+      ],
+      "dependencies": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/data/Location.js",
+        "src/utils/deeplink.js",
+        "src/widget/js/global/repository/searchEngine.js"
+      ],
+      "dependents": [
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/listView/index.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "control-content",
+      "updateRisks": [
+        "Bulk delete and bulk create flows can affect many records at once."
+      ],
+      "safeToModifyAreas": [
+        "Repository orchestration while preserving the current mutation semantics."
+      ],
+      "contracts": [
+        "LocationRecord"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "This is the control-side location mutation boundary."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/design/design.controller.js",
+      "purpose": "Settings repository wrapper for design changes.",
+      "responsibilities": [
+        "Load the shared settings record and save design subtree changes with audit fields."
+      ],
+      "interactions": [
+        "Used only by the design tab."
+      ],
+      "dependencies": [
+        "src/widget/js/global/repository/Settings.js",
+        "src/UserAccessControl/authManager.js"
+      ],
+      "dependents": [
+        "src/control/design/design.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "control-design",
+      "updateRisks": [
+        "A bad save can clobber unrelated settings if merging is not preserved."
+      ],
+      "safeToModifyAreas": [
+        "Save orchestration and field binding only."
+      ],
+      "contracts": [
+        "SettingsRecord.design subtree"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Writes the shared settings record from the design tab."
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "path": "src/control/settings/settings.controller.js",
+      "purpose": "Settings repository wrapper for the settings tab.",
+      "responsibilities": [
+        "Load the shared settings record, merge updates, and save the full settings object."
+      ],
+      "interactions": [
+        "Used by the settings tab and location-fields custom fields editor."
+      ],
+      "dependencies": [
+        "src/widget/js/global/repository/Settings.js",
+        "src/UserAccessControl/authManager.js"
+      ],
+      "dependents": [
+        "src/control/settings/settings.js",
+        "src/control/settings/js/pages/locationFields.js"
+      ],
+      "executionRole": "data",
+      "runtimeSurface": "control-settings",
+      "updateRisks": [
+        "This controller touches the broadest settings payload, so merge safety matters."
+      ],
+      "safeToModifyAreas": [
+        "Update helpers that continue to preserve the full record shape."
+      ],
+      "contracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevance": {
+        "relevantToDataOperations": true,
+        "reason": "Writes the primary plugin configuration record."
+      },
+      "confidence": "high",
+      "notes": []
+    }
+  ],
+  "integrationPoints": [
+    {
+      "name": "buildfire.publicData locations",
+      "type": "buildfire-sdk",
+      "purpose": "Store and query public location documents.",
+      "files": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/control/content/js/locations/controller.js",
+        "src/control/content/js/locations/index.js",
+        "src/widget/widget.controller.js"
+      ],
+      "contracts": "LocationRecord",
+      "dataTouched": [
+        "title",
+        "subtitle",
+        "address",
+        "coordinates",
+        "categories",
+        "openingHours",
+        "images",
+        "listImage",
+        "description",
+        "editingPermissions",
+        "subscribers",
+        "views",
+        "rating",
+        "price",
+        "actionItems",
+        "additionalFields"
+      ],
+      "mcpImpact": "Writable through create/update/remove with confirmation for destructive actions.",
+      "notes": [
+        "Uses buildfire.publicData, which the compact MCP schema treats as unknown storage type."
+      ]
+    },
+    {
+      "name": "buildfire.publicData categories",
+      "type": "buildfire-sdk",
+      "purpose": "Store and query public category documents.",
+      "files": [
+        "src/widget/js/global/repository/Categories.js",
+        "src/control/content/js/categories/controller.js",
+        "src/control/content/js/categories/index.js",
+        "src/widget/widget.js"
+      ],
+      "contracts": "CategoryRecord",
+      "dataTouched": [
+        "title",
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess",
+        "deletedOn",
+        "deletedBy"
+      ],
+      "mcpImpact": "Writable, but category deletion is actually a soft archive update.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.datastore settings",
+      "type": "buildfire-sdk",
+      "purpose": "Persist the shared settings record.",
+      "files": [
+        "src/widget/js/global/repository/Settings.js",
+        "src/control/design/design.controller.js",
+        "src/control/settings/settings.controller.js",
+        "src/control/content/js/listView/controller.js"
+      ],
+      "contracts": "SettingsRecord",
+      "dataTouched": [
+        "subscription",
+        "measurementUnit",
+        "introductoryListView",
+        "sorting",
+        "customFields",
+        "filter",
+        "map",
+        "bookmarks",
+        "design",
+        "globalEntries",
+        "globalEditors",
+        "locationEditors",
+        "categoriesSortBy"
+      ],
+      "mcpImpact": "Writable with merge-preserving updates.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.services.Strings",
+      "type": "buildfire-sdk",
+      "purpose": "Manage language strings as datastore-backed records.",
+      "files": [
+        "src/shared/strings.js",
+        "src/control/strings/strings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "contracts": "LanguageStringsRecord",
+      "dataTouched": [
+        "general",
+        "sortingOptions",
+        "locationEditing",
+        "toast",
+        "details",
+        "emptyState"
+      ],
+      "mcpImpact": "Writable only with confirmation because the record schema is large and dynamic.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.deeplink",
+      "type": "buildfire-sdk",
+      "purpose": "Register location deeplinks and generate share URLs.",
+      "files": [
+        "src/utils/deeplink.js",
+        "src/widget/js/util/helpers.js",
+        "src/widget/widget.js"
+      ],
+      "contracts": "Location deeplink payload",
+      "dataTouched": [
+        "locationId",
+        "title",
+        "description",
+        "imageUrl"
+      ],
+      "mcpImpact": "Read-only from MCP perspective; do not edit deeplink registrations directly.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.bookmarks",
+      "type": "buildfire-sdk",
+      "purpose": "Store user bookmarks for locations and saved searches.",
+      "files": [
+        "src/widget/js/util/helpers.js",
+        "src/widget/widget.js",
+        "src/widget/js/views/detailsView.js"
+      ],
+      "contracts": "External bookmark payload",
+      "dataTouched": [
+        "id",
+        "title",
+        "icon",
+        "payload"
+      ],
+      "mcpImpact": "External user-owned state; MCP should treat it as read-only unless a separate admin workflow exists.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.auth",
+      "type": "buildfire-sdk",
+      "purpose": "Login enforcement, user profile lookup, and tag/user search dialogs.",
+      "files": [
+        "src/UserAccessControl/authManager.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/categories/index.js",
+        "src/widget/widget.js"
+      ],
+      "contracts": "Sanitized user objects",
+      "dataTouched": [
+        "createdBy",
+        "lastUpdatedBy",
+        "globalEditors",
+        "editingPermissions"
+      ],
+      "mcpImpact": "Supports audit metadata and permission selection, but not a plugin-owned store.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.messaging",
+      "type": "buildfire-sdk",
+      "purpose": "Synchronize widget caches after control-panel changes.",
+      "files": [
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/listView/index.js",
+        "src/control/strings/strings.js",
+        "src/widget/widget.js"
+      ],
+      "contracts": "Sync message scopes",
+      "dataTouched": [],
+      "mcpImpact": "No direct data storage; used to refresh cached views after writes.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.analytics",
+      "type": "buildfire-sdk",
+      "purpose": "Track plugin usage and feature events.",
+      "files": [
+        "src/utils/analytics.js",
+        "src/control/content/js/categories/controller.js",
+        "src/control/content/js/locations/controller.js",
+        "src/widget/js/views/detailsView.js"
+      ],
+      "contracts": "Analytics event keys",
+      "dataTouched": [],
+      "mcpImpact": "Read-only tracking; not plugin-owned data.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.notifications",
+      "type": "buildfire-sdk",
+      "purpose": "Confirmation dialogs and push-notification scheduling.",
+      "files": [
+        "src/control/settings/settings.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/locations/index.js",
+        "src/widget/js/reportAbuse.js",
+        "src/widget/services/notifications.js"
+      ],
+      "contracts": "Confirm dialogs and push notification payloads",
+      "dataTouched": [
+        "subscribers",
+        "notification payloads"
+      ],
+      "mcpImpact": "Do not expose as a data store; use only as a side-effect integration.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.imageLib",
+      "type": "buildfire-sdk",
+      "purpose": "Image selection, cropping, and presentation.",
+      "files": [
+        "src/widget/js/views/introView.js",
+        "src/widget/js/views/detailsView.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/settings/settings.js"
+      ],
+      "contracts": "Image URLs and crop options",
+      "dataTouched": [
+        "listImage",
+        "images",
+        "iconUrl",
+        "marker.image"
+      ],
+      "mcpImpact": "Read-only by MCP unless a separate content-management operation explicitly changes image URLs.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.components",
+      "type": "buildfire-sdk",
+      "purpose": "Carousel, drawer, rating, skeleton, chip, and custom input widgets.",
+      "files": [
+        "src/widget/widget.js",
+        "src/widget/js/views/introView.js",
+        "src/widget/js/views/detailsView.js",
+        "src/control/content/js/listView/index.js",
+        "src/control/settings/settings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "contracts": "Component-specific DOM/state contracts",
+      "dataTouched": [],
+      "mcpImpact": "UI integration only.",
+      "notes": []
+    },
+    {
+      "name": "buildfire.services.publicFiles",
+      "type": "buildfire-sdk",
+      "purpose": "Upload images from widget and control file pickers.",
+      "files": [
+        "src/widget/js/util/forms.js",
+        "src/control/content/utils/csv.helper.js",
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/categories/index.js"
+      ],
+      "contracts": "Uploaded file URLs",
+      "dataTouched": [
+        "images",
+        "listImage",
+        "iconUrl"
+      ],
+      "mcpImpact": "Side-effect integration, not a plugin-owned data store.",
+      "notes": []
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "Keep widget and control data flows separated and synchronized through messaging instead of direct DOM or state mutation across surfaces.",
+      "reason": "The plugin relies on isolated entry points and scope-based refresh events.",
+      "impact": "Cross-surface coupling can break reloads, cache refreshes, or permissions.",
+      "appliesTo": [
+        "widget",
+        "control"
+      ]
+    },
+    {
+      "rule": "Preserve the Settings model defaults and nested subtree names.",
+      "reason": "The widget and controls read those fields directly by name.",
+      "impact": "Renaming or removing a nested setting can break UI and save flows.",
+      "appliesTo": [
+        "SettingsRecord"
+      ]
+    },
+    {
+      "rule": "Do not change Location._buildfire index or geo field structure without coordinating search, sort, and map behavior.",
+      "reason": "The widget and control panel use those indexes for filtering and map queries.",
+      "impact": "Search results, distance sort, and map pin placement can become wrong.",
+      "appliesTo": [
+        "LocationRecord"
+      ]
+    },
+    {
+      "rule": "Category deletion must remain a soft-delete update unless the entire widget and control category lifecycle is redesigned.",
+      "reason": "The current controller writes deletedOn/deletedBy rather than calling publicData.delete.",
+      "impact": "Changing it to a hard delete would break current archive semantics.",
+      "appliesTo": [
+        "CategoryRecord"
+      ]
+    },
+    {
+      "rule": "Location deletion can be destructive, but it must also unregister deeplinks and delete the search-engine record.",
+      "reason": "The widget and control code rely on all three cleanup steps.",
+      "impact": "Orphaned search/index entries would surface stale content.",
+      "appliesTo": [
+        "LocationRecord"
+      ]
+    },
+    {
+      "rule": "Do not overwrite shared datastore objects with partial payloads unless the code path explicitly uses merge-safe semantics.",
+      "reason": "Settings updates sometimes use `$set`, but most saves are full-object writes.",
+      "impact": "Partial writes can erase unrelated nested config.",
+      "appliesTo": [
+        "SettingsRecord",
+        "LanguageStringsRecord"
+      ]
+    },
+    {
+      "rule": "Keep stringsConfig and the language record keys aligned.",
+      "reason": "The widget injects strings by dot-path and the control UI builds the editor from the config object.",
+      "impact": "Missing sections or label paths break translation editing and runtime copy.",
+      "appliesTo": [
+        "LanguageStringsRecord"
+      ]
+    },
+    {
+      "rule": "Do not mutate read-only/system-managed fields such as createdOn, createdBy, lastUpdatedOn, lastUpdatedBy, views, rating, bookmarksCount, or _buildfire unless the current workflow explicitly owns them.",
+      "reason": "The widget and control runtime manage those fields automatically.",
+      "impact": "Manual edits can corrupt ordering, analytics, or audit history.",
+      "appliesTo": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ]
+    },
+    {
+      "rule": "Honor BuildFire auth sanitization before writing user metadata into records.",
+      "reason": "The plugin intentionally strips sensitive auth fields before persistence.",
+      "impact": "Storing tokens or raw auth objects would be a privacy bug.",
+      "appliesTo": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ]
+    },
+    {
+      "rule": "Treat buildfire.bookmarks, reportAbuse, analytics, and notifications as external side effects, not plugin-owned storage.",
+      "reason": "Those services are used by runtime flows but are not persisted through the plugin schema.",
+      "impact": "MCP should not attempt to model them as editable plugin records.",
+      "appliesTo": [
+        "widget",
+        "control"
+      ]
+    }
+  ],
+  "updateGuidance": [
+    {
+      "scenario": "Adding a new setting",
+      "recommendedApproach": "Add the field to the Settings model default object, render it in the relevant control tab, save it through the settings controller, and ensure the widget reads it with a safe fallback.",
+      "filesLikelyAffected": [
+        "src/widget/js/global/data/Settings.js",
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/widget/widget.js"
+      ],
+      "dataContractsAffected": [
+        "SettingsRecord"
+      ],
+      "mcpContractsAffected": [
+        "SettingsRecord"
+      ],
+      "risks": [
+        "Existing apps may not have the field.",
+        "A partial save can erase other settings if merge behavior changes."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Changing widget UI",
+      "recommendedApproach": "Update the widget views and supporting CSS while keeping the repository and model contracts stable.",
+      "filesLikelyAffected": [
+        "src/widget/widget.js",
+        "src/widget/js/views/*.js",
+        "src/widget/css/main.css"
+      ],
+      "dataContractsAffected": [],
+      "mcpContractsAffected": [],
+      "risks": [
+        "DOM class/name changes can break event delegation and component hooks."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Changing control UI",
+      "recommendedApproach": "Update the specific control entry point and keep the save controller contract unchanged unless a schema change is intentional.",
+      "filesLikelyAffected": [
+        "src/control/content/content.js",
+        "src/control/design/design.js",
+        "src/control/settings/settings.js",
+        "src/control/strings/strings.js"
+      ],
+      "dataContractsAffected": [
+        "SettingsRecord",
+        "LocationRecord",
+        "CategoryRecord",
+        "LanguageStringsRecord"
+      ],
+      "mcpContractsAffected": [
+        "SettingsRecord",
+        "CategoryRecord",
+        "LocationRecord",
+        "LanguageStringsRecord"
+      ],
+      "risks": [
+        "If sync messages change, the widget may stop refreshing after save."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Changing datastore schema",
+      "recommendedApproach": "Update the relevant model class, repository, control editor, widget consumer, and MCP schema together, then preserve backward-compatible defaults.",
+      "filesLikelyAffected": [
+        "src/widget/js/global/data/Settings.js",
+        "src/widget/js/global/data/Location.js",
+        "src/widget/js/global/data/Category.js",
+        "src/shared/stringsConfig.js"
+      ],
+      "dataContractsAffected": [
+        "SettingsRecord",
+        "LocationRecord",
+        "CategoryRecord",
+        "LanguageStringsRecord"
+      ],
+      "mcpContractsAffected": [
+        "SettingsRecord",
+        "LocationRecord",
+        "CategoryRecord",
+        "LanguageStringsRecord"
+      ],
+      "risks": [
+        "Search indexes, map behavior, and import/export formats can break if fields are renamed or removed."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Adding validation",
+      "recommendedApproach": "Add validation in the control panel before save and in widget edit/create flows before repository writes.",
+      "filesLikelyAffected": [
+        "src/control/content/js/locations/index.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/settings/settings.js",
+        "src/widget/js/views/createView.js",
+        "src/widget/js/views/editView.js"
+      ],
+      "dataContractsAffected": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ],
+      "mcpContractsAffected": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ],
+      "risks": [
+        "Overly strict validation can block existing records with older shapes."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Adding SDK integration",
+      "recommendedApproach": "Add the integration in one surface first, then wire only the minimal state refresh or persistence behavior needed in the other surface.",
+      "filesLikelyAffected": [
+        "src/widget/widget.js",
+        "src/control/settings/settings.js",
+        "src/control/content/js/locations/index.js"
+      ],
+      "dataContractsAffected": [],
+      "mcpContractsAffected": [],
+      "risks": [
+        "Side effects can cascade into bookmarks, deeplinks, analytics, or notifications."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Modifying plugin.json",
+      "recommendedApproach": "Keep control tabs, custom tabs, and build entry names aligned with webpack and the HTML entry points.",
+      "filesLikelyAffected": [
+        "plugin.json",
+        "webpack/build.config.js",
+        "webpack/dev.config.js"
+      ],
+      "dataContractsAffected": [],
+      "mcpContractsAffected": [],
+      "risks": [
+        "The plugin can fail to load if entry names no longer match generated outputs."
+      ],
+      "requiresHumanReview": true
+    },
+    {
+      "scenario": "Changing plugin data schema or MCP operations",
+      "recommendedApproach": "Update the relevant model, repository, control UI, widget consumers, and MCP contract together, and keep destructive operations behind confirmation and dry-run previews.",
+      "filesLikelyAffected": [
+        "src/widget/js/global/data/Location.js",
+        "src/widget/js/global/data/Category.js",
+        "src/widget/js/global/data/Settings.js",
+        "src/shared/strings.js",
+        ".buildfire/plugin.mcp.json"
+      ],
+      "dataContractsAffected": [
+        "SettingsRecord",
+        "LocationRecord",
+        "CategoryRecord",
+        "LanguageStringsRecord"
+      ],
+      "mcpContractsAffected": [
+        "SettingsRecord",
+        "LocationRecord",
+        "CategoryRecord",
+        "LanguageStringsRecord"
+      ],
+      "risks": [
+        "Incorrect matching rules can update or remove the wrong record."
+      ],
+      "requiresHumanReview": true
+    }
+  ],
+  "extensionPoints": [
+    {
+      "area": "Widget filters and sort options",
+      "howToExtend": "Add new criteria in the search state, search service, and filter UI, then keep the query builder and list rendering in sync.",
+      "files": [
+        "src/widget/widget.js",
+        "src/widget/js/views/introView.js",
+        "src/widget/js/views/mapView.js",
+        "src/widget/js/accessManager.js"
+      ],
+      "whereNotToAdd": [
+        "Shared models",
+        "Settings defaults"
+      ],
+      "dataImpact": "May require new settings flags or search index fields.",
+      "mcpImpact": "Potentially adds read-only filter state but usually does not need new writes."
+    },
+    {
+      "area": "New location fields",
+      "howToExtend": "Add the field to the Location model, control form, widget edit/create views, and any CSV import/export logic that should understand it.",
+      "files": [
+        "src/widget/js/global/data/Location.js",
+        "src/control/content/js/locations/index.js",
+        "src/widget/js/views/createView.js",
+        "src/widget/js/views/editView.js",
+        "src/control/content/utils/csv.helper.js"
+      ],
+      "whereNotToAdd": [
+        "Search engine payloads without also updating the index builder"
+      ],
+      "dataImpact": "May require schema updates and backward-compatible defaults.",
+      "mcpImpact": "Likely expands the writable portion of LocationRecord."
+    },
+    {
+      "area": "New category metadata",
+      "howToExtend": "Add fields to the Category model and update the category editor/import/export paths.",
+      "files": [
+        "src/widget/js/global/data/Category.js",
+        "src/control/content/js/categories/index.js",
+        "src/control/content/js/categories/controller.js"
+      ],
+      "whereNotToAdd": [
+        "Widget filters without updating the label transformation logic"
+      ],
+      "dataImpact": "May change category search and filter behavior.",
+      "mcpImpact": "Could widen the CategoryRecord update contract."
+    },
+    {
+      "area": "Intro list-view behavior",
+      "howToExtend": "Use the intro list-view settings subtree, the intro view, and the list-view control tab to add new configurable behavior.",
+      "files": [
+        "src/control/content/js/listView/index.js",
+        "src/widget/js/views/introView.js",
+        "src/widget/widget.js"
+      ],
+      "whereNotToAdd": [
+        "Location models",
+        "Category models"
+      ],
+      "dataImpact": "Usually limited to the SettingsRecord.introductoryListView subtree.",
+      "mcpImpact": "Mostly a settings-write extension point."
+    },
+    {
+      "area": "Localized copy",
+      "howToExtend": "Add the section and label keys to stringsConfig, then let the strings UI expose them automatically.",
+      "files": [
+        "src/shared/stringsConfig.js",
+        "src/shared/strings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "whereNotToAdd": [
+        "Widget runtime hard-coded copy if a string key already exists"
+      ],
+      "dataImpact": "Changes the language record schema.",
+      "mcpImpact": "May expand the writable strings contract."
+    },
+    {
+      "area": "Permission model",
+      "howToExtend": "Adjust the access manager and the settings UI together so widget and control keep the same rules.",
+      "files": [
+        "src/widget/js/accessManager.js",
+        "src/control/settings/settings.js",
+        "src/control/settings/settings.controller.js"
+      ],
+      "whereNotToAdd": [
+        "Location models unless the permission data is actually stored there"
+      ],
+      "dataImpact": "Usually settings-only, sometimes per-location editingPermissions.",
+      "mcpImpact": "Can affect which updates are safe to expose."
+    },
+    {
+      "area": "Notification workflow",
+      "howToExtend": "Add or adjust notification composition in the widget detail view and keep the control-side notification form aligned.",
+      "files": [
+        "src/widget/js/views/sendNotificationView.js",
+        "src/widget/services/notifications.js",
+        "src/widget/widget.js"
+      ],
+      "whereNotToAdd": [
+        "Persistent plugin records"
+      ],
+      "dataImpact": "Mostly external push-notification side effects.",
+      "mcpImpact": "Usually no MCP schema change required."
+    }
+  ],
+  "mcpSummary": {
+    "hasMcpContract": true,
+    "mcpContractFile": ".buildfire/plugin.mcp.json",
+    "dataOperationsSupported": [
+      "read",
+      "create",
+      "update",
+      "remove",
+      "archive",
+      "export"
+    ],
+    "primaryDataStores": [
+      "settings",
+      "locations",
+      "categories",
+      "language strings"
+    ]
+  },
+  "aiContext": {
+    "criticalFlows": [
+      "Widget bootstrap and search/render flow",
+      "Settings save and widget sync flow",
+      "Location create/update/delete flow",
+      "Category create/update/archive flow",
+      "Language strings load/save flow",
+      "Widget follow/bookmark/share/report-abuse flow"
+    ],
+    "safeToModify": [
+      "Template markup as long as controller selectors remain intact",
+      "Helper extraction that preserves public APIs",
+      "New non-destructive settings fields with defaults",
+      "Non-schema-affecting analytics labels"
+    ],
+    "highRiskAreas": [
+      "Settings datastore save behavior",
+      "Location publicData index/geo structure",
+      "Category archive semantics",
+      "Language string key paths",
+      "Control-to-widget messaging scopes",
+      "Pinned-location and editing-permission logic"
+    ],
+    "safeRefactorZones": [
+      "Shared helper functions",
+      "View-specific formatting logic",
+      "UI-only CSS class cleanup when selectors stay stable"
+    ],
+    "antiPatterns": [
+      "Inventing datastore keys or fields that are not present in the models",
+      "Overwriting shared records with partial objects that can erase nested data",
+      "Turning category soft delete into hard delete without updating all dependent flows",
+      "Changing location index fields without updating search and map code",
+      "Writing sensitive auth fields into plugin records",
+      "Removing sync messages and expecting the widget to refresh automatically"
+    ]
+  },
+  "quality": {
+    "overallConfidence": "high",
+    "coverageNotes": [
+      "The main publicData and datastore schemas are grounded in the model and repository classes.",
+      "The widget/control execution flow, messaging scopes, and destructive operations were traced through actual save and delete paths.",
+      "Strings management, bookmarks, deeplinks, analytics, notifications, and auth integration points are reflected from direct code usage."
+    ],
+    "knownGaps": [
+      "buildfire.publicData is not one of the generic datastore types allowed by the metadata schema, so it is represented as unknown storage with notes.",
+      "The category search filter on _buildfire.index.date1 appears to target the model's deletedOn field, but the exact intended active/deleted semantics are not fully explicit in code.",
+      "The language-string schema is dynamic by section/label and may expand if stringsConfig changes, so only the currently visible section groups were modeled at a compact level."
+    ]
+  }
+}

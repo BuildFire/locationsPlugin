@@ -1,0 +1,537 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-27T06:50:56Z",
+  "updatedAt": "2026-04-27T06:50:56Z",
+  "plugin": {
+    "name": "Locations",
+    "description": "BuildFire locations plugin with map/list discovery, category filtering, location editing, bookmarks, notifications, and configurable intro/design/settings surfaces.",
+    "pluginJsonPath": "plugin.json",
+    "hasWidget": true,
+    "hasControl": true,
+    "enabledControlSections": [
+      "content",
+      "design",
+      "settings",
+      "strings",
+      "tests"
+    ],
+    "hasMcpContract": true,
+    "mcpContractPath": ".buildfire/plugin.mcp.json"
+  },
+  "counts": {
+    "total": 21,
+    "widget": 1,
+    "control": 7,
+    "resources": 0,
+    "root": 1,
+    "helper": 11,
+    "config": 1,
+    "mcpRelevant": 15
+  },
+  "entrypoints": {
+    "widget": [
+      "src/widget/widget.js"
+    ],
+    "control": [
+      "src/control/content/content.js",
+      "src/control/design/design.js",
+      "src/control/settings/settings.js",
+      "src/control/strings/strings.js"
+    ],
+    "shared": [
+      "src/shared/strings.js",
+      "src/UserAccessControl/authManager.js"
+    ]
+  },
+  "dataFiles": [
+    "src/widget/js/global/data/Settings.js",
+    "src/widget/js/global/data/Location.js",
+    "src/widget/js/global/data/Category.js",
+    "src/widget/js/global/repository/Settings.js",
+    "src/widget/js/global/repository/Locations.js",
+    "src/widget/js/global/repository/Categories.js",
+    "src/shared/strings.js",
+    "src/shared/stringsConfig.js",
+    "src/control/content/js/locations/controller.js",
+    "src/control/content/js/categories/controller.js",
+    "src/control/content/js/listView/controller.js",
+    "src/control/settings/settings.controller.js",
+    "src/control/design/design.controller.js",
+    "src/control/settings/js/pages/locationFields.js"
+  ],
+  "files": [
+    {
+      "path": "plugin.json",
+      "type": "root",
+      "runtimeSurface": "root",
+      "executionRole": "configuration",
+      "purpose": "BuildFire manifest and entry surface declaration.",
+      "dependencies": [],
+      "interactions": [
+        "Controls build entry points and custom tabs."
+      ],
+      "contracts": [
+        "Control tabs",
+        "custom tabs",
+        "media metadata"
+      ],
+      "dataContracts": [],
+      "mcpRelevant": false,
+      "mcpReason": "Configuration only.",
+      "updateRisk": "high",
+      "safeToModify": false
+    },
+    {
+      "path": "src/widget/widget.js",
+      "type": "widget",
+      "runtimeSurface": "widget",
+      "executionRole": "startup",
+      "purpose": "Widget bootstrap, navigation, and sync orchestration.",
+      "dependencies": [
+        "src/widget/widget.controller.js",
+        "src/widget/js/state.js",
+        "src/shared/strings.js"
+      ],
+      "interactions": [
+        "Reads settings/categories/bookmarks and refreshes views on messaging events."
+      ],
+      "contracts": [
+        "Widget sync scopes",
+        "search/filter state",
+        "bookmark/follow/directions actions"
+      ],
+      "dataContracts": [
+        "SettingsRecord",
+        "WidgetSearchState"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Consumes and indirectly mutates plugin-managed data.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/widget.controller.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "logic",
+      "purpose": "Repository facade for widget data access and mutation.",
+      "dependencies": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/Categories.js",
+        "src/widget/js/global/repository/Settings.js"
+      ],
+      "interactions": [
+        "Creates, updates, deletes, and searches location/category records."
+      ],
+      "contracts": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ],
+      "dataContracts": [
+        "LocationRecord",
+        "CategoryRecord",
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Data-access boundary used by the widget.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/data/Settings.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "logic",
+      "purpose": "Settings model defaults and serialization.",
+      "dependencies": [],
+      "interactions": [
+        "Shapes the shared settings record."
+      ],
+      "contracts": [
+        "SettingsRecord"
+      ],
+      "dataContracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Defines the writable settings schema.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/data/Location.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "logic",
+      "purpose": "Location model and BuildFire index/geo serialization.",
+      "dependencies": [],
+      "interactions": [
+        "Shapes public location records and their search indexes."
+      ],
+      "contracts": [
+        "LocationRecord"
+      ],
+      "dataContracts": [
+        "LocationRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Defines the writable location schema.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/data/Category.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "logic",
+      "purpose": "Category model and search index serialization.",
+      "dependencies": [],
+      "interactions": [
+        "Shapes public category records and soft-delete metadata."
+      ],
+      "contracts": [
+        "CategoryRecord"
+      ],
+      "dataContracts": [
+        "CategoryRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Defines the writable category schema.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/repository/Locations.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "data",
+      "purpose": "PublicData repository for locations.",
+      "dependencies": [
+        "src/widget/js/global/data/Location.js"
+      ],
+      "interactions": [
+        "Uses buildfire.publicData to read and write location records."
+      ],
+      "contracts": [
+        "LocationRecord"
+      ],
+      "dataContracts": [
+        "LocationRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Direct location CRUD boundary.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/repository/Categories.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "data",
+      "purpose": "PublicData repository for categories.",
+      "dependencies": [
+        "src/widget/js/global/data/Category.js"
+      ],
+      "interactions": [
+        "Uses buildfire.publicData to read, write, and archive categories."
+      ],
+      "contracts": [
+        "CategoryRecord"
+      ],
+      "dataContracts": [
+        "CategoryRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Direct category CRUD boundary.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/widget/js/global/repository/Settings.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "data",
+      "purpose": "Datastore repository for shared settings.",
+      "dependencies": [
+        "src/widget/js/global/data/Settings.js"
+      ],
+      "interactions": [
+        "Reads the singleton settings record and saves merged updates."
+      ],
+      "contracts": [
+        "SettingsRecord"
+      ],
+      "dataContracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Primary shared configuration store.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/shared/strings.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "data",
+      "purpose": "Language-string service and datastore manager.",
+      "dependencies": [
+        "src/shared/stringsConfig.js"
+      ],
+      "interactions": [
+        "Creates, updates, deletes, refreshes, and injects language strings."
+      ],
+      "contracts": [
+        "LanguageStringsRecord"
+      ],
+      "dataContracts": [
+        "LanguageStringsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Language strings are plugin-managed data.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/shared/stringsConfig.js",
+      "type": "config",
+      "runtimeSurface": "shared",
+      "executionRole": "configuration",
+      "purpose": "Canonical string section and label schema.",
+      "dependencies": [],
+      "interactions": [
+        "Defines the shape of language records."
+      ],
+      "contracts": [
+        "LanguageStringsRecord"
+      ],
+      "dataContracts": [
+        "LanguageStringsRecord"
+      ],
+      "mcpRelevant": false,
+      "mcpReason": "Schema source, not a writable store.",
+      "updateRisk": "high",
+      "safeToModify": false
+    },
+    {
+      "path": "src/UserAccessControl/authManager.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "integration",
+      "purpose": "Auth enforcement and sanitized user metadata.",
+      "dependencies": [],
+      "interactions": [
+        "Provides creator/editor audit metadata for saves."
+      ],
+      "contracts": [
+        "Sanitized user objects"
+      ],
+      "dataContracts": [],
+      "mcpRelevant": false,
+      "mcpReason": "Integration only.",
+      "updateRisk": "medium",
+      "safeToModify": true
+    },
+    {
+      "path": "src/utils/deeplink.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "integration",
+      "purpose": "Location deeplink registration.",
+      "dependencies": [],
+      "interactions": [
+        "Registers and unregisters deeplinks for location records."
+      ],
+      "contracts": [
+        "Location deeplink payload"
+      ],
+      "dataContracts": [],
+      "mcpRelevant": false,
+      "mcpReason": "External side effect only.",
+      "updateRisk": "medium",
+      "safeToModify": true
+    },
+    {
+      "path": "src/utils/analytics.js",
+      "type": "helper",
+      "runtimeSurface": "shared",
+      "executionRole": "integration",
+      "purpose": "Analytics event helper.",
+      "dependencies": [],
+      "interactions": [
+        "Registers and tracks plugin usage events."
+      ],
+      "contracts": [
+        "Analytics event keys"
+      ],
+      "dataContracts": [],
+      "mcpRelevant": false,
+      "mcpReason": "Tracking only.",
+      "updateRisk": "low",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/content/content.js",
+      "type": "control",
+      "runtimeSurface": "control-content",
+      "executionRole": "startup",
+      "purpose": "Content tab entry and template loader.",
+      "dependencies": [
+        "src/control/content/content.controller.js"
+      ],
+      "interactions": [
+        "Bootstraps category, location, and list-view editors."
+      ],
+      "contracts": [
+        "Control content tab routing"
+      ],
+      "dataContracts": [],
+      "mcpRelevant": false,
+      "mcpReason": "Entry point only.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/content/js/locations/controller.js",
+      "type": "control",
+      "runtimeSurface": "control-content",
+      "executionRole": "data",
+      "purpose": "Location repository wrapper for control content flows.",
+      "dependencies": [
+        "src/widget/js/global/repository/Locations.js",
+        "src/widget/js/global/repository/searchEngine.js",
+        "src/utils/deeplink.js"
+      ],
+      "interactions": [
+        "Creates, updates, deletes, and pins locations."
+      ],
+      "contracts": [
+        "LocationRecord"
+      ],
+      "dataContracts": [
+        "LocationRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Actual location write boundary.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/content/js/categories/controller.js",
+      "type": "control",
+      "runtimeSurface": "control-content",
+      "executionRole": "data",
+      "purpose": "Category repository wrapper for control content flows.",
+      "dependencies": [
+        "src/widget/js/global/repository/Categories.js"
+      ],
+      "interactions": [
+        "Creates, updates, and soft-deletes categories."
+      ],
+      "contracts": [
+        "CategoryRecord"
+      ],
+      "dataContracts": [
+        "CategoryRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Actual category write boundary.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/settings/settings.controller.js",
+      "type": "control",
+      "runtimeSurface": "control-settings",
+      "executionRole": "data",
+      "purpose": "Settings repository wrapper for the settings tab.",
+      "dependencies": [
+        "src/widget/js/global/repository/Settings.js"
+      ],
+      "interactions": [
+        "Loads and saves the shared settings record."
+      ],
+      "contracts": [
+        "SettingsRecord"
+      ],
+      "dataContracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Primary configuration write boundary.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/design/design.controller.js",
+      "type": "control",
+      "runtimeSurface": "control-design",
+      "executionRole": "data",
+      "purpose": "Design settings repository wrapper.",
+      "dependencies": [
+        "src/widget/js/global/repository/Settings.js"
+      ],
+      "interactions": [
+        "Loads and saves shared design settings."
+      ],
+      "contracts": [
+        "SettingsRecord.design subtree"
+      ],
+      "dataContracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Writes the design subtree of the settings record.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/strings/strings.js",
+      "type": "control",
+      "runtimeSurface": "control-settings",
+      "executionRole": "startup",
+      "purpose": "Language strings editor entry point.",
+      "dependencies": [
+        "src/shared/strings.js",
+        "src/control/strings/js/stringsUI.js"
+      ],
+      "interactions": [
+        "Loads, edits, saves, and deletes language-string records."
+      ],
+      "contracts": [
+        "LanguageStringsRecord"
+      ],
+      "dataContracts": [
+        "LanguageStringsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Language strings are editable plugin data.",
+      "updateRisk": "high",
+      "safeToModify": true
+    },
+    {
+      "path": "src/control/settings/js/pages/locationFields.js",
+      "type": "control",
+      "runtimeSurface": "control-settings",
+      "executionRole": "ui",
+      "purpose": "Custom fields editor for location quick actions and content fields.",
+      "dependencies": [
+        "src/control/settings/settings.controller.js"
+      ],
+      "interactions": [
+        "Mutates settings.customFields and syncs the widget."
+      ],
+      "contracts": [
+        "SettingsRecord.customFields subtree"
+      ],
+      "dataContracts": [
+        "SettingsRecord"
+      ],
+      "mcpRelevant": true,
+      "mcpReason": "Custom fields are stored in the shared settings record.",
+      "updateRisk": "high",
+      "safeToModify": true
+    }
+  ]
+}
