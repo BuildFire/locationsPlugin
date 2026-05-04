@@ -14,6 +14,7 @@ import Locations from '../../widget/js/global/repository/Locations';
 import { getDisplayName } from './js/util/helpers';
 import { isCameraControlVersion } from '../../shared/utils/mapUtils';
 import initLocationFields from './js/pages/locationFields';
+import initLocationSettings from './js/pages/locationSettings';
 
 const sidenavContainer = document.getElementById('sidenav-container');
 const emptyState = document.getElementById('empty-state');
@@ -791,113 +792,6 @@ const initLocationEditing = () => {
   loadEditingLocations();
 };
 
-const initGlobalEntries = () => {
-  const allowPriceRangeCheckbox = document.querySelector('#allowAddingPriceRange');
-  const allowOpenHoursCheckbox = document.querySelector('#allowAddingOpenHours');
-  const allowNewEntriesRadios = document.querySelectorAll('input[name="allowNewEntries"]');
-  const allowNewPhotosRadios = document.querySelectorAll('input[name="allowNewPhotos"]');
-  const addLocationsTagsContainer = document.querySelector('#addingLocationsUserTags');
-  const addPhotosTagsContainer = document.querySelector('#addingPhotosUserTags');
-
-  const { globalEntries } = state.settings;
-  const tagsInputManager = {
-    init(element, tags) {
-      const tagsInput = new buildfire.components.control.userTagsInput(`#${element.id}`, {
-        languageSettings: {
-          placeholder: 'User Tags',
-        },
-        settings:{
-          allowUserInput: false,
-        }
-      });
-
-      tagsInput.onUpdate = (data) => {
-        if (data && data.tags) {
-          tags.length = 0;
-          tags.push(...data.tags.map((tag) => ({
-            id: tag.id,
-            tagName: tag.tagName,
-            value: tag.value,
-          })));
-          saveSettingsWithDelay();
-        }
-      };
-      tagsInput.set(tags);
-    },
-    clear(element) {
-      element.innerHTML = '';
-    }
-  };
-
-  for (const radio of allowNewEntriesRadios) {
-    if (radio.value === globalEntries.locations.allowAdding) {
-      radio.checked = true;
-    }
-
-    if (globalEntries.locations.allowAdding === 'limited') {
-      tagsInputManager.init(
-        addLocationsTagsContainer,
-        globalEntries.locations.tags
-      );
-    }
-
-    radio.onchange = (e) => {
-      const { value } = e.target;
-      globalEntries.locations.allowAdding = value;
-
-      tagsInputManager.clear(addLocationsTagsContainer);
-
-      if (value === 'limited') {
-        tagsInputManager.init(
-          addLocationsTagsContainer,
-          globalEntries.locations.tags
-        );
-      }
-      saveSettingsWithDelay();
-    };
-  }
-
-  for (const radio of allowNewPhotosRadios) {
-    if (radio.value === globalEntries.photos.allowAdding) {
-      radio.checked = true;
-    }
-
-    if (globalEntries.photos.allowAdding === 'limited') {
-      tagsInputManager.init(
-        addPhotosTagsContainer,
-        globalEntries.photos.tags
-      );
-    }
-
-    radio.onchange = (e) => {
-      const { value } = e.target;
-      globalEntries.photos.allowAdding = value;
-
-      tagsInputManager.clear(addPhotosTagsContainer);
-
-      if (value === 'limited') {
-        tagsInputManager.init(
-          addPhotosTagsContainer,
-          globalEntries.photos.tags
-        );
-      }
-
-      saveSettingsWithDelay();
-    };
-  }
-
-  allowPriceRangeCheckbox.checked = globalEntries.allowPriceRange;
-  allowPriceRangeCheckbox.onchange = (e) => {
-    globalEntries.allowPriceRange = e.target.checked;
-    saveSettingsWithDelay();
-  };
-
-  allowOpenHoursCheckbox.checked = globalEntries.allowOpenHours;
-  allowOpenHoursCheckbox.onchange = (e) => {
-    globalEntries.allowOpenHours = e.target.checked;
-    saveSettingsWithDelay();
-  };
-};
 
 const initGlobalEditing = () => {
   const enableGlobalEditingBtn = document.querySelector('#enable-global-editing-btn');
@@ -1219,6 +1113,12 @@ window.onSidenavChange = (section) => {
         initLocationFields(state.settings);
       });
       break;
+    case 'locationSettings':
+      setActiveSidenavTab('location-settings');
+      navigate('locationSettings', () => {
+        initLocationSettings(state, saveSettingsWithDelay);
+      });
+      break;
     case 'sorting':
       setActiveSidenavTab('sorting');
       navigate('sorting', () => {
@@ -1241,12 +1141,6 @@ window.onSidenavChange = (section) => {
       setActiveSidenavTab('bookmarks');
       navigate('bookmarks', () => {
         iniBookmarks();
-      });
-      break;
-    case 'globalEntries':
-      setActiveSidenavTab('global-entries');
-      navigate('globalEntries', () => {
-        initGlobalEntries();
       });
       break;
     case 'globalEditing':
