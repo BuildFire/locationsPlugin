@@ -103,6 +103,13 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationSettings.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationSettings.html'),
+      chunks: ['devServer']
+    }),
+    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/locationFields.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
@@ -226,6 +233,14 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/edit.html'),
+      chunks: ['devServer']
+    }),
+    
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/purchase.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/purchase.html'),
       chunks: ['devServer']
     }),
     new CopyWebpackPlugin([{

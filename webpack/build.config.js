@@ -52,7 +52,6 @@ const WebpackConfig = {
   },
 
   plugins: [
-    new webpack.optimize.UglifyJsPlugin(),
     new HtmlWebpackPlugin({
       filename: 'control/content/index.html',
       inject: true,
@@ -79,6 +78,12 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/control/settings/templates/globalSettings.html'),
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'control/settings/templates/locationSettings.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/control/settings/templates/locationSettings.html'),
     }),
     new HtmlWebpackPlugin({
       filename: 'control/settings/templates/locationFields.html',
@@ -182,6 +187,12 @@ const WebpackConfig = {
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
       template: path.join(__dirname, '../src/widget/templates/home.html')
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'widget/templates/purchase.html',
+      inject: true,
+      minify: { removeComments: true, collapseWhitespace: true },
+      template: path.join(__dirname, '../src/widget/templates/purchase.html')
     }),
     new HtmlWebpackPlugin({
       filename: 'control/content/templates/categories.html',
