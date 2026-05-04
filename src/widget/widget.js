@@ -38,6 +38,7 @@ import introView from './js/views/introView';
 import mapSearchControl from './js/map/search-control';
 import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
+import purchaseView from './js/views/purchaseView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
 import renderNotificationForm from './js/views/sendNotificationView';
@@ -454,7 +455,16 @@ const initEventListeners = () => {
       getDirections();
     } else if (e.target.id === 'createNewLocationBtn') {
       state.selectedLocation = null;
-      createView.navigateTo();
+      accessManager.checkSubscriptionAndPurchases().then((result) => {
+        if (result.shouldNavigateToPurchases) {
+          purchaseView.navigateTo();
+        } else {
+          createView.navigateTo();
+        }
+      }).catch((error) => {
+        console.error('Error checking subscription:', error);
+        createView.navigateTo();
+      });
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
@@ -1807,6 +1817,7 @@ const initApp = () => {
         });
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);
+        views.fetch('purchase').then(() => { views.inject('purchase'); });
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;
