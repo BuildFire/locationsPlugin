@@ -6,7 +6,7 @@ export default class Settings {
    * Get Database Tag
    */
   static get TAG() {
-    return "settings";
+    return "settings1";
   }
 
   /**
