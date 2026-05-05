@@ -277,11 +277,11 @@ window.addEditLocation = (location) => {
     }
   });
 
-  if (settings.globalEntries.allowOpenHours) {
+  if (settings.globalEntries.openHours?.inAppEnabled) {
     addLocationControls.openingHoursFormGroup.classList.remove('hidden');
   }
 
-  if (settings.globalEntries.allowPriceRange) {
+  if (settings.globalEntries.priceRange?.inAppEnabled) {
     addLocationControls.priceRangeFormGroup.classList.remove('hidden');
   }
 
