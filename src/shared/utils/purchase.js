@@ -5,14 +5,13 @@ const Purchase = {
       buildfire.services.commerce.inAppPurchase.getSubscriptions((err, subscriptions) => {
         if (err) return reject(err);
         resolve(subscriptions);
-        console.log('In app purchase subscriptions', subscriptions);
       });
     });
   },
 
   validateSubscription(productId) {
     return new Promise((resolve, reject) => {
-      const options = { productId: productId, type: 'subscriptions' };
+      const options = { productId, type: 'subscriptions' };
       buildfire.services.commerce.inAppPurchase.checkIsPurchased(options, (err, isPurchased) => {
         if (err) return reject(err);
         resolve(isPurchased);
@@ -21,6 +20,7 @@ const Purchase = {
   },
 
   purchase(productId) {
+    console.log(productId,'productIdproductId');
     return new Promise((resolve, reject) => {
       buildfire.services.commerce.inAppPurchase.purchase(
         { productId, purchaseType: 'subscriptions' },

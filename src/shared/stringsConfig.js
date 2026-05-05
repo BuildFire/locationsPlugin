@@ -201,6 +201,34 @@ export default {
         required: true,
         maxLength: 25,
       },
+      purchaseSuccessful: {
+        title: 'Purchase Successful',
+        placeholder: 'Enter text here',
+        defaultValue: 'Congratulations! You can add a location now.',
+        required: true,
+        maxLength: 50,
+      },
+      purchaseCancelled: {
+        title: 'Purchase Cancelled',
+        placeholder: 'Enter text here',
+        defaultValue: 'Purchase cancelled. No charges were made.',
+        required: true,
+        maxLength: 50,
+      },
+      genericError: {
+        title: 'Generic Error',
+        placeholder: 'Enter text here',
+        defaultValue: 'Something went wrong. Please try again.',
+        required: true,
+        maxLength: 50,
+      },
+      pwaUnsupported: {
+        title: 'PWA Unsupported',
+        placeholder: 'Enter text here',
+        defaultValue: 'Subscriptions are not supported on PWA. Please use the mobile app to add a new location.',
+        required: true,
+        maxLength: 100,
+      },
     }
   },
   sortingOptions: {
