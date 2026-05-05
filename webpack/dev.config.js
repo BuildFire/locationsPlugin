@@ -152,13 +152,6 @@ const WebpackConfig = {
       chunks: ['devServer']
     }),
     new HtmlWebpackPlugin({
-      filename: 'control/settings/templates/globalEntries.html',
-      inject: true,
-      minify: { removeComments: true, collapseWhitespace: true },
-      template: path.join(__dirname, '../src/control/settings/templates/globalEntries.html'),
-      chunks: ['devServer']
-    }),
-    new HtmlWebpackPlugin({
       filename: 'control/settings/templates/locationEditing.html',
       inject: true,
       minify: { removeComments: true, collapseWhitespace: true },
