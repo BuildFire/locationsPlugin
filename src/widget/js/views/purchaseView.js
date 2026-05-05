@@ -1,6 +1,7 @@
 import state from '../state';
 import views from '../Views';
-import { navigateTo } from '../util/ui';
+import { navigateTo, showElement } from '../util/ui'
+import { addBreadcrumb } from '../util/helpers';
 import Purchase from '../../../shared/utils/purchase';
 import UserPurchases from '../global/repository/UserPurchases';
 import UserPurchase from '../global/data/UserPurchase';
@@ -15,64 +16,24 @@ const renderChargingDescription = () => {
   }
 };
 
-const setupPurchaseListener = () => {
-  Purchase.onPurchaseResult((product) => {
-    console.log(`Purchase result for ${product.type}: ${product.productId}. Order was ${product.result}`);
-    if (product.result === 'completed') {
-      const userPurchase = new UserPurchase({
-        purchase: [{ productId: product.productId, type: product.type }]
-      });
-      UserPurchases.save(userPurchase)
-        .then(() => {
-          buildfire.dialog.toast({
-            message: 'Congratulations! You can add a location now.',
-            type: 'success'
-          });
-          buildfire.history.pop();
-        })
-        .catch((error) => {
-          console.error('Error saving purchase:', error);
-          buildfire.dialog.toast({
-            message: 'Error saving purchase. Please try again.',
-            type: 'danger'
-          });
-        });
-    }
-  });
-};
+const renderSubscriptionsCarousel = (carouselElement, onSubscriptionClick) => {
+  if (!carouselElement) return;
 
-const handleSubscriptionClick = (subscriptionId) => {
-  Purchase.purchase(subscriptionId)
-    .then((result) => {
-      console.log('Purchase request result', result);
-    })
-    .catch((error) => {
-      console.error('Error initiating purchase:', error);
-      buildfire.dialog.toast({
-        message: 'Error initiating purchase. Please try again.',
-        type: 'danger'
-      });
-    });
-};
-
-const renderSubscriptions = () => {
   Purchase.getSubscriptions().then((availableSubscriptions) => {
     const subscriptionOptions = state.settings.globalEntries.charging.subscriptionOptions || [];
 
     if (!availableSubscriptions || availableSubscriptions.length === 0
         || subscriptionOptions.length === 0) {
+      carouselElement.innerHTML = '';
       return;
     }
 
-    // Filter subscriptionOptions to only include those that exist in availableSubscriptions
     const isValidOption = (option) => availableSubscriptions.some(
       (sub) => sub.id === option.subscriptionId
     );
     const validSubscriptions = subscriptionOptions.filter(isValidOption);
 
-    const carousel = document.querySelector('#subscriptionsCarousel');
-    if (!carousel) return;
-
+    carouselElement.innerHTML = '';
     validSubscriptions.forEach((subscription) => {
       const itemWrapper = document.createElement('div');
       itemWrapper.className = 'bf-carousel-item-wrapper';
@@ -82,24 +43,26 @@ const renderSubscriptions = () => {
       link.className = 'bf-carousel-item btn-primary';
       link.role = 'button';
       link.tabIndex = 0;
-      link.addEventListener('click', () => handleSubscriptionClick(subscription.subscriptionId));
+      link.addEventListener('click', () => onSubscriptionClick(subscription.subscriptionId));
+
       const callout = document.createElement('span');
       callout.className = 'callout';
-      callout.style.color = '#ffffff !important';
-      callout.textContent = subscription.name || '';
+      callout.innerHTML = '';
+
+      const defaultSubscription = availableSubscriptions.find(
+        (sub) => sub.id === subscription.subscriptionId
+      );
 
       const titles = document.createElement('div');
       titles.className = 'titles';
 
       const title = document.createElement('span');
       title.className = 'title';
-      title.style.color = '#ffffff !important';
-      title.textContent = subscription.name || '';
+      title.textContent = subscription.name || defaultSubscription?.name || '';
 
       const subtitle = document.createElement('span');
       subtitle.className = 'subtitle';
-      subtitle.style.color = '#ffffff !important';
-      subtitle.textContent = subscription.tag || '';
+      subtitle.innerHTML = subscription.description;
 
       titles.appendChild(title);
       titles.appendChild(subtitle);
@@ -109,8 +72,7 @@ const renderSubscriptions = () => {
 
       const description = document.createElement('span');
       description.className = 'description';
-      description.style.color = '#ffffff !important';
-      description.textContent = subscription.description || '';
+      description.textContent = '';
 
       descriptionWrapper.appendChild(description);
 
@@ -118,17 +80,81 @@ const renderSubscriptions = () => {
       link.appendChild(titles);
       link.appendChild(descriptionWrapper);
       itemWrapper.appendChild(link);
-      carousel.appendChild(itemWrapper);
+      carouselElement.appendChild(itemWrapper);
     });
   }).catch((error) => {
     console.error('Error rendering subscriptions:', error);
   });
 };
 
+const setupPurchaseListener = () => {
+  Purchase.onPurchaseResult((product) => {
+    if (product.result === 'success') {
+      const userPurchase = new UserPurchase({
+        purchase: [{ productId: product.productId, type: product.type }]
+      });
+      UserPurchases.save(userPurchase)
+        .then(() => {
+          buildfire.dialog.toast({
+            message: window.strings.get('general.purchaseSuccessful').v,
+            type: 'success'
+          });
+          buildfire.history.pop();
+        })
+        .catch((error) => {
+          console.error('Error saving purchase:', error);
+          buildfire.dialog.toast({
+            message: window.strings.get('general.genericError').v,
+            type: 'danger'
+          });
+        });
+    } else if (product.result === 'canceled') {
+      buildfire.dialog.toast({
+        message: window.strings.get('general.purchaseCancelled').v,
+        type: 'warning'
+      });
+    } else if (product.result === 'failed') {
+      buildfire.dialog.toast({
+        message: window.strings.get('general.genericError').v,
+        type: 'danger'
+      });
+    }
+  });
+};
+
+const handleSubscriptionClick = (subscriptionId) => {
+  if (buildfire.getContext().device.platform === 'web') {
+    buildfire.dialog.toast({
+      message: window.strings.get('general.pwaUnsupported').v,
+      type: 'danger'
+    });
+    return;
+  }
+
+  Purchase.purchase(subscriptionId,
+    (err, result) => {
+      if (err) {
+        console.error('Error initiating purchase:', err);
+        buildfire.dialog.toast({
+          message: window.strings.get('general.genericError').v,
+          type: 'danger'
+        });
+        return;
+      }
+    });
+};
+
+const renderSubscriptions = () => {
+  const carousel = document.querySelector('#subscriptionsCarousel');
+  renderSubscriptionsCarousel(carousel, handleSubscriptionClick);
+};
+
 export default {
   navigateTo() {
     views.fetch('purchase').then(() => {
       navigateTo('purchase');
+      showElement('#purchase', true);
+      addBreadcrumb({ pageName: 'purchase', title: 'Purchase' });
       views.inject('purchase');
       renderChargingDescription();
       setupPurchaseListener();
@@ -136,3 +162,5 @@ export default {
     });
   }
 };
+
+export { renderSubscriptionsCarousel };

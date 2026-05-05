@@ -872,13 +872,13 @@ const init = () => {
       const enableEditingBtn = document.querySelector('#locationEnableEditingButton');
       const descriptionContainer = document.querySelector('#locationDescriptionContainer');
 
+      const canAddOpenHours = accessManager.canAddEditOpenHours();
+      const canAddPriceRange = accessManager.canAddEditPriceRange();
 
-      const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
-
-      if (!allowOpenHours) {
+      if (!canAddOpenHours) {
         _hideElement(document.querySelector('section#edit #openHoursExpansion'));
       }
-      if (!allowPriceRange) {
+      if (!canAddPriceRange) {
         _hideElement(document.querySelector('section#edit #priceRangeExpansion'));
       }
 

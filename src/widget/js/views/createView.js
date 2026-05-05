@@ -367,12 +367,13 @@ export default {
 
     this._formFieldsInstances = this._defaultFieldsInfo;
 
-    const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
+    const canAddOpenHours = accessManager.canAddEditOpenHours();
+    const canAddPriceRange = accessManager.canAddEditPriceRange();
 
-    if (!allowOpenHours) {
+    if (!canAddOpenHours) {
       this._hideElement(this._querySelect('#openHoursExpansion'));
     }
-    if (!allowPriceRange) {
+    if (!canAddPriceRange) {
       this._hideElement(this._querySelect('#priceRangeExpansion'));
     }
 

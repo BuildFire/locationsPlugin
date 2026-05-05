@@ -4,40 +4,62 @@ import state from './state';
 import UserPurchases from './global/repository/UserPurchases';
 import Purchase from '../../shared/utils/purchase';
 
+const getUserTagNames = (user) => {
+  if (!user || !user.tags) return [];
+  let tagNames = [];
+  Object.keys(user.tags).forEach((key) => {
+    tagNames = tagNames.concat(user.tags[key].map((t) => t.tagName));
+  });
+  return tagNames;
+};
+
+const checkAddingPermission = (allowAdding, tags, currentUser) => {
+  if (!currentUser || allowAdding === 'none') {
+    return false;
+  }
+  if (allowAdding === 'all') {
+    return true;
+  }
+  if (allowAdding === 'limited') {
+    const tagNames = tags.map((t) => t.tagName);
+    const userTagNames = getUserTagNames(currentUser);
+    return userTagNames.some((r) => tagNames.includes(r));
+  }
+  return false;
+};
+
 export default {
   canCreateLocations() {
     const { currentUser } = authManager;
     const { allowAdding, tags } = state.settings.globalEntries.locations;
-
-    if (!currentUser || allowAdding === 'none') {
-      return false;
-    } if (allowAdding === 'all') {
-      return true;
-    } if (allowAdding === 'limited') {
-      const tagNames = tags.map((t) => t.tagName);
-      let userTagNames = [];
-      Object.keys(currentUser.tags).forEach((key) => {
-        userTagNames = userTagNames.concat(currentUser.tags[key].map((t) => t.tagName));
-      });
-      return userTagNames.some((r) => tagNames.includes(r));
-    }
+    return checkAddingPermission(allowAdding, tags, currentUser);
   },
   canAddLocationPhotos() {
     const { currentUser } = authManager;
     const { allowAdding, tags } = state.settings.globalEntries.photos;
+    return checkAddingPermission(allowAdding, tags, currentUser);
+  },
+  canAddEditOpenHours() {
+    const { currentUser } = authManager;
+    const { openHours } = state.settings.globalEntries;
 
-    if (!currentUser || allowAdding === 'none') {
+    if (!openHours?.inAppEnabled) {
       return false;
-    } if (allowAdding === 'all') {
-      return true;
-    } if (allowAdding === 'limited') {
-      const tagNames = tags.map((t) => t.tagName);
-      let userTagNames = [];
-      Object.keys(currentUser.tags).forEach((key) => {
-        userTagNames = userTagNames.concat(currentUser.tags[key].map((t) => t.tagName));
-      });
-      return userTagNames.some((r) => tagNames.includes(r));
     }
+
+    const { allowAdding, tags } = openHours;
+    return checkAddingPermission(allowAdding, tags, currentUser);
+  },
+  canAddEditPriceRange() {
+    const { currentUser } = authManager;
+    const { priceRange } = state.settings.globalEntries;
+
+    if (!priceRange?.inAppEnabled) {
+      return false;
+    }
+
+    const { allowAdding, tags } = priceRange;
+    return checkAddingPermission(allowAdding, tags, currentUser);
   },
   canEditLocations() {
     let authed = false;
@@ -114,22 +136,33 @@ export default {
     }
 
     return UserPurchases.search()
-      .then((purchases) => {
-        if (!purchases || purchases.length === 0) {
+      .then((result) => {
+        if (!result) {
           return { isValid: false, shouldNavigateToPurchases: true };
         }
 
-        const userPurchase = purchases[0];
-        if (!userPurchase.purchase || userPurchase.purchase.length === 0) {
+        if (!result.purchase || result.purchase.length === 0) {
           return { isValid: false, shouldNavigateToPurchases: true };
         }
 
-        const { productId } = userPurchase.purchase[0];
+        const { productId } = result.purchase[0];
+        const subscriptionOptions = charging.subscriptionOptions || [];
+        const productExists = subscriptionOptions.some((sub) => sub.subscriptionId === productId);
+
+        if (!productExists) {
+          return { isValid: false, shouldNavigateToPurchases: true };
+        }
+
         return Purchase.validateSubscription(productId)
-          .then((isPurchased) => ({
-            isValid: isPurchased,
-            shouldNavigateToPurchases: !isPurchased
-          }));
+          .then((isPurchased) => {
+            if (!isPurchased) {
+              UserPurchases.save([]);
+            }
+            return {
+              isValid: isPurchased,
+              shouldNavigateToPurchases: !isPurchased
+            };
+          });
       })
       .catch((error) => {
         console.error('Error checking subscription:', error);
