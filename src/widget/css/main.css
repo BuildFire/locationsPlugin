@@ -1590,9 +1590,7 @@ h4.light-text {
 .margin-auto {
   margin: auto;
 }
-
-
-
+/* Start Purchase Cards UI*/
 
 .bf-carousel {
   display: flex;
@@ -1671,3 +1669,5 @@ h4.light-text {
   line-height: 1.5;
   overflow: hidden;
 }
+
+/* End Purchase Cards UI*/

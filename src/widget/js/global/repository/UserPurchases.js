@@ -5,7 +5,7 @@ import UserPurchase from "../data/UserPurchase";
  */
 export default class UserPurchases {
   /**
-   * UserPurchases key in publicData
+   * UserPurchases key in userData
    * @static
    */
   static TAG = 'UserPurchases';

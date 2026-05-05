@@ -20,7 +20,6 @@ const Purchase = {
   },
 
   purchase(productId) {
-    console.log(productId,'productIdproductId');
     return new Promise((resolve, reject) => {
       buildfire.services.commerce.inAppPurchase.purchase(
         { productId, purchaseType: 'subscriptions' },

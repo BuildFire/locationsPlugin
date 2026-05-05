@@ -52,6 +52,7 @@ const WebpackConfig = {
   },
 
   plugins: [
+    new webpack.optimize.UglifyJsPlugin(),
     new HtmlWebpackPlugin({
       filename: 'control/content/index.html',
       inject: true,
