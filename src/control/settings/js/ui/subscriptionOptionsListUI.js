@@ -2,8 +2,12 @@ import SortableListUI from "./sortableList/sortableListUI";
 import BaseDropdown from "../../../../shared/baseDropdown";
 
 class SubscriptionOptionsListUI extends SortableListUI {
-  constructor(elementId, dropdownOptions) {
-    super(elementId, { isDraggable: true, dropdownOptions });
+  constructor(elementId, dropdownOptions, globalEntries) {
+    super(elementId, { isDraggable: true, dropdownOptions, globalEntries, dropdowns : []});
+  }
+
+  init(items) {
+    super.init(items);
   }
 
   _injectItemElements(item, index, divRow) {
@@ -38,11 +42,12 @@ class SubscriptionOptionsListUI extends SortableListUI {
 
     // Subscription Name Input
     const nameCol = document.createElement("div");
-    nameCol.style.minWidth = "150px";
+    nameCol.style.minWidth = "80px";
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "form-control";
     nameInput.placeholder = "Subscription Name";
+    nameInput.maxLength = "15";
     nameInput.value = item.name || "";
     nameInput.oninput = (e) => {
       item.name = e.target.value;
@@ -53,7 +58,7 @@ class SubscriptionOptionsListUI extends SortableListUI {
 
     // Description Input
     const descCol = document.createElement("div");
-    descCol.style.minWidth = "150px";
+    descCol.style.minWidth = "80px";
     const descInput = document.createElement("input");
     descInput.type = "text";
     descInput.className = "form-control";
@@ -69,12 +74,13 @@ class SubscriptionOptionsListUI extends SortableListUI {
     // Type Dropdown container
     const typeDropdownContainer = document.createElement("div");
     typeDropdownContainer.style.flex = "1.5";
-    typeDropdownContainer.style.minWidth = "120px";
+    typeDropdownContainer.style.minWidth = "80px";
     typeDropdownContainer.className = "type-dropdown-container";
     flexContainer.appendChild(typeDropdownContainer);
 
     const getFilteredDropdownItems = () => {
-      const selectedIds = this.items
+      const subscriptionOptions = this.options.globalEntries?.charging?.subscriptionOptions || [];
+      const selectedIds = subscriptionOptions
         .filter((i) => i.subscriptionId)
         .map((i) => i.subscriptionId);
 
@@ -121,6 +127,28 @@ class SubscriptionOptionsListUI extends SortableListUI {
     };
     delCol.appendChild(deleteBtn);
     divRow.appendChild(delCol);
+
+    this.options.dropdowns.push({ element: typeDropdownContainer, dropdown: dropdownSubscriptions, item });
+  }
+
+  refreshDropdownItems() {
+    this.options.dropdowns.forEach(({ element, dropdown, item }) => {
+      const subscriptionOptions = this.options.globalEntries?.charging?.subscriptionOptions || [];
+      const selectedIds = subscriptionOptions
+        .filter((i) => i.subscriptionId)
+        .map((i) => i.subscriptionId);
+
+      const filteredItems = this.options.dropdownOptions
+        .filter((option) => !selectedIds.includes(option.id) || option.id === item.subscriptionId)
+        .map((option) => ({
+          id: option.id,
+          value: option.id,
+          label: option.name,
+        }));
+
+      dropdown.props.items = filteredItems;
+      dropdown.render();
+    });
   }
 }
 

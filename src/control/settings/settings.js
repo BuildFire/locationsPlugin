@@ -1116,7 +1116,7 @@ window.onSidenavChange = (section) => {
     case 'locationSettings':
       setActiveSidenavTab('location-settings');
       navigate('locationSettings', () => {
-        initLocationSettings(state, saveSettingsWithDelay);
+        initLocationSettings(state);
       });
       break;
     case 'sorting':

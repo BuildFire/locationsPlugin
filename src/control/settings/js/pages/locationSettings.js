@@ -1,10 +1,35 @@
 import SubscriptionOptionsListUI from '../ui/subscriptionOptionsListUI';
 import Purchase from '../../../../shared/utils/purchase';
+import SettingsController from '../../settings.controller';
 
 const _uiElements = {};
+let state;
+let globalEntries;
+let subscriptionList = [];
+let globalEntrySubscriptionOptions = [];
+let timeoutId;
+let subscriptionsCached = false;
 
-const initWysiwyg = (globalEntries, saveSettingsWithDelay) => {
-  console.log(globalEntries.charging.description, 'globalEntries.charging.description');
+// ============================================================================
+// CORE UTILITY
+// ============================================================================
+
+const saveSettingsWithDelay = (syncScope) => {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    SettingsController.saveSettings(state.settings)
+      .then(() => {
+        if (syncScope) {
+          syncWidgetWithScope(syncScope);
+        } else {
+          syncPaymentDetailsWithWidget();
+        }
+      })
+      .catch(console.error);
+  }, 300);
+};
+
+const initWysiwyg = () => {
   tinymce.EditorManager.execCommand('mceRemoveEditor', true, 'paymentDetailsDescription');
   tinymce.init({
     selector: '#paymentDetailsDescription',
@@ -24,49 +49,104 @@ const initWysiwyg = (globalEntries, saveSettingsWithDelay) => {
   });
 };
 
-const isValidSubscription = (subscription) => {
-  return subscription && subscription.subscriptionId;
+// ============================================================================
+// SUBSCRIPTION MANAGEMENT
+// ============================================================================
+
+const fetchSubscriptions = () => new Promise((resolve) => {
+  if (!subscriptionsCached && globalEntries.charging.enabled !== 'none') {
+    Purchase.getSubscriptions().then((subscriptions) => {
+      subscriptionList = subscriptions || [];
+      if (_uiElements.subscriptionOptionsSection) {
+        _uiElements.subscriptionOptionsSection.classList.remove('hidden');
+      }
+      subscriptionsCached = true;
+      resolve(subscriptionList);
+    }).catch((error) => {
+      console.error('Error fetching subscriptions:', error);
+      subscriptionsCached = true;
+      resolve([]);
+    });
+  } else {
+    resolve([]);
+  }
+});
+
+const isValidSubscription = (subscription) => subscription && subscription.subscriptionId;
+
+const initGlobalEntrySubscriptionOptions = () => {
+  globalEntrySubscriptionOptions = [...(globalEntries.charging.subscriptionOptions || [])];
 };
 
-const getSelectedSubscriptionIds = (subscriptionOptionsList) => {
-  return subscriptionOptionsList.items
-    .filter(isValidSubscription)
-    .map((item) => item.subscriptionId);
+const getSelectedSubscriptionIds = () => globalEntrySubscriptionOptions
+  .filter(isValidSubscription)
+  .map((item) => item.subscriptionId);
+
+const getUnselectedSubscriptions = () => {
+  const selectedIds = getSelectedSubscriptionIds();
+  return subscriptionList.filter((sub) => !selectedIds.includes(sub.id));
 };
 
-const getUnselectedSubscriptions = (subscriptionsList, subscriptionOptionsList) => {
-  const selectedIds = getSelectedSubscriptionIds(subscriptionOptionsList);
-  return subscriptionsList.filter((sub) => !selectedIds.includes(sub.id));
-};
-
-const updateButtonState = (subscriptionOptionsList, subscriptionsList) => {
-  const validCount = subscriptionOptionsList.items.filter(isValidSubscription).length;
-  const canAddMore = validCount < subscriptionsList.length;
+const updateButtonState = () => {
+  if (subscriptionList.length === 0) {
+    _uiElements.addSubscriptionBtn.classList.add('hidden');
+  } else {
+    _uiElements.addSubscriptionBtn.classList.remove('hidden');
+  }
+  const canAddMore = globalEntrySubscriptionOptions.length < subscriptionList.length;
   _uiElements.addSubscriptionBtn.disabled = !canAddMore;
 };
 
-const updateDropdownOptions = (subscriptionOptionsList, subscriptionsList) => {
-  const unselectedSubscriptions = getUnselectedSubscriptions(subscriptionsList, subscriptionOptionsList);
-  subscriptionOptionsList.options.dropdownOptions = unselectedSubscriptions;
+const updateDropdownOptions = (subscriptionOptionsList) => {
+  subscriptionOptionsList.options.dropdownOptions = subscriptionList;
 };
 
-const saveValidSubscriptions = (subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay) => {
-  const validSubscriptions = subscriptionOptionsList.items.filter(isValidSubscription);
+const updateNoSubscriptionsMessage = () => {
+  const subscriptionOptionsContainer = document.querySelector('#subscription-options-container');
+  if (_uiElements.noSubscriptionsAvailableContainer) {
+    if (subscriptionList.length === 0) {
+      _uiElements.noSubscriptionsAvailableContainer.classList.remove('hidden');
+      if (subscriptionOptionsContainer) {
+        subscriptionOptionsContainer.classList.add('hidden');
+      }
+    } else {
+      _uiElements.noSubscriptionsAvailableContainer.classList.add('hidden');
+      if (subscriptionOptionsContainer) {
+        subscriptionOptionsContainer.classList.remove('hidden');
+      }
+    }
+  }
+};
+
+const saveValidSubscriptions = (subscriptionOptionsList, isExplicitAction = false) => {
+  const validSubscriptions = globalEntrySubscriptionOptions.filter(isValidSubscription);
   globalEntries.charging.subscriptionOptions = validSubscriptions;
-  updateButtonState(subscriptionOptionsList, subscriptionsList);
-  updateDropdownOptions(subscriptionOptionsList, subscriptionsList);
-  saveSettingsWithDelay();
+  updateButtonState();
+  updateDropdownOptions(subscriptionOptionsList);
+  if (validSubscriptions.length > 0 || isExplicitAction) {
+    saveSettingsWithDelay();
+  }
 };
 
-const handleSubscriptionItemUpdate = (subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay) => {
-  saveValidSubscriptions(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+const syncPaymentDetailsWithWidget = () => {
+  if (buildfire && buildfire.messaging) {
+    buildfire.messaging.sendMessageToWidget({
+      cmd: 'sync',
+      scope: 'paymentDetailsUpdated'
+    });
+  }
 };
 
-const handleSubscriptionOrderChange = (subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay) => {
-  saveValidSubscriptions(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+const syncWidgetWithScope = (scope) => {
+  if (buildfire && buildfire.messaging) {
+    buildfire.messaging.sendMessageToWidget({
+      cmd: 'sync',
+      scope
+    });
+  }
 };
 
-const handleSubscriptionItemDelete = (item, index, subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay, callback) => {
+const handleSubscriptionItemDelete = (item, index, subscriptionOptionsList, callback) => {
   buildfire.dialog.confirm(
     {
       title: 'Delete Subscription Option',
@@ -77,8 +157,13 @@ const handleSubscriptionItemDelete = (item, index, subscriptionOptionsList, subs
     (e, isConfirmed) => {
       if (e) console.error(e);
       if (isConfirmed) {
-        subscriptionOptionsList.items.splice(index, 1);
-        saveValidSubscriptions(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+        const itemIndex = globalEntrySubscriptionOptions.findIndex((i) => i.id === item.id);
+        if (itemIndex > -1) {
+          globalEntrySubscriptionOptions.splice(itemIndex, 1);
+        }
+        saveValidSubscriptions(subscriptionOptionsList, true);
+        subscriptionOptionsList.init(globalEntrySubscriptionOptions);
+        subscriptionOptionsList.refreshDropdownItems();
         callback(true);
       } else {
         callback(false);
@@ -87,145 +172,208 @@ const handleSubscriptionItemDelete = (item, index, subscriptionOptionsList, subs
   );
 };
 
-const handleAddSubscription = (subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay) => {
-  const unselectedSubscriptions = getUnselectedSubscriptions(subscriptionsList, subscriptionOptionsList);
-  const firstUnselectedSubscription = unselectedSubscriptions[0];
-  if (firstUnselectedSubscription) {
-    subscriptionOptionsList.addItem({
+const handleAddSubscription = (subscriptionOptionsList) => {
+  const unselectedSubscriptions = getUnselectedSubscriptions();
+  if (unselectedSubscriptions.length > 0) {
+    const firstAvailable = unselectedSubscriptions[0];
+    const newItem = {
       id: Date.now(),
-      name: firstUnselectedSubscription?.name || '',
+      name: '',
       description: '',
-      subscriptionId: firstUnselectedSubscription?.id || '',
-      tag: firstUnselectedSubscription?.tag || '',
-      type: firstUnselectedSubscription?.id || '',
-      order: subscriptionOptionsList.items.length + 1
-    });
-    globalEntries.charging.subscriptionOptions = subscriptionOptionsList.items;
-    saveValidSubscriptions(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+      subscriptionId: null,
+      tag: '',
+      type: '',
+      order: globalEntrySubscriptionOptions.length,
+    };
+    globalEntrySubscriptionOptions.push(newItem);
+    subscriptionOptionsList.addItem(newItem);
+    updateButtonState();
   }
 };
 
-const initSubscriptionOptions = (globalEntries, saveSettingsWithDelay, subscriptionsList) => {
+const handleSubscriptionItemUpdate = (item, subscriptionOptionsList) => {
+  const itemIndex = globalEntrySubscriptionOptions.findIndex((i) => i.id === item.id);
+  if (itemIndex > -1) {
+    globalEntrySubscriptionOptions[itemIndex] = item;
+  }
+  if (!isValidSubscription(item)) {
+    return;
+  }
+  saveValidSubscriptions(subscriptionOptionsList);
+  subscriptionOptionsList.refreshDropdownItems();
+  updateButtonState();
+};
+
+const handleSubscriptionOrderChange = (item, oldIndex, newIndex, subscriptionOptionsList) => {
+  if (oldIndex > -1 && newIndex > -1) {
+    const [movedItem] = globalEntrySubscriptionOptions.splice(oldIndex, 1);
+    globalEntrySubscriptionOptions.splice(newIndex, 0, movedItem);
+    globalEntrySubscriptionOptions.forEach((sub, idx) => {
+      sub.order = idx;
+    });
+  }
+  saveValidSubscriptions(subscriptionOptionsList, true);
+  subscriptionOptionsList.refreshDropdownItems();
+  updateButtonState();
+};
+
+const initSubscriptionOptions = (subscriptionsListParam) => {
+  initGlobalEntrySubscriptionOptions();
+
   const subscriptionOptionsList = new SubscriptionOptionsListUI(
     'subscription-options-container',
-    subscriptionsList || []
+    subscriptionsListParam || [],
+    globalEntries
   );
 
-  subscriptionOptionsList.onUpdateItem = () => {
-    handleSubscriptionItemUpdate(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+  subscriptionOptionsList.onUpdateItem = (item, index) => {
+    handleSubscriptionItemUpdate(item, subscriptionOptionsList);
   };
 
-  subscriptionOptionsList.onOrderChange = () => {
-    handleSubscriptionOrderChange(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+  subscriptionOptionsList.onOrderChange = (item, oldIndex, newIndex) => {
+    handleSubscriptionOrderChange(item, oldIndex, newIndex, subscriptionOptionsList);
   };
 
   subscriptionOptionsList.onDeleteItem = (item, index, callback) => {
-    handleSubscriptionItemDelete(item, index, subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay, callback);
+    handleSubscriptionItemDelete(item, index, subscriptionOptionsList, callback);
   };
 
-  subscriptionOptionsList.init(globalEntries.charging.subscriptionOptions || []);
+  subscriptionOptionsList.init(globalEntrySubscriptionOptions);
 
   _uiElements.addSubscriptionBtn.onclick = () => {
-    handleAddSubscription(subscriptionOptionsList, subscriptionsList, globalEntries, saveSettingsWithDelay);
+    handleAddSubscription(subscriptionOptionsList);
   };
 
-  updateButtonState(subscriptionOptionsList, subscriptionsList);
-  updateDropdownOptions(subscriptionOptionsList, subscriptionsList);
-  updateNoSubscriptionsMessage(subscriptionsList);
+  updateButtonState();
+  updateDropdownOptions(subscriptionOptionsList);
+  updateNoSubscriptionsMessage();
 };
+
+const handleChargingChange = (value, shouldSave = true) => {
+  if (value === 'none') {
+    if (_uiElements.paymentDetailsSection) {
+      _uiElements.paymentDetailsSection.classList.add('hidden');
+    }
+    if (_uiElements.subscriptionOptionsSection) {
+      _uiElements.subscriptionOptionsSection.classList.add('hidden');
+    }
+  } else {
+    if (_uiElements.paymentDetailsSection) {
+      _uiElements.paymentDetailsSection.classList.remove('hidden');
+    }
+    if (_uiElements.subscriptionOptionsSection) {
+      _uiElements.subscriptionOptionsSection.classList.remove('hidden');
+    }
+    subscriptionsCached = false;
+    fetchSubscriptions().then((subscriptionsListParam) => {
+      initSubscriptionOptions(subscriptionsListParam);
+    });
+  }
+  if (shouldSave) {
+    saveSettingsWithDelay();
+  }
+};
+
+// ============================================================================
+// LOCATION CREATION CONTROL
+// ============================================================================
+
+const handleLocationCreationChange = (value) => {
+  if (_uiElements.chargeContainer) {
+    _uiElements.chargeContainer.classList.remove('hidden');
+    const isDisabled = value === 'none';
+    Array.from(_uiElements.allowChargingRadios).forEach(radio => {
+      radio.disabled = isDisabled;
+    });
+
+    if (isDisabled) {
+      globalEntries.charging.enabled = 'none';
+      globalEntries.charging.tags = [];
+      Array.from(_uiElements.allowChargingRadios).forEach(radio => {
+        if (radio.value === 'none') radio.checked = true;
+      });
+      if (_uiElements.paymentDetailsSection) {
+        _uiElements.paymentDetailsSection.classList.add('hidden');
+      }
+      if (_uiElements.subscriptionOptionsSection) {
+        _uiElements.subscriptionOptionsSection.classList.add('hidden');
+      }
+    }
+  }
+};
+
+// ============================================================================
+// FIELD ACCESS & PERMISSIONS
+// ============================================================================
 
 const updateFieldAccessVisibility = () => {
   const isOpenHoursEnabled = _uiElements.allowOpenHoursCheckbox.checked;
   const isPriceRangeEnabled = _uiElements.allowPriceRangeCheckbox.checked;
 
   if (_uiElements.openHoursAccessSection) {
-    if (isOpenHoursEnabled) {
-      _uiElements.openHoursAccessSection.classList.remove('hidden');
-    } else {
-      _uiElements.openHoursAccessSection.classList.add('hidden');
-    }
+    _uiElements.openHoursAccessSection.classList.remove('hidden');
+    const isDisabled = !isOpenHoursEnabled;
+    Array.from(_uiElements.allowHoursAccessRadios).forEach(radio => {
+      radio.disabled = isDisabled;
+    });
   }
 
   if (_uiElements.priceRangeAccessSection) {
-    if (isPriceRangeEnabled) {
-      _uiElements.priceRangeAccessSection.classList.remove('hidden');
-    } else {
-      _uiElements.priceRangeAccessSection.classList.add('hidden');
-    }
+    _uiElements.priceRangeAccessSection.classList.remove('hidden');
+    const isDisabled = !isPriceRangeEnabled;
+    Array.from(_uiElements.allowPriceRangeAccessRadios).forEach(radio => {
+      radio.disabled = isDisabled;
+    });
   }
 
   if (_uiElements.fieldAccessSection) {
-    if (!isOpenHoursEnabled && !isPriceRangeEnabled) {
-      _uiElements.fieldAccessSection.classList.add('hidden');
-    } else {
-      _uiElements.fieldAccessSection.classList.remove('hidden');
-    }
+    _uiElements.fieldAccessSection.classList.remove('hidden');
   }
 };
 
-let subscriptionsCached = false;
+// ============================================================================
+// RADIO GROUPS & TAGS SETUP
+// ============================================================================
 
-const fetchSubscriptions = (globalEntries) => {
-  return new Promise((resolve) => {
-    if (!subscriptionsCached && globalEntries.charging.enabled !== 'none') {
-      Purchase.getSubscriptions().then((subscriptions) => {
-        const subscriptionsList = subscriptions || [];
-        console.log('Subscriptions fetched:', subscriptionsList);
-        if (_uiElements.subscriptionOptionsSection) {
-          _uiElements.subscriptionOptionsSection.classList.remove('hidden');
-        }
-        subscriptionsCached = true;
-        resolve(subscriptionsList);
-      }).catch((error) => {
-        console.error('Error fetching subscriptions:', error);
-        subscriptionsCached = true;
-        resolve([]);
-      });
-    } else {
-      resolve([]);
-    }
-  });
-};
+const createTagsInputManager = () => ({
+  init(element, tags) {
+    const tagsInput = new window.buildfire.components.control.userTagsInput(`#${element.id}`, {
+      languageSettings: {
+        placeholder: 'User Tags',
+      },
+      settings: {
+        allowUserInput: false,
+      }
+    });
 
-const createTagsInputManager = (saveSettingsWithDelay) => {
-  return {
-    init(element, tags) {
-      const tagsInput = new window.buildfire.components.control.userTagsInput(`#${element.id}`, {
-        languageSettings: {
-          placeholder: 'User Tags',
-        },
-        settings: {
-          allowUserInput: false,
-        }
-      });
+    tagsInput.onUpdate = (data) => {
+      if (data && data.tags) {
+        tags.length = 0;
+        tags.push(...data.tags.map((tag) => ({
+          id: tag.id,
+          tagName: tag.tagName,
+          value: tag.value,
+        })));
+        saveSettingsWithDelay();
+      }
+    };
+    tagsInput.set(tags);
+  },
+  clear(element) {
+    element.innerHTML = '';
+  }
+});
 
-      tagsInput.onUpdate = (data) => {
-        if (data && data.tags) {
-          tags.length = 0;
-          tags.push(...data.tags.map((tag) => ({
-            id: tag.id,
-            tagName: tag.tagName,
-            value: tag.value,
-          })));
-          saveSettingsWithDelay();
-        }
-      };
-      tagsInput.set(tags);
-    },
-    clear(element) {
-      element.innerHTML = '';
-    }
-  };
-};
-
-const initRadioGroup = (config, tagsInputManager, saveSettingsWithDelay) => {
-  const { radios, settingsObj, propName, tagsContainer, onChangeCallback } = config;
+const initRadioGroup = (config, tagsInputManager) => {
+  const {
+    radios, settingsObj, propName, tagsContainer, onChangeCallback, syncScope
+  } = config;
 
   if (!settingsObj[propName]) {
     settingsObj[propName] = '';
   }
 
-  for (const radio of radios) {
+  Array.from(radios).forEach((radio) => {
     if (radio.value === settingsObj[propName]) {
       radio.checked = true;
     }
@@ -248,51 +396,18 @@ const initRadioGroup = (config, tagsInputManager, saveSettingsWithDelay) => {
         onChangeCallback(value);
       }
 
-      saveSettingsWithDelay();
+      saveSettingsWithDelay(syncScope);
     };
-  }
+  });
 };
 
-const handleLocationCreationChange = (value) => {
-  if (_uiElements.chargeContainer) {
-    if (value === 'none') {
-      _uiElements.chargeContainer.classList.add('hidden');
-    } else {
-      _uiElements.chargeContainer.classList.remove('hidden');
-    }
-  }
-};
+// ============================================================================
+// MAIN INITIALIZATION
+// ============================================================================
 
-const handleChargingChange = (value) => {
-  if (value === 'none') {
-    if (_uiElements.paymentDetailsSection) {
-      _uiElements.paymentDetailsSection.classList.add('hidden');
-    }
-    if (_uiElements.subscriptionOptionsSection) {
-      _uiElements.subscriptionOptionsSection.classList.add('hidden');
-    }
-  } else {
-    if (_uiElements.paymentDetailsSection) {
-      _uiElements.paymentDetailsSection.classList.remove('hidden');
-    }
-    if (_uiElements.subscriptionOptionsSection) {
-      _uiElements.subscriptionOptionsSection.classList.remove('hidden');
-    }
-  }
-};
-
-const updateNoSubscriptionsMessage = (subscriptionsList) => {
-  if (_uiElements.noSubscriptionsAvailableContainer) {
-    if (subscriptionsList.length === 0) {
-      _uiElements.noSubscriptionsAvailableContainer.classList.remove('hidden');
-    } else {
-      _uiElements.noSubscriptionsAvailableContainer.classList.add('hidden');
-    }
-  }
-};
-
-const initLocationSettings = (state, saveSettingsWithDelay) => {
-  const { globalEntries } = state.settings;
+const initLocationSettings = (stateParam) => {
+  state = stateParam;
+  globalEntries = state.settings.globalEntries;
 
   // Initialize all DOM elements
   _uiElements.allowPriceRangeCheckbox = document.querySelector('#allowAddingPriceRange');
@@ -336,20 +451,32 @@ const initLocationSettings = (state, saveSettingsWithDelay) => {
   _uiElements.allowPriceRangeCheckbox.checked = globalEntries.priceRange.inAppEnabled;
   _uiElements.allowPriceRangeCheckbox.onchange = (e) => {
     globalEntries.priceRange.inAppEnabled = e.target.checked;
-    globalEntries.allowPriceRange = e.target.checked;
+    if (!e.target.checked) {
+      globalEntries.priceRange.allowAdding = 'none';
+      globalEntries.priceRange.tags = [];
+      Array.from(_uiElements.allowPriceRangeAccessRadios).forEach(radio => {
+        if (radio.value === 'none') radio.checked = true;
+      });
+    }
     updateFieldAccessVisibility();
-    saveSettingsWithDelay();
+    saveSettingsWithDelay('locationSettings');
   };
 
   _uiElements.allowOpenHoursCheckbox.checked = globalEntries.openHours.inAppEnabled;
   _uiElements.allowOpenHoursCheckbox.onchange = (e) => {
     globalEntries.openHours.inAppEnabled = e.target.checked;
-    globalEntries.allowOpenHours = e.target.checked;
+    if (!e.target.checked) {
+      globalEntries.openHours.allowAdding = 'none';
+      globalEntries.openHours.tags = [];
+      Array.from(_uiElements.allowHoursAccessRadios).forEach(radio => {
+        if (radio.value === 'none') radio.checked = true;
+      });
+    }
     updateFieldAccessVisibility();
-    saveSettingsWithDelay();
+    saveSettingsWithDelay('locationSettings');
   };
 
-  const tagsInputManager = createTagsInputManager(saveSettingsWithDelay);
+  const tagsInputManager = createTagsInputManager();
 
   // Setup radio groups
   const radioGroups = [
@@ -358,54 +485,59 @@ const initLocationSettings = (state, saveSettingsWithDelay) => {
       settingsObj: globalEntries.locations,
       propName: 'allowAdding',
       tagsContainer: _uiElements.addingLocationsUserTags,
-      onChangeCallback: (value) => handleLocationCreationChange(value)
+      onChangeCallback: (value) => handleLocationCreationChange(value),
+      syncScope: 'locationSettings'
     },
     {
       radios: _uiElements.allowNewPhotosRadios,
       settingsObj: globalEntries.photos,
       propName: 'allowAdding',
-      tagsContainer: _uiElements.addingPhotosUserTags
+      tagsContainer: _uiElements.addingPhotosUserTags,
+      syncScope: 'locationSettings'
     },
     {
       radios: _uiElements.allowHoursAccessRadios,
       settingsObj: globalEntries.openHours,
       propName: 'allowAdding',
-      tagsContainer: _uiElements.allowHoursAccessUserTags
+      tagsContainer: _uiElements.allowHoursAccessUserTags,
+      syncScope: 'locationSettings'
     },
     {
       radios: _uiElements.allowPriceRangeAccessRadios,
       settingsObj: globalEntries.priceRange,
       propName: 'allowAdding',
-      tagsContainer: _uiElements.allowPriceRangeAccessUserTags
+      tagsContainer: _uiElements.allowPriceRangeAccessUserTags,
+      syncScope: 'locationSettings'
     },
     {
       radios: _uiElements.allowChargingRadios,
       settingsObj: globalEntries.charging,
       propName: 'enabled',
       tagsContainer: _uiElements.chargingUserTags,
-      onChangeCallback: (value) => handleChargingChange(value)
+      onChangeCallback: (value) => handleChargingChange(value),
+      syncScope: 'charging'
     }
   ];
 
-  radioGroups.forEach((config) => initRadioGroup(config, tagsInputManager, saveSettingsWithDelay));
+  radioGroups.forEach((config) => initRadioGroup(config, tagsInputManager));
 
   // Setup initial visibility
   if (_uiElements.chargeContainer) {
-    if (globalEntries.locations.allowAdding === 'none') {
-      _uiElements.chargeContainer.classList.add('hidden');
-    } else {
-      _uiElements.chargeContainer.classList.remove('hidden');
-    }
+    _uiElements.chargeContainer.classList.remove('hidden');
+    const isLocationCreationDisabled = globalEntries.locations.allowAdding === 'none';
+    Array.from(_uiElements.allowChargingRadios).forEach(radio => {
+      radio.disabled = isLocationCreationDisabled;
+    });
   }
 
-  handleChargingChange(globalEntries.charging.enabled);
+  handleChargingChange(globalEntries.charging.enabled, false);
   updateFieldAccessVisibility();
 
-  initWysiwyg(globalEntries, saveSettingsWithDelay);
+  initWysiwyg();
 
   // Fetch and init subscriptions
-  fetchSubscriptions(globalEntries).then((subscriptionsList) => {
-    initSubscriptionOptions(globalEntries, saveSettingsWithDelay, subscriptionsList);
+  fetchSubscriptions().then((subscriptionsListParam) => {
+    initSubscriptionOptions(subscriptionsListParam);
   });
 };
 
