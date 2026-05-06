@@ -4,7 +4,6 @@ import { navigateTo, showElement } from '../util/ui'
 import { addBreadcrumb } from '../util/helpers';
 import Purchase from '../../../shared/utils/purchase';
 import UserPurchases from '../global/repository/UserPurchases';
-import UserPurchase from '../global/data/UserPurchase';
 
 const renderChargingDescription = () => {
   const descriptionElement = document.querySelector(
@@ -90,10 +89,10 @@ const renderSubscriptionsCarousel = (carouselElement, onSubscriptionClick) => {
 const setupPurchaseListener = () => {
   Purchase.onPurchaseResult((product) => {
     if (product.result === 'success') {
-      const userPurchase = new UserPurchase({
+      const purchaseData = {
         purchase: [{ productId: product.productId, type: product.type }]
-      });
-      UserPurchases.save(userPurchase)
+      };
+      UserPurchases.save(purchaseData)
         .then(() => {
           buildfire.dialog.toast({
             message: window.strings.get('general.purchaseSuccessful').v,
@@ -131,8 +130,10 @@ const handleSubscriptionClick = (subscriptionId) => {
     return;
   }
 
+  buildfire.spinner.show();
   Purchase.purchase(subscriptionId,
     (err, result) => {
+      buildfire.spinner.hide();
       if (err) {
         console.error('Error initiating purchase:', err);
         buildfire.dialog.toast({

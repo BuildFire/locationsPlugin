@@ -1,7 +1,6 @@
 import authManager from '../../UserAccessControl/authManager';
 import constants from './global/constants';
 import state from './state';
-import UserPurchases from './global/repository/UserPurchases';
 import Purchase from '../../shared/utils/purchase';
 
 const getUserTagNames = (user) => {
@@ -43,23 +42,23 @@ export default {
     const { currentUser } = authManager;
     const { openHours } = state.settings.globalEntries;
 
-    if (!openHours?.inAppEnabled) {
+    if (!openHours?.enabled) {
       return false;
     }
 
-    const { allowAdding, tags } = openHours;
-    return checkAddingPermission(allowAdding, tags, currentUser);
+    const { inAppEnabled, tags } = openHours;
+    return checkAddingPermission(inAppEnabled, tags, currentUser);
   },
   canAddEditPriceRange() {
     const { currentUser } = authManager;
     const { priceRange } = state.settings.globalEntries;
 
-    if (!priceRange?.inAppEnabled) {
+    if (!priceRange?.enabled) {
       return false;
     }
 
-    const { allowAdding, tags } = priceRange;
-    return checkAddingPermission(allowAdding, tags, currentUser);
+    const { inAppEnabled, tags } = priceRange;
+    return checkAddingPermission(inAppEnabled, tags, currentUser);
   },
   canEditLocations() {
     let authed = false;
@@ -135,34 +134,23 @@ export default {
       }
     }
 
-    return UserPurchases.search()
-      .then((result) => {
-        if (!result) {
-          return { isValid: false, shouldNavigateToPurchases: true };
-        }
+    const subscriptionOptions = charging.subscriptionOptions || [];
+    if (subscriptionOptions.length === 0) {
+      return Promise.resolve({ isValid: false, shouldNavigateToPurchases: true });
+    }
 
-        if (!result.purchase || result.purchase.length === 0) {
-          return { isValid: false, shouldNavigateToPurchases: true };
-        }
+    // Check if user has purchased any of the available subscriptions
+    const purchaseValidationPromises = subscriptionOptions
+      .filter((sub) => sub.subscriptionId)
+      .map((sub) => Purchase.validateSubscription(sub.subscriptionId));
 
-        const { productId } = result.purchase[0];
-        const subscriptionOptions = charging.subscriptionOptions || [];
-        const productExists = subscriptionOptions.some((sub) => sub.subscriptionId === productId);
-
-        if (!productExists) {
-          return { isValid: false, shouldNavigateToPurchases: true };
-        }
-
-        return Purchase.validateSubscription(productId)
-          .then((isPurchased) => {
-            if (!isPurchased) {
-              UserPurchases.save([]);
-            }
-            return {
-              isValid: isPurchased,
-              shouldNavigateToPurchases: !isPurchased
-            };
-          });
+    return Promise.all(purchaseValidationPromises)
+      .then((results) => {
+        const hasValidPurchase = results.some((isPurchased) => isPurchased);
+        return {
+          isValid: hasValidPurchase,
+          shouldNavigateToPurchases: !hasValidPurchase
+        };
       })
       .catch((error) => {
         console.error('Error checking subscription:', error);
