@@ -3,7 +3,6 @@ import views from '../Views';
 import { navigateTo, showElement } from '../util/ui'
 import { addBreadcrumb } from '../util/helpers';
 import Purchase from '../../../shared/utils/purchase';
-import UserPurchases from '../global/repository/UserPurchases';
 
 const renderChargingDescription = () => {
   const descriptionElement = document.querySelector(
@@ -89,24 +88,11 @@ const renderSubscriptionsCarousel = (carouselElement, onSubscriptionClick) => {
 const setupPurchaseListener = () => {
   Purchase.onPurchaseResult((product) => {
     if (product.result === 'success') {
-      const purchaseData = {
-        purchase: [{ productId: product.productId, type: product.type }]
-      };
-      UserPurchases.save(purchaseData)
-        .then(() => {
-          buildfire.dialog.toast({
-            message: window.strings.get('general.purchaseSuccessful').v,
-            type: 'success'
-          });
-          buildfire.history.pop();
-        })
-        .catch((error) => {
-          console.error('Error saving purchase:', error);
-          buildfire.dialog.toast({
-            message: window.strings.get('general.genericError').v,
-            type: 'danger'
-          });
-        });
+      buildfire.dialog.toast({
+        message: window.strings.get('general.purchaseSuccessful').v,
+        type: 'success'
+      });
+      buildfire.history.pop();
     } else if (product.result === 'canceled') {
       buildfire.dialog.toast({
         message: window.strings.get('general.purchaseCancelled').v,
