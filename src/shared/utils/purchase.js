@@ -1,9 +1,14 @@
 const Purchase = {
+  subscriptionList :[],
 
   getSubscriptions() {
     return new Promise((resolve, reject) => {
+      if (this.subscriptionList.length > 0) {
+        return resolve(this.subscriptionList);
+      }
       buildfire.services.commerce.inAppPurchase.getSubscriptions((err, subscriptions) => {
         if (err) return reject(err);
+        this.subscriptionList = subscriptions;
         resolve(subscriptions);
       });
     });
@@ -24,6 +29,7 @@ const Purchase = {
       buildfire.services.commerce.inAppPurchase.purchase(
         { productId, purchaseType: 'subscriptions' },
         (err, result) => {
+          console.log(err,'err');
           if (err) return reject(err);
           resolve(result);
         }
