@@ -92,13 +92,13 @@ export default class Settings {
         tags: [],
       },
       openHours: {
-        inAppEnabled: true,
-        allowAdding: 'all', // all || none || limited
+        enabled: true,
+        inAppEnabled: 'all', // all || none || limited
         tags: [],
       },
       priceRange: {
-        inAppEnabled: true,
-        allowAdding: 'all', // all || none || limited
+        enabled: true,
+        inAppEnabled: 'all', // all || none || limited
         tags: [],
       },
       charging: {
@@ -108,24 +108,8 @@ export default class Settings {
         subscriptionOptions: [],
       },
 
-      allowOpenHours: true,
-      allowPriceRange: true,
     };
 
-    if (!this.globalEntries.priceRange) {
-      this.globalEntries.priceRange = {
-        inAppEnabled: this.globalEntries.allowPriceRange || true,
-        allowAdding: 'all', // all || none || limited
-        tags: [],
-      };
-    }
-    if (!this.globalEntries.openHours) {
-      this.globalEntries.openHours = {
-        inAppEnabled: this.globalEntries.allowOpenHours || true,
-        allowAdding: 'all', // all || none || limited
-        tags: [],
-      };
-    }
     this.globalEditors = data.globalEditors || {
       enabled: true,
       allowLocationCreatorsToEdit: true,
