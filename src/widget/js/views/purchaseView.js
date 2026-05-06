@@ -117,17 +117,18 @@ const handleSubscriptionClick = (subscriptionId) => {
   }
 
   buildfire.spinner.show();
-  Purchase.purchase(subscriptionId,
-    (err, result) => {
+  Purchase.purchase(subscriptionId)
+    .catch((err) => {
       buildfire.spinner.hide();
-      if (err) {
-        console.error('Error initiating purchase:', err);
-        buildfire.dialog.toast({
-          message: window.strings.get('general.genericError').v,
-          type: 'danger'
-        });
-        return;
+      console.error('Error initiating purchase:', err);
+      let errorMessage = window.strings.get('general.genericError').v;
+      if (err === 'Missing additionalData.appStore.discount when ordering a discount offer') {
+        errorMessage = 'Promotional offers are not supported';
       }
+      buildfire.dialog.toast({
+        message: errorMessage,
+        type: 'danger'
+      });
     });
 };
 

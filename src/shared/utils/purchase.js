@@ -26,14 +26,17 @@ const Purchase = {
 
   purchase(productId) {
     return new Promise((resolve, reject) => {
-      buildfire.services.commerce.inAppPurchase.purchase(
-        { productId, purchaseType: 'subscriptions' },
-        (err, result) => {
-          console.log(err,'err');
-          if (err) return reject(err);
-          resolve(result);
-        }
-      );
+      try {
+        buildfire.services.commerce.inAppPurchase.purchase(
+          { productId, purchaseType: 'subscriptions' },
+          (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+          }
+        );
+      } catch (error) {
+        reject(error);
+      }
     });
   },
 
