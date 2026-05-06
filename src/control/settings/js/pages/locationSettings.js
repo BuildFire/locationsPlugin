@@ -286,6 +286,14 @@ const handleLocationCreationChange = (value) => {
       radio.disabled = isDisabled;
     });
 
+    if (_uiElements.enableLocationCreationMessage) {
+      if (isDisabled) {
+        _uiElements.enableLocationCreationMessage.classList.remove('hidden');
+      } else {
+        _uiElements.enableLocationCreationMessage.classList.add('hidden');
+      }
+    }
+
     if (isDisabled) {
       globalEntries.charging.enabled = 'none';
       globalEntries.charging.tags = [];
@@ -316,6 +324,14 @@ const updateFieldAccessVisibility = () => {
     Array.from(_uiElements.allowHoursAccessRadios).forEach(radio => {
       radio.disabled = isDisabled;
     });
+    const enableOpenHoursMessage = document.getElementById('enableOpenHoursMessage');
+    if (enableOpenHoursMessage) {
+      if (isDisabled) {
+        enableOpenHoursMessage.classList.remove('hidden');
+      } else {
+        enableOpenHoursMessage.classList.add('hidden');
+      }
+    }
   }
 
   if (_uiElements.priceRangeAccessSection) {
@@ -324,6 +340,14 @@ const updateFieldAccessVisibility = () => {
     Array.from(_uiElements.allowPriceRangeAccessRadios).forEach(radio => {
       radio.disabled = isDisabled;
     });
+    const enablePriceRangeMessage = document.getElementById('enablePriceRangeMessage');
+    if (enablePriceRangeMessage) {
+      if (isDisabled) {
+        enablePriceRangeMessage.classList.remove('hidden');
+      } else {
+        enablePriceRangeMessage.classList.add('hidden');
+      }
+    }
   }
 
   if (_uiElements.fieldAccessSection) {
@@ -446,13 +470,14 @@ const initLocationSettings = (stateParam) => {
     '#allowPriceRangeAccessUserTags'
   );
   _uiElements.chargingUserTags = document.querySelector('#chargingUserTags');
+  _uiElements.enableLocationCreationMessage = document.getElementById('enableLocationCreationMessage');
 
   // Setup checkboxes
-  _uiElements.allowPriceRangeCheckbox.checked = globalEntries.priceRange.inAppEnabled;
+  _uiElements.allowPriceRangeCheckbox.checked = globalEntries.priceRange.enabled;
   _uiElements.allowPriceRangeCheckbox.onchange = (e) => {
-    globalEntries.priceRange.inAppEnabled = e.target.checked;
+    globalEntries.priceRange.enabled = e.target.checked;
     if (!e.target.checked) {
-      globalEntries.priceRange.allowAdding = 'none';
+      globalEntries.priceRange.inAppEnabled = 'none';
       globalEntries.priceRange.tags = [];
       Array.from(_uiElements.allowPriceRangeAccessRadios).forEach(radio => {
         if (radio.value === 'none') radio.checked = true;
@@ -462,11 +487,11 @@ const initLocationSettings = (stateParam) => {
     saveSettingsWithDelay('locationSettings');
   };
 
-  _uiElements.allowOpenHoursCheckbox.checked = globalEntries.openHours.inAppEnabled;
+  _uiElements.allowOpenHoursCheckbox.checked = globalEntries.openHours.enabled;
   _uiElements.allowOpenHoursCheckbox.onchange = (e) => {
-    globalEntries.openHours.inAppEnabled = e.target.checked;
+    globalEntries.openHours.enabled = e.target.checked;
     if (!e.target.checked) {
-      globalEntries.openHours.allowAdding = 'none';
+      globalEntries.openHours.inAppEnabled = 'none';
       globalEntries.openHours.tags = [];
       Array.from(_uiElements.allowHoursAccessRadios).forEach(radio => {
         if (radio.value === 'none') radio.checked = true;
@@ -498,14 +523,14 @@ const initLocationSettings = (stateParam) => {
     {
       radios: _uiElements.allowHoursAccessRadios,
       settingsObj: globalEntries.openHours,
-      propName: 'allowAdding',
+      propName: 'inAppEnabled',
       tagsContainer: _uiElements.allowHoursAccessUserTags,
       syncScope: 'locationSettings'
     },
     {
       radios: _uiElements.allowPriceRangeAccessRadios,
       settingsObj: globalEntries.priceRange,
-      propName: 'allowAdding',
+      propName: 'inAppEnabled',
       tagsContainer: _uiElements.allowPriceRangeAccessUserTags,
       syncScope: 'locationSettings'
     },
@@ -528,6 +553,13 @@ const initLocationSettings = (stateParam) => {
     Array.from(_uiElements.allowChargingRadios).forEach(radio => {
       radio.disabled = isLocationCreationDisabled;
     });
+    if (_uiElements.enableLocationCreationMessage) {
+      if (isLocationCreationDisabled) {
+        _uiElements.enableLocationCreationMessage.classList.remove('hidden');
+      } else {
+        _uiElements.enableLocationCreationMessage.classList.add('hidden');
+      }
+    }
   }
 
   handleChargingChange(globalEntries.charging.enabled, false);

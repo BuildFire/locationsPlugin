@@ -100,3 +100,10 @@ input:disabled + label {
 #noSubscriptionsAvailableContainer p {
   font-size: 15px;
 }
+
+.disabled-access-message {
+  display: inline-block;
+  width: 100%;
+  font-size: 13px;
+  opacity: 0.5;
+}
