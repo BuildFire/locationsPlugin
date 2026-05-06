@@ -59,8 +59,8 @@ export default class Settings {
 
         // Migrate old field properties to new structure
         const migratedData = Settings.migrateFieldSettings(res.data);
-        if (buildfire.getContext().type === "control") {
-          // Settings.save(migratedData);
+        if ((migratedData.globalEntries.allowPriceRange != null || migratedData.globalEntries.allowOpenHours != null) && buildfire.getContext().type === "control") {
+          Settings.save(migratedData);
         }
         resolve(new Setting(migratedData));
       });

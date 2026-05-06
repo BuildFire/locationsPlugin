@@ -456,7 +456,14 @@ const initEventListeners = () => {
       buildfire.spinner.show();
       accessManager.checkSubscriptionAndPurchases().then((result) => {
         buildfire.spinner.hide();
-        if (result.shouldNavigateToPurchases) {
+        if (result.error) {
+          buildfire.dialog.toast({
+            message: result.error,
+            type: 'danger'
+          });
+          return;
+        }
+        if (!result.isSubscribed) {
           purchaseView.navigateTo();
         } else {
           createView.navigateTo();

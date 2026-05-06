@@ -14,7 +14,7 @@ const Purchase = {
     });
   },
 
-  validateSubscription(productId) {
+  checkIsPurchased(productId) {
     return new Promise((resolve, reject) => {
       const options = { productId, type: 'subscriptions' };
       buildfire.services.commerce.inAppPurchase.checkIsPurchased(options, (err, isPurchased) => {
@@ -43,7 +43,7 @@ const Purchase = {
   onPurchaseResult(callback) {
     buildfire.services.commerce.inAppPurchase.onPurchaseResult((product) => {
       callback(product);
-    });
+    }, true);
   }
 };
 

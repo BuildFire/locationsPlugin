@@ -2,7 +2,7 @@ import state from '../state';
 import views from '../Views';
 import { navigateTo, showElement } from '../util/ui'
 import { addBreadcrumb } from '../util/helpers';
-import Purchase from '../../../shared/utils/purchase';
+import Purchase from '../../../shared/services/purchase';
 
 const renderChargingDescription = () => {
   const descriptionElement = document.querySelector(
@@ -122,11 +122,13 @@ const handleSubscriptionClick = (subscriptionId) => {
       buildfire.spinner.hide();
       console.error('Error initiating purchase:', err);
       let errorMessage = window.strings.get('general.genericError').v;
-      if (err === 'Missing additionalData.appStore.discount when ordering a discount offer') {
-        errorMessage = 'Promotional offers are not supported';
+      if (err === 'Store not accessible') {
+        errorMessage = window.strings.get('general.appStoreNotAccessible').v;
+      } else if (err === 'Missing additionalData.appStore.discount when ordering a discount offer') {
+        errorMessage = window.strings.get('general.promotionalOffersNotSupported').v;
       }
       buildfire.dialog.toast({
-        message: errorMessage,
+        message: err,
         type: 'danger'
       });
     });

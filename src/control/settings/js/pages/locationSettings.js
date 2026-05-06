@@ -1,5 +1,5 @@
 import SubscriptionOptionsListUI from '../ui/subscriptionOptionsListUI';
-import Purchase from '../../../../shared/utils/purchase';
+import Purchase from '../../../../shared/services/purchase';
 import SettingsController from '../../settings.controller';
 
 const _uiElements = {};

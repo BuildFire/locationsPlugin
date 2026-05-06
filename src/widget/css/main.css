@@ -1592,31 +1592,31 @@ h4.light-text {
 }
 /* Start Purchase Cards UI*/
 
-.bf-carousel {
+#purchase .bf-carousel {
   display: flex;
   overflow-x: auto;
   box-sizing: border-box !important;
   -webkit-overflow-scrolling: touch;
 }
 
-.bf-carousel::-webkit-scrollbar {
+#purchase .bf-carousel::-webkit-scrollbar {
   display: none;
 }
 
-.bf-carousel-item-wrapper {
+#purchase .bf-carousel-item-wrapper {
   padding: 12px 8px;
   box-sizing: border-box !important;
 }
 
-.bf-carousel-item-wrapper:first-child {
+#purchase .bf-carousel-item-wrapper:first-child {
   padding-left: 16px;
 }
 
-.bf-carousel-item-wrapper:last-child {
+#purchase .bf-carousel-item-wrapper:last-child {
   padding-right: 16px;
 }
 
-.bf-carousel-item {
+#purchase .bf-carousel-item {
   display: flex;
   flex-direction: column;
   min-width: 180px;
@@ -1630,34 +1630,34 @@ h4.light-text {
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   word-break: break-word;
 }
-.bf-carousel-item.btn-primary {
+#purchase .bf-carousel-item.btn-primary {
   background-color: var(--bf-theme-primary);
 }
 
-.bf-carousel-item .callout {
+#purchase .bf-carousel-item .callout {
   font-size: 14px;
   line-height: 1.5;
   font-weight: 800;
   margin-bottom: 24px;
 }
 
-.bf-carousel-item .titles {
+#purchase .bf-carousel-item .titles {
   display: flex;
   flex-direction: column;
 }
-.bf-carousel-item .title {
+#purchase .bf-carousel-item .title {
   font-size: 20px;
   line-height: 1.5;
   margin-bottom: 8px;
   font-weight: 800;
   word-break: break-word;
 }
-.bf-carousel-item .subtitle {
+#purchase .bf-carousel-item .subtitle {
   font-size: 12px;
   line-height: 1.5;
   opacity: .7;
 }
-.bf-carousel-item .description {
+#purchase .bf-carousel-item .description {
   font-size: 12px;
   display: block;
   line-height: 1.5;
@@ -1665,7 +1665,7 @@ h4.light-text {
   margin-top: 24px;
 }
 
-.bf-carousel-item .description-wrapper {
+#purchase .bf-carousel-item .description-wrapper {
   line-height: 1.5;
   overflow: hidden;
 }

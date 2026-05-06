@@ -229,6 +229,27 @@ export default {
         required: true,
         maxLength: 100,
       },
+      appStoreNotAccessible: {
+        title: 'App Store Not Accessible',
+        placeholder: 'Enter text here',
+        defaultValue: 'App store is not accessible.',
+        required: true,
+        maxLength: 50,
+      },
+      promotionalOffersNotSupported: {
+        title: 'Promotional Offers Not Supported',
+        placeholder: 'Enter text here',
+        defaultValue: 'Promotional offers are not supported',
+        required: true,
+        maxLength: 50,
+      },
+      noSubscriptionsFound: {
+        title: 'No Subscriptions Found',
+        placeholder: 'Enter text here',
+        defaultValue: 'No subscriptions were found',
+        required: true,
+        maxLength: 50,
+      },
     }
   },
   sortingOptions: {
