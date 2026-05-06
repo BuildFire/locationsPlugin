@@ -139,18 +139,44 @@ export default {
       return Promise.resolve({ isValid: false, shouldNavigateToPurchases: true });
     }
 
-    // Check if user has purchased any of the available subscriptions
-    const purchaseValidationPromises = subscriptionOptions
-      .filter((sub) => sub.subscriptionId)
-      .map((sub) => Purchase.validateSubscription(sub.subscriptionId));
+    // Get available subscriptions and filter options
+    return Purchase.getSubscriptions()
+      .then((availableSubscriptions) => {
+        if (!availableSubscriptions || availableSubscriptions.length === 0) {
+          return { isValid: false, shouldNavigateToPurchases: true };
+        }
 
-    return Promise.all(purchaseValidationPromises)
-      .then((results) => {
-        const hasValidPurchase = results.some((isPurchased) => isPurchased);
-        return {
-          isValid: hasValidPurchase,
-          shouldNavigateToPurchases: !hasValidPurchase
-        };
+        // Filter subscription options to only include those that exist in available subscriptions
+        const validSubscriptionIds = availableSubscriptions.map((sub) => sub.id);
+        const validSubscriptionOptions = subscriptionOptions.filter(
+          (sub) => sub.subscriptionId && validSubscriptionIds.includes(sub.subscriptionId)
+        );
+
+        if (validSubscriptionOptions.length === 0) {
+          return { isValid: false, shouldNavigateToPurchases: true };
+        }
+
+        // Check if platform supports subscriptions
+        if (buildfire.getContext().device.platform === 'web') {
+          buildfire.dialog.toast({
+            message: window.strings.get('general.pwaUnsupported').v,
+            type: 'danger'
+          });
+          return { isValid: false, shouldNavigateToPurchases: false };
+        }
+
+        // Check if user has purchased any of the valid subscriptions
+        const purchaseValidationPromises = validSubscriptionOptions
+          .map((sub) => Purchase.validateSubscription(sub.subscriptionId));
+
+        return Promise.all(purchaseValidationPromises)
+          .then((results) => {
+            const hasValidPurchase = results.some((isPurchased) => isPurchased);
+            return {
+              isValid: hasValidPurchase,
+              shouldNavigateToPurchases: !hasValidPurchase
+            };
+          });
       })
       .catch((error) => {
         console.error('Error checking subscription:', error);
