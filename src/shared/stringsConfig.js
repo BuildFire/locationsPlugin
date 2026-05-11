@@ -496,9 +496,9 @@ export default {
         maxLength: 10,
       },
       wednesday: {
-        title: 'Wen',
+        title: 'Wed',
         placeholder: 'Enter text here',
-        defaultValue: 'Wen',
+        defaultValue: 'Wed',
         required: true,
         maxLength: 10,
       },
