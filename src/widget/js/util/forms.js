@@ -60,6 +60,28 @@ export const createImageHolder = (options, onClick, onDelete) => {
   return div;
 };
 
+export const validateDayOverlap = (intervals, dayItemContainer) => {
+  const active = intervals.filter(Boolean);
+  let isValid = true;
+  outer: for (let i = 0; i < active.length; i++) {
+    for (let j = i + 1; j < active.length; j++) {
+      const aStart = new Date(active[i].from).getTime();
+      const aEnd = new Date(active[i].to).getTime();
+      const bStart = new Date(active[j].from).getTime();
+      const bEnd = new Date(active[j].to).getTime();
+      if (aStart < bEnd && bStart < aEnd) {
+        isValid = false;
+        break outer;
+      }
+    }
+  }
+  if (dayItemContainer) {
+    const overlapError = dayItemContainer.querySelector('.overlap-error');
+    if (overlapError) overlapError.classList.toggle('hidden', isValid);
+  }
+  return isValid;
+};
+
 export const validateOpeningHours = (openingHours) => {
   const { days } = openingHours;
   let isValid = true;
@@ -83,7 +105,7 @@ export const validateTimeInterval = (start, end, errorElem) => {
   }
 
   if (errorElem) {
-    toggleFieldError(errorElem, !isValid, 'Choose an end time later than the start time');
+    errorElem.classList.toggle('hidden', isValid);
   }
 
   return isValid;

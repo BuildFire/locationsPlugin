@@ -1600,6 +1600,7 @@ const onPopHandler = (breadcrumb) => {
     hideElement("section#listing");
     showElement("section#intro");
     if (_hasIntroAccess) {
+      state.clearSearch();
       clearAndSearchAllLocation();
     }
   }

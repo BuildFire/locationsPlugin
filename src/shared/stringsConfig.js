@@ -551,6 +551,13 @@ export default {
         required: true,
         maxLength: 45,
       },
+      overlappingHours: {
+        title: 'Opening hours are overlapping for this day.',
+        placeholder: 'Enter text here',
+        defaultValue: 'Opening hours are overlapping for this day.',
+        required: true,
+        maxLength: 50,
+      },
       confirmEditingTitle: {
         title: 'Enable Editing',
         placeholder: 'Enter text here',

@@ -360,7 +360,7 @@ const updateFieldAccessVisibility = () => {
 // ============================================================================
 
 const createTagsInputManager = () => ({
-  init(element, tags) {
+  init(element, tags, syncScope) {
     const tagsInput = new window.buildfire.components.control.userTagsInput(`#${element.id}`, {
       languageSettings: {
         placeholder: 'User Tags',
@@ -378,7 +378,7 @@ const createTagsInputManager = () => ({
           tagName: tag.tagName,
           value: tag.value,
         })));
-        saveSettingsWithDelay();
+        saveSettingsWithDelay(syncScope);
       }
     };
     tagsInput.set(tags);
@@ -403,7 +403,7 @@ const initRadioGroup = (config, tagsInputManager) => {
     }
 
     if (settingsObj[propName] === 'limited') {
-      tagsInputManager.init(tagsContainer, settingsObj.tags);
+      tagsInputManager.init(tagsContainer, settingsObj.tags, syncScope);
     }
 
     radio.onchange = (e) => {
@@ -413,7 +413,7 @@ const initRadioGroup = (config, tagsInputManager) => {
       tagsInputManager.clear(tagsContainer);
 
       if (value === 'limited') {
-        tagsInputManager.init(tagsContainer, settingsObj.tags);
+        tagsInputManager.init(tagsContainer, settingsObj.tags, syncScope);
       }
 
       if (onChangeCallback) {
@@ -482,6 +482,7 @@ const initLocationSettings = (stateParam) => {
       Array.from(_uiElements.allowPriceRangeAccessRadios).forEach(radio => {
         if (radio.value === 'none') radio.checked = true;
       });
+      tagsInputManager.clear(_uiElements.allowPriceRangeAccessUserTags);
     }
     updateFieldAccessVisibility();
     saveSettingsWithDelay('locationSettings');
@@ -496,6 +497,7 @@ const initLocationSettings = (stateParam) => {
       Array.from(_uiElements.allowHoursAccessRadios).forEach(radio => {
         if (radio.value === 'none') radio.checked = true;
       });
+      tagsInputManager.clear(_uiElements.allowHoursAccessUserTags);
     }
     updateFieldAccessVisibility();
     saveSettingsWithDelay('locationSettings');
@@ -562,6 +564,7 @@ const initLocationSettings = (stateParam) => {
     }
   }
 
+  handleLocationCreationChange(globalEntries.locations.allowAdding);
   handleChargingChange(globalEntries.charging.enabled, false);
   updateFieldAccessVisibility();
 

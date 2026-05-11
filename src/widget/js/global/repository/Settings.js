@@ -26,7 +26,7 @@ export default class Settings {
       if (data.globalEntries.allowOpenHours != null) {
         data.globalEntries.openHours = {
           enabled: data.globalEntries.allowOpenHours,
-          inAppEnabled: data.globalEntries.allowPriceRange ? 'all' : 'none',
+          inAppEnabled: data.globalEntries.allowOpenHours ? 'all' : 'none',
           tags: [],
         };
         delete data.globalEntries.allowOpenHours;

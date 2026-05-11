@@ -1388,7 +1388,8 @@ button.mdc-button > *,
   color: var(--mdc-theme-on-background, #000000);
 }
 .mdc-text-field-helper-line.has-error p,
-.interval-error {
+.interval-error,
+.overlap-error {
   color: var(--mdc-theme-error, #EB4747) !important;
 }
 section#create,
