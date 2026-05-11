@@ -27,6 +27,10 @@ section#categories {
   transition: all .4s ease-in-out;
 }
 
+section#purchase {
+  padding: 0;
+}
+
 section#filter.overlay,
 section#categories.overlay {
   left: 0;
@@ -36,7 +40,8 @@ section#categories.overlay {
 #home:not(.active),
 #detail:not(.active),
 #create:not(.active),
-#edit:not(.active) {
+#edit:not(.active),
+#purchase:not(.active) {
   display: none;
 }
 
@@ -1383,7 +1388,8 @@ button.mdc-button > *,
   color: var(--mdc-theme-on-background, #000000);
 }
 .mdc-text-field-helper-line.has-error p,
-.interval-error {
+.interval-error,
+.overlap-error {
   color: var(--mdc-theme-error, #EB4747) !important;
 }
 section#create,
@@ -1585,3 +1591,84 @@ h4.light-text {
 .margin-auto {
   margin: auto;
 }
+/* Start Purchase Cards UI*/
+
+#purchase .bf-carousel {
+  display: flex;
+  overflow-x: auto;
+  box-sizing: border-box !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+#purchase .bf-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+#purchase .bf-carousel-item-wrapper {
+  padding: 12px 8px;
+  box-sizing: border-box !important;
+}
+
+#purchase .bf-carousel-item-wrapper:first-child {
+  padding-left: 16px;
+}
+
+#purchase .bf-carousel-item-wrapper:last-child {
+  padding-right: 16px;
+}
+
+#purchase .bf-carousel-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  width: 50vw;
+  min-height: 180px;
+  height: 100%;
+  padding: 12px;
+  border-radius: 5px;
+  box-sizing: border-box !important;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  word-break: break-word;
+}
+#purchase .bf-carousel-item.btn-primary {
+  background-color: var(--bf-theme-primary);
+}
+
+#purchase .bf-carousel-item .callout {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+#purchase .bf-carousel-item .titles {
+  display: flex;
+  flex-direction: column;
+}
+#purchase .bf-carousel-item .title {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  font-weight: 800;
+  word-break: break-word;
+}
+#purchase .bf-carousel-item .subtitle {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: .7;
+}
+#purchase .bf-carousel-item .description {
+  font-size: 12px;
+  display: block;
+  line-height: 1.5;
+  word-break: break-word;
+  margin-top: 24px;
+}
+
+#purchase .bf-carousel-item .description-wrapper {
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* End Purchase Cards UI*/

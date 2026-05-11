@@ -52,7 +52,7 @@ const state = {
     sunday: "Sun",
     monday: "Mon",
     tuesday: "Tue",
-    wednesday: "Wen",
+    wednesday: "Wed",
     thursday: "Thu",
     friday: "Fri",
     saturday: "Sat",
@@ -277,11 +277,11 @@ window.addEditLocation = (location) => {
     }
   });
 
-  if (settings.globalEntries.allowOpenHours) {
+  if (settings.globalEntries.openHours?.enabled) {
     addLocationControls.openingHoursFormGroup.classList.remove('hidden');
   }
 
-  if (settings.globalEntries.allowPriceRange) {
+  if (settings.globalEntries.priceRange?.enabled) {
     addLocationControls.priceRangeFormGroup.classList.remove('hidden');
   }
 
@@ -1679,8 +1679,8 @@ const insertLocations = (result, callback) => {
     elem.description = elem.description?.trim();
     elem.images = elem.images?.split(',').filter((elem) => elem).map((imageUrl) => ({ id: generateUUID(), imageUrl: imageUrl.trim() }));
     elem.marker = {
-      type: elem.markerType?.toLowerCase() || 'pin', 
-      color: elem.markerColorRGBA ? applyMarkerColors(elem.markerColorRGBA) : null, 
+      type: elem.markerType?.toLowerCase() || 'pin',
+      color: elem.markerColorRGBA ? applyMarkerColors(elem.markerColorRGBA) : null,
       image: elem.markerImage || null
     };
     elem.settings = {

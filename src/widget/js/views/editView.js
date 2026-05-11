@@ -14,13 +14,12 @@ import {
   cropImage,
 } from '../util/helpers';
 import { generateUUID } from '../global/helpers';
-import { uploadImages } from '../util/forms';
+import { uploadImages, validateDayOverlap } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
-import { validateOpeningHoursDuplication } from '../../../shared/utils';
 import constants from '../global/constants';
 import accessManager from '../accessManager';
 import customFieldsController from './components/customFields';
@@ -110,7 +109,7 @@ const _validateTimeInterval = (start, end, errorElem) => {
   }
 
   if (errorElem) {
-    _toggleInputError(errorElem, !isValid, 'Choose an end time later than the start time');
+    errorElem.classList.toggle('hidden', isValid);
   }
 
   return isValid;
@@ -173,6 +172,16 @@ const _validateLocationSave = () => {
   if (!_validateOpeningHours(openingHours)) {
     isValid = false;
   }
+
+  const openingHoursContainer = document.querySelector('#locationOpeningHoursContainer');
+  Object.keys(openingHours.days).forEach((day) => {
+    if (openingHours.days[day]) {
+      const dayItem = openingHoursContainer.querySelector(`#${day}`);
+      if (!validateDayOverlap(openingHours.days[day].intervals, dayItem)) {
+        isValid = false;
+      }
+    }
+  });
 
   if (!customFieldsController.helper.validate()) {
     isValid = false;
@@ -318,7 +327,6 @@ const _saveChanges = (e) => {
   }
 
   if (!_validateLocationSave()) return;
-  if (!validateOpeningHoursDuplication(pendingLocation.openingHours)) return;
 
   pendingLocation.additionalFields = customFieldsController.helper.getFieldsValues();
 
@@ -668,28 +676,28 @@ const _renderDayIntervals = (day, dayIntervalsContainer) => {
     fromInput.onchange = (e) => {
       const start = convertTimeToDate(e.target.value);
       interval.from = start;
-      if (!_validateTimeInterval(start, interval.to, intervalError)) {
-
-      }
+      _validateTimeInterval(start, interval.to, intervalError);
+      validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
     };
 
     toInput.onchange = (e) => {
       const end = convertTimeToDate(e.target.value);
       interval.to = end;
-      if (!_validateTimeInterval(interval.from, end, intervalError)) {
-
-      }
+      _validateTimeInterval(interval.from, end, intervalError);
+      validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
     };
 
     deleteBtn.onclick = (e) => {
       day.intervals[intervalIndex] = undefined;
       dayInterval.remove();
+      validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
       if (editViewAccordion) editViewAccordion.setSize();
     };
 
     addHoursBtn.onclick = (e) => {
       day.intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
       _renderDayIntervals(day, dayIntervalsContainer);
+      validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
       if (editViewAccordion) editViewAccordion.setSize();
     };
 
@@ -872,13 +880,13 @@ const init = () => {
       const enableEditingBtn = document.querySelector('#locationEnableEditingButton');
       const descriptionContainer = document.querySelector('#locationDescriptionContainer');
 
+      const canAddOpenHours = accessManager.canAddEditOpenHours();
+      const canAddPriceRange = accessManager.canAddEditPriceRange();
 
-      const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
-
-      if (!allowOpenHours) {
+      if (!canAddOpenHours) {
         _hideElement(document.querySelector('section#edit #openHoursExpansion'));
       }
-      if (!allowPriceRange) {
+      if (!canAddPriceRange) {
         _hideElement(document.querySelector('section#edit #priceRangeExpansion'));
       }
 

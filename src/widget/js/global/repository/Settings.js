@@ -10,6 +10,32 @@ export default class Settings {
   }
 
   /**
+   * Migrate old field properties to new structure
+   */
+  static migrateFieldSettings(data) {
+    if (data.globalEntries) {
+      if (data.globalEntries.allowPriceRange != null) {
+        data.globalEntries.priceRange = {
+          enabled: data.globalEntries.allowPriceRange,
+          inAppEnabled: data.globalEntries.allowPriceRange ? 'all' : 'none',
+          tags: [],
+        };
+        delete data.globalEntries.allowPriceRange;
+      }
+
+      if (data.globalEntries.allowOpenHours != null) {
+        data.globalEntries.openHours = {
+          enabled: data.globalEntries.allowOpenHours,
+          inAppEnabled: data.globalEntries.allowOpenHours ? 'all' : 'none',
+          tags: [],
+        };
+        delete data.globalEntries.allowOpenHours;
+      }
+    }
+    return data;
+  }
+
+  /**
    * @param {Boolean} autosave if settings is not initialized
    */
   static get(autosave = false) {
@@ -31,7 +57,12 @@ export default class Settings {
           return;
         }
 
-        resolve(new Setting(res.data));
+        // Migrate old field properties to new structure
+        const migratedData = Settings.migrateFieldSettings(res.data);
+        if ((migratedData.globalEntries.allowPriceRange != null || migratedData.globalEntries.allowOpenHours != null) && buildfire.getContext().type === "control") {
+          Settings.save(migratedData);
+        }
+        resolve(new Setting(migratedData));
       });
     });
   }

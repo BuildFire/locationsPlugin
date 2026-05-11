@@ -47,8 +47,8 @@ export default class Settings {
       allowSortByViews: true,
     };
     this.customFields = {
-      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
-      content: (data.customFields?.content || []).map(field => new CustomField(field))
+      quickActions: (data.customFields?.quickActions || []).map((field) => new CustomField(field)),
+      content: (data.customFields?.content || []).map((field) => new CustomField(field))
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
@@ -81,6 +81,7 @@ export default class Settings {
       showDetailsCategory: true,
       showContributorName: false,
     };
+
     this.globalEntries = data.globalEntries || {
       locations: {
         allowAdding: 'none', // all || none || limited
@@ -90,9 +91,34 @@ export default class Settings {
         allowAdding: 'none', // all || none || limited
         tags: [],
       },
-      allowOpenHours: true,
-      allowPriceRange: true,
+      openHours: {
+        enabled: true,
+        inAppEnabled: 'all', // all || none || limited
+        tags: [],
+      },
+      priceRange: {
+        enabled: true,
+        inAppEnabled: 'all', // all || none || limited
+        tags: [],
+      },
+      charging: {
+        enabled: 'none', // all || none || limited
+        tags: [],
+        description: '',
+        subscriptionOptions: [],
+      },
+
     };
+
+    if (!this.globalEntries.charging) {
+      this.globalEntries.charging = {
+        enabled: 'none', // all || none || limited
+        tags: [],
+        description: '',
+        subscriptionOptions: [],
+      };
+    }
+
     this.globalEditors = data.globalEditors || {
       enabled: true,
       allowLocationCreatorsToEdit: true,

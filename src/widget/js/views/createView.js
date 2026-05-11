@@ -16,12 +16,11 @@ import Accordion from './components/Accordion';
 import { convertDateToTime, convertTimeToDate } from '../../../utils/datetime';
 import mapView from './mapView';
 import introView from './introView';
-import { validateOpeningHoursDuplication } from '../../../shared/utils';
 import accessManager from '../accessManager';
 import widgetController from '../../widget.controller';
 import {
   validateTimeInterval,
-  uploadImages, toggleFieldError, createImageHolder, validateOpeningHours
+  uploadImages, toggleFieldError, createImageHolder, validateOpeningHours, validateDayOverlap
 } from '../util/forms';
 import constants from '../global/constants';
 import customFieldsController from './components/customFields';
@@ -217,28 +216,29 @@ export default {
       fromInput.onchange = (e) => {
         const start = convertTimeToDate(e.target.value);
         interval.from = start;
-        if (!validateTimeInterval(start, interval.to, intervalError)) {
-
-        }
+        validateTimeInterval(start, interval.to, intervalError);
+        validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
       };
 
       toInput.onchange = (e) => {
         const end = convertTimeToDate(e.target.value);
         interval.to = end;
-        if (!validateTimeInterval(interval.from, end, intervalError)) {
-
-        }
+        validateTimeInterval(interval.from, end, intervalError);
+        console.log(day.intervals);
+        validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
       };
 
       deleteBtn.onclick = (e) => {
         day.intervals[intervalIndex] = undefined;
         dayInterval.remove();
+        validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
         if (this._accordion) this._accordion.setSize();
       };
 
       addHoursBtn.onclick = (e) => {
         day.intervals?.push({ from: convertTimeToDate("08:00"), to: convertTimeToDate("20:00") });
         this._renderDayIntervals(day, dayIntervalsContainer);
+        validateDayOverlap(day.intervals, dayIntervalsContainer.closest('.opening-hours-day-item'));
         if (this._accordion) this._accordion.setSize();
       };
 
@@ -294,6 +294,16 @@ export default {
       isValid = false;
     }
 
+    const openingHoursContainer = this._querySelect('#locationOpeningHoursContainer');
+    Object.keys(openingHours.days).forEach((day) => {
+      if (openingHours.days[day]) {
+        const dayItem = openingHoursContainer.querySelector(`#${day}`);
+        if (!validateDayOverlap(openingHours.days[day].intervals, dayItem)) {
+          isValid = false;
+        }
+      }
+    });
+
     if (!customFieldsController.helper.validate()) {
       isValid = false;
     }
@@ -315,7 +325,7 @@ export default {
 
     const { isValid } = this.validate();
 
-    if (!isValid || !validateOpeningHoursDuplication(this.payload.openingHours)) {
+    if (!isValid) {
       e.target.disabled = false;
       return;
     }
@@ -367,12 +377,13 @@ export default {
 
     this._formFieldsInstances = this._defaultFieldsInfo;
 
-    const { allowOpenHours, allowPriceRange } = state.settings.globalEntries;
+    const canAddOpenHours = accessManager.canAddEditOpenHours();
+    const canAddPriceRange = accessManager.canAddEditPriceRange();
 
-    if (!allowOpenHours) {
+    if (!canAddOpenHours) {
       this._hideElement(this._querySelect('#openHoursExpansion'));
     }
-    if (!allowPriceRange) {
+    if (!canAddPriceRange) {
       this._hideElement(this._querySelect('#priceRangeExpansion'));
     }
 

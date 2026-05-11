@@ -38,6 +38,7 @@ import introView from './js/views/introView';
 import mapSearchControl from './js/map/search-control';
 import createView from './js/views/createView';
 import detailsView from './js/views/detailsView';
+import purchaseView, { renderSubscriptionsCarousel } from './js/views/purchaseView';
 import reportAbuse from './js/reportAbuse';
 import authManager from '../UserAccessControl/authManager';
 import renderNotificationForm from './js/views/sendNotificationView';
@@ -91,9 +92,8 @@ const refreshQuickFilter = () => {
     container.innerHTML = `<small class="mdc-theme--text-body d-block text-center">${window.strings.get('emptyState.emptyCategories').v}</small>`;
     advancedFilterBtn.classList.add('disabled');
     return;
-  } else {
-    advancedFilterBtn.classList.remove('disabled');
   }
+  advancedFilterBtn.classList.remove('disabled');
 
   if (filter.allowFilterByBookmarks && bookmarks.enabled) {
     html += `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" id="bookmarksFilterBtn">
@@ -230,7 +230,6 @@ const refreshAdvancedFilterUI = (chipId) => {
 const showLocationDetail = (pushToHistory = true) => {
   detailsView.initLocationDetails()
     .then((result) => {
-
       if (pushToHistory) {
         addBreadcrumb({ pageName: 'detail', title: 'Location Detail' });
       }
@@ -250,8 +249,8 @@ const showWorkingHoursDrawer = () => {
         <td style="vertical-align: top; font-weight: bold; text-transform: capitalize;">${window.strings.get(`general.${day}`).v}</td>
         <td style="vertical-align: top;">
           ${!prop.active ? window.strings.get('general.closed').v : prop.intervals.map((t, i) => `<p style="margin: ${i > 0 ? '10px 0 0' : '0'};">${time == "12H" ? convertDateToTime12H(t.from) : convertDateToTime(t.from)} - ${time == "12H" ? convertDateToTime12H(
-        t.to
-      ) : convertDateToTime(t.to)}</p>`).join('\n')}
+    t.to
+  ) : convertDateToTime(t.to)}</p>`).join('\n')}
         </td>
       </tr>`).join('\n')}
     </table>`,
@@ -454,7 +453,26 @@ const initEventListeners = () => {
       getDirections();
     } else if (e.target.id === 'createNewLocationBtn') {
       state.selectedLocation = null;
-      createView.navigateTo();
+      buildfire.spinner.show();
+      accessManager.checkSubscriptionAndPurchases().then((result) => {
+        buildfire.spinner.hide();
+        if (result.error) {
+          buildfire.dialog.toast({
+            message: result.error,
+            type: 'danger'
+          });
+          return;
+        }
+        if (!result.isSubscribed) {
+          purchaseView.navigateTo();
+        } else {
+          createView.navigateTo();
+        }
+      }).catch((error) => {
+        buildfire.spinner.hide();
+        console.error('Error checking subscription:', error);
+        createView.navigateTo();
+      });
     } else if (e.target.id === 'searchLocationsBtn') {
       state.searchCriteria.searchValue = e.target.value;
       clearAndSearchWithDelay();
@@ -556,7 +574,7 @@ const initEventListeners = () => {
 };
 const chipSets = {};
 const initFilterOverlay = () => {
-  let categories = state.categories
+  const { categories } = state;
 
   let html = '';
   const container = document.querySelector('#filter .expansion-panel__container .accordion');
@@ -818,7 +836,7 @@ const fillDefaultAreaSearchField = () => {
   if (coordinates) {
     fillAreaSearchField(coordinates);
   }
-}
+};
 
 const findViewPortLocations = () => {
   if (SEARCH_TIMOUT) clearTimeout(SEARCH_TIMOUT);
@@ -1397,6 +1415,37 @@ const handleCPSync = (message) => {
       });
   } else if (scope === 'strings') {
     window.strings.refresh(() => window.location.reload());
+  } else if (scope === 'locationSettings') {
+    window.location.reload();
+  } else if (scope === 'charging') {
+    refreshSettings()
+      .then(() => {
+        const isCurrentlyOnPurchase = document.querySelector('section#purchase').classList.contains('active');
+        if (isCurrentlyOnPurchase) {
+          views.refreshCurrentView();
+        }
+      });
+  } else if (scope === 'paymentDetailsUpdated') {
+    refreshSettings()
+      .then(() => {
+        const isCurrentlyOnPurchase = document.querySelector('section#purchase').classList.contains('active');
+        const purchaseDescriptionElement = document.querySelector('#purchase #chargingDescription');
+        const chargeDescription = state.settings.globalEntries.charging.description;
+
+        if (purchaseDescriptionElement) {
+          purchaseDescriptionElement.innerHTML = chargeDescription;
+        }
+
+        const carousel = document.querySelector('#subscriptionsCarousel');
+        if (carousel) {
+          renderSubscriptionsCarousel(carousel, () => {});
+        }
+
+        if (!isCurrentlyOnPurchase) {
+          hideOverlays();
+          purchaseView.navigateTo();
+        }
+      });
   }
 };
 
@@ -1525,6 +1574,7 @@ const navigateToLocationId = (locationId, pushToHistory = true) => {
 };
 
 const onPopHandler = (breadcrumb) => {
+  hideElement("section#purchase");
   const _hasIntroAccess = accessManager.hasIntroScreenAccess();
   // handle going back from advanced filter
   console.log(state.breadcrumbs[state.breadcrumbs.length - 1]?.name);
@@ -1550,6 +1600,7 @@ const onPopHandler = (breadcrumb) => {
     hideElement("section#listing");
     showElement("section#intro");
     if (_hasIntroAccess) {
+      state.clearSearch();
       clearAndSearchAllLocation();
     }
   }
@@ -1807,6 +1858,7 @@ const initApp = () => {
         });
         views.fetch('filter').then(() => { views.inject('filter'); initFilterOverlay(); });
         views.fetch('home').then(initHomeView);
+        views.fetch('purchase').then(() => { views.inject('purchase'); });
         buildfire.history.onPop(onPopHandler);
         buildfire.messaging.onReceivedMessage = onReceivedMessageHandler;
         buildfire.components.ratingSystem.onRating = onRatingHandler;

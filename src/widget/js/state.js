@@ -21,6 +21,12 @@ export default {
 
     return sanitizedUser;
   },
+  clearSearch() {
+    this.searchCriteria.openingNow = false;
+    this.searchCriteria.priceRange = null;
+    this.searchCriteria.bookmarked = false;
+    this.searchCriteria.searchValue = '';
+  },
   clearLocations() {
     this.listLocations = [];
     this.searchCriteria.page = 0;

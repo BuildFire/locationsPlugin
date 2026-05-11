@@ -1,0 +1,240 @@
+<template>
+	<div class="section-title">Location Settings</div>
+
+	<div class="form-group main clearfix">
+		<div class="col-md-7 pull-left padding-left-zero">
+			<label class="btn-description">Open Hours
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-content">
+						Enable open hours for locations. You can control who can set them under Field Access.
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-5 pull-right padding-right-zero">
+			<div class="button-switch pull-right">
+				<input id="allowAddingOpenHours" type="checkbox" />
+				<label for="allowAddingOpenHours" class="label-success"></label>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group main clearfix">
+		<div class="col-md-7 pull-left padding-left-zero">
+			<label class="btn-description">Price Range
+				<div class="bf-tooltip margin-left-ten">
+					<div class="tooltip-content">
+						Enable price range for locations. You can control who can set it under Field Access.
+					</div>
+				</div>
+			</label>
+		</div>
+		<div class="col-md-5 pull-right padding-right-zero">
+			<div class="button-switch pull-right">
+				<input id="allowAddingPriceRange" type="checkbox" />
+				<label for="allowAddingPriceRange" class="label-success"></label>
+			</div>
+		</div>
+	</div>
+
+	<section class="custom-field-section margin-bottom-ten">
+		<div class="section-title margin-bottom-ten font-size-15">Location Creation</div>
+
+		<div class="form-group main clearfix">
+			<div class="col-md-5 pull-left padding-left-zero">
+				<label class="">Allow Adding New Locations
+					<div class="bf-tooltip margin-left-ten">
+						<div class="tooltip-content">
+							Specify who can add new locations through the app
+						</div>
+					</div>
+				</label>
+			</div>
+			<div class="col-md-7 pull-right padding-right-zero flex-row">
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewEntries" id="allowAddingLocationsNone" value="none" checked/>
+					<label for="allowAddingLocationsNone">No Users</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewEntries" id="allowAddingLocationsLimited" value="limited" />
+					<label for="allowAddingLocationsLimited">Users With</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewEntries" id="allowAddingLocationsAll" value="all"  />
+					<label for="allowAddingLocationsAll">All Users</label>
+				</div>
+			</div>
+		</div>
+		<div class="flex-row">
+			<div class="col-md-7 col-xs-offset-5">
+				<div id="addingLocationsUserTags" class="padding-bottom-twenty"></div>
+			</div>
+		</div>
+
+		<div id="chargeForAddingLocationsContainer" class="hidden">
+			<div class="form-group main clearfix">
+				<div class="col-md-5 pull-left padding-left-zero">
+					<label class="">Charge for Adding New Locations
+						<div class="bf-tooltip margin-left-ten">
+							<div class="tooltip-content">
+								Specify who should be charged for adding new locations
+							</div>
+						</div>
+					</label>
+				</div>
+				<div class="col-md-7 pull-right padding-right-zero flex-row">
+					<div class="col-md-4 margin-top-zero radio radio-primary">
+						<input type="radio"  name="allowCharging" id="allowChargingNone" value="none" checked/>
+						<label for="allowChargingNone">No Users</label>
+					</div>
+					<div class="col-md-4 margin-top-zero radio radio-primary">
+						<input type="radio"  name="allowCharging" id="allowChargingLimited" value="limited" />
+						<label for="allowChargingLimited">Users With</label>
+					</div>
+					<div class="col-md-4 margin-top-zero radio radio-primary">
+						<input type="radio"  name="allowCharging" id="allowChargingAll" value="all"  />
+						<label for="allowChargingAll">All Users</label>
+					</div>
+				</div>
+				<span id="enableLocationCreationMessage" class="hidden disabled-access-message">Allow adding new locations to enable charging</span>
+			</div>
+			<div class="flex-row">
+				<div class="col-md-7 col-xs-offset-5">
+					<div id="chargingUserTags"></div>
+				</div>
+			</div>
+
+			<div id="paymentDetailsSection" class="hidden">
+				<hr class="none" />
+				<div class="section-title margin-bottom-ten font-size-15">Payment Details</div>
+				<div class="clearfix">
+					<p class="info-note">This screen is shown to users who must subscribe before adding a location. Use it to describe the payment terms. Available subscriptions are listed below.</p>
+				</div>
+				<div class="form-group main clearfix">
+					<div id="paymentDetailsDescription" name="content"></div>
+				</div>
+			</div>
+
+			<div id="subscriptionOptionsSection" class="hidden">
+				<hr class="none" />
+				<div class="section-title margin-bottom-ten font-size-15">Subscription Options</div>
+				<p class="info-note">Subscriptions are defined under Purchases. You can adjust how they are displayed by editing the name and adding a description.</p>
+
+				<div id="subscription-options-container" class="subscription-options-list"></div>
+				<button id="add-subscription-option-btn" class="btn btn-block add-field-btn">Add Option</button>
+				<div id = "noSubscriptionsAvailableContainer" style="background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; padding: 20px; margin-top: -16px; text-align: center;">
+					<p>
+						No subscriptions available.<br>
+						Add subscriptions in <a href="https://app.buildfire.com/#/commerce/purchases">Purchases</a> to enable charging users for adding locations.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="custom-field-section margin-bottom-ten">
+		<div class="section-title margin-bottom-ten font-size-15">User Contributions</div>
+
+		<div class="form-group main clearfix">
+			<div class="col-md-5 pull-left padding-left-zero">
+				<label class="">Allow Adding Photos
+					<div class="bf-tooltip margin-left-ten">
+						<div class="tooltip-content">
+							Specify who can add new photos to existing locations through the app
+						</div>
+					</div>
+				</label>
+			</div>
+			<div class="col-md-7 pull-right padding-right-zero flex-row">
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosNone" value="none" checked />
+					<label for="allowAddingPhotosNone">No Users</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosLimited" value="limited" />
+					<label for="allowAddingPhotosLimited">Users With</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowNewPhotos" id="allowAddingPhotosAll" value="all"  />
+					<label for="allowAddingPhotosAll">All Users</label>
+				</div>
+			</div>
+		</div>
+		<div class="flex-row">
+			<div class="col-md-7 col-xs-offset-5">
+				<div id="addingPhotosUserTags"></div>
+			</div>
+		</div>
+	</section>
+
+
+	<section id="fieldAccessSection" class="custom-field-section margin-bottom-ten">
+		<div class="section-title margin-bottom-ten font-size-15">Field Access</div>
+
+		<div id="openHoursAccessSection" class="form-group main clearfix">
+			<div class="col-md-5 pull-left padding-left-zero">
+				<label class="">Open Hours Access
+					<div class="bf-tooltip margin-left-ten">
+						<div class="tooltip-content">
+							Specify who can set open hours when adding or editing a location through the app.
+						</div>
+					</div>
+				</label>
+			</div>
+			<div class="col-md-7 pull-right padding-right-zero flex-row">
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowHoursAccess" id="allowHoursAccessNone" value="none" checked/>
+					<label for="allowHoursAccessNone">No Users</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowHoursAccess" id="allowHoursAccessLimited" value="limited" />
+					<label for="allowHoursAccessLimited">Users With</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowHoursAccess" id="allowHoursAccessAll" value="all"  />
+					<label for="allowHoursAccessAll">All Users</label>
+				</div>
+			</div>
+			<span id="enableOpenHoursMessage" class="hidden disabled-access-message">Enable Open Hours above to configure access</span>
+		</div>
+		<div class="flex-row">
+			<div class="col-md-7 col-xs-offset-5">
+				<div id="allowHoursAccessUserTags" class="padding-bottom-twenty"></div>
+			</div>
+		</div>
+
+
+		<div id="priceRangeAccessSection" class="form-group main clearfix">
+			<div class="col-md-5 pull-left padding-left-zero">
+				<label class="">Price Range Access
+					<div class="bf-tooltip margin-left-ten">
+						<div class="tooltip-content">
+							Specify who can set the price range when adding or editing a location through the app.
+						</div>
+					</div>
+				</label>
+			</div>
+			<div class="col-md-7 pull-right padding-right-zero flex-row">
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio" name="allowPriceRangeAccess" id="allowPriceRangeAccessNone" value="none" checked/>
+					<label for="allowPriceRangeAccessNone">No Users</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowPriceRangeAccess" id="allowPriceRangeAccessLimited" value="limited" />
+					<label for="allowPriceRangeAccessLimited">Users With</label>
+				</div>
+				<div class="col-md-4 margin-top-zero radio radio-primary">
+					<input type="radio"  name="allowPriceRangeAccess" id="allowPriceRangeAccessAll" value="all"  />
+					<label for="allowPriceRangeAccessAll">All Users</label>
+				</div>
+			</div>
+			<span id="enablePriceRangeMessage" class="hidden disabled-access-message">Enable Price Range above to configure access</span>
+		</div>
+		<div class="flex-row">
+			<div class="col-md-7 col-xs-offset-5">
+				<div id="allowPriceRangeAccessUserTags"></div>
+			</div>
+		</div>
+	</section>
+
+</template>

@@ -341,6 +341,10 @@ p.info::before {
 	position: relative;
 }
 
+#add-subscription-option-btn[disabled] {
+	opacity: 0.5;
+}
+
 .custom-field-section .add-field-btn::before {
 	content: "";
 	width: 1rem;
