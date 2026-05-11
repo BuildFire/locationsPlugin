@@ -47,8 +47,8 @@ export default class Settings {
       allowSortByViews: true,
     };
     this.customFields = {
-      quickActions: (data.customFields?.quickActions || []).map(field => new CustomField(field)),
-      content: (data.customFields?.content || []).map(field => new CustomField(field))
+      quickActions: (data.customFields?.quickActions || []).map((field) => new CustomField(field)),
+      content: (data.customFields?.content || []).map((field) => new CustomField(field))
     };
     this.filter = data.filter || {
       allowFilterByArea: true,
@@ -109,6 +109,15 @@ export default class Settings {
       },
 
     };
+
+    if (!this.globalEntries.charging) {
+      this.globalEntries.charging = {
+        enabled: 'none', // all || none || limited
+        tags: [],
+        description: '',
+        subscriptionOptions: [],
+      };
+    }
 
     this.globalEditors = data.globalEditors || {
       enabled: true,

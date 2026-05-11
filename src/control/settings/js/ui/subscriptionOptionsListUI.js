@@ -119,7 +119,9 @@ class SubscriptionOptionsListUI extends SortableListUI {
       currentIndex = parseInt(currentIndex, 10);
       this.onDeleteItem(item, currentIndex, (confirmed) => {
         if (confirmed) {
-          divRow.parentNode.removeChild(divRow);
+          if (divRow && divRow.parentNode) {
+            divRow.parentNode.removeChild(divRow);
+          }
           this.reIndexRows();
         }
       });

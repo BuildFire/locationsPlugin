@@ -278,7 +278,7 @@ const handleChargingChange = (value, shouldSave = true) => {
 // LOCATION CREATION CONTROL
 // ============================================================================
 
-const handleLocationCreationChange = (value) => {
+const handleLocationCreationChange = (value, tagsInputManager) => {
   if (_uiElements.chargeContainer) {
     _uiElements.chargeContainer.classList.remove('hidden');
     const isDisabled = value === 'none';
@@ -300,12 +300,15 @@ const handleLocationCreationChange = (value) => {
       Array.from(_uiElements.allowChargingRadios).forEach(radio => {
         if (radio.value === 'none') radio.checked = true;
       });
+      tagsInputManager.clear(_uiElements.chargingUserTags);
       if (_uiElements.paymentDetailsSection) {
         _uiElements.paymentDetailsSection.classList.add('hidden');
       }
       if (_uiElements.subscriptionOptionsSection) {
         _uiElements.subscriptionOptionsSection.classList.add('hidden');
       }
+    } else if (globalEntries.charging.enabled === 'limited') {
+      tagsInputManager.init(_uiElements.chargingUserTags, globalEntries.charging.tags, 'charging');
     }
   }
 };
@@ -512,7 +515,7 @@ const initLocationSettings = (stateParam) => {
       settingsObj: globalEntries.locations,
       propName: 'allowAdding',
       tagsContainer: _uiElements.addingLocationsUserTags,
-      onChangeCallback: (value) => handleLocationCreationChange(value),
+      onChangeCallback: (value) => handleLocationCreationChange(value, tagsInputManager),
       syncScope: 'locationSettings'
     },
     {
@@ -564,7 +567,7 @@ const initLocationSettings = (stateParam) => {
     }
   }
 
-  handleLocationCreationChange(globalEntries.locations.allowAdding);
+  handleLocationCreationChange(globalEntries.locations.allowAdding, tagsInputManager);
   handleChargingChange(globalEntries.charging.enabled, false);
   updateFieldAccessVisibility();
 
