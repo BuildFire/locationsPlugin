@@ -49,4 +49,9 @@ const ContentOptions = {
   EMAIL: "EMAIL",
 }
 
-export default { getMapStyle, getDefaultLocation, SearchLocationsModes, SortingOptions, IntroViewVisibilityOptions, QuickActionsOptions, ContentOptions, QuickActionsOptions, ContentOptions };
+const CustomFieldVisibilityOptions = {
+  ALL: "ALL",
+  TAGS: "TAGS",
+};
+
+export default { getMapStyle, getDefaultLocation, CustomFieldVisibilityOptions, SearchLocationsModes, SortingOptions, IntroViewVisibilityOptions, QuickActionsOptions, ContentOptions, QuickActionsOptions, ContentOptions };

@@ -107,3 +107,8 @@ input:disabled + label {
   font-size: 13px;
   opacity: 0.5;
 }
+
+.d-flex-column {
+  display: flex !important;
+  flex-direction: column !important;
+}
