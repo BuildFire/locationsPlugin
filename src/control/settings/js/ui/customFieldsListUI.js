@@ -13,7 +13,7 @@ const getTagDisplayName = (tag) => {
     return "";
   }
 
-  return tag.tag || tag.name || tag.title || tag.value || "";
+  return `<span>${tag.tagName || ""}</span>`;
 };
 
 const getVisibilityTooltip = (visibility) => {
@@ -24,7 +24,7 @@ const getVisibilityTooltip = (visibility) => {
   return visibility.tags
     .map(getTagDisplayName)
     .filter(Boolean)
-    .join("\n");
+    .join("<br/>");
 };
 
 class CustomFieldsListUI extends SortableListUI {
@@ -187,10 +187,10 @@ class CustomFieldsListUI extends SortableListUI {
     if (visibilityTooltip) {
       const tooltipContent = document.createElement("span");
       tooltipContent.className = "tooltip-content right";
-      tooltipContent.textContent = visibilityTooltip;
+      tooltipContent.innerHTML = visibilityTooltip;
       visibilitySpan.appendChild(tooltipContent);
     }
-    
+
     visibilitySpan.onclick = () => {
       this.onItemVisibilityClick(item);
     };

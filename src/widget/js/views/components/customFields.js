@@ -30,7 +30,7 @@ const customFieldsController = {
 		return allFields.filter(field => {
 			if (field.visibility && field.visibility.value === constants.CustomFieldVisibilityOptions.TAGS) {
 				const fieldTags = field.visibility.tags || [];
-				return fieldTags.some(tag => userTags.includes(tag));
+				return fieldTags.some(tag => userTags.includes(tag.tagName));
 			} else {
 				return true;
 			}
