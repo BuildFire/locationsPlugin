@@ -1,12 +1,12 @@
 import state from '../../state';
 import constants from '../../global/constants';
+import authManager from '../../../../UserAccessControl/authManager';
 
 const customFieldsController = {
 	init() {
-		const { settings } = state;
 		const locationCustomFields = document.querySelector('#locationCustomFields');
 
-		if (settings.customFields.quickActions.length || settings.customFields.content.length) {
+		if (this.permittedCustomFields.length) {
 			const locationAdditionalDetailsContainer = document.querySelector('#locationAdditionalDetailsContainer');
 			locationAdditionalDetailsContainer.innerHTML = '';
 
@@ -16,6 +16,25 @@ const customFieldsController = {
 		} else {
 			locationCustomFields.classList.add('hidden');
 		}
+	},
+
+	get permittedCustomFields() {
+		const { settings } = state;
+		const { currentUser } = authManager;
+		const userTags = currentUser?.tags ? Object.values(currentUser.tags).flat().map(t => t.tagName) : [];
+
+		const allFields = [
+			...(settings.customFields?.quickActions || []),
+			...(settings.customFields?.content || [])
+		];
+		return allFields.filter(field => {
+			if (field.visibility && field.visibility.value === constants.CustomFieldVisibilityOptions.TAGS) {
+				const fieldTags = field.visibility.tags || [];
+				return fieldTags.some(tag => userTags.includes(tag));
+			} else {
+				return true;
+			}
+		});
 	},
 
 	_getCustomFieldPlaceholder(fieldType) {
@@ -142,20 +161,15 @@ const customFieldsController = {
 	},
 
 	_injectCustomFields() {
-		const { settings, selectedLocation } = state;
+		const { selectedLocation } = state;
 		const locationAdditionalDetailsContainer = document.querySelector('#locationAdditionalDetailsContainer');
-
-		const allFields = [
-			...(settings.customFields?.quickActions || []),
-			...(settings.customFields?.content || [])
-		];
 
 		const activeLocationFields = [
 			...(selectedLocation?.additionalFields?.quickActions || []),
 			...(selectedLocation?.additionalFields?.content || [])
 		];
 
-		allFields.forEach(field => {
+		customFieldsController.permittedCustomFields.forEach(field => {
 			const activeField = activeLocationFields.find(f => f.id === field.id) || {};
 			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
 
@@ -216,14 +230,8 @@ const customFieldsController = {
 	},
 
 	validate() {
-		const { settings } = state;
 		let isValid = true;
-		const allFields = [
-			...(settings.customFields?.quickActions || []),
-			...(settings.customFields?.content || [])
-		];
-
-		allFields.forEach(field => {
+		customFieldsController.permittedCustomFields.forEach(field => {
 			if (!this._validateField(field)) {
 				isValid = false;
 			}
@@ -322,12 +330,7 @@ const customFieldsController = {
 			content: []
 		};
 
-		const allFields = [
-			...(settings.customFields?.quickActions || []),
-			...(settings.customFields?.content || [])
-		];
-
-		allFields.forEach(field => {
+		customFieldsController.permittedCustomFields.forEach(field => {
 			const isRichText = field.type === constants.ContentOptions.RICH_TEXT;
 			let inputElement;
 			let valueStr = '';
