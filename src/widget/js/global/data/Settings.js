@@ -179,5 +179,9 @@ class CustomField {
     this.type = data.type || null;
     this.required = data.required || false;
     this.enableCustomLabel = data.enableCustomLabel || false;
+    this.visibility = data.visibility || {
+      value: constants.CustomFieldVisibilityOptions.ALL,
+      tags: []
+    }
   }
 }

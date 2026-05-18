@@ -2,6 +2,29 @@
 
 import SortableListUI from "./sortableList/sortableListUI";
 import BaseDropdown from "../../../../shared/baseDropdown";
+import constants from "../../../../widget/js/global/constants";
+
+const getTagDisplayName = (tag) => {
+  if (typeof tag === "string") {
+    return tag;
+  }
+
+  if (!tag || typeof tag !== "object") {
+    return "";
+  }
+
+  return `<span>${tag.tagName || ""}</span>`;
+};
+
+const getVisibilityTooltip = (visibility) => {
+  if (visibility.value == constants.CustomFieldVisibilityOptions.TAGS && Array.isArray(visibility.tags)) {
+    return visibility.tags
+      .map(getTagDisplayName)
+      .filter(Boolean)
+      .join("<br/>");
+  }
+  return "";
+};
 
 class CustomFieldsListUI extends SortableListUI {
   constructor(elementId, dropdownOptions) {
@@ -127,8 +150,45 @@ class CustomFieldsListUI extends SortableListUI {
     const custSpan = document.createElement("span");
     custSpan.innerHTML = `<label class="font-size-14 text--black margin-zero" for='cust_${uniqueId}'>Allow Custom Label</label>`;
 
+    let visibilityLabel;
+    if (item.visibility && item.visibility.value === constants.CustomFieldVisibilityOptions.ALL) {
+      visibilityLabel = "All Users";
+    } else {
+      visibilityLabel = `${item.visibility.tags.length} Tag${item.visibility.tags.length !== 1 ? 's' : ''}`;
+    }
+    const visibilitySpan = document.createElement("span");
+    visibilitySpan.classList.add('margin-left-auto');
+    visibilitySpan.classList.add('flex');
+    visibilitySpan.classList.add('cursor-pointer');
+    const visibilityTooltip = getVisibilityTooltip(item.visibility);
+    if (visibilityTooltip) {
+      visibilitySpan.classList.add('bf-tooltip');
+      visibilitySpan.classList.add('left-tooltip');
+      visibilitySpan.classList.add('hidden-tooltip');
+    }
+    const visibilityIcon = document.createElement("span");
+    visibilityIcon.innerHTML = `<span class="eye-icon"></span>`;
+    const visibilityLabelSpan = document.createElement("span");
+    visibilityLabelSpan.textContent = visibilityLabel;
+    visibilityLabelSpan.className = "margin-left-five text-primary item-visibility-label";
+    visibilitySpan.appendChild(visibilityIcon);
+    visibilitySpan.appendChild(visibilityLabelSpan);
+
+    if (visibilityTooltip) {
+      const tooltipContent = document.createElement("span");
+      tooltipContent.className = "tooltip-content right";
+      tooltipContent.innerHTML = visibilityTooltip;
+      visibilitySpan.appendChild(tooltipContent);
+    }
+
+    visibilitySpan.onclick = () => {
+      this.onItemVisibilityClick(item);
+    };
+
     custCol.appendChild(custCheckboxWrap);
     custCol.appendChild(custSpan);
+    custCol.appendChild(visibilitySpan);
+
     flexContainer.appendChild(custCol);
 
     // Delete Button

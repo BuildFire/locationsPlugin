@@ -100,6 +100,18 @@ export default {
     }
     return authed;
   },
+  hasCustomFieldsAccess(customField) {
+    const { currentUser } = authManager;
+    if (!currentUser) return false;
+
+    const userTags = getUserTagNames(currentUser);
+
+    if (customField.visibility && customField.visibility.value === constants.CustomFieldVisibilityOptions.TAGS) {
+      const fieldTags = customField.visibility.tags || [];
+      return fieldTags.some(tag => userTags.includes(tag.tagName));
+    }
+    return true;
+  },
   hasIntroScreenAccess() {
     const { currentUser } = authManager;
     const { visibilityOptions } = state.settings.introductoryListView;
@@ -137,7 +149,7 @@ export default {
 
     const subscriptionOptions = charging.subscriptionOptions || [];
     if (subscriptionOptions.length === 0) {
-      return Promise.resolve({ isSubscribed: false, error:  window.strings.get('general.noSubscriptionsFound').v });
+      return Promise.resolve({ isSubscribed: false, error: window.strings.get('general.noSubscriptionsFound').v });
     }
 
     // Check if platform supports subscriptions before fetching

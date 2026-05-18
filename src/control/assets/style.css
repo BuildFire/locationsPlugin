@@ -322,6 +322,9 @@ p.info::before {
 	bottom: 100% !important;
 	margin-bottom: 2px;
 }
+.font-size-13 {
+	font-size: 13px;
+}
 .font-size-14 {
 	font-size: 14px;
 }

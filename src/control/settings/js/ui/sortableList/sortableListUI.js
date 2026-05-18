@@ -31,6 +31,7 @@ class SortableListUI {
       this.sortableList.onAddUsers = this.onAddUsers;
       this.sortableList.onAddTags = this.onAddTags;
       this.sortableList.onUpdateItem = this.onUpdateItem;
+      this.sortableList.onItemVisibilityClick = this.onItemVisibilityClick;
       this.sortableList.onOrderChange = this.onOrderChange;
       this.sortableList.onToggleChange = this.onToggleChange;
       this.sortableList.onImageClick = this.onImageClick;
@@ -70,6 +71,10 @@ class SortableListUI {
 
   onUpdateItem(item, index, divRow) {
     console.log("onUpdateItem");
+  }
+
+  onItemVisibilityClick(item) {
+    console.log("onItemVisibilityClick");
   }
 
   onDeleteItem(item, index, callback) {
