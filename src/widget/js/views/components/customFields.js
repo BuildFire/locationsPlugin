@@ -1,6 +1,7 @@
 import state from '../../state';
 import constants from '../../global/constants';
 import authManager from '../../../../UserAccessControl/authManager';
+import accessManager from '../../accessManager';
 
 const customFieldsController = {
 	init() {
@@ -20,21 +21,12 @@ const customFieldsController = {
 
 	get permittedCustomFields() {
 		const { settings } = state;
-		const { currentUser } = authManager;
-		const userTags = currentUser?.tags ? Object.values(currentUser.tags).flat().map(t => t.tagName) : [];
 
 		const allFields = [
 			...(settings.customFields?.quickActions || []),
 			...(settings.customFields?.content || [])
 		];
-		return allFields.filter(field => {
-			if (field.visibility && field.visibility.value === constants.CustomFieldVisibilityOptions.TAGS) {
-				const fieldTags = field.visibility.tags || [];
-				return fieldTags.some(tag => userTags.includes(tag.tagName));
-			} else {
-				return true;
-			}
-		});
+		return allFields.filter(accessManager.hasCustomFieldsAccess);
 	},
 
 	_getCustomFieldPlaceholder(fieldType) {
