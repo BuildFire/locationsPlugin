@@ -942,6 +942,8 @@ const initDrawer = () => {
 
     let bookmarksTemplate = document.getElementById("bookmarksTemplate");
     let bookmarksTemplateClone = bookmarksTemplate.cloneNode(true);
+    const bookmarkText = bookmarksTemplateClone.content.querySelector('p');
+    bookmarkText.textContent = window.strings.get('general.bookmarkResults').v;
 
     let filterOptionsTemplate = document.getElementById("filterOptionsTemplate");
     let filterOptionsTemplateClone = filterOptionsTemplate.cloneNode(true);
