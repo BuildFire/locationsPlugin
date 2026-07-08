@@ -1004,7 +1004,7 @@ body section#home {
 .map-center-btn {
   position: fixed;
   right: 10px;
-  bottom: 105px;
+  bottom: calc(105px + var(--bf-safe-area-inset-bottom));
   text-align: center;
   z-index: 1;
   cursor: pointer;
@@ -1012,7 +1012,7 @@ body section#home {
 .map-center-btn.left {
   right: initial;
   left: 10px;
-  bottom: 115px;
+  bottom: calc(115px + var(--bf-safe-area-inset-bottom));
 }
 
 .map-center-btn * {
@@ -1420,7 +1420,7 @@ section#edit {
 .floating-buttons-container {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  bottom: calc(24px + var(--bf-safe-area-inset-bottom));
   z-index: 1000;
   display: flex;
   flex-direction: column;
