@@ -48,7 +48,7 @@ export const adjustMapHeight = () => {
     baseMapHeight = 160;
   }
 
-  mainMapContainer.style.height = `calc(100vh - ${baseMapHeight}px)`;
+  mainMapContainer.style.height = `calc(100vh - var(--bf-safe-area-inset-bottom) - ${baseMapHeight}px)`;
 };
 
 export const navigateTo = (template) => {
