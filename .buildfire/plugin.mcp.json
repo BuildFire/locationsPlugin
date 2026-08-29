@@ -1,0 +1,2446 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-27T06:50:56Z",
+  "updatedAt": "2026-04-27T06:50:56Z",
+  "plugin": {
+    "name": "Locations",
+    "description": "BuildFire locations plugin with publicData-backed locations and categories, a shared settings datastore, and language-string records.",
+    "purpose": "Defines safe AI/MCP operations for managing this plugin's data.",
+    "pluginJsonPath": "plugin.json"
+  },
+  "mcpPurpose": "Defines safe AI/MCP operations for managing this plugin's data.",
+  "toolSummary": {
+    "primaryUseCases": [
+      "Read and export locations, categories, settings, and language strings.",
+      "Create or update locations, categories, and shared settings when the schema is known.",
+      "Archive categories and remove locations with explicit confirmation.",
+      "Inspect and preserve permission-related metadata such as editing permissions and global editor rules."
+    ],
+    "safeDefaultBehavior": "Read first, preserve unknown fields, and only write the smallest confirmed change set after verifying the target record.",
+    "mustAskBefore": [
+      "Removing a location",
+      "Archiving a category",
+      "Changing identity or audit fields",
+      "Bulk updates or bulk removals",
+      "Editing language-string records",
+      "Changing access-control settings"
+    ],
+    "neverDo": [
+      "Invent schema fields",
+      "Overwrite a full shared object with a partial object",
+      "Modify read-only or system-managed fields without explicit confirmation",
+      "Perform schema changes",
+      "Hard-remove categories"
+    ]
+  },
+  "defaults": {
+    "conflictHandling": {
+      "readBeforeWrite": true,
+      "preserveUnknownFields": true,
+      "detectChangedSincePreview": true,
+      "onConflict": "ask_user"
+    },
+    "matchingRules": {
+      "preferredMatchFields": [],
+      "allowIndexMatch": false,
+      "requiresUniqueMatch": true,
+      "ifMultipleMatches": "ask_user",
+      "ifNoMatch": "ask_user"
+    },
+    "resultShape": {
+      "success": "boolean",
+      "message": "string",
+      "changedFields": "array",
+      "preview": "object"
+    }
+  },
+  "dataStores": [
+    {
+      "name": "settings",
+      "description": "Shared plugin configuration record stored through buildfire.datastore.",
+      "buildfireApi": "buildfire.datastore",
+      "storageKey": "settings",
+      "collection": "settings",
+      "recordType": "settings",
+      "ownership": "app",
+      "writeStrategy": "read_merge_save",
+      "conflictHandling": {
+        "readBeforeWrite": true,
+        "preserveUnknownFields": true,
+        "detectChangedSincePreview": true,
+        "onConflict": "ask_user"
+      },
+      "schema": {
+        "subscription": {
+          "type": "object",
+          "required": true,
+          "description": "Notification toggles.",
+          "default": {
+            "enabled": false,
+            "allowCustomNotifications": false
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "allowCustomNotifications": true
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "measurementUnit": {
+          "type": "enum",
+          "required": true,
+          "description": "Distance unit.",
+          "default": "metric",
+          "allowedValues": [
+            "metric",
+            "imperial"
+          ],
+          "example": "metric",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "introductoryListView": {
+          "type": "object",
+          "required": true,
+          "description": "Intro view copy, carousel, and search-source settings.",
+          "default": {
+            "images": [],
+            "description": null
+          },
+          "allowedValues": [],
+          "example": {
+            "sorting": "distance",
+            "visibilityOptions": {
+              "value": "ALL"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "sorting": {
+          "type": "object",
+          "required": true,
+          "description": "Widget sort defaults and enable flags.",
+          "default": {
+            "defaultSorting": "distance"
+          },
+          "allowedValues": [],
+          "example": {
+            "defaultSorting": "alphabetical"
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "customFields": {
+          "type": "object",
+          "required": true,
+          "description": "Quick actions and content field definitions.",
+          "default": {
+            "quickActions": [],
+            "content": []
+          },
+          "allowedValues": [],
+          "example": {
+            "quickActions": [
+              {
+                "id": "field-1",
+                "label": "Phone",
+                "type": "Phone"
+              }
+            ]
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "filter": {
+          "type": "object",
+          "required": true,
+          "description": "Search/filter feature flags.",
+          "default": {
+            "allowFilterByArea": true,
+            "allowFilterByBookmarks": false
+          },
+          "allowedValues": [],
+          "example": {
+            "hidePriceFilter": false
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "map": {
+          "type": "object",
+          "required": true,
+          "description": "Map defaults and initial area settings.",
+          "default": {
+            "distanceUnit": "metric",
+            "showPointsOfInterest": false
+          },
+          "allowedValues": [],
+          "example": {
+            "initialArea": true
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "bookmarks": {
+          "type": "object",
+          "required": true,
+          "description": "Bookmark feature toggles.",
+          "default": {
+            "enabled": true,
+            "allowForLocations": true,
+            "allowForFilters": true
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "allowForLocations": true
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "design": {
+          "type": "object",
+          "required": true,
+          "description": "Widget presentation flags.",
+          "default": {
+            "listViewPosition": "collapsed",
+            "listViewStyle": "backgroundImage"
+          },
+          "allowedValues": [],
+          "example": {
+            "hideQuickFilter": true
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "globalEntries": {
+          "type": "object",
+          "required": true,
+          "description": "Global entry permissions for locations and photos.",
+          "default": {
+            "locations": {
+              "allowAdding": "none",
+              "tags": []
+            },
+            "photos": {
+              "allowAdding": "none",
+              "tags": []
+            }
+          },
+          "allowedValues": [],
+          "example": {
+            "locations": {
+              "allowAdding": "limited"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": true
+        },
+        "globalEditors": {
+          "type": "object",
+          "required": true,
+          "description": "Global editor allow-list and tag rules.",
+          "default": {
+            "enabled": true,
+            "allowLocationCreatorsToEdit": true,
+            "tags": [],
+            "users": []
+          },
+          "allowedValues": [],
+          "example": {
+            "users": [
+              "user-id-1"
+            ]
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": true
+        },
+        "locationEditors": {
+          "type": "object",
+          "required": true,
+          "description": "Per-location editing permission defaults.",
+          "default": {
+            "enabled": true,
+            "time": "12H"
+          },
+          "allowedValues": [],
+          "example": {
+            "enabled": true,
+            "time": "24H"
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": true
+        },
+        "categoriesSortBy": {
+          "type": "enum",
+          "required": true,
+          "description": "Category sort order.",
+          "default": "Asc",
+          "allowedValues": [
+            "Asc",
+            "Desc"
+          ],
+          "example": "Asc",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Creator metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last save timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Last editor metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-2"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Compatibility field.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Compatibility field.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility activation flag.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        }
+      },
+      "requiredFields": [],
+      "optionalFields": [
+        "subscription",
+        "measurementUnit",
+        "introductoryListView",
+        "sorting",
+        "customFields",
+        "filter",
+        "map",
+        "bookmarks",
+        "design",
+        "globalEntries",
+        "globalEditors",
+        "locationEditors",
+        "categoriesSortBy"
+      ],
+      "readOnlyFields": [
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive"
+      ],
+      "safeToUpdateFields": [
+        "subscription",
+        "measurementUnit",
+        "introductoryListView",
+        "sorting",
+        "customFields",
+        "filter",
+        "map",
+        "bookmarks",
+        "design",
+        "globalEntries",
+        "globalEditors",
+        "locationEditors",
+        "categoriesSortBy"
+      ],
+      "dangerousFields": [
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive"
+      ],
+      "identityFields": [],
+      "displayFields": [
+        "measurementUnit",
+        "subscription",
+        "design"
+      ],
+      "systemManagedFields": [
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive"
+      ],
+      "validationRules": [
+        "Read before write and merge changes into the current record.",
+        "Preserve unknown fields and nested subtrees.",
+        "Do not change system-managed fields."
+      ],
+      "createRules": [
+        "Prefer the repository defaults created by Settings.get(true) rather than inventing a new shape."
+      ],
+      "updateRules": [
+        "Use merge-safe updates and keep nested arrays intact when only one subtree changes."
+      ],
+      "removeRules": [],
+      "relationships": [],
+      "examples": {
+        "create": {
+          "subscription": {
+            "enabled": true,
+            "allowCustomNotifications": true
+          }
+        },
+        "update": {
+          "design": {
+            "hideQuickFilter": true
+          }
+        },
+        "read": {
+          "measurementUnit": "metric"
+        },
+        "remove": {}
+      },
+      "confidence": "high",
+      "notes": [
+        "The store is saved both as a full object and with `$set` payloads in different control flows."
+      ]
+    },
+    {
+      "name": "locations",
+      "description": "Public location documents in buildfire.publicData.",
+      "buildfireApi": "unknown",
+      "storageKey": "locations",
+      "collection": "locations",
+      "recordType": "location",
+      "ownership": "app",
+      "writeStrategy": "update_record",
+      "conflictHandling": {
+        "readBeforeWrite": true,
+        "preserveUnknownFields": true,
+        "detectChangedSincePreview": true,
+        "onConflict": "ask_user"
+      },
+      "schema": {
+        "id": {
+          "type": "string",
+          "required": false,
+          "description": "Record id.",
+          "default": null,
+          "allowedValues": [],
+          "example": "location-record-id",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "clientId": {
+          "type": "string",
+          "required": false,
+          "description": "Client-side bookmark/deeplink id.",
+          "default": null,
+          "allowedValues": [],
+          "example": "uuid-123",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Location title.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Downtown Store",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "subtitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional subtitle.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Open daily",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "address": {
+          "type": "string",
+          "required": true,
+          "description": "Location address.",
+          "default": null,
+          "allowedValues": [],
+          "example": "123 Main St, San Diego, CA",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "formattedAddress": {
+          "type": "string",
+          "required": true,
+          "description": "Geocoded address.",
+          "default": null,
+          "allowedValues": [],
+          "example": "123 Main St, San Diego, CA 92101",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "addressAlias": {
+          "type": "string",
+          "required": false,
+          "description": "Custom address label.",
+          "default": null,
+          "allowedValues": [],
+          "example": "Flagship",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "coordinates": {
+          "type": "object",
+          "required": true,
+          "description": "Latitude/longitude pair.",
+          "default": {
+            "lat": null,
+            "lng": null
+          },
+          "allowedValues": [],
+          "example": {
+            "lat": 32.7157,
+            "lng": -117.1611
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "marker": {
+          "type": "object",
+          "required": true,
+          "description": "Marker type/image/color metadata.",
+          "default": {
+            "type": "pin",
+            "image": null,
+            "color": null,
+            "base64Image": null
+          },
+          "allowedValues": [],
+          "example": {
+            "type": "circle",
+            "color": {
+              "color": "rgba(253,35,5,1)"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "categories": {
+          "type": "object",
+          "required": true,
+          "description": "Main and subcategory id arrays.",
+          "default": {
+            "main": [],
+            "subcategories": []
+          },
+          "allowedValues": [],
+          "example": {
+            "main": [
+              "category-id"
+            ],
+            "subcategories": [
+              "subcategory-id"
+            ]
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "settings": {
+          "type": "object",
+          "required": true,
+          "description": "Per-location display toggles.",
+          "default": {
+            "showCategory": true,
+            "showOpeningHours": false,
+            "showPriceRange": false,
+            "showStarRating": false
+          },
+          "allowedValues": [],
+          "example": {
+            "showCategory": true
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "openingHours": {
+          "type": "object",
+          "required": true,
+          "description": "Weekly opening hours and intervals.",
+          "default": {
+            "timezone": null,
+            "days": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "days": {
+              "monday": {
+                "active": true,
+                "intervals": []
+              }
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "editingPermissions": {
+          "type": "object",
+          "required": true,
+          "description": "Per-location editor allow-list.",
+          "default": {
+            "active": false,
+            "editors": [],
+            "tags": []
+          },
+          "allowedValues": [],
+          "example": {
+            "active": true,
+            "editors": [
+              "user-id-1"
+            ]
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": true
+        },
+        "images": {
+          "type": "array",
+          "required": true,
+          "description": "Detail-view image list.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "img-1",
+              "imageUrl": "https://example.com/image.jpg"
+            }
+          ],
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "listImage": {
+          "type": "string",
+          "required": true,
+          "description": "Main list image.",
+          "default": null,
+          "allowedValues": [],
+          "example": "https://example.com/list.jpg",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "HTML description.",
+          "default": null,
+          "allowedValues": [],
+          "example": "<p>Description</p>",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "wysiwygSource": {
+          "type": "enum",
+          "required": true,
+          "description": "Description source marker.",
+          "default": "control",
+          "allowedValues": [
+            "control",
+            "widget"
+          ],
+          "example": "widget",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "views": {
+          "type": "number",
+          "required": true,
+          "description": "View counter.",
+          "default": 0,
+          "allowedValues": [],
+          "example": 42,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "price": {
+          "type": "object",
+          "required": true,
+          "description": "Price range and currency.",
+          "default": {
+            "range": 1,
+            "currency": "$"
+          },
+          "allowedValues": [],
+          "example": {
+            "range": 2,
+            "currency": "$"
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "rating": {
+          "type": "object",
+          "required": true,
+          "description": "Aggregate rating summary.",
+          "default": {
+            "total": 0,
+            "count": 0,
+            "average": 0
+          },
+          "allowedValues": [],
+          "example": {
+            "total": 20,
+            "count": 5,
+            "average": 4
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "bookmarksCount": {
+          "type": "number",
+          "required": true,
+          "description": "Bookmark counter.",
+          "default": 0,
+          "allowedValues": [],
+          "example": 3,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "subscribers": {
+          "type": "array",
+          "required": true,
+          "description": "Follower user ids.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            "user-id-1"
+          ],
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "actionItems": {
+          "type": "array",
+          "required": true,
+          "description": "Widget action buttons.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "action-1",
+              "title": "Call"
+            }
+          ],
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "additionalFields": {
+          "type": "object",
+          "required": true,
+          "description": "Custom field values.",
+          "default": {
+            "quickActions": [],
+            "content": []
+          },
+          "allowedValues": [],
+          "example": {
+            "quickActions": [
+              {
+                "id": "field-1",
+                "customLabel": "Main phone",
+                "value": "+1 555 0100"
+              }
+            ]
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Creator metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last update timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Last editor metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-2"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Soft-delete marker.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Soft-delete actor.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility activation flag.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "_buildfire": {
+          "type": "object",
+          "required": true,
+          "description": "Search index and geo metadata.",
+          "default": {
+            "index": {},
+            "geo": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "index": {
+              "text": "downtown store"
+            }
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        }
+      },
+      "requiredFields": [
+        "title",
+        "address",
+        "formattedAddress",
+        "coordinates",
+        "listImage",
+        "description"
+      ],
+      "optionalFields": [
+        "subtitle",
+        "addressAlias",
+        "marker",
+        "categories",
+        "settings",
+        "openingHours",
+        "editingPermissions",
+        "images",
+        "price",
+        "actionItems",
+        "additionalFields",
+        "clientId",
+        "pinIndex"
+      ],
+      "readOnlyFields": [
+        "id",
+        "clientId",
+        "views",
+        "rating",
+        "bookmarksCount",
+        "subscribers",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "safeToUpdateFields": [
+        "title",
+        "subtitle",
+        "address",
+        "formattedAddress",
+        "addressAlias",
+        "coordinates",
+        "marker",
+        "categories",
+        "settings",
+        "openingHours",
+        "editingPermissions",
+        "images",
+        "listImage",
+        "description",
+        "wysiwygSource",
+        "price",
+        "actionItems",
+        "additionalFields",
+        "pinIndex"
+      ],
+      "dangerousFields": [
+        "id",
+        "clientId",
+        "views",
+        "rating",
+        "bookmarksCount",
+        "subscribers",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "identityFields": [
+        "id",
+        "clientId"
+      ],
+      "displayFields": [
+        "title",
+        "subtitle",
+        "address",
+        "formattedAddress",
+        "listImage"
+      ],
+      "systemManagedFields": [
+        "views",
+        "rating",
+        "bookmarksCount",
+        "subscribers",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "validationRules": [
+        "Match records by id only.",
+        "Read before write and merge with the existing record.",
+        "Preserve unknown fields and existing nested objects.",
+        "Do not touch views, rating, bookmarksCount, subscribers, or audit fields unless the operation is specifically about those fields."
+      ],
+      "createRules": [
+        "Require title, address, coordinates, listImage, and description."
+      ],
+      "updateRules": [
+        "Allow partial updates only for safe-to-update fields.",
+        "Update search/index/deeplink side effects only after a successful record write."
+      ],
+      "removeRules": [
+        "Removal is destructive and must be previewed before execution.",
+        "Deleting a location should also clean up the search index and deeplink registration."
+      ],
+      "relationships": [
+        {
+          "type": "belongs_to",
+          "store": "categories",
+          "field": "categories.main"
+        }
+      ],
+      "examples": {
+        "create": {
+          "title": "Downtown Store",
+          "address": "123 Main St, San Diego, CA",
+          "formattedAddress": "123 Main St, San Diego, CA 92101",
+          "coordinates": {
+            "lat": 32.7157,
+            "lng": -117.1611
+          },
+          "listImage": "https://example.com/list.jpg",
+          "description": "<p>Open daily</p>"
+        },
+        "update": {
+          "title": "Downtown Store",
+          "settings": {
+            "showOpeningHours": true
+          }
+        },
+        "read": {
+          "id": "location-record-id"
+        },
+        "remove": {
+          "id": "location-record-id"
+        }
+      },
+      "confidence": "high",
+      "notes": [
+        "Stored with buildfire.publicData under the locations tag.",
+        "The compact schema treats buildfire.publicData as unknown because it is not one of the standard datastore categories."
+      ]
+    },
+    {
+      "name": "categories",
+      "description": "Public category documents in buildfire.publicData.",
+      "buildfireApi": "unknown",
+      "storageKey": "categories",
+      "collection": "categories",
+      "recordType": "category",
+      "ownership": "app",
+      "writeStrategy": "update_record",
+      "conflictHandling": {
+        "readBeforeWrite": true,
+        "preserveUnknownFields": true,
+        "detectChangedSincePreview": true,
+        "onConflict": "ask_user"
+      },
+      "schema": {
+        "id": {
+          "type": "string",
+          "required": false,
+          "description": "Record id.",
+          "default": null,
+          "allowedValues": [],
+          "example": "category-record-id",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Category title.",
+          "default": "",
+          "allowedValues": [],
+          "example": "Food",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "iconUrl": {
+          "type": "string",
+          "required": false,
+          "description": "Optional icon URL.",
+          "default": null,
+          "allowedValues": [],
+          "example": "https://example.com/icon.png",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "iconClassName": {
+          "type": "string",
+          "required": false,
+          "description": "Optional icon class name.",
+          "default": null,
+          "allowedValues": [],
+          "example": "icon-star",
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "subcategories": {
+          "type": "array",
+          "required": true,
+          "description": "Nested subcategory list.",
+          "default": [],
+          "allowedValues": [],
+          "example": [
+            {
+              "id": "sub-id-1",
+              "title": "Breakfast"
+            }
+          ],
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "quickAccess": {
+          "type": "enum",
+          "required": true,
+          "description": "Quick-access flag.",
+          "default": 0,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1,
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "createdOn": {
+          "type": "date",
+          "required": false,
+          "description": "Creation timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "createdBy": {
+          "type": "object",
+          "required": false,
+          "description": "Creator metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-1"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Last update timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": "2026-04-27T06:50:56Z",
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Last editor metadata.",
+          "default": null,
+          "allowedValues": [],
+          "example": {
+            "_id": "user-id-2"
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedOn": {
+          "type": "date",
+          "required": false,
+          "description": "Soft-delete timestamp.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "deletedBy": {
+          "type": "object",
+          "required": false,
+          "description": "Soft-delete actor.",
+          "default": null,
+          "allowedValues": [],
+          "example": null,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "isActive": {
+          "type": "enum",
+          "required": true,
+          "description": "Compatibility activation flag.",
+          "default": 1,
+          "allowedValues": [
+            0,
+            1
+          ],
+          "example": 1,
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        },
+        "_buildfire": {
+          "type": "object",
+          "required": true,
+          "description": "Search index metadata.",
+          "default": {
+            "index": {}
+          },
+          "allowedValues": [],
+          "example": {
+            "index": {
+              "string1": "food"
+            }
+          },
+          "safeToUpdate": false,
+          "readOnly": true,
+          "dangerous": true
+        }
+      },
+      "requiredFields": [
+        "title"
+      ],
+      "optionalFields": [
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess"
+      ],
+      "readOnlyFields": [
+        "id",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "safeToUpdateFields": [
+        "title",
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess"
+      ],
+      "dangerousFields": [
+        "id",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "identityFields": [
+        "id"
+      ],
+      "displayFields": [
+        "title",
+        "iconUrl",
+        "iconClassName"
+      ],
+      "systemManagedFields": [
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "validationRules": [
+        "Match records by id only.",
+        "Read before write and merge with the existing record.",
+        "Preserve unknown fields and nested subcategory objects.",
+        "Do not change soft-delete metadata unless archiving."
+      ],
+      "createRules": [
+        "Require title."
+      ],
+      "updateRules": [
+        "Allow partial updates only for safe-to-update fields."
+      ],
+      "removeRules": [
+        "Do not expose hard remove through MCP.",
+        "Use archive semantics by setting deletedOn/deletedBy if the user explicitly confirms."
+      ],
+      "relationships": [
+        {
+          "type": "contains",
+          "store": "subcategories",
+          "field": "subcategories"
+        }
+      ],
+      "examples": {
+        "create": {
+          "title": "Food"
+        },
+        "update": {
+          "id": "category-record-id",
+          "subcategories": [
+            {
+              "id": "sub-id-1",
+              "title": "Breakfast"
+            }
+          ]
+        },
+        "read": {
+          "id": "category-record-id"
+        },
+        "remove": {}
+      },
+      "confidence": "high",
+      "notes": [
+        "The control panel soft-deletes categories by stamping deletedOn/deletedBy and saving the record back."
+      ]
+    },
+    {
+      "name": "language strings",
+      "description": "Language record stored through buildfire.services.Strings and buildfire.datastore.",
+      "buildfireApi": "buildfire.datastore",
+      "storageKey": "$bfLanguageSettings_en-us",
+      "collection": "$bfLanguageSettings_en-us",
+      "recordType": "language_strings",
+      "ownership": "app",
+      "writeStrategy": "read_merge_save",
+      "conflictHandling": {
+        "readBeforeWrite": true,
+        "preserveUnknownFields": true,
+        "detectChangedSincePreview": true,
+        "onConflict": "ask_user"
+      },
+      "schema": {
+        "general": {
+          "type": "object",
+          "required": true,
+          "description": "General labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "search": {
+              "value": "Search"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "sortingOptions": {
+          "type": "object",
+          "required": true,
+          "description": "Sorting labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "distance": {
+              "value": "Distance"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "locationEditing": {
+          "type": "object",
+          "required": true,
+          "description": "Location editing labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "locationName": {
+              "value": "Location Title"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "toast": {
+          "type": "object",
+          "required": true,
+          "description": "Toast labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "bookmarksAdded": {
+              "value": "Added"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "details": {
+          "type": "object",
+          "required": true,
+          "description": "Detail-view labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "share": {
+              "value": "Share"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        },
+        "emptyState": {
+          "type": "object",
+          "required": true,
+          "description": "Empty-state labels section.",
+          "default": {},
+          "allowedValues": [],
+          "example": {
+            "locationsListBeforeSearch": {
+              "value": "Search for locations"
+            }
+          },
+          "safeToUpdate": true,
+          "readOnly": false,
+          "dangerous": false
+        }
+      },
+      "requiredFields": [
+        "general",
+        "sortingOptions",
+        "locationEditing",
+        "toast",
+        "details",
+        "emptyState"
+      ],
+      "optionalFields": [
+        "any section and label defined in stringsConfig"
+      ],
+      "readOnlyFields": [],
+      "safeToUpdateFields": [
+        "general",
+        "sortingOptions",
+        "locationEditing",
+        "toast",
+        "details",
+        "emptyState"
+      ],
+      "dangerousFields": [],
+      "identityFields": [],
+      "displayFields": [
+        "general",
+        "locationEditing"
+      ],
+      "systemManagedFields": [],
+      "validationRules": [
+        "Preserve the section and label keys from stringsConfig.",
+        "Keep value/defaultValue/required/isPlaceHolder shape intact for each label.",
+        "Read before write and merge safely because the UI saves a full nested object."
+      ],
+      "createRules": [
+        "Create only when the selected language record does not already exist."
+      ],
+      "updateRules": [
+        "Update only string values or whole labels that already exist in stringsConfig."
+      ],
+      "removeRules": [
+        "Removing a language record is destructive and requires confirmation.",
+        "Do not remove the default language without explicit user acknowledgement."
+      ],
+      "relationships": [],
+      "examples": {
+        "create": {
+          "general": {
+            "search": {
+              "value": "Search"
+            }
+          }
+        },
+        "update": {
+          "general": {
+            "search": {
+              "value": "Search"
+            }
+          }
+        },
+        "read": {
+          "general": {
+            "search": {
+              "value": "Search"
+            }
+          }
+        },
+        "remove": {}
+      },
+      "confidence": "high",
+      "notes": [
+        "The control strings tab can create and remove whole language records, but widget rendering assumes the same section keys as stringsConfig."
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "name": "read_settings",
+      "description": "Read the shared settings record.",
+      "operationType": "read",
+      "availability": "allowed",
+      "targetStore": "settings",
+      "requiredInput": {},
+      "optionalInput": {},
+      "validation": [
+        "Read the current record before proposing any write."
+      ],
+      "safetyRules": [
+        "Do not modify any field."
+      ],
+      "fieldsAllowedToChange": [],
+      "fieldsNotAllowedToChange": [],
+      "requiresHumanConfirmation": false,
+      "dryRunRequired": false,
+      "successResult": "Returns the current settings object.",
+      "failureCases": [
+        "No settings record exists yet."
+      ],
+      "exampleToolInput": {},
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "update_settings",
+      "description": "Merge update of the shared settings record.",
+      "operationType": "update",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "settings",
+      "requiredInput": {
+        "changes": "object"
+      },
+      "optionalInput": {
+        "match": "settings"
+      },
+      "validation": [
+        "Preserve unknown fields.",
+        "Do not modify readOnlyFields or systemManagedFields.",
+        "Require a preview of the current record before applying changes."
+      ],
+      "safetyRules": [
+        "Only update fields listed in safeToUpdateFields.",
+        "Never send a partial object that would erase unrelated nested data."
+      ],
+      "fieldsAllowedToChange": [
+        "subscription",
+        "measurementUnit",
+        "introductoryListView",
+        "sorting",
+        "customFields",
+        "filter",
+        "map",
+        "bookmarks",
+        "design",
+        "globalEntries",
+        "globalEditors",
+        "locationEditors",
+        "categoriesSortBy"
+      ],
+      "fieldsNotAllowedToChange": [
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The settings record is updated without erasing unrelated fields.",
+      "failureCases": [
+        "Validation fails.",
+        "The current record changed after preview.",
+        "The record cannot be merged safely."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "changes": {
+          "design": {
+            "hideQuickFilter": true
+          }
+        }
+      },
+      "confidence": "high",
+      "notes": [
+        "This store is written through merge-safe flows even though some code paths save a full object."
+      ]
+    },
+    {
+      "name": "read_locations",
+      "description": "Read or export location records.",
+      "operationType": "read",
+      "availability": "allowed",
+      "targetStore": "locations",
+      "requiredInput": {},
+      "optionalInput": {
+        "filter": "object",
+        "sort": "object",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "validation": [
+        "Use a unique matcher when reading a specific record."
+      ],
+      "safetyRules": [
+        "Read-only by default."
+      ],
+      "fieldsAllowedToChange": [],
+      "fieldsNotAllowedToChange": [],
+      "requiresHumanConfirmation": false,
+      "dryRunRequired": false,
+      "successResult": "Returns matching location records.",
+      "failureCases": [
+        "No records match the query."
+      ],
+      "exampleToolInput": {
+        "filter": {
+          "title": {
+            "$regex": "Downtown"
+          }
+        }
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "create_location",
+      "description": "Create a new location record.",
+      "operationType": "create",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "locations",
+      "requiredInput": {
+        "title": "string",
+        "address": "string",
+        "formattedAddress": "string",
+        "coordinates": "object",
+        "listImage": "string",
+        "description": "string"
+      },
+      "optionalInput": {
+        "subtitle": "string",
+        "addressAlias": "string",
+        "marker": "object",
+        "categories": "object",
+        "settings": "object",
+        "openingHours": "object",
+        "images": "array",
+        "price": "object",
+        "actionItems": "array",
+        "additionalFields": "object",
+        "editingPermissions": "object",
+        "pinIndex": "number"
+      },
+      "validation": [
+        "Validate required fields and opening-hours structure before insert.",
+        "Do not supply readOnlyFields or identityFields."
+      ],
+      "safetyRules": [
+        "Generate a preview record and confirm the save before inserting.",
+        "Preserve unknown optional subfields if the user supplies them."
+      ],
+      "fieldsAllowedToChange": [
+        "title",
+        "subtitle",
+        "address",
+        "formattedAddress",
+        "addressAlias",
+        "coordinates",
+        "marker",
+        "categories",
+        "settings",
+        "openingHours",
+        "images",
+        "listImage",
+        "description",
+        "wysiwygSource",
+        "price",
+        "actionItems",
+        "additionalFields",
+        "editingPermissions",
+        "pinIndex"
+      ],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "clientId",
+        "views",
+        "rating",
+        "bookmarksCount",
+        "subscribers",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "id"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "A new public location record is created and indexed.",
+      "failureCases": [
+        "Missing required fields.",
+        "Invalid coordinates or opening hours.",
+        "The insert fails in publicData."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "title": "Downtown Store",
+        "address": "123 Main St, San Diego, CA",
+        "formattedAddress": "123 Main St, San Diego, CA 92101",
+        "coordinates": {
+          "lat": 32.7157,
+          "lng": -117.1611
+        },
+        "listImage": "https://example.com/list.jpg",
+        "description": "<p>Open daily</p>"
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "update_location",
+      "description": "Update a location record while preserving unknown fields.",
+      "operationType": "update",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "locations",
+      "requiredInput": {
+        "id": "string",
+        "changes": "object"
+      },
+      "optionalInput": {
+        "match": "id"
+      },
+      "validation": [
+        "Match by id only.",
+        "Preserve unknown fields and nested arrays/objects.",
+        "Do not modify views, rating, bookmarksCount, subscribers, or audit fields unless the request explicitly targets them."
+      ],
+      "safetyRules": [
+        "Read the current record before writing.",
+        "Preview the exact changed fields.",
+        "Keep search/index/deeplink side effects aligned with the final record."
+      ],
+      "fieldsAllowedToChange": [
+        "title",
+        "subtitle",
+        "address",
+        "formattedAddress",
+        "addressAlias",
+        "coordinates",
+        "marker",
+        "categories",
+        "settings",
+        "openingHours",
+        "images",
+        "listImage",
+        "description",
+        "wysiwygSource",
+        "price",
+        "actionItems",
+        "additionalFields",
+        "editingPermissions",
+        "pinIndex"
+      ],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "clientId",
+        "views",
+        "rating",
+        "bookmarksCount",
+        "subscribers",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "id"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The location record is updated and remains searchable.",
+      "failureCases": [
+        "The record changes during preview.",
+        "Validation fails.",
+        "Search index or deeplink update fails after the record write."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "id": "location-record-id",
+        "changes": {
+          "settings": {
+            "showOpeningHours": true
+          }
+        }
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "remove_location",
+      "description": "Destructively remove a location record and its linked index entries.",
+      "operationType": "remove",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "locations",
+      "requiredInput": {
+        "id": "string"
+      },
+      "optionalInput": {},
+      "validation": [
+        "Preview the exact record that will be removed.",
+        "Confirm the record id before removal."
+      ],
+      "safetyRules": [
+        "Do not remove without a preview.",
+        "Also remove or clean up related search-engine and deeplink records."
+      ],
+      "fieldsAllowedToChange": [],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "clientId",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "id"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The location is removed from publicData and linked indexes are cleaned up.",
+      "failureCases": [
+        "No record matches the id.",
+        "The cleanup step fails.",
+        "The deletion is cancelled by the user."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "id": "location-record-id"
+      },
+      "confidence": "high",
+      "notes": [
+        "The plugin code performs hard removal for locations, so MCP may expose removal only with explicit confirmation and preview."
+      ]
+    },
+    {
+      "name": "read_categories",
+      "description": "Read or export category records.",
+      "operationType": "read",
+      "availability": "allowed",
+      "targetStore": "categories",
+      "requiredInput": {},
+      "optionalInput": {},
+      "validation": [
+        "Read-only by default."
+      ],
+      "safetyRules": [
+        "Do not mutate any field."
+      ],
+      "fieldsAllowedToChange": [],
+      "fieldsNotAllowedToChange": [],
+      "requiresHumanConfirmation": false,
+      "dryRunRequired": false,
+      "successResult": "Returns matching category records.",
+      "failureCases": [
+        "No categories exist."
+      ],
+      "exampleToolInput": {},
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "create_category",
+      "description": "Create a new category record.",
+      "operationType": "create",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "categories",
+      "requiredInput": {
+        "title": "string"
+      },
+      "optionalInput": {
+        "iconUrl": "string",
+        "iconClassName": "string",
+        "subcategories": "array",
+        "quickAccess": "number"
+      },
+      "validation": [
+        "Require a title.",
+        "Preserve subcategory objects if supplied."
+      ],
+      "safetyRules": [
+        "Preview the full record before inserting."
+      ],
+      "fieldsAllowedToChange": [
+        "title",
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess"
+      ],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "title"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "A new category record is created.",
+      "failureCases": [
+        "Title is missing.",
+        "The insert fails."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "title": "Food"
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "update_category",
+      "description": "Update a category record.",
+      "operationType": "update",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "categories",
+      "requiredInput": {
+        "id": "string",
+        "changes": "object"
+      },
+      "optionalInput": {
+        "match": "id"
+      },
+      "validation": [
+        "Match by id only.",
+        "Preserve unknown fields and existing subcategories."
+      ],
+      "safetyRules": [
+        "Update only safe-to-update fields.",
+        "Do not mutate archive metadata unless archiving."
+      ],
+      "fieldsAllowedToChange": [
+        "title",
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess"
+      ],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "deletedOn",
+        "deletedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "id"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The category record is updated.",
+      "failureCases": [
+        "Validation fails.",
+        "The record changes during preview."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "id": "category-record-id",
+        "changes": {
+          "title": "Food"
+        }
+      },
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "archive_category",
+      "description": "Soft-delete a category by stamping archive metadata.",
+      "operationType": "archive",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "categories",
+      "requiredInput": {
+        "id": "string"
+      },
+      "optionalInput": {},
+      "validation": [
+        "Preview the exact category record to be archived."
+      ],
+      "safetyRules": [
+        "Use deletedOn/deletedBy only.",
+        "Do not perform hard remove."
+      ],
+      "fieldsAllowedToChange": [
+        "deletedOn",
+        "deletedBy"
+      ],
+      "fieldsNotAllowedToChange": [
+        "id",
+        "title",
+        "iconUrl",
+        "iconClassName",
+        "subcategories",
+        "quickAccess",
+        "createdOn",
+        "createdBy",
+        "lastUpdatedOn",
+        "lastUpdatedBy",
+        "isActive",
+        "_buildfire"
+      ],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [
+          "id"
+        ],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The category is archived but remains in the store.",
+      "failureCases": [
+        "No record matches the id.",
+        "The archive update fails."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "id": "category-record-id"
+      },
+      "confidence": "high",
+      "notes": [
+        "The code uses an update-based soft remove rather than a direct publicData remove call."
+      ]
+    },
+    {
+      "name": "read_language_strings",
+      "description": "Read or export language-string records.",
+      "operationType": "read",
+      "availability": "allowed",
+      "targetStore": "language strings",
+      "requiredInput": {},
+      "optionalInput": {},
+      "validation": [
+        "Read-only by default."
+      ],
+      "safetyRules": [
+        "Do not mutate any string value."
+      ],
+      "fieldsAllowedToChange": [],
+      "fieldsNotAllowedToChange": [],
+      "requiresHumanConfirmation": false,
+      "dryRunRequired": false,
+      "successResult": "Returns the selected language record.",
+      "failureCases": [
+        "The language record does not exist."
+      ],
+      "exampleToolInput": {},
+      "confidence": "high",
+      "notes": []
+    },
+    {
+      "name": "update_language_strings",
+      "description": "Update the selected language-string record.",
+      "operationType": "update",
+      "availability": "allowed_with_confirmation",
+      "targetStore": "language strings",
+      "requiredInput": {
+        "changes": "object"
+      },
+      "optionalInput": {
+        "match": "language record"
+      },
+      "validation": [
+        "Preserve the section/label structure from stringsConfig.",
+        "Do not invent new section keys."
+      ],
+      "safetyRules": [
+        "Merge rather than replace.",
+        "Confirm before changing many labels."
+      ],
+      "fieldsAllowedToChange": [
+        "general",
+        "sortingOptions",
+        "locationEditing",
+        "toast",
+        "details",
+        "emptyState"
+      ],
+      "fieldsNotAllowedToChange": [],
+      "requiresHumanConfirmation": true,
+      "dryRunRequired": true,
+      "matchingRules": {
+        "preferredMatchFields": [],
+        "allowIndexMatch": false,
+        "requiresUniqueMatch": true,
+        "ifMultipleMatches": "ask_user",
+        "ifNoMatch": "ask_user"
+      },
+      "successResult": "The language record is updated without dropping unknown labels.",
+      "failureCases": [
+        "The record shape does not match stringsConfig.",
+        "The update would replace too much of the record."
+      ],
+      "resultShape": {
+        "success": "boolean",
+        "message": "string",
+        "changedFields": "array",
+        "preview": "object"
+      },
+      "exampleToolInput": {
+        "changes": {
+          "general": {
+            "search": {
+              "value": "Search"
+            }
+          }
+        }
+      },
+      "confidence": "high",
+      "notes": [
+        "The schema is dynamic, so updates should remain conservative."
+      ]
+    }
+  ],
+  "permissions": {
+    "canCreate": true,
+    "canRead": true,
+    "canUpdate": true,
+    "canRemove": true,
+    "removeMode": "hard_remove"
+  },
+  "globalValidationRules": [
+    "Never invent schema fields.",
+    "Always preserve unknown fields unless the user explicitly requests otherwise.",
+    "Never update identity, audit, or system-managed fields unless the selected operation is specifically about those fields and the user confirms.",
+    "Read the current record before every write and preview the exact changes.",
+    "Use merge-safe writes for shared settings and language strings.",
+    "Use id-based matching for location and category updates/removals.",
+    "Do not perform destructive operations without confirmation and a dry run.",
+    "If the schema appears mismatched or incomplete, stop and ask the user instead of guessing."
+  ],
+  "aiSafetyRules": [
+    "Prefer read/export operations when a request is ambiguous.",
+    "Preserve all fields not explicitly changed by the request.",
+    "Do not edit widgets, control UI, or CSS through MCP.",
+    "Do not modify buildfire.bookmarks, notifications, analytics, or deeplink registrations as if they were plugin-owned records.",
+    "When updating locations, keep search-engine and deeplink side effects aligned with the final record.",
+    "When archiving categories, use deletedOn/deletedBy and never hard-remove them.",
+    "When removing locations, also remove their related search-engine and deeplink artifacts.",
+    "Do not overwrite a full settings or strings object with a partial update unless the preview shows the untouched subtrees are preserved.",
+    "If a record is not uniquely matched, stop and ask the user."
+  ],
+  "humanConfirmationRequiredFor": [
+    "create",
+    "update",
+    "remove",
+    "archive",
+    "bulk_update",
+    "bulk_remove",
+    "schema_change",
+    "identity field changes",
+    "read-only field changes",
+    "writes to language strings",
+    "writes to access-control settings",
+    "any operation with medium or low confidence"
+  ],
+  "unsupportedOperations": [
+    {
+      "operation": "hard_remove_category",
+      "reason": "The code only supports soft-remove/archive semantics for categories."
+    },
+    {
+      "operation": "schema_change",
+      "reason": "MCP must not invent or rewrite plugin schemas automatically."
+    },
+    {
+      "operation": "bulk_remove",
+      "reason": "No safe bulk removal workflow is defined in the plugin code."
+    }
+  ],
+  "examples": {
+    "safeCreate": [
+      {
+        "store": "categories",
+        "input": {
+          "title": "Food"
+        }
+      },
+      {
+        "store": "locations",
+        "input": {
+          "title": "Downtown Store",
+          "address": "123 Main St, San Diego, CA",
+          "formattedAddress": "123 Main St, San Diego, CA 92101",
+          "coordinates": {
+            "lat": 32.7157,
+            "lng": -117.1611
+          },
+          "listImage": "https://example.com/list.jpg",
+          "description": "<p>Open daily</p>"
+        }
+      }
+    ],
+    "safeUpdate": [
+      {
+        "store": "settings",
+        "input": {
+          "changes": {
+            "design": {
+              "hideQuickFilter": true
+            }
+          }
+        }
+      },
+      {
+        "store": "locations",
+        "input": {
+          "id": "location-record-id",
+          "changes": {
+            "settings": {
+              "showOpeningHours": true
+            }
+          }
+        }
+      }
+    ],
+    "safeRemove": [],
+    "unsafeRequests": [
+      {
+        "request": "Delete every location without preview.",
+        "reason": "Bulk destructive change with no preview or matching rules."
+      },
+      {
+        "request": "Replace the entire settings object with only a design subtree.",
+        "reason": "Would erase unrelated settings fields."
+      },
+      {
+        "request": "Hard remove a category record.",
+        "reason": "Categories are archived through soft delete only."
+      },
+      {
+        "request": "Modify views, rating, or bookmarksCount directly.",
+        "reason": "Those are system-managed runtime counters."
+      },
+      {
+        "request": "Invent a new field called locationStatus and save it.",
+        "reason": "Schema fields must come from code evidence."
+      }
+    ]
+  },
+  "confidence": "high",
+  "notes": [
+    "buildfire.publicData is represented as unknown in the compact schema because it is not one of the generic datastore types listed in the contract.",
+    "Category archiving is supported; hard removal is intentionally not exposed.",
+    "The language-string store is dynamic, so MCP updates should remain conservative even though the code supports create/remove/save."
+  ]
+}
