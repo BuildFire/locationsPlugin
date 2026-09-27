@@ -1,4 +1,5 @@
 import Location from "../data/Location";
+import { sendContractEvent } from "../helpers";
 
 /**
  * Locations data access
@@ -36,6 +37,7 @@ export default class Locations {
     return new Promise((resolve, reject) => {
       buildfire.publicData.insert(data, Locations.TAG, (error, record) => {
         if (error) return reject(error);
+        sendContractEvent('locationCreated', { locationId: record.id, title: record.data.title });
         resolve(new Location({ ...record.data, id: record.id }).toJSON());
       });
     });
@@ -143,6 +145,7 @@ export default class Locations {
         Locations.TAG,
         (error, result) => {
           if (error) return reject(error);
+          sendContractEvent('locationDeleted', { locationId });
           resolve(result);
         }
       );
@@ -155,6 +158,7 @@ export default class Locations {
         $push: { subscribers: userId }
       }, Locations.TAG, (err, res) => {
         if (err) return reject(err);
+        sendContractEvent('locationSubscribed', { locationId, userId });
         resolve(res);
       });
     });
@@ -166,6 +170,7 @@ export default class Locations {
         $pull: { subscribers: userId }
       }, Locations.TAG, (err, res) => {
         if (err) return reject(err);
+        sendContractEvent('locationUnsubscribed', { locationId, userId });
         resolve(res);
       });
     });

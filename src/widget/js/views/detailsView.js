@@ -12,7 +12,7 @@ import {
   isLocationOpen,
   cdnImage
 } from '../util/helpers';
-import { generateUUID } from '../global/helpers';
+import { generateUUID, sendContractEvent } from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import accessManager from '../accessManager';
 import reportAbuse from '../reportAbuse';
@@ -66,7 +66,10 @@ export default {
     location.lastUpdatedOn = new Date();
     location.lastUpdatedBy = state.sanitizedCurrentUser;
     const promiseChain = [
-      Locations.update(location.id, location.toJSON()),
+      Locations.update(location.id, location.toJSON()).then((result) => {
+        sendContractEvent('locationUpdated', { locationId: location.id, title: location.title });
+        return result;
+      }),
       DeepLink.registerDeeplink(location),
       SearchEngine.update(Locations.TAG, location.id, location.toJSON())
     ];

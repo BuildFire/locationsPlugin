@@ -5,7 +5,7 @@ import Analytics from '../../../../utils/analytics';
 import DeepLink from '../../../../utils/deeplink';
 import SearchEngine from '../../../../widget/js/global/repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
-import { generateUUID } from '../../../../widget/js/global/helpers';
+import { generateUUID, sendContractEvent } from '../../../../widget/js/global/helpers';
 import Settings from '../../../../widget/js/global/repository/Settings';
 
 export default {
@@ -42,7 +42,10 @@ export default {
     location.lastUpdatedOn = new Date();
     location.lastUpdatedBy = authManager.sanitizedCurrentUser;
     const promiseChain = [
-      Location.update(locationId, location.toJSON()),
+      Location.update(locationId, location.toJSON()).then((result) => {
+        sendContractEvent('locationUpdated', { locationId, title: location.title });
+        return result;
+      }),
       DeepLink.registerDeeplink(location),
       SearchEngine.update(Location.TAG, locationId, location.toJSON())
     ];

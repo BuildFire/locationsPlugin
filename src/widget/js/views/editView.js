@@ -13,7 +13,7 @@ import {
   getActiveTemplate,
   cropImage,
 } from '../util/helpers';
-import { generateUUID } from '../global/helpers';
+import { generateUUID, sendContractEvent } from '../global/helpers';
 import { uploadImages, validateDayOverlap } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from './components/Accordion';
@@ -214,7 +214,10 @@ const updateLocation = (locationId, location) => {
   location.lastUpdatedOn = new Date();
   location.lastUpdatedBy = state.sanitizedCurrentUser;
   const promiseChain = [
-    Locations.update(locationId, location.toJSON()),
+    Locations.update(locationId, location.toJSON()).then((result) => {
+      sendContractEvent('locationUpdated', { locationId, title: location.title });
+      return result;
+    }),
     DeepLink.registerDeeplink(location),
     SearchEngine.update(Locations.TAG, locationId, location.toJSON())
   ];

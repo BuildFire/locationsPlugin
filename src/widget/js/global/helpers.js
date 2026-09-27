@@ -8,3 +8,14 @@ export const generateUUID = () => {
 
 	return uuid;
 };
+
+/**
+ * Fire a plugin contract event (see plugin.contract.json). The contract service in this
+ * workspace's SDK ships no events API, so every send is feature-checked rather than
+ * letting a missing service throw inside a user action.
+ */
+export const sendContractEvent = (name, data) => {
+  if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+    buildfire.services.contract.events.send(name, data);
+  }
+};

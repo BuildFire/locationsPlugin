@@ -237,6 +237,18 @@ const WebpackConfig = {
     ], {
       ignore: ['*.js', '*.html', '*.md']
     }),
+    // The copy above ignores *.js and *.html, and in copy-webpack-plugin v4 that global ignore
+    // applies to single-file patterns too, so the contract's runtime and in-frame host page get
+    // their own instance.
+    new CopyWebpackPlugin([{
+      from: path.join(__dirname, '../src/widget/plugin.contract.js'),
+      to: path.join(__dirname, '../dist/widget/plugin.contract.js'),
+      toType: 'file',
+    }, {
+      from: path.join(__dirname, '../src/widget/contract.html'),
+      to: path.join(__dirname, '../dist/widget/contract.html'),
+      toType: 'file',
+    }]),
     new ExtractTextPlugin('[name].css'),
     new ZipWebpackPlugin({
       path: path.join(__dirname, '../'),
