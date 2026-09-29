@@ -1,0 +1,1615 @@
+{
+  "description": "The Locations plugin manages a directory of places shown on a map and in lists. It owns three entities: locations, stored in buildfire.publicData collection 'locations' (app-wide), each with an address and coordinates, a description and images, opening hours, a price range, a star rating, categories and a list of app users who follow its updates; categories, stored in buildfire.publicData collection 'categories' (app-wide), each with a title, an icon and subcategories, and soft-deleted by setting deletedOn; and the instance settings document in buildfire.datastore tag 'settings' (scoped to this plugin instance), which this contract only reads. Locations and categories are named by their exact title (case-insensitive), never by record id, and a title shared by several records is refused rather than guessed. Operations typed publicData, datastore, userData, appData or firebase are declarative: the call is built at invoke time from context.query with $params.* interpolation, so they have no counterpart in plugin.contract.js. Operations typed function live in plugin.contract.js under the widgetContract object, are dispatched by context.functionName, and take (options, callback). context.hosts lists every place an operation may run, and an operation may list several of them (at most one widget host, at most one control host, and headlessSdk): generic means pure logic that touches no buildfire API and runs anywhere; headlessSdk means it uses buildfire and is safe to run on the server through the headless SDK; widgetForeground and widgetBackground mean it runs in the app's plugin frame, Foreground when someone should be watching it run and Background when unattended is fine; controlForeground and controlBackground mean the same for the control panel's plugin frame. generic and headlessSdk run on the server and are exposed to the MCP; controlForeground, controlBackground, widgetForeground and widgetBackground are not, so an operation reaches the MCP only when generic or headlessSdk is among its hosts.",
+  "events": [
+    {
+      "name": "locationCreated",
+      "displayName": "Location Created",
+      "description": "Emitted after a new location is added, from the app, the control panel or this contract.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the new location."
+        },
+        "title": {
+          "type": "string",
+          "description": "The new location's title."
+        }
+      }
+    },
+    {
+      "name": "locationUpdated",
+      "displayName": "Location Updated",
+      "description": "Emitted after a location's details are saved, including when it is pinned or unpinned.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the updated location."
+        },
+        "title": {
+          "type": "string",
+          "description": "The location's title after the update."
+        }
+      }
+    },
+    {
+      "name": "locationDeleted",
+      "displayName": "Location Deleted",
+      "description": "Emitted after a location is permanently deleted.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id the deleted location had."
+        }
+      }
+    },
+    {
+      "name": "locationSubscribed",
+      "displayName": "Location Followed",
+      "description": "Emitted after an app user starts following a location's updates.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the followed location."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The app user id of the new follower."
+        }
+      }
+    },
+    {
+      "name": "locationUnsubscribed",
+      "displayName": "Location Unfollowed",
+      "description": "Emitted after an app user stops following a location's updates, or is removed from its followers.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the location."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The app user id that no longer follows it."
+        }
+      }
+    },
+    {
+      "name": "locationBookmarked",
+      "displayName": "Location Bookmarked",
+      "description": "Emitted after an app user bookmarks a location in the app.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the bookmarked location."
+        },
+        "bookmarkId": {
+          "type": "string",
+          "description": "The bookmark id, which is the location's clientId."
+        }
+      }
+    },
+    {
+      "name": "locationUnbookmarked",
+      "displayName": "Location Bookmark Removed",
+      "description": "Emitted after an app user removes a location from their bookmarks in the app.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the location."
+        },
+        "bookmarkId": {
+          "type": "string",
+          "description": "The removed bookmark id, which is the location's clientId."
+        }
+      }
+    },
+    {
+      "name": "locationRated",
+      "displayName": "Location Rated",
+      "description": "Emitted after an app user's star rating changes a location's rating summary.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "description": "The publicData record id of the rated location."
+        },
+        "average": {
+          "type": "number",
+          "description": "The location's new average rating."
+        },
+        "count": {
+          "type": "number",
+          "description": "The location's new number of ratings."
+        }
+      }
+    }
+  ],
+  "operations": [
+    {
+      "name": "searchLocations",
+      "displayName": "Search locations",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "searchLocations",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Finds locations in the directory, optionally narrowed by name, words, category, price, creator, pinned status or being open, a page at a time.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact location title, case-insensitive, for seeing every location that shares a name. Defaults to unset, which matches every title.",
+          "sampleValue": "[location title]"
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "description": "Optional words to look for in a location's title, subtitle, address or custom address name. Defaults to unset, which applies no text filter.",
+          "sampleValue": "coffee"
+        },
+        "categoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of a category the locations must belong to, as listed by searchCategories. Defaults to unset, which matches every category.",
+          "sampleValue": "[category title]"
+        },
+        "subcategoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of a subcategory of categoryTitle the locations must belong to; only accepted together with categoryTitle. Defaults to unset.",
+          "sampleValue": "[subcategory title]"
+        },
+        "priceRange": {
+          "type": "number",
+          "required": false,
+          "description": "Optional price range from 1 (cheapest) to 4 the locations must have. Defaults to unset, which matches every price range.",
+          "sampleValue": 2
+        },
+        "createdByUserId": {
+          "type": "user",
+          "required": false,
+          "description": "Optional app user, by id or email, whose own submitted locations are returned (the app's My Locations). Defaults to unset, which matches locations by anyone.",
+          "sampleValue": "[user id]"
+        },
+        "pinnedOnly": {
+          "type": "boolean",
+          "required": false,
+          "description": "When true, only locations pinned to the top of the list are returned, in pin order unless sortBy is given. Defaults to false.",
+          "sampleValue": false
+        },
+        "openNow": {
+          "type": "boolean",
+          "required": false,
+          "description": "When true, only locations whose opening hours include the moment given by at and utcOffsetMinutes are returned. Defaults to false.",
+          "sampleValue": false
+        },
+        "at": {
+          "type": "datetime",
+          "required": false,
+          "description": "Optional moment at which opening hours are judged; defaults to now. Pass it explicitly to keep the answer deterministic.",
+          "sampleValue": "2026-09-29T14:30:00.000Z"
+        },
+        "utcOffsetMinutes": {
+          "type": "number",
+          "required": false,
+          "description": "Optional offset from UTC, in minutes, of the clock whose day and time of day opening hours are judged in (for example 180 for UTC+3). Defaults to the host's own clock, which on the server is the server's; the app itself uses the viewer's device clock.",
+          "sampleValue": 180
+        },
+        "sortBy": {
+          "type": "string",
+          "required": false,
+          "description": "Optional order: alphabetical, reverseAlphabetical, newest or oldest. Defaults to alphabetical (or pin order with pinnedOnly).",
+          "sampleValue": "alphabetical"
+        },
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Zero-based page index; defaults to 0.",
+          "sampleValue": 0
+        },
+        "pageSize": {
+          "type": "number",
+          "required": false,
+          "description": "How many locations per page, from 1 to 50; defaults to 20.",
+          "sampleValue": 20
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with a page of matching locations or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including an invalid sortBy, page, pageSize or priceRange, a category, subcategory or user that matches nothing or several, and an invalid at; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "locations": {
+                  "type": "array",
+                  "description": "The matching locations on this page, in the requested order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One location.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The location's publicData record id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The location title."
+                      },
+                      "subtitle": {
+                        "type": "string",
+                        "description": "The location subtitle; null when it has none."
+                      },
+                      "address": {
+                        "type": "string",
+                        "description": "The address as entered."
+                      },
+                      "formattedAddress": {
+                        "type": "string",
+                        "description": "The address as formatted by the map picker."
+                      },
+                      "addressAlias": {
+                        "type": "string",
+                        "description": "The custom name shown instead of the address; null when unset."
+                      },
+                      "lat": {
+                        "type": "number",
+                        "description": "Latitude of the location."
+                      },
+                      "lng": {
+                        "type": "number",
+                        "description": "Longitude of the location."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The location description (HTML)."
+                      },
+                      "listImage": {
+                        "type": "string",
+                        "description": "URL of the image shown in lists."
+                      },
+                      "priceRange": {
+                        "type": "number",
+                        "description": "Price range from 1 (cheapest) to 4."
+                      },
+                      "currency": {
+                        "type": "string",
+                        "description": "Currency symbol shown with the price range."
+                      },
+                      "ratingAverage": {
+                        "type": "number",
+                        "description": "Average star rating; 0 when nobody has rated it."
+                      },
+                      "ratingCount": {
+                        "type": "number",
+                        "description": "How many ratings it has."
+                      },
+                      "isPinned": {
+                        "type": "boolean",
+                        "description": "Whether it is pinned to the top of the list."
+                      },
+                      "subscriberCount": {
+                        "type": "number",
+                        "description": "How many app users follow the location's updates."
+                      },
+                      "isOpenNow": {
+                        "type": "boolean",
+                        "description": "Whether its opening hours include the moment asked about (now by default)."
+                      },
+                      "createdOn": {
+                        "type": "datetime",
+                        "description": "When the location was created."
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "number",
+                  "description": "How many locations match in all."
+                },
+                "page": {
+                  "type": "number",
+                  "description": "The zero-based page these locations are on."
+                },
+                "hasMore": {
+                  "type": "boolean",
+                  "description": "Whether more matching locations exist past this page."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "searchLocationsNearPoint",
+      "displayName": "Search locations near a point",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "searchLocationsNearPoint",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Finds the locations within a distance of a place on the map, nearest first, with how far away each one is.",
+      "parameters": {
+        "lat": {
+          "type": "number",
+          "required": true,
+          "description": "Latitude of the point to search around, from -90 to 90.",
+          "sampleValue": 32.7182625
+        },
+        "lng": {
+          "type": "number",
+          "required": true,
+          "description": "Longitude of the point to search around, from -180 to 180.",
+          "sampleValue": -117.1601157
+        },
+        "radiusKm": {
+          "type": "number",
+          "required": false,
+          "description": "How far from the point to look, in kilometres; defaults to 100, the radius the app uses around a user's position.",
+          "sampleValue": 25
+        },
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Zero-based page index; defaults to 0.",
+          "sampleValue": 0
+        },
+        "pageSize": {
+          "type": "number",
+          "required": false,
+          "description": "How many locations per page, from 1 to 50; defaults to 20.",
+          "sampleValue": 20
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with a page of nearby locations or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including a lat, lng, radiusKm, page or pageSize out of range; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "locations": {
+                  "type": "array",
+                  "description": "The locations inside the radius on this page, nearest first.",
+                  "items": {
+                    "type": "object",
+                    "description": "One location with its distance from the point.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The location's publicData record id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The location title."
+                      },
+                      "subtitle": {
+                        "type": "string",
+                        "description": "The location subtitle; null when it has none."
+                      },
+                      "address": {
+                        "type": "string",
+                        "description": "The address as entered."
+                      },
+                      "formattedAddress": {
+                        "type": "string",
+                        "description": "The address as formatted by the map picker."
+                      },
+                      "addressAlias": {
+                        "type": "string",
+                        "description": "The custom name shown instead of the address; null when unset."
+                      },
+                      "lat": {
+                        "type": "number",
+                        "description": "Latitude of the location."
+                      },
+                      "lng": {
+                        "type": "number",
+                        "description": "Longitude of the location."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The location description (HTML)."
+                      },
+                      "listImage": {
+                        "type": "string",
+                        "description": "URL of the image shown in lists."
+                      },
+                      "priceRange": {
+                        "type": "number",
+                        "description": "Price range from 1 (cheapest) to 4."
+                      },
+                      "currency": {
+                        "type": "string",
+                        "description": "Currency symbol shown with the price range."
+                      },
+                      "ratingAverage": {
+                        "type": "number",
+                        "description": "Average star rating; 0 when nobody has rated it."
+                      },
+                      "ratingCount": {
+                        "type": "number",
+                        "description": "How many ratings it has."
+                      },
+                      "isPinned": {
+                        "type": "boolean",
+                        "description": "Whether it is pinned to the top of the list."
+                      },
+                      "subscriberCount": {
+                        "type": "number",
+                        "description": "How many app users follow the location's updates."
+                      },
+                      "isOpenNow": {
+                        "type": "boolean",
+                        "description": "Whether its opening hours include the moment asked about (now by default)."
+                      },
+                      "createdOn": {
+                        "type": "datetime",
+                        "description": "When the location was created."
+                      },
+                      "distanceKm": {
+                        "type": "number",
+                        "description": "Distance from the point, in kilometres."
+                      }
+                    }
+                  }
+                },
+                "page": {
+                  "type": "number",
+                  "description": "The zero-based page these locations are on."
+                },
+                "hasMore": {
+                  "type": "boolean",
+                  "description": "Whether this page was full, so more locations may follow."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getLocation",
+      "displayName": "Get location",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "getLocation",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows one location's details, including its categories and whether it is open.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the location, case-insensitive.",
+          "sampleValue": "[location title]"
+        },
+        "at": {
+          "type": "datetime",
+          "required": false,
+          "description": "Optional moment at which opening hours are judged; defaults to now. Pass it explicitly to keep the answer deterministic.",
+          "sampleValue": "2026-09-29T14:30:00.000Z"
+        },
+        "utcOffsetMinutes": {
+          "type": "number",
+          "required": false,
+          "description": "Optional offset from UTC, in minutes, of the clock whose day and time of day opening hours are judged in (for example 180 for UTC+3). Defaults to the host's own clock, which on the server is the server's; the app itself uses the viewer's device clock.",
+          "sampleValue": 180
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the location or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when no location or several locations have that title, and an invalid at; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's publicData record id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The location subtitle; null when it has none."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The address as entered."
+                },
+                "formattedAddress": {
+                  "type": "string",
+                  "description": "The address as formatted by the map picker."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown instead of the address; null when unset."
+                },
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the location."
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the location."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The location description (HTML)."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "URL of the image shown in lists."
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "Price range from 1 (cheapest) to 4."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Currency symbol shown with the price range."
+                },
+                "ratingAverage": {
+                  "type": "number",
+                  "description": "Average star rating; 0 when nobody has rated it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "isPinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the list."
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow the location's updates."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether its opening hours include the moment asked about (now by default)."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When the location was created."
+                },
+                "categories": {
+                  "type": "array",
+                  "description": "Titles of the live categories the location belongs to.",
+                  "items": {
+                    "type": "string",
+                    "description": "One category title."
+                  }
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Titles of the subcategories the location belongs to.",
+                  "items": {
+                    "type": "string",
+                    "description": "One subcategory title."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createLocation",
+      "displayName": "Create location",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "createLocation",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a new location to the directory, open 8 AM to 8 PM every day until its hours are changed in the app.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The location's title.",
+          "sampleValue": "[location title]"
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "The location's description; HTML is allowed, as in the app's rich-text editor.",
+          "sampleValue": "<p>Fresh coffee and pastries.</p>"
+        },
+        "address": {
+          "type": "string",
+          "required": true,
+          "description": "The location's street address, as the map picker would show it.",
+          "sampleValue": "350 Fifth Avenue, New York, NY 10118, USA"
+        },
+        "lat": {
+          "type": "number",
+          "required": true,
+          "description": "Latitude of the address, from -90 to 90.",
+          "sampleValue": 40.748817
+        },
+        "lng": {
+          "type": "number",
+          "required": true,
+          "description": "Longitude of the address, from -180 to 180.",
+          "sampleValue": -73.985428
+        },
+        "listImage": {
+          "type": "string",
+          "required": true,
+          "description": "URL of the image shown for the location in lists.",
+          "sampleValue": "https://example.com/images/location.jpg"
+        },
+        "subtitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional subtitle; defaults to none.",
+          "sampleValue": "Open late on Fridays"
+        },
+        "addressAlias": {
+          "type": "string",
+          "required": false,
+          "description": "Optional custom name shown instead of the address; defaults to none.",
+          "sampleValue": "Main branch"
+        },
+        "categoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of the category the location belongs to, as listed by searchCategories; defaults to no category.",
+          "sampleValue": "[category title]"
+        },
+        "subcategoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of a subcategory of categoryTitle; only accepted together with categoryTitle. Defaults to none.",
+          "sampleValue": "[subcategory title]"
+        },
+        "priceRange": {
+          "type": "number",
+          "required": false,
+          "description": "Optional price range from 1 (cheapest) to 4; defaults to 1.",
+          "sampleValue": 2
+        },
+        "currency": {
+          "type": "string",
+          "required": false,
+          "description": "Optional currency symbol shown with the price range; defaults to $.",
+          "sampleValue": "$"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the new location or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including a missing required field, lat or lng out of range, a priceRange outside 1 to 4, and a category or subcategory that matches nothing or several; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's publicData record id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The location subtitle; null when it has none."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The address as entered."
+                },
+                "formattedAddress": {
+                  "type": "string",
+                  "description": "The address as formatted by the map picker."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown instead of the address; null when unset."
+                },
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the location."
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the location."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The location description (HTML)."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "URL of the image shown in lists."
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "Price range from 1 (cheapest) to 4."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Currency symbol shown with the price range."
+                },
+                "ratingAverage": {
+                  "type": "number",
+                  "description": "Average star rating; 0 when nobody has rated it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "isPinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the list."
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow the location's updates."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether its opening hours include the moment asked about (now by default)."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When the location was created."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether the location's deep link could be registered from where the call ran; the app registers it again the next time the location is saved there."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether the app's search index could be updated from where the call ran."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocation",
+      "displayName": "Update location",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "updateLocation",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes a location's details, leaving anything not mentioned as it was.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact current title of the location to change, case-insensitive.",
+          "sampleValue": "[location title]"
+        },
+        "newTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new title; defaults to unset, which keeps the current title.",
+          "sampleValue": "[new location title]"
+        },
+        "newSubtitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new subtitle; defaults to unset, which keeps the current one.",
+          "sampleValue": "Open late on Fridays"
+        },
+        "newDescription": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new description (HTML allowed); defaults to unset, which keeps the current one.",
+          "sampleValue": "<p>Now serving lunch.</p>"
+        },
+        "newAddress": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new street address; must be given together with newLat and newLng. Defaults to unset, which keeps the current address.",
+          "sampleValue": "1 Market Street, San Francisco, CA 94105, USA"
+        },
+        "newLat": {
+          "type": "number",
+          "required": false,
+          "description": "Latitude of newAddress, from -90 to 90; only with newAddress. Defaults to unset.",
+          "sampleValue": 37.7936
+        },
+        "newLng": {
+          "type": "number",
+          "required": false,
+          "description": "Longitude of newAddress, from -180 to 180; only with newAddress. Defaults to unset.",
+          "sampleValue": -122.3958
+        },
+        "newAddressAlias": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new custom name shown instead of the address; defaults to unset, which keeps the current one.",
+          "sampleValue": "Main branch"
+        },
+        "newListImage": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new URL of the image shown in lists; defaults to unset, which keeps the current image.",
+          "sampleValue": "https://example.com/images/location.jpg"
+        },
+        "newPriceRange": {
+          "type": "number",
+          "required": false,
+          "description": "Optional new price range from 1 to 4; defaults to unset, which keeps the current one.",
+          "sampleValue": 3
+        },
+        "newCurrency": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new currency symbol; defaults to unset, which keeps the current one.",
+          "sampleValue": "€"
+        },
+        "newCategoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of the category that replaces the location's current categories, as listed by searchCategories. Defaults to unset, which keeps its categories.",
+          "sampleValue": "[category title]"
+        },
+        "newSubcategoryTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact title of a subcategory of newCategoryTitle; only accepted together with newCategoryTitle. Defaults to unset.",
+          "sampleValue": "[subcategory title]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the updated location or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when no field to change is given, when no location or several locations have that title, when newAddress, newLat and newLng are not given together, and when a category or subcategory matches nothing or several; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's publicData record id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The location subtitle; null when it has none."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The address as entered."
+                },
+                "formattedAddress": {
+                  "type": "string",
+                  "description": "The address as formatted by the map picker."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown instead of the address; null when unset."
+                },
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the location."
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the location."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The location description (HTML)."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "URL of the image shown in lists."
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "Price range from 1 (cheapest) to 4."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Currency symbol shown with the price range."
+                },
+                "ratingAverage": {
+                  "type": "number",
+                  "description": "Average star rating; 0 when nobody has rated it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "isPinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the list."
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow the location's updates."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether its opening hours include the moment asked about (now by default)."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When the location was created."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether the location's deep link could be registered from where the call ran; the app registers it again the next time the location is saved there."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether the app's search index could be updated from where the call ran."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocationPin",
+      "displayName": "Update location pin",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "updateLocationPin",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Pins a location to the top of the list, up to three at a time, or unpins it.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the location to pin or unpin, case-insensitive.",
+          "sampleValue": "[location title]"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "required": true,
+          "description": "true to pin the location to the top of the list, false to unpin it.",
+          "sampleValue": true
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the location's pin state or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when three locations are already pinned and when no location or several locations have that title; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "The location's title."
+                },
+                "isPinned": {
+                  "type": "boolean",
+                  "description": "Whether the location is now pinned."
+                },
+                "pinPosition": {
+                  "type": "number",
+                  "description": "Its position among pinned locations, 1 to 3; null when not pinned."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteLocation",
+      "displayName": "Delete location",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "deleteLocation",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes a location from the directory; it cannot be restored.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the location to delete, case-insensitive.",
+          "sampleValue": "[location title]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the deletion or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when no location or several locations have that title; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always true on success."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the deleted location."
+                },
+                "deeplinkRemoved": {
+                  "type": "boolean",
+                  "description": "Whether its deep link could be removed from where the call ran."
+                },
+                "searchIndexRemoved": {
+                  "type": "boolean",
+                  "description": "Whether its entry could be removed from the app's search index from where the call ran."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteLocationSubscriber",
+      "displayName": "Delete location subscriber",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "deleteLocationSubscriber",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Stops a person from getting a location's update notifications, on behalf of the app.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the location, case-insensitive.",
+          "sampleValue": "[location title]"
+        },
+        "userId": {
+          "type": "user",
+          "required": true,
+          "description": "The app user, by id or email, who stops getting the location's notifications; the only user named.",
+          "sampleValue": "[user id]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the outcome or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when no location or several locations have that title and when no app user has that email; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "The location's title."
+                },
+                "userId": {
+                  "type": "string",
+                  "description": "The app user id that was looked at."
+                },
+                "wasSubscribed": {
+                  "type": "boolean",
+                  "description": "Whether the user was following the location and has been removed; false means nothing changed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "sendLocationNotification",
+      "displayName": "Send location notification",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "throttable"
+      ],
+      "context": {
+        "functionName": "sendLocationNotification",
+        "hosts": [
+          "widgetForeground",
+          "controlForeground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Sends a push notification about a location to everyone following it, on behalf of the app.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the location the notification is about, case-insensitive; its followers receive it.",
+          "sampleValue": "[location title]"
+        },
+        "notificationTitle": {
+          "type": "string",
+          "required": true,
+          "description": "The notification's title.",
+          "sampleValue": "New opening hours"
+        },
+        "notificationText": {
+          "type": "string",
+          "required": true,
+          "description": "The notification's message, up to 300 characters; tapping it opens the location.",
+          "sampleValue": "We now open at 7 AM on weekdays."
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the send or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when location notifications are turned off in this instance's settings, when the location has no followers, when the message is over 300 characters, and when no location or several locations have that title; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "The location's title."
+                },
+                "recipientCount": {
+                  "type": "number",
+                  "description": "How many followers the notification was sent to."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "searchCategories",
+      "displayName": "Search categories",
+      "type": "publicData",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "collection": "categories",
+        "operationType": "search",
+        "scope": "app",
+        "query": {
+          "filter": {
+            "_buildfire.index.date1": {
+              "$type": 10
+            },
+            "$json.title": "$params.title"
+          },
+          "sort": {
+            "_buildfire.index.string1": 1
+          },
+          "page": "$params.page",
+          "pageSize": 50,
+          "recordCount": true
+        }
+      },
+      "description": "Shows the location categories and their subcategories in alphabetical order, up to 50 at a time.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Optional exact category title, matched as stored (case-sensitive). Defaults to unset, which returns every category.",
+          "sampleValue": "[category title]"
+        },
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Zero-based page index of 50 categories; defaults to 0.",
+          "sampleValue": 0
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the categories or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "result": {
+                  "type": "array",
+                  "description": "The categories on this page, alphabetically.",
+                  "items": {
+                    "type": "object",
+                    "description": "One category record.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The category's publicData record id."
+                      },
+                      "data": {
+                        "type": "object",
+                        "description": "The stored category.",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "The category title."
+                          },
+                          "iconUrl": {
+                            "type": "string",
+                            "description": "URL of the category icon; null when it uses an icon class or none."
+                          },
+                          "iconClassName": {
+                            "type": "string",
+                            "description": "Icon font class of the category icon; null when it uses an image or none."
+                          },
+                          "subcategories": {
+                            "type": "array",
+                            "description": "The category's subcategories, in display order.",
+                            "items": {
+                              "type": "object",
+                              "description": "One subcategory.",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "The subcategory id."
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "The subcategory title."
+                                }
+                              }
+                            }
+                          },
+                          "createdOn": {
+                            "type": "datetime",
+                            "description": "When the category was created."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "totalRecord": {
+                  "type": "number",
+                  "description": "How many live categories match in all."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createCategory",
+      "displayName": "Create category",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "createCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a new category, with any subcategories, that locations can be sorted into.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The category's title; must not already be used by another category.",
+          "sampleValue": "[category title]"
+        },
+        "iconUrl": {
+          "type": "string",
+          "required": false,
+          "description": "Optional URL of the category icon; defaults to none.",
+          "sampleValue": "https://example.com/icons/food.png"
+        },
+        "subcategoryTitles": {
+          "type": "string",
+          "required": false,
+          "description": "Optional subcategory titles separated by commas, as in the category import file; defaults to none.",
+          "sampleValue": "Cafes, Bakeries"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the new category or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when a category with that title already exists; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's publicData record id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "URL of the category icon; null when none."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Titles of the category's subcategories, in display order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One subcategory title."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateCategory",
+      "displayName": "Update category",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "updateCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a category, changes its icon or adds subcategories to it, leaving the rest as it was.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact current title of the category, case-insensitive.",
+          "sampleValue": "[category title]"
+        },
+        "newTitle": {
+          "type": "string",
+          "required": false,
+          "description": "Optional new title, not already used by another category; defaults to unset, which keeps the current title.",
+          "sampleValue": "[new category title]"
+        },
+        "newIconUrl": {
+          "type": "string",
+          "required": false,
+          "description": "Optional URL of a new icon; defaults to unset, which keeps the current icon.",
+          "sampleValue": "https://example.com/icons/food.png"
+        },
+        "addSubcategoryTitles": {
+          "type": "string",
+          "required": false,
+          "description": "Optional subcategory titles, separated by commas, added after the existing ones; defaults to unset, which adds none.",
+          "sampleValue": "Food trucks"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the updated category or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when nothing to change is given, when no category or several categories have that title, and when newTitle is already used; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's publicData record id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "URL of the category icon; null when none."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Titles of the category's subcategories, in display order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One subcategory title."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteCategory",
+      "displayName": "Delete category",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "context": {
+        "functionName": "deleteCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes a category from the app; it is kept behind the scenes and can be restored.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "The exact title of the category to remove, case-insensitive.",
+          "sampleValue": "[category title]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Populated on failure, including when no category or several categories have that title; null on success."
+            },
+            "result": {
+              "type": "object",
+              "description": "Populated on success; undefined on failure.",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always true on success."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the removed category."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
