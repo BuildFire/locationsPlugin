@@ -1292,6 +1292,11 @@
         "unthrottable"
       ],
       "context": {
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ],
         "collection": "categories",
         "operationType": "search",
         "scope": "app",
