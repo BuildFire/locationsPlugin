@@ -655,8 +655,8 @@
       "context": {
         "functionName": "createLocation",
         "hosts": [
-          "widgetForeground",
-          "controlForeground",
+          "widgetBackground",
+          "controlBackground",
           "headlessSdk"
         ]
       },
@@ -846,8 +846,8 @@
       "context": {
         "functionName": "updateLocation",
         "hosts": [
-          "widgetForeground",
-          "controlForeground",
+          "widgetBackground",
+          "controlBackground",
           "headlessSdk"
         ]
       },
@@ -1105,8 +1105,8 @@
       "context": {
         "functionName": "deleteLocation",
         "hosts": [
-          "widgetForeground",
-          "controlForeground",
+        "widgetBackground",
+          "controlBackground",
           "headlessSdk"
         ]
       },
