@@ -1,5 +1,5 @@
 {
-  "description": "The Locations plugin manages a directory of places shown on a map and in lists. It owns three entities: locations, stored in buildfire.publicData collection 'locations' (app-wide), each with an address and coordinates, a description and images, opening hours, a price range, a star rating, categories and a list of app users who follow its updates; categories, stored in buildfire.publicData collection 'categories' (app-wide), each with a title, an icon and subcategories, and soft-deleted by setting deletedOn; and the instance settings document in buildfire.datastore tag 'settings' (scoped to this plugin instance), which this contract only reads. Locations and categories are named by their exact title (case-insensitive), never by record id, and a title shared by several records is refused rather than guessed. Operations typed publicData, datastore, userData, appData or firebase are declarative: the call is built at invoke time from context.query with $params.* interpolation, so they have no counterpart in plugin.contract.js. Operations typed function live in plugin.contract.js under the widgetContract object, are dispatched by context.functionName, and take (options, callback). context.hosts lists every place an operation may run, and an operation may list several of them (at most one widget host, at most one control host, and headlessSdk): generic means pure logic that touches no buildfire API and runs anywhere; headlessSdk means it uses buildfire and is safe to run on the server through the headless SDK; widgetForeground and widgetBackground mean it runs in the app's plugin frame, Foreground when someone should be watching it run and Background when unattended is fine; controlForeground and controlBackground mean the same for the control panel's plugin frame. generic and headlessSdk run on the server and are exposed to the MCP; controlForeground, controlBackground, widgetForeground and widgetBackground are not, so an operation reaches the MCP only when generic or headlessSdk is among its hosts.",
+  "description": "The Locations plugin manages a directory of places shown on a map and in lists. It owns three entities: locations, stored in buildfire.publicData collection 'locations' (app-wide), each with an address and coordinates, a description and images, opening hours, a price range, a star rating, categories and a list of app users who follow its updates; categories, stored in buildfire.publicData collection 'categories' (app-wide), each with a title, an icon and subcategories, and soft-deleted by setting deletedOn; and the instance settings document in buildfire.datastore tag 'settings' (scoped to this plugin instance), which this contract only reads. Locations and categories are named by their exact title (case-insensitive), never by record id, and a title shared by several records is refused rather than guessed. Operations typed publicData, datastore, userData, appData or firebase are declarative: the call is built at invoke time from context.query with $params.* interpolation, so they have no counterpart in plugin.contract.js. Operations typed function live in plugin.contract.js under the widgetContract object (and, because every one of them has a control host, also under the controlContract object the control panel frame dispatches to), are dispatched by context.functionName, and take (options, callback). A Foreground operation asks the person watching the frame to approve it before it changes anything; on the server it skips that step and the MCP server asks the app owner instead. context.hosts lists every place an operation may run, and an operation may list several of them (at most one widget host, at most one control host, and headlessSdk): generic means pure logic that touches no buildfire API and runs anywhere; headlessSdk means it uses buildfire and is safe to run on the server through the headless SDK; widgetForeground and widgetBackground mean it runs in the app's plugin frame, Foreground when someone should be watching it run and Background when unattended is fine; controlForeground and controlBackground mean the same for the control panel's plugin frame. generic and headlessSdk run on the server and are exposed to the MCP; controlForeground, controlBackground, widgetForeground and widgetBackground are not, so an operation reaches the MCP only when generic or headlessSdk is among its hosts.",
   "events": [
     {
       "name": "locationCreated",
@@ -655,8 +655,8 @@
       "context": {
         "functionName": "createLocation",
         "hosts": [
-          "widgetBackground",
-          "controlBackground",
+          "widgetForeground",
+          "controlForeground",
           "headlessSdk"
         ]
       },
@@ -741,7 +741,7 @@
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including a missing required field, lat or lng out of range, a priceRange outside 1 to 4, and a category or subcategory that matches nothing or several; null on success."
+              "description": "Populated on failure, including a missing required field, lat or lng out of range, a priceRange outside 1 to 4, a category or subcategory that matches nothing or several, and when the user cancels the approval; null on success."
             },
             "result": {
               "type": "object",
@@ -846,8 +846,8 @@
       "context": {
         "functionName": "updateLocation",
         "hosts": [
-          "widgetBackground",
-          "controlBackground",
+          "widgetForeground",
+          "controlForeground",
           "headlessSdk"
         ]
       },
@@ -938,7 +938,7 @@
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no field to change is given, when no location or several locations have that title, when newAddress, newLat and newLng are not given together, and when a category or subcategory matches nothing or several; null on success."
+              "description": "Populated on failure, including when no field to change is given, when no location or several locations have that title, when newAddress, newLat and newLng are not given together, when a category or subcategory matches nothing or several, and when the user cancels the approval; null on success."
             },
             "result": {
               "type": "object",
@@ -1105,8 +1105,8 @@
       "context": {
         "functionName": "deleteLocation",
         "hosts": [
-          "widgetBackground",
-          "controlBackground",
+          "widgetForeground",
+          "controlForeground",
           "headlessSdk"
         ]
       },
@@ -1125,7 +1125,7 @@
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location or several locations have that title; null on success."
+              "description": "Populated on failure, including when no location or several locations have that title and when the user cancels the approval; null on success."
             },
             "result": {
               "type": "object",
@@ -1261,7 +1261,7 @@
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when location notifications are turned off in this instance's settings, when the location has no followers, when the message is over 300 characters, and when no location or several locations have that title; null on success."
+              "description": "Populated on failure, including when location notifications are turned off in this instance's settings, when the location has no followers, when the message is over 300 characters, when no location or several locations have that title, and when the user cancels the approval; null on success."
             },
             "result": {
               "type": "object",

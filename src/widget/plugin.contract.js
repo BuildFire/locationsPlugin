@@ -33,8 +33,11 @@
  *
  * `buildfire` is resolved as a global: in the widget/control hosts it comes from
  * the injected SDK, and on the server the headless SDK provides it.
- * `widgetContract` and `frameId` are assigned as implicit globals for the
- * same reason — the consumer reaches them without importing this file.
+ * `widgetContract`, `controlContract` and `frameId` are assigned as implicit
+ * globals for the same reason — the consumer reaches them without importing
+ * this file. The widget frame (widget/contract.html) and the server dispatch
+ * to widgetContract; the control panel's frame (control/contract.html) loads
+ * this same file and dispatches to controlContract.
  *
  * Every function is Node-style: callback(error, result), invoked exactly once,
  * never with both error and result populated. Invalid input is reported through
@@ -375,6 +378,25 @@ const SORTS = {
   oldest: { '_buildfire.index.date1': 1 }
 };
 
+/**
+ * Ask the person watching the frame to approve a Foreground operation before it changes anything.
+ * On the MCP server the headless SDK has no UI (no window, no buildfire.dialog), so this skips the
+ * confirmation and proceeds: the MCP server asks the app owner itself, driven by the flags.
+ * @param {string} message - one plain sentence naming what is about to happen.
+ * @param {function(Error=)} callback - (error); error is set when they cancel or the dialog fails.
+ */
+const requireUserApproval = (message, callback) => {
+  const hasDialog = typeof window !== 'undefined'
+    && buildfire.dialog && typeof buildfire.dialog.confirm === 'function';
+  if (!hasDialog) return callback(null);
+
+  buildfire.dialog.confirm({ message }, (err, isConfirmed) => {
+    if (err) return callback(new Error(`Could not ask for approval: ${err}`));
+    if (!isConfirmed) return callback(new Error('Cancelled: the user did not approve this operation'));
+    callback(null);
+  });
+};
+
 widgetContract = {
   /**
    * Bind this contract to a plugin instance. Called by the consumer; resolves
@@ -579,13 +601,14 @@ widgetContract = {
   },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. Adds a location the way the
+   * hosts: widgetForeground, controlForeground, headlessSdk. Adds a location the way the
    * widget's and control panel's create forms do: the same required fields, a fresh clientId,
    * the default 08:00–20:00 opening hours, then the deeplink, search-index and analytics
    * registrations (best effort, as in the plugin) and the locationCreated event. Uses only
-   * buildfire.publicData plus optional services, so it runs in both frames and on the server;
-   * a new location is shown to app users but nobody needs to watch it being written, and it
-   * can be deleted again, so Background in both frames.
+   * buildfire.publicData plus optional services, so it runs in both frames and on the server,
+   * where the MCP server does the confirming and this skips its own. Foreground in both frames
+   * because it publishes a location every app user sees, so the person watching approves it
+   * once the categories are resolved and before anything is written.
    * The creator is left unset: createdBy grants edit rights in accessManager.canEditLocations,
    * and a caller outside the app is not an app user, so the location is created as the app.
    * @param {{ title: string, description: string, address: string, lat: number, lng: number,
@@ -649,32 +672,38 @@ widgetContract = {
       };
       doc._buildfire = buildLocationIndex(doc);
 
-      buildfire.publicData.insert(doc, LOCATIONS_TAG, (err, record) => {
-        if (err) return callback(err, undefined);
-        const data = record.data || doc;
-        sendContractEvent('locationCreated', { locationId: record.id, title: data.title });
-        registerAnalyticsEvent(`${data.title} (Viewed)`, `locations_${record.id}_viewed`);
-        const deeplinkRegistered = registerDeeplink(record.id, data);
-        const searchIndexed = saveSearchIndex(record.id, data);
-        callback(null, {
-          ...toLocationSummary(record.id, data, resolveOpeningMoment(undefined, undefined)),
-          deeplinkRegistered,
-          searchIndexed
+      requireUserApproval(`Add the location "${doc.title}" so every app user can see it?`, (approvalErr) => {
+        if (approvalErr) return callback(approvalErr, undefined);
+
+        buildfire.publicData.insert(doc, LOCATIONS_TAG, (err, record) => {
+          if (err) return callback(err, undefined);
+          const data = record.data || doc;
+          sendContractEvent('locationCreated', { locationId: record.id, title: data.title });
+          registerAnalyticsEvent(`${data.title} (Viewed)`, `locations_${record.id}_viewed`);
+          const deeplinkRegistered = registerDeeplink(record.id, data);
+          const searchIndexed = saveSearchIndex(record.id, data);
+          callback(null, {
+            ...toLocationSummary(record.id, data, resolveOpeningMoment(undefined, undefined)),
+            deeplinkRegistered,
+            searchIndexed
+          });
         });
       });
     });
   },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. Edits one location, named by its
+   * hosts: widgetForeground, controlForeground, headlessSdk. Edits one location, named by its
    * exact current title, changing only the fields the caller passes; the edit forms save the
    * whole document, so this reads the record, applies the changes, rebuilds the index the same
    * way Location.toJSON() does and writes it back, then refreshes the deeplink and search index
    * (best effort) and fires locationUpdated — the same steps as updateLocation in editView.js
    * and the control panel's controller. Uses only buildfire.publicData plus optional services,
-   * so it runs in both frames and on the server; confined to one record and nothing about it
-   * needs to be watched, so Background in both frames. Resolving the title is a search, which
-   * is why this is a function rather than a declarative update.
+   * so it runs in both frames and on the server, where the MCP server does the confirming and
+   * this skips its own. Foreground in both frames because the change is published to every app
+   * user, so the person watching approves it after the location and categories are resolved.
+   * Resolving the title is a search, which is why this is a function rather than a declarative
+   * update.
    * @param {{ title: string, newTitle?: string, newSubtitle?: string, newDescription?: string,
    *   newAddress?: string, newLat?: number, newLng?: number, newAddressAlias?: string,
    *   newListImage?: string, newPriceRange?: number, newCurrency?: string,
@@ -755,15 +784,19 @@ widgetContract = {
         doc.lastUpdatedBy = null;
         doc._buildfire = buildLocationIndex(doc);
 
-        buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
-          if (updateErr) return callback(updateErr, undefined);
-          sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
-          const deeplinkRegistered = registerDeeplink(location.id, doc);
-          const searchIndexed = saveSearchIndex(location.id, doc);
-          callback(null, {
-            ...toLocationSummary(location.id, doc, resolveOpeningMoment(undefined, undefined)),
-            deeplinkRegistered,
-            searchIndexed
+        requireUserApproval(`Save the changes to the location "${location.data.title}" for every app user?`, (approvalErr) => {
+          if (approvalErr) return callback(approvalErr, undefined);
+
+          buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
+            if (updateErr) return callback(updateErr, undefined);
+            sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
+            const deeplinkRegistered = registerDeeplink(location.id, doc);
+            const searchIndexed = saveSearchIndex(location.id, doc);
+            callback(null, {
+              ...toLocationSummary(location.id, doc, resolveOpeningMoment(undefined, undefined)),
+              deeplinkRegistered,
+              searchIndexed
+            });
           });
         });
       });
@@ -829,14 +862,16 @@ widgetContract = {
   },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. Permanently deletes one location,
+   * hosts: widgetForeground, controlForeground, headlessSdk. Permanently deletes one location,
    * named by its exact title: the record is hard-deleted (publicData.delete, as both the
    * control panel and the widget's report-abuse flow do), its deeplink is unregistered and its
    * search-index entry removed (best effort, as the plugin's Promise.allSettled chain treats
    * them), and locationDeleted fires. Uses only buildfire.publicData plus optional services, so
-   * it runs in both frames and on the server; its risk is gated by the `dangerous` flag rather
-   * than by a watcher, so Background in both frames. Resolving the title is a search, which is
-   * why this is a function rather than a declarative delete.
+   * it runs in both frames and on the server, where the `dangerous` flag makes the app owner
+   * confirm it and this skips its own approval. Foreground in both frames because it removes,
+   * for good, a location every app user sees, so the person watching approves it once the title
+   * is resolved. Resolving the title is a search, which is why this is a function rather than a
+   * declarative delete.
    * @param {{ title: string }} options
    * @param {function(Error=, object=)} callback - (error, { deleted, title, deeplinkRemoved, searchIndexRemoved })
    */
@@ -845,13 +880,18 @@ widgetContract = {
 
     resolveLocation(options.title, (err, location) => {
       if (err) return callback(err, undefined);
-      buildfire.publicData.delete(location.id, LOCATIONS_TAG, (deleteErr) => {
-        if (deleteErr) return callback(deleteErr, undefined);
-        sendContractEvent('locationDeleted', { locationId: location.id });
-        const deeplinkRemoved = unregisterDeeplink(location.id);
-        const searchIndexRemoved = deleteSearchIndex(location.id);
-        callback(null, {
-          deleted: true, title: location.data.title, deeplinkRemoved, searchIndexRemoved
+
+      requireUserApproval(`Permanently delete the location "${location.data.title}" for every app user?`, (approvalErr) => {
+        if (approvalErr) return callback(approvalErr, undefined);
+
+        buildfire.publicData.delete(location.id, LOCATIONS_TAG, (deleteErr) => {
+          if (deleteErr) return callback(deleteErr, undefined);
+          sendContractEvent('locationDeleted', { locationId: location.id });
+          const deeplinkRemoved = unregisterDeeplink(location.id);
+          const searchIndexRemoved = deleteSearchIndex(location.id);
+          callback(null, {
+            deleted: true, title: location.data.title, deeplinkRemoved, searchIndexRemoved
+          });
         });
       });
     });
@@ -896,8 +936,8 @@ widgetContract = {
    * location. Uses buildfire.datastore, buildfire.publicData and
    * buildfire.notifications.pushNotification.schedule, all server-safe, so it keeps
    * headlessSdk; there the `dangerous` and `throttable` flags make the app owner confirm it.
-   * Foreground in both frames because it reaches real people and cannot be recalled, so it
-   * should not fire with nobody watching.
+   * Foreground in both frames because it reaches real people and cannot be recalled, so the
+   * person watching approves it once the location and its subscribers are known.
    * @param {{ title: string, notificationTitle: string, notificationText: string }} options
    * @param {function(Error=, object=)} callback - (error, { title, recipientCount })
    */
@@ -924,14 +964,19 @@ widgetContract = {
         const subscribers = (location.data.subscribers || []).filter(Boolean);
         if (!subscribers.length) return callback(new Error(`Location "${location.data.title}" has no subscribers`), undefined);
 
-        buildfire.notifications.pushNotification.schedule({
-          title: options.notificationTitle,
-          text: options.notificationText,
-          users: subscribers,
-          queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: location.id }))}`
-        }, (sendErr) => {
-          if (sendErr) return callback(sendErr, undefined);
-          callback(null, { title: location.data.title, recipientCount: subscribers.length });
+        const people = subscribers.length === 1 ? '1 person' : `${subscribers.length} people`;
+        requireUserApproval(`Send "${options.notificationTitle}" to the ${people} following "${location.data.title}"?`, (approvalErr) => {
+          if (approvalErr) return callback(approvalErr, undefined);
+
+          buildfire.notifications.pushNotification.schedule({
+            title: options.notificationTitle,
+            text: options.notificationText,
+            users: subscribers,
+            queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: location.id }))}`
+          }, (sendErr) => {
+            if (sendErr) return callback(sendErr, undefined);
+            callback(null, { title: location.data.title, recipientCount: subscribers.length });
+          });
         });
       });
     });
@@ -1088,4 +1133,26 @@ widgetContract = {
       });
     });
   }
+};
+
+/**
+ * What the control panel's frame (control/contract.html) dispatches to: init plus every function
+ * whose hosts include controlForeground or controlBackground, in plugin.contract.json order. The
+ * implementations are widgetContract's own; every function here has a control host, so all are
+ * listed.
+ */
+controlContract = {
+  init: widgetContract.init,
+  searchLocations: widgetContract.searchLocations,
+  searchLocationsNearPoint: widgetContract.searchLocationsNearPoint,
+  getLocation: widgetContract.getLocation,
+  createLocation: widgetContract.createLocation,
+  updateLocation: widgetContract.updateLocation,
+  updateLocationPin: widgetContract.updateLocationPin,
+  deleteLocation: widgetContract.deleteLocation,
+  deleteLocationSubscriber: widgetContract.deleteLocationSubscriber,
+  sendLocationNotification: widgetContract.sendLocationNotification,
+  createCategory: widgetContract.createCategory,
+  updateCategory: widgetContract.updateCategory,
+  deleteCategory: widgetContract.deleteCategory
 };
