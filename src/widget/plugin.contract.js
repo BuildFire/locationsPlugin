@@ -672,21 +672,17 @@ widgetContract = {
       };
       doc._buildfire = buildLocationIndex(doc);
 
-      requireUserApproval(`Add the location "${doc.title}" so every app user can see it?`, (approvalErr) => {
-        if (approvalErr) return callback(approvalErr, undefined);
-
-        buildfire.publicData.insert(doc, LOCATIONS_TAG, (err, record) => {
-          if (err) return callback(err, undefined);
-          const data = record.data || doc;
-          sendContractEvent('locationCreated', { locationId: record.id, title: data.title });
-          registerAnalyticsEvent(`${data.title} (Viewed)`, `locations_${record.id}_viewed`);
-          const deeplinkRegistered = registerDeeplink(record.id, data);
-          const searchIndexed = saveSearchIndex(record.id, data);
-          callback(null, {
-            ...toLocationSummary(record.id, data, resolveOpeningMoment(undefined, undefined)),
-            deeplinkRegistered,
-            searchIndexed
-          });
+      buildfire.publicData.insert(doc, LOCATIONS_TAG, (err, record) => {
+        if (err) return callback(err, undefined);
+        const data = record.data || doc;
+        sendContractEvent('locationCreated', { locationId: record.id, title: data.title });
+        registerAnalyticsEvent(`${data.title} (Viewed)`, `locations_${record.id}_viewed`);
+        const deeplinkRegistered = registerDeeplink(record.id, data);
+        const searchIndexed = saveSearchIndex(record.id, data);
+        callback(null, {
+          ...toLocationSummary(record.id, data, resolveOpeningMoment(undefined, undefined)),
+          deeplinkRegistered,
+          searchIndexed
         });
       });
     });
@@ -784,19 +780,15 @@ widgetContract = {
         doc.lastUpdatedBy = null;
         doc._buildfire = buildLocationIndex(doc);
 
-        requireUserApproval(`Save the changes to the location "${location.data.title}" for every app user?`, (approvalErr) => {
-          if (approvalErr) return callback(approvalErr, undefined);
-
-          buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
-            if (updateErr) return callback(updateErr, undefined);
-            sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
-            const deeplinkRegistered = registerDeeplink(location.id, doc);
-            const searchIndexed = saveSearchIndex(location.id, doc);
-            callback(null, {
-              ...toLocationSummary(location.id, doc, resolveOpeningMoment(undefined, undefined)),
-              deeplinkRegistered,
-              searchIndexed
-            });
+        buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
+          if (updateErr) return callback(updateErr, undefined);
+          sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
+          const deeplinkRegistered = registerDeeplink(location.id, doc);
+          const searchIndexed = saveSearchIndex(location.id, doc);
+          callback(null, {
+            ...toLocationSummary(location.id, doc, resolveOpeningMoment(undefined, undefined)),
+            deeplinkRegistered,
+            searchIndexed
           });
         });
       });
@@ -881,17 +873,13 @@ widgetContract = {
     resolveLocation(options.title, (err, location) => {
       if (err) return callback(err, undefined);
 
-      requireUserApproval(`Permanently delete the location "${location.data.title}" for every app user?`, (approvalErr) => {
-        if (approvalErr) return callback(approvalErr, undefined);
-
-        buildfire.publicData.delete(location.id, LOCATIONS_TAG, (deleteErr) => {
-          if (deleteErr) return callback(deleteErr, undefined);
-          sendContractEvent('locationDeleted', { locationId: location.id });
-          const deeplinkRemoved = unregisterDeeplink(location.id);
-          const searchIndexRemoved = deleteSearchIndex(location.id);
-          callback(null, {
-            deleted: true, title: location.data.title, deeplinkRemoved, searchIndexRemoved
-          });
+      buildfire.publicData.delete(location.id, LOCATIONS_TAG, (deleteErr) => {
+        if (deleteErr) return callback(deleteErr, undefined);
+        sendContractEvent('locationDeleted', { locationId: location.id });
+        const deeplinkRemoved = unregisterDeeplink(location.id);
+        const searchIndexRemoved = deleteSearchIndex(location.id);
+        callback(null, {
+          deleted: true, title: location.data.title, deeplinkRemoved, searchIndexRemoved
         });
       });
     });
