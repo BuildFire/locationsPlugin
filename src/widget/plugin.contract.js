@@ -1,11 +1,12 @@
-/* eslint-disable no-undef, max-len */
+/* eslint-disable no-undef, max-len, no-use-before-define, no-underscore-dangle */
 /**
  * Locations contract — runtime implementation.
  *
  * This file only implements the operations declared with "type": "function" in
  * plugin.contract.json. Operations typed publicData / datastore / userData /
  * appData / firebase are declarative: their platform call is built on the fly
- * from context.query, so they intentionally have no counterpart here.
+ * from context.query, so they intentionally have no counterpart here
+ * (searchCategories is the one declarative operation).
  *
  * Each function operation is dispatched by its context.functionName, receives
  * (options, callback), may nest any number of buildfire.* calls, and may run
@@ -47,65 +48,85 @@
  * `parameters` block, or a caller cannot pass it: the MCP server refuses any
  * param the contract does not declare.
  *
- * The plugin's own create/update/delete flows also register a deeplink, index the
- * location in buildfire.services.searchEngine and register analytics events. Those
- * services are frame APIs that the headless SDK (and contract.html, which loads only
- * the SDK and the contract service) may not provide, so each one is called only when
- * it exists, and — exactly as the plugin does — its failure never fails the action.
+ * How the operations are built: every write is an "action" — validate (no I/O),
+ * resolve (find the records it names, refusing no match and ambiguity), and
+ * apply (re-read, write, then the plugin's own side effects). runAction runs one
+ * action for a single operation; runBatch runs the same action for every entry
+ * of a batch, validating every entry and checking every id before the first write, so
+ * a single operation and its batch always behave identically per record. Batches are
+ * advanced only: each repeats the action's advanced form (record ids, never titles).
  */
 
-const LOCATIONS_TAG = 'locations'; // must match the collection names in plugin.contract.json
+// Must match the collection names in plugin.contract.json and the plugin's repositories
+// (src/widget/js/global/repository/Locations.js, Categories.js, Settings.js).
+const LOCATIONS_TAG = 'locations';
 const CATEGORIES_TAG = 'categories';
 const SETTINGS_TAG = 'settings';
 
-const MAX_PINNED_LOCATIONS = 3; // Mirrors the "N of 3 Pinned" limit in src/control/content/js/locations/index.js
+const MAX_BATCH = 50;
 const MAX_PAGE_SIZE = 50;
-const MAX_BATCH_SIZE = 50; // No platform limit applies to these one-by-one writes; the skill's default.
-const DEFAULT_NEAR_RADIUS_KM = 100; // Mirrors introSearchService's user-position radius.
-const EARTH_RADIUS_KM = 6378.1;
+const DEFAULT_PAGE_SIZE = 20;
+// The control panel's "Pin to Top" allows three pinned locations (content/js/locations/index.js).
+const MAX_PINNED = 3;
+// The Location Fields page disables both add buttons at ten fields in total (settings/js/pages/locationFields.js).
+const MAX_LOCATION_FIELDS = 10;
+// Intro screen "Area Radius (miles)" input clamps to 1..200 (content/js/listView/introMap.js).
+const MIN_AREA_RADIUS_MILES = 1;
+const MAX_AREA_RADIUS_MILES = 200;
+const METERS_PER_MILE = 1609.34;
+const EARTH_RADIUS_MILES = 3963.2;
 
-const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+// Price radios ($ .. $$$$) and currency dropdown, in both the control panel and the in-app forms.
+const PRICE_RANGES = [1, 2, 3, 4];
+const CURRENCIES = ['$', '€'];
+const MARKER_TYPES = ['pin', 'circle', 'image'];
+// Control panel default for a circle marker (content/js/locations/index.js state.defaultCircleMarkerColor).
+const DEFAULT_MARKER_COLOR = 'rgba(253,35,5,1)';
 
-/** What requireStringParams checks, as a message (null when valid), for checks that collect problems. */
-const findMissingStringParam = (options, names) => {
-  if (options === null || typeof options !== 'object') return 'options must be an object';
-  const missing = names.find((name) => typeof options[name] !== 'string' || !options[name].trim());
-  return missing ? `Missing required parameter: ${missing}` : null;
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+// "mondayHours" on create, "newMondayHours" on update.
+const dayParam = (day, prefix = '') => (prefix ? `${prefix}${day.charAt(0).toUpperCase()}${day.slice(1)}Hours` : `${day}Hours`);
+const DEFAULT_HOURS = { from: '08:00', to: '20:00' };
+
+// Mirrors src/widget/js/global/constants: field types per Location Fields section.
+const FIELD_SECTIONS = {
+  quickActions: ['EMAIL', 'PHONE', 'URL'],
+  content: ['EMAIL', 'PHONE', 'URL', 'TEXT', 'RICH_TEXT']
 };
 
-/**
- * Assert that every named option is a non-empty string.
- * @returns {boolean} true when valid; false when the callback has already fired.
- */
-const requireStringParams = (options, names, callback) => {
-  if (typeof callback !== 'function') {
-    // Nothing to report through; fail loudly only in this one unrecoverable case.
-    throw new TypeError('callback must be a function');
-  }
-  const problem = findMissingStringParam(options, names);
-  if (problem) {
-    callback(new Error(problem), undefined);
-    return false;
-  }
-  return true;
+// Only index-backed sorts; locations index string1 = lower-cased title, date1 = createdOn.
+const LOCATION_SORTS = {
+  alphabetical: { '_buildfire.index.string1': 1 },
+  reverseAlphabetical: { '_buildfire.index.string1': -1 },
+  newest: { '_buildfire.index.date1': -1 },
+  oldest: { '_buildfire.index.date1': 1 }
 };
 
-const isGiven = (value) => value !== undefined && value !== null && value !== '';
+// Settings tab radio groups and the Design tab, by the values their inputs carry.
+const DEFAULT_SORTINGS = ['distance', 'alphabetical'];
+const MEASUREMENT_UNITS = ['metric', 'imperial'];
+const LIST_VIEW_POSITIONS = ['expanded', 'collapsed', 'halfExpanded'];
+const LIST_VIEW_STYLES = ['backgroundImage', 'smallImage'];
+const MAP_TYPES = ['streets', 'satellite'];
+const DETAILS_MAP_POSITIONS = ['top', 'bottom'];
+const INTRO_SORTINGS = ['distance', 'alphabetical', 'newest'];
+const INTRO_SOURCES = ['All', 'UserPosition', 'AreaRadius', 'MyLocations'];
 
-/**
- * Update params have three states: left out (undefined) keeps the stored value, null or '' clears
- * it, and anything else sets it. Only the fields the plugin's own forms let people empty are
- * nullable; clearing any other field is refused, never ignored.
- */
+// ---------------------------------------------------------------------------
+// Small helpers
+// ---------------------------------------------------------------------------
+
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const isGiven = (value) => value !== undefined;
+// null always clears; '' clears only string-valued params (rule 25).
 const isCleared = (value) => value === null || value === '';
+const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
+const toError = (err) => (err instanceof Error ? err : new Error(typeof err === 'string' ? err : JSON.stringify(err)));
 
-/** The first of these non-nullable update params passed as null or '', as a problem message, or null. */
-const findClearedProblem = (options, names) => {
-  const name = names.find((n) => isCleared(options[n]));
-  return name ? `${name} cannot be removed; leave it out to keep the current value` : null;
+const requireCallback = (callback) => {
+  // Nothing to report through; fail loudly only in this one unrecoverable case.
+  if (typeof callback !== 'function') throw new TypeError('callback must be a function');
 };
-
-const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(value);
 
 /** Mirrors generateUUID in src/widget/js/global/helpers.js, so ids look like the plugin's own. */
 const generateUUID = () => {
@@ -118,352 +139,39 @@ const generateUUID = () => {
 };
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const stripHtml = (html) => (html ? String(html).replace(/(<([^>]+)>)/gi, '') : '');
 
-/** Mirrors sendContractEvent in src/widget/js/global/helpers.js: the events API may be absent. */
+/** Runs fn(item, index, next) over items one after another, then done(). */
+const forEachSeries = (items, fn, done) => {
+  const step = (index) => {
+    if (index >= items.length) return done();
+    fn(items[index], index, () => step(index + 1));
+  };
+  step(0);
+};
+
+/**
+ * Fire a plugin contract event (see plugin.contract.json). Mirrors sendContractEvent in
+ * src/widget/js/global/helpers.js: the contract service in this workspace's SDK ships no
+ * events API, so every send is feature-checked.
+ */
 const sendContractEvent = (name, data) => {
-  if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
-    buildfire.services.contract.events.send(name, data);
-  }
-};
-
-/** Runs an optional side effect the plugin itself treats as best effort; reports whether it ran. */
-const bestEffort = (available, run) => {
-  if (!available) return false;
   try {
-    run();
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-/** Mirrors Analytics.registerEvent in src/utils/analytics.js. */
-const registerAnalyticsEvent = (title, key) => bestEffort(
-  buildfire.analytics && typeof buildfire.analytics.registerEvent === 'function',
-  () => buildfire.analytics.registerEvent({ title, key, description: '' }, { silentNotification: true })
-);
-
-/** Mirrors DeepLink.registerDeeplink in src/utils/deeplink.js. */
-const registerDeeplink = (id, data) => bestEffort(
-  buildfire.deeplink && typeof buildfire.deeplink.registerDeeplink === 'function',
-  () => buildfire.deeplink.registerDeeplink({
-    id: `location-${id}`,
-    name: data.title,
-    deeplinkData: { locationId: id },
-    imageUrl: data.listImage
-  }, (err) => { if (err) console.error(err); })
-);
-
-/** Mirrors DeepLink.unregisterDeeplink in src/utils/deeplink.js. */
-const unregisterDeeplink = (id) => bestEffort(
-  buildfire.deeplink && typeof buildfire.deeplink.unregisterDeeplink === 'function',
-  () => buildfire.deeplink.unregisterDeeplink(`location-${id}`, (err) => { if (err) console.error(err); })
-);
-
-/** Mirrors SearchEngine.add/update in src/widget/js/global/repository/searchEngine.js. */
-const saveSearchIndex = (id, data) => bestEffort(
-  buildfire.services && buildfire.services.searchEngine,
-  () => buildfire.services.searchEngine.save({
-    tag: LOCATIONS_TAG,
-    key: id,
-    data: { locationId: id },
-    title: data.title,
-    description: data.description ? data.description.replace(/(<([^>]+)>)/gi, '') : '',
-    imageUrl: data.listImage,
-    keywords: [data.address, data.formattedAddress, data.addressAlias, data.subtitle].join(',')
-  }, (err) => { if (err) console.error(err); })
-);
-
-/** Mirrors SearchEngine.delete in src/widget/js/global/repository/searchEngine.js. */
-const deleteSearchIndex = (id) => bestEffort(
-  buildfire.services && buildfire.services.searchEngine,
-  () => buildfire.services.searchEngine.delete({ id, tag: LOCATIONS_TAG }, (err) => { if (err) console.error(err); })
-);
-
-/**
- * The `_buildfire` block Location.toJSON() writes (src/widget/js/global/data/Location.js),
- * reproduced exactly — including the literal "null" it puts in the text index for an empty
- * address — so a record written here indexes and sorts the same as one written in the app.
- */
-const buildLocationIndex = (doc) => ({
-  index: {
-    text: `${doc.title.toLowerCase()} ${doc.subtitle ? doc.subtitle : ''} ${doc.address} ${doc.formattedAddress} ${doc.addressAlias ? doc.addressAlias : ''}`,
-    string1: doc.title.toLowerCase(),
-    date1: doc.createdOn,
-    array1: [
-      ...doc.categories.main.map((id) => ({ string1: `c_${id}` })),
-      ...doc.categories.subcategories.map((id) => ({ string1: `s_${id}` })),
-      { string1: `v_${doc.views}` },
-      { string1: `pr_${doc.price.range}` },
-      { string1: `cid_${doc.clientId}` },
-      { string1: `title_${doc.title.toLowerCase()}` }
-    ],
-    number1: doc.pinIndex
-  },
-  geo: {
-    type: 'Point',
-    coordinates: [doc.coordinates.lng, doc.coordinates.lat]
-  }
-});
-
-/** The `_buildfire` block Category.toJSON() writes (src/widget/js/global/data/Category.js). */
-const buildCategoryIndex = (doc) => ({
-  index: {
-    string1: doc.title.toLowerCase(),
-    date1: doc.deletedOn,
-    number1: doc.quickAccess
-  }
-});
-
-/** Mirrors getDefaultOpeningHours: 08:00–20:00 every day, as times of day on 1970-01-01 UTC. */
-const defaultOpeningHours = () => {
-  const intervals = [{ from: new Date(Date.UTC(1970, 0, 1, 8, 0)), to: new Date(Date.UTC(1970, 0, 1, 20, 0)) }];
-  const days = {};
-  ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach((day, index) => {
-    days[day] = { index, active: true, intervals: [...intervals] };
-  });
-  return { days, timezone: null };
-};
-
-/**
- * The day name and time of day at which "open now" is judged. The plugin judges it in the
- * viewer's local clock (openingNowDate / getCurrentDayName in src/utils/datetime.js); a caller
- * outside the app passes utcOffsetMinutes to say whose clock that is, and without it the host's
- * own clock is used, which on the server is the server's.
- * @returns {{ dayName: string, time: Date } | null} null when `at` is not a valid timestamp.
- */
-const resolveOpeningMoment = (at, utcOffsetMinutes) => {
-  const instant = isGiven(at) ? new Date(at) : new Date();
-  if (Number.isNaN(instant.getTime())) return null;
-
-  let day;
-  let hours;
-  let minutes;
-  if (isFiniteNumber(utcOffsetMinutes)) {
-    const shifted = new Date(instant.getTime() + utcOffsetMinutes * 60000);
-    day = shifted.getUTCDay();
-    hours = shifted.getUTCHours();
-    minutes = shifted.getUTCMinutes();
-  } else {
-    day = instant.getDay();
-    hours = instant.getHours();
-    minutes = instant.getMinutes();
-  }
-  // Interval bounds are stored as times of day on 1970-01-01 UTC, so compare against a date normalized the same way.
-  return { dayName: DAY_NAMES[day], time: new Date(Date.UTC(1970, 0, 1, hours, minutes)) };
-};
-
-/** Mirrors isLocationOpen in src/widget/js/util/helpers.js, tolerating a day with no entry. */
-const isOpenAt = (data, moment) => {
-  const today = data.openingHours && data.openingHours.days && data.openingHours.days[moment.dayName];
-  if (!today || !today.active || !Array.isArray(today.intervals)) return false;
-  return today.intervals.some((i) => i && new Date(i.from) <= moment.time && new Date(i.to) > moment.time);
-};
-
-/** The public shape of one location, read off a stored record. */
-const toLocationSummary = (id, data, moment) => ({
-  id,
-  title: data.title,
-  subtitle: data.subtitle || null,
-  address: data.address || null,
-  formattedAddress: data.formattedAddress || null,
-  addressAlias: data.addressAlias || null,
-  lat: data.coordinates ? data.coordinates.lat : null,
-  lng: data.coordinates ? data.coordinates.lng : null,
-  description: data.description || null,
-  listImage: data.listImage || null,
-  priceRange: data.price ? data.price.range : null,
-  currency: data.price ? data.price.currency : null,
-  ratingAverage: data.rating ? data.rating.average : 0,
-  ratingCount: data.rating ? data.rating.count : 0,
-  isPinned: [1, 2, 3].includes(data.pinIndex),
-  subscriberCount: Array.isArray(data.subscribers) ? data.subscribers.length : 0,
-  isOpenNow: isOpenAt(data, moment),
-  createdOn: data.createdOn || null
-});
-
-/** publicData.search answers an array, or { result, totalRecord } when recordCount is set. */
-const readSearchResponse = (response) => {
-  if (Array.isArray(response)) return { records: response.filter(Boolean), total: undefined };
-  return {
-    records: ((response && response.result) || []).filter(Boolean),
-    total: response ? response.totalRecord : undefined
-  };
-};
-
-/**
- * The location a caller named by its exact title. Matching is on the plugin's own lowercased
- * title index, so it is case-insensitive like the widget's title lookup. A title matching
- * several locations is refused rather than resolved to one of them: on a write, picking would
- * mean acting on a location the caller did not mean.
- * @param {string} title
- * @param {function(Error=, object=)} callback - (error, { id, data })
- */
-const resolveLocation = (title, callback) => {
-  const filter = { '_buildfire.index.string1': title.trim().toLowerCase() };
-  buildfire.publicData.search({ filter, pageSize: 2 }, LOCATIONS_TAG, (err, response) => {
-    if (err) return callback(err, undefined);
-    const { records } = readSearchResponse(response);
-    if (!records.length) return callback(new Error(`No location titled "${title}"`), undefined);
-    if (records.length > 1) return callback(new Error(`${records.length} or more locations are titled "${title}"`), undefined);
-    callback(null, { id: records[0].id, data: records[0].data });
-  });
-};
-
-/**
- * The live (not deleted) category a caller named by its exact title, case-insensitively.
- * Deleted categories keep a deletedOn date in date1, so live ones are those where it is null.
- * @param {string} title
- * @param {function(Error=, object=)} callback - (error, { id, data })
- */
-const resolveCategory = (title, callback) => {
-  const filter = {
-    '_buildfire.index.string1': title.trim().toLowerCase(),
-    '_buildfire.index.date1': { $type: 10 }
-  };
-  buildfire.publicData.search({ filter, pageSize: 2 }, CATEGORIES_TAG, (err, response) => {
-    if (err) return callback(err, undefined);
-    const { records } = readSearchResponse(response);
-    if (!records.length) return callback(new Error(`No category titled "${title}"`), undefined);
-    if (records.length > 1) return callback(new Error(`${records.length} or more categories are titled "${title}"`), undefined);
-    callback(null, { id: records[0].id, data: records[0].data });
-  });
-};
-
-/**
- * The location an advanced operation names by its record id, checked to exist: the advanced
- * counterpart of resolveLocation, with no search, but an id that matches nothing is still refused.
- * @param {string} locationId
- * @param {function(Error=, object=)} callback - (error, { id, data })
- */
-const requireLocationById = (locationId, callback) => {
-  buildfire.publicData.getById(locationId, LOCATIONS_TAG, (err, record) => {
-    if (err) return callback(err, undefined);
-    if (!record || !record.data || !Object.keys(record.data).length) {
-      return callback(new Error(`No location with id "${locationId}"`), undefined);
+    if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+      buildfire.services.contract.events.send(name, data);
     }
-    callback(null, { id: record.id || locationId, data: record.data });
-  });
+  } catch (e) { /* an event that cannot be sent must not fail the action that caused it */ }
 };
 
-/**
- * A live category by its record id; a soft-deleted one counts as missing, as it does in the app.
- * The advanced counterpart of resolveCategory.
- * @param {function(Error=, object=)} callback - (error, { id, data })
- */
-const resolveCategoryById = (categoryId, callback) => {
-  buildfire.publicData.getById(categoryId, CATEGORIES_TAG, (err, record) => {
-    if (err) return callback(err, undefined);
-    if (!record || !record.data || !Object.keys(record.data).length || record.data.deletedOn) {
-      return callback(new Error(`No category with id "${categoryId}"`), undefined);
+/** Tell the widget to refresh, as every control-panel save does; only the control frame has a widget to tell. */
+const syncWidget = (message) => {
+  try {
+    if (buildfire.messaging && typeof buildfire.messaging.sendMessageToWidget === 'function') {
+      buildfire.messaging.sendMessageToWidget(message);
+      return true;
     }
-    callback(null, { id: record.id || categoryId, data: record.data });
-  });
-};
-
-/**
- * How a basic read or send finds the location it names (its title, by search) and how its advanced
- * alternative does (its record id, checked to exist). readLocation and notifyLocationSubscribers
- * take one of these, so a basic operation and its alternative behave identically once the location
- * is found. Writes name their record through LOCATION_BY_TITLE / LOCATION_BY_ID instead.
- */
-const findLocationByTitle = (options) => (callback) => resolveLocation(options.title, callback);
-const findLocationById = (options) => (callback) => requireLocationById(options.locationId, callback);
-
-/**
- * Resolves an optional category (and optional subcategory inside it) to the `categories` block a
- * location stores. Basic operations give them by title; their advanced alternatives by id, as
- * searchCategories gives them. Neither given → null, meaning "leave unchanged".
- * @param {boolean} byId - true for an advanced operation's ids, false for a basic one's titles.
- * @param {{ category?: string, subcategory?: string, categoryName: string, subcategoryName: string }} handles
- *   the values and the parameter names they came from, for error messages.
- * @param {function(Error=, object=)} callback - (error, { main, subcategories } | null)
- */
-const resolveLocationCategories = (byId, handles, callback) => {
-  const {
-    category, subcategory, categoryName, subcategoryName
-  } = handles;
-  const notText = [[categoryName, category], [subcategoryName, subcategory]].find(([, v]) => isGiven(v) && typeof v !== 'string');
-  if (notText) return callback(new Error(`${notText[0]} must be text`), undefined);
-
-  if (!isGiven(category)) {
-    if (isGiven(subcategory)) return callback(new Error(`${subcategoryName} needs ${categoryName}`), undefined);
-    return callback(null, null);
-  }
-  const lookup = byId ? resolveCategoryById : resolveCategory;
-  lookup(category, (err, found) => {
-    if (err) return callback(err, undefined);
-    if (!isGiven(subcategory)) return callback(null, { main: [found.id], subcategories: [] });
-
-    const subcategories = (found.data.subcategories || []).filter(Boolean);
-    if (byId) {
-      const match = subcategories.find((s) => s.id === subcategory);
-      if (!match) return callback(new Error(`Category "${found.data.title}" has no subcategory with id "${subcategory}"`), undefined);
-      return callback(null, { main: [found.id], subcategories: [match.id] });
-    }
-    const wanted = subcategory.trim().toLowerCase();
-    const matches = subcategories.filter((s) => s.title && s.title.toLowerCase() === wanted);
-    if (!matches.length) return callback(new Error(`Category "${category}" has no subcategory titled "${subcategory}"`), undefined);
-    if (matches.length > 1) return callback(new Error(`${matches.length} subcategories of "${category}" are titled "${subcategory}"`), undefined);
-    callback(null, { main: [found.id], subcategories: [matches[0].id] });
-  });
-};
-
-/** The category filter or value a search or create was given, by title (basic) or by id (advanced). */
-const locationCategoryHandles = (options, byId) => (byId
-  ? {
-    category: options.categoryId, subcategory: options.subcategoryId, categoryName: 'categoryId', subcategoryName: 'subcategoryId'
-  }
-  : {
-    category: options.categoryTitle, subcategory: options.subcategoryTitle, categoryName: 'categoryTitle', subcategoryName: 'subcategoryTitle'
-  });
-
-/**
- * An app user named by id or email, as the id the plugin stores in `subscribers` and
- * `createdBy.userId`. An email is recognised by its "@" and looked up in the app's users.
- * @param {function(Error=, string=)} callback - (error, userId)
- */
-const resolveUserId = (user, callback) => {
-  if (user.indexOf('@') === -1) return callback(null, user);
-  buildfire.auth.getUsersByEmail({ emails: [user] }, (err, users) => {
-    if (err) return callback(err, undefined);
-    const found = (Array.isArray(users) ? users : []).filter(Boolean);
-    if (!found.length) return callback(new Error(`No app user with email "${user}"`), undefined);
-    if (found.length > 1) return callback(new Error(`${found.length} app users have email "${user}"`), undefined);
-    callback(null, found[0].userId || found[0]._id);
-  });
-};
-
-/** Reads and validates the optional page / pageSize pair; null when invalid (callback fired). */
-const readPaging = (options, callback) => {
-  const page = isGiven(options.page) ? options.page : 0;
-  const pageSize = isGiven(options.pageSize) ? options.pageSize : 20;
-  if (!Number.isInteger(page) || page < 0) {
-    callback(new Error('page must be a whole number, 0 or more'), undefined);
-    return null;
-  }
-  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
-    callback(new Error(`pageSize must be a whole number from 1 to ${MAX_PAGE_SIZE}`), undefined);
-    return null;
-  }
-  return { page, pageSize };
-};
-
-/** Validates an optional price range: the plugin's selector offers 1 to 4. */
-const isValidPriceRange = (value) => Number.isInteger(value) && value >= 1 && value <= 4;
-
-// The currencies the create/edit forms offer: widget templates/create.html and edit.html
-// (#locationCurrencySelect) and the control panel's #location-select-price-currency in
-// control/content/templates/locations.html. Neither form takes a custom value.
-const CURRENCIES = ['$', '€'];
-
-const SORTS = {
-  // Mirrors the widget's sort options (src/widget/widget.js): alphabetical sorts on the text index.
-  alphabetical: { '_buildfire.index.text': 1 },
-  reverseAlphabetical: { '_buildfire.index.text': -1 },
-  newest: { '_buildfire.index.date1': -1 },
-  oldest: { '_buildfire.index.date1': 1 }
+  } catch (e) { /* no widget to message on the server or in the widget frame */ }
+  return false;
 };
 
 /**
@@ -485,816 +193,387 @@ const requireUserApproval = (message, callback) => {
   });
 };
 
-/** Reads the optional at / utcOffsetMinutes pair; null when invalid (callback fired). */
-const readOpeningMoment = (options, callback) => {
-  if (isGiven(options.utcOffsetMinutes) && !isFiniteNumber(options.utcOffsetMinutes)) {
-    callback(new Error('utcOffsetMinutes must be a number'), undefined);
-    return null;
+/**
+ * searchEngine.js and pushNotifications.js are not part of buildfire.min.js, and contract.html may
+ * only load three scripts, so in a frame they are loaded on first use from the same scripts/ folder
+ * buildfire.min.js came from. On the server the headless SDK provides them, or does not.
+ */
+const SDK_SERVICES = {
+  searchEngine: {
+    path: 'buildfire/services/searchEngine/searchEngine.js',
+    ready: () => !!(buildfire.services && buildfire.services.searchEngine)
+  },
+  pushNotifications: {
+    path: 'buildfire/services/notifications/pushNotifications.js',
+    ready: () => !!(buildfire.notifications && buildfire.notifications.pushNotification
+      && typeof buildfire.notifications.pushNotification.schedule === 'function')
   }
-  const moment = resolveOpeningMoment(options.at, options.utcOffsetMinutes);
-  if (!moment) callback(new Error(`Invalid timestamp: ${options.at}`), undefined);
-  return moment;
 };
 
-/**
- * Shared by searchLocations and searchLocationsByCategoryId; they differ only in whether the
- * category and subcategory filter is given by title or by id.
- * Assumption: when several filters are given they all apply (category, subcategory and price are
- * required together through `$all`); the widget's own quick filter unions its category and price
- * chips into one `$in`, which reads as "any of these".
- */
-const searchLocationRecords = (options, byId, callback) => {
-  if (!requireStringParams(options, [], callback)) return;
-  const paging = readPaging(options, callback);
-  if (!paging) return;
+const ensureSdkService = (name, callback) => {
+  const service = SDK_SERVICES[name];
+  if (service.ready()) return callback(null);
+  if (typeof document === 'undefined') return callback(new Error(`The ${name} service is not available here`));
 
-  if (isGiven(options.sortBy) && !SORTS[options.sortBy]) {
-    return callback(new Error(`sortBy must be one of: ${Object.keys(SORTS).join(', ')}`), undefined);
-  }
-  if (isGiven(options.priceRange) && !isValidPriceRange(options.priceRange)) {
-    return callback(new Error('priceRange must be a whole number from 1 to 4'), undefined);
-  }
-  const moment = readOpeningMoment(options, callback);
-  if (!moment) return;
+  const sdkScript = Array.prototype.slice.call(document.getElementsByTagName('script'))
+    .find((script) => /buildfire\.min\.js/.test(script.src || ''));
+  if (!sdkScript) return callback(new Error(`The ${name} service is not available here`));
 
-  resolveLocationCategories(byId, locationCategoryHandles(options, byId), (catErr, categories) => {
-    if (catErr) return callback(catErr, undefined);
-
-    const withCreator = (next) => (isGiven(options.createdByUserId)
-      ? resolveUserId(options.createdByUserId, next)
-      : next(null, null));
-
-    withCreator((userErr, creatorId) => {
-      if (userErr) return callback(userErr, undefined);
-
-      const filter = {};
-      const requiredTags = [];
-      if (isGiven(options.title)) filter['_buildfire.index.string1'] = options.title.trim().toLowerCase();
-      if (isGiven(options.text)) {
-        filter['_buildfire.index.text'] = { $regex: escapeRegex(options.text.trim().toLowerCase()), $options: 'i' };
-      }
-      if (categories) {
-        requiredTags.push(...categories.main.map((id) => `c_${id}`));
-        requiredTags.push(...categories.subcategories.map((id) => `s_${id}`));
-      }
-      if (isGiven(options.priceRange)) requiredTags.push(`pr_${options.priceRange}`);
-      if (requiredTags.length) filter['_buildfire.index.array1.string1'] = { $all: requiredTags };
-      // introSearchService's "My Locations" matches createdBy.userId, not createdBy._id.
-      if (creatorId) filter['$json.createdBy.userId'] = creatorId;
-      if (options.pinnedOnly === true) filter['_buildfire.index.number1'] = { $in: [1, 2, 3] };
-      if (options.openNow === true) {
-        // Mirrors buildOpenNowCriteria in src/widget/services/search/shared.js, with the $json. prefix a publicData filter needs.
-        filter[`$json.openingHours.days.${moment.dayName}.intervals`] = {
-          $elemMatch: { from: { $lte: moment.time }, to: { $gt: moment.time } }
-        };
-        filter[`$json.openingHours.days.${moment.dayName}.active`] = true;
-      }
-
-      let sort = SORTS[options.sortBy || 'alphabetical'];
-      // Pinned locations are shown in pin order unless the caller picked a sort.
-      if (options.pinnedOnly === true && !isGiven(options.sortBy)) sort = { '_buildfire.index.number1': 1 };
-
-      const searchOptions = {
-        filter, sort, page: paging.page, pageSize: paging.pageSize, recordCount: true
-      };
-      buildfire.publicData.search(searchOptions, LOCATIONS_TAG, (err, response) => {
-        if (err) return callback(err, undefined);
-        const { records, total } = readSearchResponse(response);
-        const locations = records.map((r) => toLocationSummary(r.id, r.data, moment));
-        const result = { locations, page: paging.page };
-        if (typeof total === 'number') {
-          result.total = total;
-          result.hasMore = (paging.page + 1) * paging.pageSize < total;
-        }
-        callback(null, result);
-      });
-    });
-  });
+  const script = document.createElement('script');
+  script.src = sdkScript.src.replace(/buildfire\.min\.js.*$/, service.path);
+  script.onload = () => callback(service.ready() ? null : new Error(`The ${name} service did not load`));
+  script.onerror = () => callback(new Error(`The ${name} service could not be loaded`));
+  document.head.appendChild(script);
 };
 
-/**
- * Shared by getLocation and getLocationByLocationId: one location with its category and
- * subcategory titles resolved and whether it is open at the given moment.
- * @param {object} options
- * @param {function(function)} findLocation - findLocationByTitle(options) or findLocationById(options).
- * @param {function(Error=, object=)} callback - (error, location)
- */
-const readLocation = (options, findLocation, callback) => {
-  const moment = readOpeningMoment(options, callback);
-  if (!moment) return;
+// ---------------------------------------------------------------------------
+// Param checks (validation only, no I/O). Each returns an error message or null.
+// ---------------------------------------------------------------------------
 
-  findLocation((err, location) => {
-    if (err) return callback(err, undefined);
-
-    const categoryIds = (location.data.categories && location.data.categories.main) || [];
-    const subcategoryIds = (location.data.categories && location.data.categories.subcategories) || [];
-    const result = { ...toLocationSummary(location.id, location.data, moment), categories: [], subcategories: [] };
-    if (!categoryIds.length) return callback(null, result);
-
-    // Walks the live categories page by page, as CategoriesController.getAllCategories does;
-    // ids of deleted categories stay on locations and are simply not reported.
-    const collect = (page) => buildfire.publicData.search({
-      filter: { '_buildfire.index.date1': { $type: 10 } },
-      sort: { '_buildfire.index.string1': 1 },
-      pageSize: MAX_PAGE_SIZE,
-      page
-    }, CATEGORIES_TAG, (catErr, response) => {
-      if (catErr) return callback(catErr, undefined);
-      const { records } = readSearchResponse(response);
-      records.forEach((r) => {
-        if (categoryIds.includes(r.id)) result.categories.push(r.data.title);
-        (r.data.subcategories || []).forEach((s) => {
-          if (s && subcategoryIds.includes(s.id)) result.subcategories.push(s.title);
-        });
-      });
-      if (records.length < MAX_PAGE_SIZE) return callback(null, result);
-      collect(page + 1);
-    });
-    collect(0);
-  });
-};
-
-/**
- * How a write operation names the record it acts on. A basic operation names a location or
- * category by its exact title (resolved by search, see resolveLocation / resolveCategory); its
- * advanced alternative by its record id (checked to exist). `param` is the option that carries it.
- */
-const LOCATION_BY_TITLE = { param: 'title', find: (o, cb) => resolveLocation(o.title, cb) };
-const LOCATION_BY_ID = { param: 'locationId', find: (o, cb) => requireLocationById(o.locationId, cb) };
-const CATEGORY_BY_TITLE = { param: 'title', find: (o, cb) => resolveCategory(o.title, cb) };
-const CATEGORY_BY_ID = { param: 'categoryId', find: (o, cb) => resolveCategoryById(o.categoryId, cb) };
-
-/**
- * Every write a single operation and its batch share is one "action":
- *   check(options)             → a problem message, or null. No I/O.
- *   resolve(options, cb)       → cb(error, found): every lookup the write needs (handles, categories, users).
- *   keys(options, found)       → strings naming what the entry acts on, so a batch can refuse repeats.
- *   apply(options, found, cb)  → cb(error, result): the write and every side effect it has.
- *   idOf(result, found)        → the id of the record written, for a batch's per-entry outcome.
- * The single operation runs check → resolve → apply. Its batch runs every check, then every resolve,
- * then each apply in turn (runBatch), so each entry gets exactly what the single operation does.
- */
-const runAction = (action, options, callback) => {
-  if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-  const problem = action.check(options);
-  if (problem) return callback(new Error(problem), undefined);
-  action.resolve(options, (err, found) => {
-    if (err) return callback(err, undefined);
-    action.apply(options, found, callback);
-  });
-};
-
-/**
- * The batch form of an action: up to MAX_BATCH_SIZE entries, each shaped like the single
- * operation's params, under options[listName].
- *   1. Every entry passes the single operation's checks, or the call fails naming each bad entry
- *      and nothing is written.
- *   2. Every entry's lookups succeed (no missing or ambiguous title, no unknown id), and no record
- *      is named twice, or the call fails naming the entries and nothing is written.
- *   3. Each entry is applied in turn through the single operation's own apply. A failed write is
- *      recorded in that entry's outcome and the rest still run.
- * @param {function(Error=, object=)} callback - (error, { [listName]: [{ index, id, error }], succeeded, failed })
- */
-const runBatch = (action, options, listName, callback) => {
-  if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-  const entries = options && options[listName];
-  if (!Array.isArray(entries) || entries.length < 1 || entries.length > MAX_BATCH_SIZE) {
-    return callback(new Error(`${listName} must be a list of 1 to ${MAX_BATCH_SIZE} entries`), undefined);
-  }
-
-  const invalid = entries
-    .map((entry, index) => {
-      const problem = action.check(entry);
-      return problem ? `entry ${index}: ${problem}` : null;
-    })
-    .filter(Boolean);
-  if (invalid.length) return callback(new Error(`Invalid entries: ${invalid.join('; ')}`), undefined);
-
-  const found = [];
-  const unresolved = [];
-
-  const applyAll = () => {
-    const problems = unresolved.filter(Boolean);
-    if (problems.length) return callback(new Error(`Could not resolve: ${problems.join('; ')}`), undefined);
-
-    const seen = {};
-    const repeated = [];
-    entries.forEach((entry, index) => {
-      action.keys(entry, found[index]).forEach((key) => {
-        if (key in seen) repeated.push(`entries ${seen[key]} and ${index}`);
-        else seen[key] = index;
-      });
-    });
-    if (repeated.length) {
-      return callback(new Error(`The same record is listed more than once: ${repeated.join('; ')}`), undefined);
-    }
-
-    const outcomes = [];
-    const record = (index, err, result) => {
-      outcomes.push({
-        index,
-        id: err ? null : action.idOf(result, found[index]),
-        error: err ? (err.message || String(err)) : null
-      });
-    };
-    const applyNext = (index) => {
-      if (index === entries.length) {
-        const failed = outcomes.filter((o) => o.error).length;
-        return callback(null, { [listName]: outcomes, succeeded: outcomes.length - failed, failed });
-      }
-      let settled = false;
-      const next = (err, result) => {
-        if (settled) return;
-        settled = true;
-        record(index, err, result);
-        applyNext(index + 1);
-      };
-      try {
-        action.apply(entries[index], found[index], next);
-      } catch (e) {
-        next(e);
-      }
-    };
-    applyNext(0);
-  };
-
-  let pending = entries.length;
-  entries.forEach((entry, index) => {
-    action.resolve(entry, (err, result) => {
-      if (err) unresolved[index] = `entry ${index}: ${err.message || err}`;
-      else found[index] = result;
-      pending -= 1;
-      if (pending === 0) applyAll();
-    });
-  });
-};
-
-/** The problem with a category / subcategory pair given by title or id, or null. */
-const categoryHandlesProblem = (handles) => {
-  const {
-    category, subcategory, categoryName, subcategoryName
-  } = handles;
-  const notText = [[categoryName, category], [subcategoryName, subcategory]].find(([, v]) => isGiven(v) && typeof v !== 'string');
-  if (notText) return `${notText[0]} must be text`;
-  if (!isGiven(category) && isGiven(subcategory)) return `${subcategoryName} needs ${categoryName}`;
+const checkString = (entry, name, { required = false } = {}) => {
+  const value = entry[name];
+  if (!isGiven(value)) return required ? `Missing required parameter: ${name}` : null;
+  if (typeof value !== 'string') return `${name} must be text`;
+  if (required && !value.trim()) return `Missing required parameter: ${name}`;
   return null;
 };
 
-/**
- * Shared by createLocation, createLocationByCategoryId and their batches; they differ only in
- * whether the category and subcategory are given by title or by id.
- * The creator is left unset: createdBy grants edit rights in accessManager.canEditLocations,
- * and a caller outside the app is not an app user, so the location is created as the app.
- * In a batch, two entries with the same title are refused, since the title is the handle every
- * basic operation names a location by.
- */
-const locationCreation = (byId) => ({
-  check: (options) => {
-    const missing = findMissingStringParam(options, ['title', 'description', 'address', 'listImage']);
-    if (missing) return missing;
-    if (!isFiniteNumber(options.lat) || options.lat < -90 || options.lat > 90) return 'lat must be a number from -90 to 90';
-    if (!isFiniteNumber(options.lng) || options.lng < -180 || options.lng > 180) return 'lng must be a number from -180 to 180';
-    if (isGiven(options.priceRange) && !isValidPriceRange(options.priceRange)) return 'priceRange must be a whole number from 1 to 4';
-    if (isGiven(options.currency) && !CURRENCIES.includes(options.currency)) return `currency must be one of: ${CURRENCIES.join(', ')}`;
-    return categoryHandlesProblem(locationCategoryHandles(options, byId));
-  },
-  resolve: (options, cb) => resolveLocationCategories(byId, locationCategoryHandles(options, byId), (err, categories) => {
-    if (err) return cb(err, undefined);
-    cb(null, { categories });
-  }),
-  keys: (options) => [`title:${options.title.trim().toLowerCase()}`],
-  apply: (options, found, callback) => {
-    const now = new Date();
-    // Same fields and defaults as new Location(...).toJSON() in src/widget/js/global/data/Location.js.
-    const doc = {
-      clientId: generateUUID(),
-      title: options.title.trim(),
-      subtitle: isGiven(options.subtitle) ? options.subtitle : null,
-      pinIndex: null,
-      address: options.address,
-      formattedAddress: options.address,
-      addressAlias: isGiven(options.addressAlias) ? options.addressAlias : null,
-      subscribers: [],
-      coordinates: { lat: options.lat, lng: options.lng },
-      marker: {
-        type: 'pin', image: null, color: null, base64Image: null
-      },
-      categories: found.categories || { main: [], subcategories: [] },
-      settings: {
-        showCategory: true, showOpeningHours: false, showPriceRange: false, showStarRating: false
-      },
-      openingHours: defaultOpeningHours(),
-      images: [],
-      listImage: options.listImage,
-      description: options.description,
-      wysiwygSource: 'control',
-      views: 0,
-      price: { range: isGiven(options.priceRange) ? options.priceRange : 1, currency: isGiven(options.currency) ? options.currency : '$' },
-      rating: { total: 0, count: 0, average: 0 },
-      bookmarksCount: 0,
-      actionItems: [],
-      editingPermissions: { active: false, editors: [], tags: [] },
-      createdOn: now,
-      createdBy: null,
-      lastUpdatedOn: now,
-      lastUpdatedBy: null,
-      deletedOn: null,
-      deletedBy: null,
-      isActive: 1,
-      additionalFields: { quickActions: [], content: [] }
-    };
-    doc._buildfire = buildLocationIndex(doc);
-
-    buildfire.publicData.insert(doc, LOCATIONS_TAG, (err, record) => {
-      if (err) return callback(err, undefined);
-      const data = record.data || doc;
-      sendContractEvent('locationCreated', { locationId: record.id, title: data.title });
-      registerAnalyticsEvent(`${data.title} (Viewed)`, `locations_${record.id}_viewed`);
-      const deeplinkRegistered = registerDeeplink(record.id, data);
-      const searchIndexed = saveSearchIndex(record.id, data);
-      callback(null, {
-        ...toLocationSummary(record.id, data, resolveOpeningMoment(undefined, undefined)),
-        deeplinkRegistered,
-        searchIndexed
-      });
-    });
-  },
-  idOf: (result) => result.id
-});
-
-/**
- * The changes an update asked for, validated: { problem } when invalid, otherwise
- * { problem: null, changes, categoryHandles, categoryGiven, categoryClear }. Pure, so a batch can
- * check every entry before any lookup.
- * Subtitle, address alias and categories are the fields the edit form lets people empty (its
- * locationInputValidation requires the rest), so only they can be cleared. The form stores an
- * emptied subtitle or alias as '' (the input's value), and a location with no category as
- * { main: [], subcategories: [] }, so a cleared one is stored the same way.
- * @param {boolean} byId - whether the new category is given by newCategoryId / newSubcategoryId
- *   (advanced) rather than by newCategoryTitle / newSubcategoryTitle (basic).
- */
-const readLocationChanges = (options, byId) => {
-  const fail = (problem) => ({ problem });
-  const cleared = findClearedProblem(options, [
-    'newTitle', 'newDescription', 'newAddress', 'newLat', 'newLng', 'newListImage', 'newPriceRange', 'newCurrency'
-  ]);
-  if (cleared) return fail(cleared);
-  const textParams = ['newTitle', 'newSubtitle', 'newDescription', 'newAddressAlias', 'newListImage', 'newCurrency'];
-  const notText = textParams.find((name) => isGiven(options[name]) && typeof options[name] !== 'string');
-  if (notText) return fail(`${notText} must be text`);
-
-  const changes = {};
-  if (isGiven(options.newTitle)) {
-    if (!options.newTitle.trim()) return fail('newTitle cannot be blank');
-    changes.title = options.newTitle.trim();
+const checkNumber = (entry, name, {
+  required = false, min, max, integer = false
+} = {}) => {
+  const value = entry[name];
+  if (!isGiven(value)) return required ? `Missing required parameter: ${name}` : null;
+  if (typeof value !== 'number' || Number.isNaN(value)) return `${name} must be a number`;
+  if (integer && !Number.isInteger(value)) return `${name} must be a whole number`;
+  if ((min !== undefined && value < min) || (max !== undefined && value > max)) {
+    return `${name} must be between ${min} and ${max}`;
   }
-  if (options.newSubtitle !== undefined) changes.subtitle = isCleared(options.newSubtitle) ? '' : options.newSubtitle;
-  if (isGiven(options.newDescription)) changes.description = options.newDescription;
-  if (options.newAddressAlias !== undefined) changes.addressAlias = isCleared(options.newAddressAlias) ? '' : options.newAddressAlias;
-  if (isGiven(options.newListImage)) changes.listImage = options.newListImage;
-  if (isGiven(options.newCurrency)) {
-    if (!CURRENCIES.includes(options.newCurrency)) return fail(`newCurrency must be one of: ${CURRENCIES.join(', ')}`);
-    changes.currency = options.newCurrency;
-  }
-  if (isGiven(options.newPriceRange)) {
-    if (!isValidPriceRange(options.newPriceRange)) return fail('newPriceRange must be a whole number from 1 to 4');
-    changes.priceRange = options.newPriceRange;
-  }
-
-  // The address and its coordinates change together, as they do when a new address is picked on the map.
-  const addressParts = [options.newAddress, options.newLat, options.newLng].filter(isGiven).length;
-  if (addressParts && addressParts !== 3) return fail('newAddress, newLat and newLng must be given together');
-  if (addressParts) {
-    if (typeof options.newAddress !== 'string') return fail('newAddress must be text');
-    if (!isFiniteNumber(options.newLat) || options.newLat < -90 || options.newLat > 90) return fail('newLat must be a number from -90 to 90');
-    if (!isFiniteNumber(options.newLng) || options.newLng < -180 || options.newLng > 180) return fail('newLng must be a number from -180 to 180');
-    changes.address = options.newAddress;
-  }
-  const [categoryName, subcategoryName] = byId ? ['newCategoryId', 'newSubcategoryId'] : ['newCategoryTitle', 'newSubcategoryTitle'];
-  const category = options[categoryName];
-  const subcategory = options[subcategoryName];
-  if (isCleared(category) && isGiven(subcategory)) return fail(`${subcategoryName} needs ${categoryName}`);
-  // Clearing the category clears its subcategory with it; clearing only the subcategory keeps the
-  // category. A cleared handle is never looked up.
-  let categoryClear = null;
-  if (isCleared(category)) categoryClear = 'all';
-  else if (isCleared(subcategory) && category === undefined) categoryClear = 'subcategories';
-  const categoryHandles = {
-    category: isCleared(category) ? undefined : category,
-    subcategory: isCleared(subcategory) ? undefined : subcategory,
-    categoryName,
-    subcategoryName
-  };
-  const categoryGiven = categoryClear !== null || isGiven(categoryHandles.category) || isGiven(categoryHandles.subcategory);
-  if (!Object.keys(changes).length && !categoryGiven) return fail('Pass at least one field to change');
-  const categoryProblem = categoryHandlesProblem(categoryHandles);
-  if (categoryProblem) return fail(categoryProblem);
-
-  return {
-    problem: null, changes, categoryHandles, categoryGiven, categoryClear
-  };
+  return null;
 };
 
-/**
- * Shared by updateLocation, updateLocationByLocationId and their batches. The edit forms save the
- * whole document, so this reads the record, applies only the changes the caller passed, rebuilds
- * the index the same way Location.toJSON() does and writes it back, then refreshes the deeplink
- * and search index (best effort) and fires locationUpdated — the same steps as updateLocation in
- * editView.js and the control panel's controller.
- * @param {{ param: string, find: function }} handle - LOCATION_BY_TITLE or LOCATION_BY_ID.
- * @param {boolean} byId - see readLocationChanges.
- */
-const locationUpdate = (handle, byId) => ({
-  check: (options) => findMissingStringParam(options, [handle.param]) || readLocationChanges(options, byId).problem,
-  resolve: (options, cb) => handle.find(options, (err, location) => {
-    if (err) return cb(err, undefined);
-    resolveLocationCategories(byId, readLocationChanges(options, byId).categoryHandles, (catErr, categories) => {
-      if (catErr) return cb(catErr, undefined);
-      cb(null, { location, categories });
-    });
-  }),
-  keys: (options, found) => [`location:${found.location.id}`],
-  apply: (options, found, callback) => {
-    const { changes, categoryClear } = readLocationChanges(options, byId);
-    const { location, categories } = found;
-    const doc = { ...location.data };
-    delete doc._buildfire;
-    if (changes.title) doc.title = changes.title;
-    if ('subtitle' in changes) doc.subtitle = changes.subtitle;
-    if ('description' in changes) doc.description = changes.description;
-    if ('addressAlias' in changes) doc.addressAlias = changes.addressAlias;
-    if ('listImage' in changes) doc.listImage = changes.listImage;
-    if ('address' in changes) {
-      doc.address = changes.address;
-      doc.formattedAddress = changes.address;
-      doc.coordinates = { lat: options.newLat, lng: options.newLng };
-    }
-    doc.price = { range: 1, currency: '$', ...(doc.price || {}) };
-    if ('priceRange' in changes) doc.price.range = changes.priceRange;
-    if ('currency' in changes) doc.price.currency = changes.currency;
-    if (categoryClear === 'all') doc.categories = { main: [], subcategories: [] };
-    else if (categoryClear === 'subcategories') doc.categories = { main: [], ...(doc.categories || {}), subcategories: [] };
-    else if (categories) doc.categories = categories;
-    doc.categories = doc.categories || { main: [], subcategories: [] };
-    doc.coordinates = doc.coordinates || { lat: null, lng: null };
-    doc.views = Number.isNaN(parseInt(doc.views, 10)) ? 0 : parseInt(doc.views, 10);
-    doc.pinIndex = doc.pinIndex || null;
-    doc.lastUpdatedOn = new Date();
-    doc.lastUpdatedBy = null;
-    doc._buildfire = buildLocationIndex(doc);
-
-    buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
-      if (updateErr) return callback(updateErr, undefined);
-      sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
-      const deeplinkRegistered = registerDeeplink(location.id, doc);
-      const searchIndexed = saveSearchIndex(location.id, doc);
-      callback(null, {
-        ...toLocationSummary(location.id, doc, resolveOpeningMoment(undefined, undefined)),
-        deeplinkRegistered,
-        searchIndexed
-      });
-    });
-  },
-  idOf: (result, found) => found.location.id
-});
-
-/**
- * Writes a location back with a new pin position, the way the control panel's pin button and the
- * Introduction screen's pinned list do (a full-record update), and fires locationUpdated.
- * @param {function(Error=)} callback
- */
-const writeLocationPin = (location, pinIndex, callback) => {
-  const doc = { ...location.data };
-  delete doc._buildfire;
-  doc.pinIndex = pinIndex;
-  doc.categories = doc.categories || { main: [], subcategories: [] };
-  doc.coordinates = doc.coordinates || { lat: null, lng: null };
-  doc.price = { range: 1, currency: '$', ...(doc.price || {}) };
-  doc.views = Number.isNaN(parseInt(doc.views, 10)) ? 0 : parseInt(doc.views, 10);
-  doc.lastUpdatedOn = new Date();
-  doc.lastUpdatedBy = null;
-  doc._buildfire = buildLocationIndex(doc);
-  buildfire.publicData.update(location.id, doc, LOCATIONS_TAG, (updateErr) => {
-    if (updateErr) return callback(updateErr);
-    sendContractEvent('locationUpdated', { locationId: location.id, title: doc.title });
-    callback(null, doc);
-  });
+const checkBoolean = (entry, name) => {
+  const value = entry[name];
+  if (!isGiven(value)) return null;
+  return typeof value === 'boolean' ? null : `${name} must be true or false`;
 };
 
-/**
- * Shared by updateLocationPin, updateLocationPinByLocationId and their batches: at most three
- * locations are pinned, a newly pinned one takes the next position (pinned count + 1, as the
- * control panel assigns it), and unpinning clears the position without renumbering the others.
- * In a batch the pinned count is read again for each entry, so the three-pin limit holds across it.
- */
-const locationPin = (handle) => ({
-  check: (options) => findMissingStringParam(options, [handle.param])
-    || (typeof options.isPinned !== 'boolean' ? 'isPinned must be true or false' : null),
-  resolve: (options, cb) => handle.find(options, (err, location) => {
-    if (err) return cb(err, undefined);
-    cb(null, { location });
-  }),
-  keys: (options, found) => [`location:${found.location.id}`],
-  apply: (options, found, callback) => {
-    const { location } = found;
-    const current = location.data.pinIndex || null;
-    const writePin = (pinIndex) => writeLocationPin(location, pinIndex, (err, doc) => {
-      if (err) return callback(err, undefined);
-      callback(null, { title: doc.title, isPinned: pinIndex !== null, pinPosition: pinIndex });
-    });
+const checkSelect = (entry, name, values, { required = false } = {}) => {
+  const value = entry[name];
+  if (!isGiven(value)) return required ? `Missing required parameter: ${name}` : null;
+  return values.indexOf(value) === -1 ? `${name} must be one of: ${values.join(', ')}` : null;
+};
 
-    if (!options.isPinned) {
-      if (current === null) return callback(null, { title: location.data.title, isPinned: false, pinPosition: null });
-      return writePin(null);
-    }
-    if (current !== null) return callback(null, { title: location.data.title, isPinned: true, pinPosition: current });
+const checkImage = (entry, name, { required = false } = {}) => {
+  const value = entry[name];
+  if (!isGiven(value)) return required ? `Missing required parameter: ${name}` : null;
+  return isNonEmptyString(value) ? null : `${name} must be an image URL`;
+};
 
-    buildfire.publicData.search({
-      filter: { '_buildfire.index.number1': { $in: [1, 2, 3] } }, pageSize: MAX_PAGE_SIZE, recordCount: true
-    }, LOCATIONS_TAG, (searchErr, response) => {
-      if (searchErr) return callback(searchErr, undefined);
-      const { records, total } = readSearchResponse(response);
-      const pinnedCount = typeof total === 'number' ? total : records.length;
-      if (pinnedCount >= MAX_PINNED_LOCATIONS) {
-        return callback(new Error(`${MAX_PINNED_LOCATIONS} locations are already pinned; unpin one first`), undefined);
+const checkImageList = (entry, name) => {
+  const value = entry[name];
+  if (!isGiven(value)) return null;
+  if (!Array.isArray(value)) return `${name} must be a list of image URLs`;
+  return value.every(isNonEmptyString) ? null : `${name} must hold only image URLs`;
+};
+
+const ACTION_REQUIREMENTS = {
+  linkToWeb: 'url', sendEmail: 'email', callNumber: 'phoneNumber', sendSMS: 'phoneNumber', navigateToAddress: 'address'
+};
+const checkActionItem = (item) => {
+  if (!isObject(item) || !isNonEmptyString(item.action)) return 'each action item needs an action';
+  const needed = ACTION_REQUIREMENTS[item.action];
+  if (needed && !isGiven(item[needed])) return `a ${item.action} action item needs ${needed}`;
+  return null;
+};
+const checkActionList = (entry, name) => {
+  const value = entry[name];
+  if (!isGiven(value)) return null;
+  if (!Array.isArray(value)) return `${name} must be a list of action items`;
+  const problem = value.map(checkActionItem).find(Boolean);
+  return problem ? `${name}: ${problem}` : null;
+};
+
+/** For a nullable update param: null clears it, '' too when string-valued; anything else must pass check. */
+const checkNullable = (entry, name, check, { stringValued = true } = {}) => {
+  const value = entry[name];
+  if (value === null || (stringValued && value === '')) return null;
+  if (value === '' && !stringValued) return `${name} can only be cleared with null`;
+  return check(entry, name);
+};
+
+/** A non-nullable update param passed as null or '' is refused, never ignored (rule 25). */
+const findClearedProblem = (entry, names) => {
+  const cleared = names.find((name) => isCleared(entry[name]));
+  return cleared ? `${cleared} cannot be removed; pass a value or leave it out` : null;
+};
+
+const firstProblem = (checks) => checks.find(Boolean) || null;
+
+const requireAnyGiven = (entry, names) => (names.some((name) => isGiven(entry[name]))
+  ? null
+  : `Pass at least one of: ${names.join(', ')}`);
+
+const RGB_COLOR = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\)$/i;
+
+// ---------------------------------------------------------------------------
+// Opening hours: "HH:MM-HH:MM, HH:MM-HH:MM" or "closed", stored as times of day on 1970-01-01 UTC
+// (mirrors src/utils/datetime.js convertTimeToDate / convertDateToTime).
+// ---------------------------------------------------------------------------
+
+const timeToDate = (time) => {
+  const [hour, min] = time.split(':').map(Number);
+  return new Date(Date.UTC(1970, 0, 1, hour, min));
+};
+
+const dateToTime = (date) => {
+  const time = new Date(date);
+  const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+  return `${pad(time.getUTCHours())}:${pad(time.getUTCMinutes())}`;
+};
+
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** @returns {{ closed: boolean, intervals: Array<{from: Date, to: Date}> } | { error: string }} */
+const parseDayHours = (name, text) => {
+  if (typeof text !== 'string' || !text.trim()) return { error: `${name} must be like "08:00-20:00" or "closed"` };
+  if (text.trim().toLowerCase() === 'closed') return { closed: true, intervals: [] };
+
+  const intervals = [];
+  const parts = text.split(',').map((part) => part.trim()).filter(Boolean);
+  for (let i = 0; i < parts.length; i += 1) {
+    const [from, to] = parts[i].split('-').map((s) => (s || '').trim());
+    if (!TIME.test(from) || !TIME.test(to)) return { error: `${name} must be like "08:00-20:00" or "closed"` };
+    // Control panel validateTimeInterval: an end earlier than the start is refused.
+    if (timeToDate(from).getTime() > timeToDate(to).getTime()) return { error: `${name}: ${parts[i]} ends before it starts` };
+    intervals.push({ from: timeToDate(from), to: timeToDate(to) });
+  }
+  // Widget validateDayOverlap / control validateOpeningHoursDuplication: intervals of one day may not overlap.
+  for (let i = 0; i < intervals.length; i += 1) {
+    for (let j = i + 1; j < intervals.length; j += 1) {
+      if (intervals[i].from < intervals[j].to && intervals[j].from < intervals[i].to) {
+        return { error: `${name}: intervals overlap` };
       }
-      writePin(pinnedCount + 1);
-    });
-  },
-  idOf: (result, found) => found.location.id
-});
-
-/**
- * Shared by deleteLocation, deleteLocationByLocationId and their batches: the record is
- * hard-deleted (publicData.delete, as both the control panel and the widget's report-abuse flow
- * do), its deeplink is unregistered and its search-index entry removed (best effort, as the
- * plugin's Promise.allSettled chain treats them), and locationDeleted fires.
- */
-const locationRemoval = (handle) => ({
-  check: (options) => findMissingStringParam(options, [handle.param]),
-  resolve: (options, cb) => handle.find(options, (err, location) => {
-    if (err) return cb(err, undefined);
-    cb(null, { location });
-  }),
-  keys: (options, found) => [`location:${found.location.id}`],
-  apply: (options, found, callback) => {
-    const { location } = found;
-    buildfire.publicData.delete(location.id, LOCATIONS_TAG, (deleteErr) => {
-      if (deleteErr) return callback(deleteErr, undefined);
-      sendContractEvent('locationDeleted', { locationId: location.id });
-      const deeplinkRemoved = unregisterDeeplink(location.id);
-      const searchIndexRemoved = deleteSearchIndex(location.id);
-      callback(null, {
-        deleted: true, title: location.data.title, deeplinkRemoved, searchIndexRemoved
-      });
-    });
-  },
-  idOf: (result, found) => found.location.id
-});
-
-/**
- * Shared by deleteLocationSubscriber, deleteLocationSubscriberByLocationId and their batches: the
- * same `$pull` from `subscribers` as the widget's unfollow button, then locationUnsubscribed.
- * In a batch the same user on the same location twice is refused.
- */
-const locationSubscriberRemoval = (handle) => ({
-  check: (options) => findMissingStringParam(options, [handle.param, 'userId']),
-  resolve: (options, cb) => resolveUserId(options.userId, (userErr, userId) => {
-    if (userErr) return cb(userErr, undefined);
-    handle.find(options, (err, location) => {
-      if (err) return cb(err, undefined);
-      cb(null, { location, userId });
-    });
-  }),
-  keys: (options, found) => [`subscriber:${found.location.id}:${found.userId}`],
-  apply: (options, found, callback) => {
-    const { location, userId } = found;
-    const wasSubscribed = (location.data.subscribers || []).includes(userId);
-    if (!wasSubscribed) return callback(null, { title: location.data.title, userId, wasSubscribed: false });
-
-    buildfire.publicData.update(location.id, { $pull: { subscribers: userId } }, LOCATIONS_TAG, (updateErr) => {
-      if (updateErr) return callback(updateErr, undefined);
-      sendContractEvent('locationUnsubscribed', { locationId: location.id, userId });
-      callback(null, { title: location.data.title, userId, wasSubscribed: true });
-    });
-  },
-  idOf: (result, found) => found.location.id
-});
-
-/** Refuses a title a live category already has: categories are named by title in every basic operation. */
-const requireFreeCategoryTitle = (title, callback) => resolveCategory(title, (lookupErr) => {
-  if (!lookupErr) return callback(new Error(`A category titled "${title}" already exists`));
-  if (!/^No category titled/.test(lookupErr.message)) return callback(lookupErr);
-  callback(null);
-});
-
-/** The comma-separated subcategory titles a create or update was given, as new subcategory records. */
-const newSubcategories = (titles) => (isGiven(titles) ? String(titles).split(',') : [])
-  .map((t) => t.trim())
-  .filter(Boolean)
-  .map((t) => ({
-    id: generateUUID(), title: t, iconUrl: null, iconClassName: null
-  }));
-
-/**
- * Shared by createCategory and createCategories: the control panel's "Add Category" form — a
- * title, an optional icon and optional subcategories given as one comma-separated list (the same
- * split the category CSV import does), each subcategory with a fresh id, then the category's
- * analytics events (best effort), as CategoriesController.createCategory registers them.
- * Assumption: a title already used by a live category is refused (and, in a batch, a title given
- * twice). The control panel does not check, but categories are named by title in every basic
- * operation, so a duplicate would make both unaddressable there.
- */
-const categoryCreation = () => ({
-  check: (options) => findMissingStringParam(options, ['title']),
-  resolve: (options, cb) => requireFreeCategoryTitle(options.title.trim(), (err) => cb(err, err ? undefined : {})),
-  keys: (options) => [`title:${options.title.trim().toLowerCase()}`],
-  apply: (options, found, callback) => {
-    const title = options.title.trim();
-    const subcategories = newSubcategories(options.subcategoryTitles);
-    const now = new Date();
-    const doc = {
-      title,
-      iconUrl: isGiven(options.iconUrl) ? options.iconUrl : null,
-      iconClassName: null,
-      subcategories,
-      quickAccess: 0,
-      createdOn: now,
-      createdBy: null,
-      lastUpdatedOn: now,
-      lastUpdatedBy: null,
-      deletedOn: null,
-      deletedBy: null,
-      isActive: 1
-    };
-    doc._buildfire = buildCategoryIndex(doc);
-
-    buildfire.publicData.insert(doc, CATEGORIES_TAG, (err, record) => {
-      if (err) return callback(err, undefined);
-      registerAnalyticsEvent(`${title} (Category Selected)`, `categories_${record.id}_selected`);
-      subcategories.forEach((s) => registerAnalyticsEvent(`${s.title} (Subcategory Selected)`, `subcategories_${s.id}_selected`));
-      callback(null, {
-        id: record.id, title, iconUrl: doc.iconUrl, subcategories: subcategories.map((s) => s.title)
-      });
-    });
-  },
-  idOf: (result) => result.id
-});
-
-/** The trimmed new title an update asked for, or '' when none. */
-const readNewCategoryTitle = (options) => (isGiven(options.newTitle) ? String(options.newTitle).trim() : '');
-
-/**
- * Shared by updateCategory, updateCategoryByCategoryId and their batches: renames the category,
- * changes its icon and/or appends subcategories (comma-separated), leaving everything else as
- * stored; the control panel saves the whole document, so this reads it, applies the changes and
- * writes it back with a new lastUpdatedOn. A new title another live category already has is
- * refused; in a batch, two entries renaming to the same title are refused too.
- */
-const categoryUpdate = (handle) => ({
-  check: (options) => {
-    const missing = findMissingStringParam(options, [handle.param]);
-    if (missing) return missing;
-    // A category always has a title and an icon (the icon picker only swaps one for another), and
-    // addSubcategoryTitles adds rather than sets, so none of them can be cleared.
-    const cleared = findClearedProblem(options, ['newTitle', 'newIconUrl', 'addSubcategoryTitles']);
-    if (cleared) return cleared;
-    if (!readNewCategoryTitle(options) && !isGiven(options.newIconUrl) && !newSubcategories(options.addSubcategoryTitles).length) {
-      return 'Pass at least one of newTitle, newIconUrl or addSubcategoryTitles';
     }
-    return null;
-  },
-  resolve: (options, cb) => handle.find(options, (err, category) => {
-    if (err) return cb(err, undefined);
-    const newTitle = readNewCategoryTitle(options);
-    if (!newTitle || newTitle.toLowerCase() === category.data.title.toLowerCase()) return cb(null, { category });
-    requireFreeCategoryTitle(newTitle, (clashErr) => cb(clashErr, clashErr ? undefined : { category }));
-  }),
-  keys: (options, found) => {
-    const newTitle = readNewCategoryTitle(options);
-    const keys = [`category:${found.category.id}`];
-    if (newTitle && newTitle.toLowerCase() !== found.category.data.title.toLowerCase()) keys.push(`title:${newTitle.toLowerCase()}`);
-    return keys;
-  },
-  apply: (options, found, callback) => {
-    const { category } = found;
-    const newTitle = readNewCategoryTitle(options);
-    const added = newSubcategories(options.addSubcategoryTitles);
-    const doc = { ...category.data };
-    delete doc._buildfire;
-    if (newTitle) doc.title = newTitle;
-    if (isGiven(options.newIconUrl)) {
-      doc.iconUrl = options.newIconUrl;
-      doc.iconClassName = null;
-    }
-    doc.subcategories = [...(doc.subcategories || []), ...added];
-    doc.quickAccess = [0, 1].includes(doc.quickAccess) ? doc.quickAccess : 0;
-    doc.deletedOn = doc.deletedOn || null;
-    doc.lastUpdatedOn = new Date();
-    doc.lastUpdatedBy = null;
-    doc._buildfire = buildCategoryIndex(doc);
-
-    buildfire.publicData.update(category.id, doc, CATEGORIES_TAG, (updateErr) => {
-      if (updateErr) return callback(updateErr, undefined);
-      added.forEach((s) => registerAnalyticsEvent(`${s.title} (Subcategory Selected)`, `subcategories_${s.id}_selected`));
-      callback(null, {
-        id: category.id,
-        title: doc.title,
-        iconUrl: doc.iconUrl || null,
-        subcategories: doc.subcategories.map((s) => s.title)
-      });
-    });
-  },
-  idOf: (result, found) => found.category.id
-});
-
-/**
- * Shared by deleteCategory, deleteCategoryByCategoryId and their batches: a soft delete that
- * writes deletedOn (mirrored into the date1 index the app filters on) and keeps the record, so it
- * disappears from the app but can be restored. Locations keep the category id, exactly as after an
- * in-app delete.
- */
-const categoryRemoval = (handle) => ({
-  check: (options) => findMissingStringParam(options, [handle.param]),
-  resolve: (options, cb) => handle.find(options, (err, category) => {
-    if (err) return cb(err, undefined);
-    cb(null, { category });
-  }),
-  keys: (options, found) => [`category:${found.category.id}`],
-  apply: (options, found, callback) => {
-    const { category } = found;
-    const doc = { ...category.data };
-    delete doc._buildfire;
-    doc.quickAccess = [0, 1].includes(doc.quickAccess) ? doc.quickAccess : 0;
-    doc.deletedOn = new Date();
-    doc.deletedBy = null;
-    doc.lastUpdatedOn = new Date();
-    doc._buildfire = buildCategoryIndex(doc);
-
-    buildfire.publicData.update(category.id, doc, CATEGORIES_TAG, (updateErr) => {
-      if (updateErr) return callback(updateErr, undefined);
-      callback(null, { deleted: true, title: doc.title });
-    });
-  },
-  idOf: (result, found) => found.category.id
-});
-
-/**
- * Shared by sendLocationNotification and sendLocationNotificationByLocationId — the widget's
- * "Notify Subscribers" form: the same settings gate (subscriptions enabled and custom
- * notifications allowed), the same refusal when the location has no subscribers, the same deep
- * link back to the location, and the watching person's approval once the location and its
- * subscribers are known.
- */
-const notifyLocationSubscribers = (options, findLocation, callback) => {
-  if (!requireStringParams(options, ['notificationTitle', 'notificationText'], callback)) return;
-  // The widget's message dialog caps the text at 300 characters.
-  if (options.notificationText.length > 300) {
-    return callback(new Error('notificationText must be 300 characters or fewer'), undefined);
   }
+  return { closed: false, intervals };
+};
 
-  buildfire.datastore.get(SETTINGS_TAG, (settingsErr, settingsRecord) => {
-    if (settingsErr) return callback(settingsErr, undefined);
-    const stored = settingsRecord && settingsRecord.data;
-    // New instances default subscriptions on (Settings.get); only a saved settings doc can turn them off.
-    const subscription = stored && Object.keys(stored).length
-      ? (stored.subscription || { enabled: false, allowCustomNotifications: false })
-      : { enabled: true, allowCustomNotifications: true };
-    if (!subscription.enabled || !subscription.allowCustomNotifications) {
-      return callback(new Error('Location notifications are turned off for this plugin instance'), undefined);
-    }
-
-    findLocation((err, location) => {
-      if (err) return callback(err, undefined);
-      const subscribers = (location.data.subscribers || []).filter(Boolean);
-      if (!subscribers.length) return callback(new Error(`Location "${location.data.title}" has no subscribers`), undefined);
-
-      const people = subscribers.length === 1 ? '1 person' : `${subscribers.length} people`;
-      requireUserApproval(`Send "${options.notificationTitle}" to the ${people} following "${location.data.title}"?`, (approvalErr) => {
-        if (approvalErr) return callback(approvalErr, undefined);
-
-        buildfire.notifications.pushNotification.schedule({
-          title: options.notificationTitle,
-          text: options.notificationText,
-          users: subscribers,
-          queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: location.id }))}`
-        }, (sendErr) => {
-          if (sendErr) return callback(sendErr, undefined);
-          callback(null, { title: location.data.title, recipientCount: subscribers.length });
-        });
-      });
-    });
+/** Mirrors getDefaultOpeningHours (control/content/utils/helpers.js): every day open 08:00-20:00. */
+const defaultOpeningHours = () => {
+  const days = {};
+  DAYS.forEach((day, index) => {
+    days[day] = { index, active: true, intervals: [{ from: timeToDate(DEFAULT_HOURS.from), to: timeToDate(DEFAULT_HOURS.to) }] };
   });
+  return { timezone: null, days };
+};
+
+/** Applies the given <day>Hours params; "closed" keeps the day's intervals and unticks it, as the form does. */
+const applyDayHours = (openingHours, entry, prefix = '') => {
+  DAYS.forEach((day, index) => {
+    const value = entry[dayParam(day, prefix)];
+    if (!isGiven(value)) return;
+    const parsed = parseDayHours(day, value);
+    const current = openingHours.days[day] || { index, active: true, intervals: [] };
+    openingHours.days[day] = parsed.closed
+      ? { ...current, index, active: false }
+      : {
+        ...current, index, active: true, intervals: parsed.intervals
+      };
+  });
+  return openingHours;
+};
+
+const checkDayHours = (entry, prefix = '') => firstProblem(DAYS.map((day) => {
+  const name = dayParam(day, prefix);
+  if (!isGiven(entry[name])) return null;
+  if (isCleared(entry[name])) return `${name} cannot be removed; pass "closed" instead`;
+  const parsed = parseDayHours(name, entry[name]);
+  return parsed.error || null;
+}));
+
+const hoursView = (openingHours) => {
+  const view = {};
+  const days = (openingHours && openingHours.days) || {};
+  DAYS.forEach((day) => {
+    const value = days[day];
+    if (!value || !value.active || !value.intervals || !value.intervals.length) {
+      view[day] = 'closed';
+    } else {
+      view[day] = value.intervals.filter(Boolean).map((i) => `${dateToTime(i.from)}-${dateToTime(i.to)}`).join(', ');
+    }
+  });
+  return view;
 };
 
 /**
- * Mirrors Settings.migrateFieldSettings in src/widget/js/global/repository/Settings.js: older
- * instances stored allowPriceRange / allowOpenHours flags, which the control panel rewrites into
- * the priceRange / openHours blocks the first time it loads them.
+ * Mirrors buildOpenNowCriteria (src/widget/services/search/shared.js): the current time of day,
+ * encoded on 1970-01-01 UTC from the local clock of wherever this runs.
  */
-const migrateSettings = (data) => {
-  const migrated = JSON.parse(JSON.stringify(data));
-  const entries = migrated.globalEntries;
+const openNowKeys = () => {
+  const now = new Date();
+  const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+  return { dayName, at: new Date(Date.UTC(1970, 0, 1, now.getHours(), now.getMinutes())) };
+};
+
+const isOpenNow = (openingHours) => {
+  const { dayName, at } = openNowKeys();
+  const day = openingHours && openingHours.days && openingHours.days[dayName];
+  if (!day || !day.active || !day.intervals) return false;
+  return day.intervals.filter(Boolean).some((i) => new Date(i.from) <= at && new Date(i.to) > at);
+};
+
+// ---------------------------------------------------------------------------
+// Location model — mirrors src/widget/js/global/data/Location.js, so a document written here is
+// indistinguishable from one the control panel writes (same defaults, same _buildfire index).
+// ---------------------------------------------------------------------------
+
+const normalizeLocation = (data = {}) => ({
+  clientId: data.clientId || undefined,
+  title: data.title || null,
+  subtitle: data.subtitle || null,
+  pinIndex: data.pinIndex || null,
+  address: data.address || null,
+  formattedAddress: data.formattedAddress || null,
+  addressAlias: data.addressAlias || null,
+  subscribers: data.subscribers || [],
+  coordinates: data.coordinates || { lat: null, lng: null },
+  marker: data.marker || {
+    type: 'pin', image: null, color: null, base64Image: null
+  },
+  categories: data.categories || { main: [], subcategories: [] },
+  settings: data.settings || {
+    showCategory: true, showOpeningHours: false, showPriceRange: false, showStarRating: false
+  },
+  openingHours: data.openingHours || { timezone: null, days: {} },
+  editingPermissions: data.editingPermissions || { active: false, editors: [], tags: [] },
+  images: data.images || [],
+  listImage: data.listImage || null,
+  description: data.description || null,
+  wysiwygSource: data.wysiwygSource || 'control',
+  views: Number.isNaN(parseInt(data.views, 10)) ? 0 : parseInt(data.views, 10),
+  price: data.price || { range: 1, currency: '$' },
+  rating: data.rating || { total: 0, count: 0, average: 0 },
+  bookmarksCount: data.bookmarksCount || 0,
+  actionItems: data.actionItems || [],
+  createdOn: data.createdOn || new Date(),
+  createdBy: data.createdBy || null,
+  lastUpdatedOn: data.lastUpdatedOn || new Date(),
+  lastUpdatedBy: data.lastUpdatedBy || null,
+  deletedOn: data.deletedOn || null,
+  deletedBy: data.deletedBy || null,
+  isActive: [0, 1].indexOf(data.isActive) !== -1 ? data.isActive : 1,
+  additionalFields: {
+    quickActions: ((data.additionalFields && data.additionalFields.quickActions) || []).map(normalizeFieldValue),
+    content: ((data.additionalFields && data.additionalFields.content) || []).map(normalizeFieldValue)
+  }
+});
+
+function normalizeFieldValue(field = {}) {
+  return { id: field.id || null, customLabel: field.customLabel || null, value: field.value || null };
+}
+
+/** Location.toJSON(): the stored document, including the index the plugin searches by. */
+const locationDocument = (loc) => {
+  const { id, ...rest } = loc; // eslint-disable-line no-unused-vars
+  return {
+    ...rest,
+    _buildfire: {
+      index: {
+        text: `${loc.title.toLowerCase()} ${loc.subtitle ? loc.subtitle : ''} ${loc.address} ${loc.formattedAddress} ${loc.addressAlias ? loc.addressAlias : ''}`,
+        string1: loc.title.toLowerCase(),
+        date1: loc.createdOn,
+        array1: [
+          ...loc.categories.main.map((elemId) => ({ string1: `c_${elemId}` })),
+          ...loc.categories.subcategories.map((elemId) => ({ string1: `s_${elemId}` })),
+          { string1: `v_${loc.views}` },
+          { string1: `pr_${loc.price.range}` },
+          { string1: `cid_${loc.clientId}` },
+          { string1: `title_${loc.title.toLowerCase()}` }
+        ],
+        number1: loc.pinIndex
+      },
+      geo: { type: 'Point', coordinates: [loc.coordinates.lng, loc.coordinates.lat] }
+    }
+  };
+};
+
+/** Mirrors applyMarkerColors (content/js/locations/index.js), which the CSV import uses for a marker color. */
+const markerColor = (color) => {
+  const [r, g, b] = (color.match(/\d+/g) || []).map(Number);
+  const alpha = color.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(\d?\.?\d+)\s*\)/);
+  return {
+    backgroundCSS: `background: ${color}`,
+    color,
+    colorCSS: `color: ${color}`,
+    colorHex: `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`,
+    opacity: alpha ? String(Math.round(parseFloat(alpha[1]) * 100)) : '100'
+  };
+};
+
+const toImageItems = (urls) => urls.map((imageUrl) => ({ id: generateUUID(), imageUrl }));
+// The control panel gives every action item an id before saving it (addActionItemsBtn).
+const toActionItems = (items) => items.map((item) => ({ ...item, id: item.id || generateUUID() }));
+
+/** What a caller sees for one location: plain values, category titles instead of ids. */
+const locationView = (id, data, categoriesById, fieldsById) => {
+  const loc = normalizeLocation(data);
+  const categoryTitles = [];
+  const subcategoryTitles = [];
+  loc.categories.main.forEach((categoryId) => {
+    if (categoriesById[categoryId]) categoryTitles.push(categoriesById[categoryId].title);
+  });
+  loc.categories.subcategories.forEach((subId) => {
+    Object.keys(categoriesById).forEach((categoryId) => {
+      const sub = (categoriesById[categoryId].subcategories || []).find((s) => s.id === subId);
+      if (sub) subcategoryTitles.push(sub.title);
+    });
+  });
+  const fieldValues = [];
+  ['quickActions', 'content'].forEach((section) => {
+    loc.additionalFields[section].forEach((value) => {
+      const field = fieldsById && fieldsById[value.id];
+      if (field && value.value !== null) {
+        fieldValues.push({ label: field.label, value: value.value, customLabel: value.customLabel });
+      }
+    });
+  });
+  return {
+    id,
+    title: loc.title,
+    subtitle: loc.subtitle,
+    address: loc.address,
+    addressAlias: loc.addressAlias,
+    latitude: loc.coordinates.lat,
+    longitude: loc.coordinates.lng,
+    description: loc.description,
+    listImage: loc.listImage,
+    images: loc.images.map((image) => image.imageUrl),
+    categoryTitles,
+    subcategoryTitles,
+    priceRange: loc.price.range,
+    priceCurrency: loc.price.currency,
+    rating: loc.rating.average,
+    ratingCount: loc.rating.count,
+    pinned: !!loc.pinIndex,
+    pinPosition: loc.pinIndex,
+    isOpenNow: isOpenNow(loc.openingHours),
+    hours: hoursView(loc.openingHours),
+    markerType: loc.marker.type,
+    actionItems: loc.actionItems,
+    fieldValues,
+    subscriberCount: loc.subscribers.length,
+    createdOn: loc.createdOn,
+    lastUpdatedOn: loc.lastUpdatedOn
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Settings model — mirrors src/widget/js/global/data/Settings.js plus Settings.migrateFieldSettings
+// (src/widget/js/global/repository/Settings.js).
+// ---------------------------------------------------------------------------
+
+const migrateFieldSettings = (data) => {
+  const entries = data.globalEntries;
   if (entries) {
     if (entries.allowPriceRange != null) {
       entries.priceRange = { enabled: entries.allowPriceRange, inAppEnabled: entries.allowPriceRange ? 'all' : 'none', tags: [] };
@@ -1305,47 +584,36 @@ const migrateSettings = (data) => {
       delete entries.allowOpenHours;
     }
   }
-  return migrated;
+  return data;
 };
 
-/**
- * The settings document exactly as new Settings(data).toJSON() writes it
- * (src/widget/js/global/data/Settings.js): every block the plugin keeps, with its defaults where
- * nothing is stored. A never-saved instance gets the defaults Settings.get gives a new one
- * (subscriptions on), which the control panel saves the first time it opens.
- * @param {object|null} stored - the datastore record's data.
- */
-const normalizeSettings = (stored) => {
-  const data = stored && Object.keys(stored).length
-    ? migrateSettings(stored)
-    : { subscription: { enabled: true, allowCustomNotifications: true } };
+const normalizeCustomField = (field = {}) => ({
+  id: field.id || null,
+  label: field.label || null,
+  type: field.type || null,
+  required: field.required || false,
+  enableCustomLabel: field.enableCustomLabel || false,
+  visibility: field.visibility || { value: 'ALL', tags: [] }
+});
 
+const normalizeSettings = (data = {}) => {
   const intro = data.introductoryListView || {
     images: [],
     description: null,
     sorting: 'distance',
     searchOptions: { mode: 'UserPosition', areaRadiusOptions: {} }
   };
-  intro.visibilityOptions = data.introductoryListView && data.introductoryListView.visibilityOptions
-    ? {
-      tags: data.introductoryListView.visibilityOptions.tags || [],
-      value: data.introductoryListView.visibilityOptions.value || 'ALL'
-    }
-    : {
+  if (!(data.introductoryListView && data.introductoryListView.visibilityOptions)) {
+    intro.visibilityOptions = {
       tags: [],
       value: (data.showIntroductoryListView === true || typeof data.showIntroductoryListView === 'undefined') ? 'ALL' : 'NONE'
     };
-
-  const toCustomField = (field = {}) => ({
-    id: field.id || null,
-    label: field.label || null,
-    type: field.type || null,
-    required: field.required || false,
-    enableCustomLabel: field.enableCustomLabel || false,
-    visibility: field.visibility || { value: 'ALL', tags: [] }
-  });
-  const customFields = data.customFields || {};
-
+  } else {
+    intro.visibilityOptions = {
+      tags: intro.visibilityOptions.tags || [],
+      value: intro.visibilityOptions.value || 'ALL'
+    };
+  }
   const globalEntries = data.globalEntries || {
     locations: { allowAdding: 'none', tags: [] },
     photos: { allowAdding: 'none', tags: [] },
@@ -1360,12 +628,11 @@ const normalizeSettings = (stored) => {
       enabled: 'none', tags: [], description: '', subscriptionOptions: []
     };
   }
-
   const globalEditors = data.globalEditors || {
     enabled: true, allowLocationCreatorsToEdit: true, tags: [], users: []
   };
   if (typeof globalEditors.allowLocationCreatorsToEdit === 'undefined') globalEditors.allowLocationCreatorsToEdit = true;
-
+  const customFields = data.customFields || {};
   return {
     subscription: data.subscription || { enabled: false, allowCustomNotifications: false },
     measurementUnit: data.measurementUnit || 'metric',
@@ -1382,10 +649,7 @@ const normalizeSettings = (stored) => {
       allowSortByViews: true
     },
     filter: data.filter || {
-      allowFilterByArea: true,
-      allowFilterByBookmarks: false,
-      hideOpeningHoursFilter: false,
-      hidePriceFilter: false
+      allowFilterByArea: true, allowFilterByBookmarks: false, hideOpeningHoursFilter: false, hidePriceFilter: false
     },
     map: data.map || {
       distanceUnit: 'metric',
@@ -1397,8 +661,8 @@ const normalizeSettings = (stored) => {
     },
     bookmarks: data.bookmarks || { enabled: true, allowForLocations: true, allowForFilters: true },
     customFields: {
-      quickActions: (customFields.quickActions || []).map(toCustomField),
-      content: (customFields.content || []).map(toCustomField)
+      quickActions: (customFields.quickActions || []).map(normalizeCustomField),
+      content: (customFields.content || []).map(normalizeCustomField)
     },
     design: data.design || {
       listViewPosition: 'collapsed',
@@ -1422,414 +686,1464 @@ const normalizeSettings = (stored) => {
     lastUpdatedBy: data.lastUpdatedBy || null,
     deletedOn: data.deletedOn || null,
     deletedBy: data.deletedBy || null,
-    isActive: [0, 1].includes(data.isActive) ? data.isActive : 1,
+    isActive: [0, 1].indexOf(data.isActive) !== -1 ? data.isActive : 1,
     _buildfire: { index: {} }
   };
 };
 
 /**
- * Reads the settings document, normalized (see normalizeSettings).
- * @param {function(Error=, object=, boolean=)} callback - (error, settings, wasSaved)
+ * The settings the plugin runs with. Like Settings.get: an instance that never saved settings gets
+ * the new-instance defaults, where subscriptions start enabled.
+ * @param {function(Error=, {settings: object, saved: boolean}=)} callback
  */
 const readSettings = (callback) => {
-  buildfire.datastore.get(SETTINGS_TAG, (err, record) => {
-    if (err) return callback(err, undefined);
-    const stored = record && record.data;
-    callback(null, normalizeSettings(stored), !!(stored && Object.keys(stored).length));
-  });
-};
-
-/** Mirrors the control panel's widget refresh after a save: sendMessageToWidget({ cmd: 'sync', scope }). */
-const syncWidget = (scope) => bestEffort(
-  buildfire.messaging && typeof buildfire.messaging.sendMessageToWidget === 'function',
-  () => buildfire.messaging.sendMessageToWidget({ cmd: 'sync', scope })
-);
-
-/** The public shape of one location field; its tag-based visibility (an access setting) is left out. */
-const toPublicField = (field, section, index) => ({
-  id: field.id,
-  section,
-  label: field.label,
-  type: field.type,
-  required: !!field.required,
-  enableCustomLabel: !!field.enableCustomLabel,
-  position: index + 1
-});
-
-/**
- * The settings a caller may see: everything the owner edits through the operations here, in the
- * shape the plugin stores it. Left out are the permission and access blocks (global and
- * per-location editors, who may add locations, photos, hours and prices, who sees the
- * Introduction screen and each custom field) and the charging block (billing), which this
- * contract neither reads nor writes, plus the stamps naming control-panel users.
- */
-const toPublicSettings = (settings) => ({
-  subscription: { enabled: settings.subscription.enabled },
-  measurementUnit: settings.measurementUnit,
-  introductoryListView: {
-    images: settings.introductoryListView.images || [],
-    description: settings.introductoryListView.description || null,
-    sorting: settings.introductoryListView.sorting,
-    searchOptions: settings.introductoryListView.searchOptions || { mode: 'UserPosition', areaRadiusOptions: {} }
-  },
-  sorting: settings.sorting,
-  filter: settings.filter,
-  map: settings.map,
-  bookmarks: settings.bookmarks,
-  customFields: {
-    quickActions: settings.customFields.quickActions.map((f, i) => toPublicField(f, 'quickActions', i)),
-    content: settings.customFields.content.map((f, i) => toPublicField(f, 'content', i))
-  },
-  design: settings.design,
-  globalEntries: {
-    openHours: { enabled: !!(settings.globalEntries.openHours && settings.globalEntries.openHours.enabled) },
-    priceRange: { enabled: !!(settings.globalEntries.priceRange && settings.globalEntries.priceRange.enabled) }
-  },
-  lastUpdatedOn: settings.lastUpdatedOn
-});
-
-/**
- * Saves the whole settings document the way every control-panel tab does (SettingsController /
- * DesignController / ListViewController.saveSettings: stamp lastUpdatedOn and lastUpdatedBy, then
- * datastore.save of the full document), then tells the widget to refresh with the tab's scope.
- * lastUpdatedBy is null: the caller is not a signed-in control-panel user.
- * @param {function(Error=, object=)} callback - (error, saved settings)
- */
-const saveSettings = (settings, scope, callback) => {
-  const doc = { ...settings, lastUpdatedOn: new Date(), lastUpdatedBy: null };
-  buildfire.datastore.save(doc, SETTINGS_TAG, (err) => {
-    if (err) return callback(err, undefined);
-    const widgetRefreshed = syncWidget(scope);
-    callback(null, { settings: toPublicSettings(doc), widgetRefreshed });
-  });
-};
-
-/** Validates the optional boolean params named, collecting them into `into`; returns a problem or null. */
-const readBooleans = (options, names, into) => {
-  const bad = names.find((name) => isGiven(options[name]) && typeof options[name] !== 'boolean');
-  if (bad) return `${bad} must be true or false`;
-  names.forEach((name) => { if (isGiven(options[name])) into[name] = options[name]; });
-  return null;
-};
-
-/** Validates the optional select params given as { param: allowedValues }, collecting them into `into`. */
-const readSelects = (options, allowed, into) => {
-  const bad = Object.keys(allowed).find((name) => isGiven(options[name]) && !allowed[name].includes(options[name]));
-  if (bad) return `${bad} must be one of: ${allowed[bad].join(', ')}`;
-  Object.keys(allowed).forEach((name) => { if (isGiven(options[name])) into[name] = options[name]; });
-  return null;
-};
-
-/**
- * An address picked on a map, given as three params that must come together, as the control
- * panel's address pickers always set them together. Returns { problem } or { address } (null when none given).
- */
-const readPickedAddress = (options, [addressName, latName, lngName]) => {
-  const parts = [options[addressName], options[latName], options[lngName]].filter(isGiven).length;
-  if (!parts) return { address: null };
-  if (parts !== 3) return { problem: `${addressName}, ${latName} and ${lngName} must be given together` };
-  if (typeof options[addressName] !== 'string' || !options[addressName].trim()) return { problem: `${addressName} must be text` };
-  if (!isFiniteNumber(options[latName]) || options[latName] < -90 || options[latName] > 90) return { problem: `${latName} must be a number from -90 to 90` };
-  if (!isFiniteNumber(options[lngName]) || options[lngName] < -180 || options[lngName] > 180) return { problem: `${lngName} must be a number from -180 to 180` };
-  return { address: { text: options[addressName].trim(), lat: options[latName], lng: options[lngName] } };
-};
-
-// The Settings tab's toggles (src/control/settings/settings.js: initSorting, initFiltering,
-// iniBookmarks) and the radio groups in templates/sorting.html and templates/map.html.
-const SORTING_TOGGLES = [
-  'hideSorting', 'allowSortByReverseAlphabetical', 'allowSortByNearest', 'allowSortByPriceLowToHigh',
-  'allowSortByPriceHighToLow', 'allowSortByDate', 'allowSortByRating', 'allowSortByViews'
-];
-const FILTER_TOGGLES = ['allowFilterByArea', 'allowFilterByBookmarks', 'hideOpeningHoursFilter', 'hidePriceFilter'];
-const SETTINGS_TOGGLES = [
-  'subscriptionEnabled', 'openHoursEnabled', 'priceRangeEnabled', 'mapInitialAreaEnabled',
-  'bookmarksEnabled', 'allowBookmarkLocations', 'allowBookmarkSearch', ...SORTING_TOGGLES, ...FILTER_TOGGLES
-];
-const SETTINGS_SELECTS = {
-  defaultSorting: ['distance', 'alphabetical'], // templates/sorting.html, name="defaultLocationSort"
-  measurementUnit: ['metric', 'imperial'] // templates/map.html, name="distanceUnits"
-};
-
-// The Design tab's controls (src/control/design/index.html, design.js). Map Style
-// (design.defaultMapStyle) is left out: its radios are disabled and never written.
-const DESIGN_TOGGLES = ['enableMapTerrainView', 'hideQuickFilter', 'allowStyleSelection', 'showDetailsCategory', 'showContributorName'];
-const DESIGN_SELECTS = {
-  listViewPosition: ['expanded', 'collapsed', 'halfExpanded'],
-  listViewStyle: ['backgroundImage', 'smallImage'],
-  defaultMapType: ['streets', 'satellite'],
-  detailsMapPosition: ['top', 'bottom']
-};
-
-// The Introduction screen's dropdowns (src/control/content/js/listView/index.js, from
-// SearchLocationsModes / SortingOptions in src/widget/js/global/constants/index.js).
-const INTRO_SELECTS = {
-  locationSource: ['All', 'UserPosition', 'AreaRadius', 'MyLocations'],
-  sorting: ['distance', 'alphabetical', 'newest']
-};
-const MIN_AREA_RADIUS_MILES = 1; // introMap.js clamps the radius input to 1–200 miles.
-const MAX_AREA_RADIUS_MILES = 200;
-
-/**
- * The location fields the Settings tab's "Location Fields" page defines
- * (src/control/settings/js/pages/locationFields.js): two sections, each with its own field types
- * (QuickActionsOptions / ContentOptions in src/widget/js/global/constants/index.js), at most ten
- * fields across both.
- */
-const FIELD_SECTIONS = {
-  quickActions: ['EMAIL', 'PHONE', 'URL'],
-  content: ['EMAIL', 'PHONE', 'URL', 'TEXT', 'RICH_TEXT']
-};
-const FIELD_TYPES = ['EMAIL', 'PHONE', 'URL', 'TEXT', 'RICH_TEXT'];
-const MAX_LOCATION_FIELDS = 10;
-
-/** Every field across both sections, with where it sits. */
-const listFields = (settings) => ['quickActions', 'content'].reduce((all, section) => all.concat(
-  settings.customFields[section].map((field, index) => ({ field, section, index }))
-), []);
-
-/**
- * How location-field operations name a field: by its exact label (basic, case-insensitive, an
- * ambiguous label refused) or by its id (advanced).
- */
-const FIELD_BY_LABEL = {
-  param: 'label',
-  find: (options, cb) => readSettings((err, settings) => {
-    if (err) return cb(err, undefined);
-    const wanted = options.label.trim().toLowerCase();
-    const matches = listFields(settings).filter((f) => f.field.label && f.field.label.toLowerCase() === wanted);
-    if (!matches.length) return cb(new Error(`No location field labelled "${options.label}"`), undefined);
-    if (matches.length > 1) return cb(new Error(`${matches.length} location fields are labelled "${options.label}"`), undefined);
-    cb(null, matches[0]);
-  })
-};
-const FIELD_BY_ID = {
-  param: 'fieldId',
-  find: (options, cb) => readSettings((err, settings) => {
-    if (err) return cb(err, undefined);
-    const match = listFields(settings).find((f) => f.field.id === options.fieldId);
-    if (!match) return cb(new Error(`No location field with id "${options.fieldId}"`), undefined);
-    cb(null, match);
-  })
-};
-
-/**
- * Saves the custom fields the way the Location Fields page does: SettingsController.updateSettings,
- * a `$set` of customFields only (dropping fields with no label or type, as it does), then
- * sync 'customFields'. On a never-saved instance there is nothing to `$set` into, so the whole
- * normalized document is saved instead, as the control panel's Settings.get(true) would have.
- * @param {function(Error=, boolean=)} callback - (error, widgetRefreshed)
- */
-const saveCustomFields = (settings, wasSaved, callback) => {
-  const customFields = {
-    quickActions: settings.customFields.quickActions.filter((f) => f.label && f.type),
-    content: settings.customFields.content.filter((f) => f.label && f.type)
-  };
-  const payload = wasSaved
-    ? { $set: { customFields } }
-    : { ...settings, customFields, lastUpdatedOn: new Date() };
-  buildfire.datastore.save(payload, SETTINGS_TAG, (err) => {
-    if (err) return callback(err, undefined);
-    callback(null, syncWidget('customFields'));
-  });
-};
-
-/** Re-reads the settings and finds a field by id: each write in a batch starts from the latest save. */
-const withFreshField = (fieldId, callback) => readSettings((err, settings, wasSaved) => {
-  if (err) return callback(err);
-  const match = listFields(settings).find((f) => f.field.id === fieldId);
-  if (!match) return callback(new Error(`No location field with id "${fieldId}"`));
-  callback(null, settings, wasSaved, match);
-});
-
-/**
- * Shared by createLocationField and createLocationFields: the "Add Field" button of either
- * section, then the field's label, type and checkboxes. New fields are visible to every user, as
- * the page adds them. A label another field already has is refused (and, in a batch, a label
- * given twice), because basic operations name a field by its label; the page itself does not check.
- */
-const fieldCreation = () => ({
-  check: (options) => {
-    const missing = findMissingStringParam(options, ['section', 'label', 'type']);
-    if (missing) return missing;
-    if (!FIELD_SECTIONS[options.section]) return `section must be one of: ${Object.keys(FIELD_SECTIONS).join(', ')}`;
-    if (!FIELD_SECTIONS[options.section].includes(options.type)) {
-      return `type must be one of: ${FIELD_SECTIONS[options.section].join(', ')} in the ${options.section} section`;
+  buildfire.datastore.get(SETTINGS_TAG, (err, res) => {
+    if (err) return callback(toError(err));
+    if (!res || !res.data || !Object.keys(res.data).length) {
+      return callback(null, {
+        settings: normalizeSettings({ subscription: { enabled: true, allowCustomNotifications: true } }),
+        saved: false
+      });
     }
-    return readBooleans(options, ['required', 'enableCustomLabel'], {});
+    callback(null, { settings: normalizeSettings(migrateFieldSettings(res.data)), saved: true });
+  });
+};
+
+/** The control panel's saveSettings: whole document, stamped, then the widget is told which scopes changed. */
+const saveSettings = (settings, scopes, callback) => {
+  const doc = { ...settings, lastUpdatedOn: new Date() };
+  buildfire.datastore.save(doc, SETTINGS_TAG, (err, res) => {
+    if (err || !res) return callback(toError(err || 'Settings could not be saved'));
+    scopes.forEach((scope) => syncWidget({ cmd: 'sync', scope }));
+    callback(null, normalizeSettings(res.data || doc));
+  });
+};
+
+/** What getSettings shows: the stored settings without access, editor and billing settings. */
+const settingsView = (settings) => {
+  const view = JSON.parse(JSON.stringify(settings));
+  delete view.globalEditors;
+  delete view.locationEditors;
+  delete view._buildfire;
+  delete view.createdBy;
+  delete view.lastUpdatedBy;
+  delete view.deletedOn;
+  delete view.deletedBy;
+  delete view.isActive;
+  view.subscription = { enabled: !!settings.subscription.enabled };
+  view.introductoryListView = { ...view.introductoryListView };
+  delete view.introductoryListView.visibilityOptions;
+  view.locationFields = {
+    openHoursEnabled: !!(settings.globalEntries.openHours && settings.globalEntries.openHours.enabled),
+    priceRangeEnabled: !!(settings.globalEntries.priceRange && settings.globalEntries.priceRange.enabled)
+  };
+  delete view.globalEntries;
+  ['quickActions', 'content'].forEach((section) => {
+    view.customFields[section] = view.customFields[section].map((field) => ({
+      id: field.id, label: field.label, type: field.type, required: field.required, allowCustomLabel: field.enableCustomLabel
+    }));
+  });
+  return view;
+};
+
+// ---------------------------------------------------------------------------
+// Lookups: every handle resolves to exactly one record, or the call is refused.
+// ---------------------------------------------------------------------------
+
+const searchAll = (tag, filter, sort, callback) => {
+  const rows = [];
+  const fetchPage = (page) => {
+    buildfire.publicData.search({
+      filter, sort, page, pageSize: MAX_PAGE_SIZE
+    }, tag, (err, result) => {
+      if (err) return callback(toError(err));
+      const list = Array.isArray(result) ? result : ((result && result.result) || []);
+      rows.push(...list);
+      if (list.length < MAX_PAGE_SIZE) return callback(null, rows);
+      fetchPage(page + 1);
+    });
+  };
+  fetchPage(0);
+};
+
+/** Live categories (soft-deleted ones have date1 set), cached for the length of one call. */
+const loadCategories = (ctx, callback) => {
+  if (ctx.categories) return callback(null, ctx.categories);
+  searchAll(CATEGORIES_TAG, { '_buildfire.index.date1': { $type: 10 } }, { '_buildfire.index.string1': 1 }, (err, rows) => {
+    if (err) return callback(err);
+    ctx.categories = rows.map((row) => ({ id: row.id, ...row.data }));
+    ctx.categoriesById = {};
+    ctx.categories.forEach((category) => { ctx.categoriesById[category.id] = category; });
+    callback(null, ctx.categories);
+  });
+};
+
+const pickOne = (matches, noun, handle) => {
+  if (!matches.length) return { error: `No ${noun} matches "${handle}"` };
+  if (matches.length > 1) return { error: `${matches.length} ${noun}s match "${handle}"; it has to name exactly one` };
+  return { found: matches[0] };
+};
+
+const findCategoryByTitle = (ctx, title, callback) => {
+  loadCategories(ctx, (err, categories) => {
+    if (err) return callback(err);
+    const picked = pickOne(categories.filter((c) => c.title === title), 'category', title);
+    callback(picked.error ? new Error(picked.error) : null, picked.found);
+  });
+};
+
+const findCategoryById = (ctx, categoryId, callback) => {
+  loadCategories(ctx, (err) => {
+    if (err) return callback(err);
+    // A soft-deleted category counts as missing, as it does everywhere in the plugin.
+    const found = ctx.categoriesById[categoryId];
+    callback(found ? null : new Error(`No category with id "${categoryId}"`), found);
+  });
+};
+
+const findSubcategory = (category, { title, id }) => {
+  const subs = category.subcategories || [];
+  if (isGiven(id)) {
+    const found = subs.find((s) => s.id === id);
+    return found ? { found } : { error: `Category "${category.title}" has no subcategory with id "${id}"` };
+  }
+  return pickOne(subs.filter((s) => s.title === title), `subcategory of "${category.title}"`, title);
+};
+
+/**
+ * Locations a caller names by title. Matched on the plugin's own title index (string1 is the
+ * lower-cased title), so the match ignores case; several matches are refused.
+ */
+const findLocationByTitle = (title, callback) => {
+  buildfire.publicData.search({ filter: { '_buildfire.index.string1': title.toLowerCase() }, pageSize: MAX_PAGE_SIZE }, LOCATIONS_TAG, (err, result) => {
+    if (err) return callback(toError(err));
+    const rows = Array.isArray(result) ? result : ((result && result.result) || []);
+    const picked = pickOne(rows, 'location', title);
+    callback(picked.error ? new Error(picked.error) : null, picked.found);
+  });
+};
+
+const findLocationById = (locationId, callback) => {
+  buildfire.publicData.getById(locationId, LOCATIONS_TAG, (err, record) => {
+    if (err) return callback(toError(err));
+    if (!record || !record.data || !Object.keys(record.data).length) {
+      return callback(new Error(`No location with id "${locationId}"`));
+    }
+    callback(null, record);
+  });
+};
+
+const findLocation = (entry, byId, callback) => (byId
+  ? findLocationById(entry.locationId, callback)
+  : findLocationByTitle(entry.title, callback));
+
+/**
+ * Categories text in the CSV import's format: "Category->Subcategory, Other category". With ids
+ * instead of titles for the advanced operations. Every name must match; the import skips unknown
+ * names, which would leave a caller's location silently uncategorized.
+ */
+const resolveCategories = (ctx, text, byId, callback) => {
+  if (!text || !text.trim()) return callback(null, { main: [], subcategories: [] });
+  loadCategories(ctx, (err, categories) => {
+    if (err) return callback(err);
+    const main = [];
+    const subcategories = [];
+    const parts = text.split(',').map((part) => part.trim()).filter(Boolean);
+    for (let i = 0; i < parts.length; i += 1) {
+      const [categoryHandle, subHandle] = parts[i].split('->').map((s) => (s || '').trim());
+      const picked = byId
+        ? { found: ctx.categoriesById[categoryHandle], error: ctx.categoriesById[categoryHandle] ? null : `No category with id "${categoryHandle}"` }
+        : pickOne(categories.filter((c) => c.title === categoryHandle), 'category', categoryHandle);
+      if (picked.error) return callback(new Error(picked.error));
+      if (main.indexOf(picked.found.id) === -1) main.push(picked.found.id);
+      if (subHandle) {
+        const sub = findSubcategory(picked.found, byId ? { id: subHandle } : { title: subHandle });
+        if (sub.error) return callback(new Error(sub.error));
+        if (subcategories.indexOf(sub.found.id) === -1) subcategories.push(sub.found.id);
+      }
+    }
+    callback(null, { main, subcategories });
+  });
+};
+
+const checkCategoriesText = (entry, name) => {
+  const value = entry[name];
+  if (!isGiven(value) || value === null) return null;
+  if (typeof value !== 'string') return `${name} must be text like "Category->Subcategory, Other category"`;
+  return null;
+};
+
+/** An app user named by id or email; an email is resolved through the app's auth directory. */
+const resolveUserId = (user, callback) => {
+  if (user.indexOf('@') === -1) return callback(null, user);
+  if (!buildfire.auth || typeof buildfire.auth.getUsersByEmail !== 'function') {
+    return callback(new Error('Users can only be named by id here'));
+  }
+  buildfire.auth.getUsersByEmail({ email: user }, (err, users) => {
+    if (err) return callback(toError(err));
+    let list = [];
+    if (Array.isArray(users)) list = users;
+    else if (users) list = [users];
+    const picked = pickOne(list, 'user', user);
+    if (picked.error) return callback(new Error(picked.error));
+    callback(null, picked.found.userId || picked.found._id);
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Location side effects — what LocationsController (control/content/js/locations/controller.js)
+// does around every write. Each is best-effort, as in the plugin, and reported in the result.
+// ---------------------------------------------------------------------------
+
+const registerViewedEvent = (id, title) => {
+  try {
+    if (!buildfire.analytics || typeof buildfire.analytics.registerEvent !== 'function') return false;
+    buildfire.analytics.registerEvent({ title: `${title} (Viewed)`, key: `locations_${id}_viewed`, description: '' }, { silentNotification: true });
+    return true;
+  } catch (e) { return false; }
+};
+
+const registerDeeplink = (id, loc) => {
+  try {
+    if (!buildfire.deeplink || typeof buildfire.deeplink.registerDeeplink !== 'function') return false;
+    buildfire.deeplink.registerDeeplink({
+      id: `location-${id}`, name: loc.title, deeplinkData: { locationId: id }, imageUrl: loc.listImage
+    }, () => {});
+    return true;
+  } catch (e) { return false; }
+};
+
+const unregisterDeeplink = (id) => {
+  try {
+    if (!buildfire.deeplink || typeof buildfire.deeplink.unregisterDeeplink !== 'function') return false;
+    buildfire.deeplink.unregisterDeeplink(`location-${id}`, () => {});
+    return true;
+  } catch (e) { return false; }
+};
+
+/** Mirrors SearchEngine.add / update (src/widget/js/global/repository/searchEngine.js). */
+const indexLocation = (id, loc, callback) => {
+  ensureSdkService('searchEngine', (loadErr) => {
+    if (loadErr) return callback(false);
+    buildfire.services.searchEngine.save({
+      tag: LOCATIONS_TAG,
+      key: id,
+      data: { locationId: id },
+      title: loc.title,
+      description: stripHtml(loc.description),
+      imageUrl: loc.listImage,
+      keywords: [loc.address, loc.formattedAddress, loc.addressAlias, loc.subtitle].join(',')
+    }, (err) => callback(!err));
+  });
+};
+
+const unindexLocation = (id, callback) => {
+  ensureSdkService('searchEngine', (loadErr) => {
+    if (loadErr) return callback(false);
+    buildfire.services.searchEngine.delete({ id, tag: LOCATIONS_TAG }, (err) => callback(!err));
+  });
+};
+
+// The control panel's triggerWidgetOnLocationsUpdate({}) after a save.
+const syncLocations = () => syncWidget({
+  cmd: 'sync', scope: 'locations', realtimeUpdate: false, isCancel: false, data: null
+});
+
+/** How many locations are pinned now; the pin button numbers a new pin count + 1. */
+const countPinned = (callback) => {
+  buildfire.publicData.search({ filter: { '_buildfire.index.number1': { $in: [1, 2, 3] } }, pageSize: MAX_PAGE_SIZE }, LOCATIONS_TAG, (err, result) => {
+    if (err) return callback(toError(err));
+    const rows = Array.isArray(result) ? result : ((result && result.result) || []);
+    callback(null, rows);
+  });
+};
+
+/** Pins or unpins as the location form's "Pin to Top" button does, refusing a fourth pin. */
+const applyPinned = (loc, id, pinned, callback) => {
+  if (!isGiven(pinned) || pinned === !!loc.pinIndex) return callback(null);
+  if (!pinned) {
+    loc.pinIndex = null;
+    return callback(null);
+  }
+  countPinned((err, rows) => {
+    if (err) return callback(err);
+    const others = rows.filter((row) => row.id !== id);
+    if (others.length >= MAX_PINNED) return callback(new Error(`${MAX_PINNED} of ${MAX_PINNED} locations are already pinned`));
+    loc.pinIndex = others.length + 1;
+    callback(null);
+  });
+};
+
+/** Writes the whole location, as LocationsController.updateLocation does, then its side effects. */
+const writeLocation = (id, loc, ctx, callback) => {
+  loc.lastUpdatedOn = new Date();
+  // Contract writes act as the app, not as a signed-in owner.
+  loc.lastUpdatedBy = null;
+  buildfire.publicData.update(id, locationDocument(loc), LOCATIONS_TAG, (err) => {
+    if (err) return callback(toError(err));
+    sendContractEvent('locationUpdated', { locationId: id, title: loc.title });
+    const deeplinkRegistered = registerDeeplink(id, loc);
+    indexLocation(id, loc, (searchIndexed) => {
+      syncLocations();
+      callback(null, {
+        location: locationView(id, loc, ctx.categoriesById || {}, ctx.fieldsById),
+        sideEffects: { deeplinkRegistered, searchIndexed }
+      });
+    });
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Action runners
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs one action for a single operation: validate, resolve, ask (Foreground only), apply.
+ * @param {{ validate: function, resolve: function, apply: function, approval?: function }} spec
+ */
+const runAction = (spec, options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) return callback(new Error('options must be an object'), undefined);
+  const problem = spec.validate(options);
+  if (problem) return callback(new Error(problem), undefined);
+
+  const ctx = {};
+  spec.resolve(options, ctx, (err, target) => {
+    if (err) return callback(toError(err), undefined);
+    const proceed = (approvalErr) => {
+      if (approvalErr) return callback(approvalErr, undefined);
+      spec.apply(options, target, ctx, (applyErr, result) => {
+        if (applyErr) return callback(toError(applyErr), undefined);
+        callback(null, result);
+      });
+    };
+    if (spec.approval) return requireUserApproval(spec.approval([options], [target]), proceed);
+    proceed(null);
+  });
+};
+
+/**
+ * Runs one action for every entry of a batch. Every entry is validated, then every entry is
+ * resolved, before the first write; any invalid, unmatched, ambiguous or repeated entry fails the
+ * whole call and nothing is written. Then each entry is applied in turn through the single
+ * operation's own apply, and a failed write is reported for that entry without stopping the rest.
+ * @param {string} listName - the batch's list param, also the result's list key.
+ */
+const runBatch = (spec, listName, options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) return callback(new Error('options must be an object'), undefined);
+  const entries = options[listName];
+  if (!Array.isArray(entries) || entries.length < 1 || entries.length > MAX_BATCH) {
+    return callback(new Error(`${listName} must be a list of 1 to ${MAX_BATCH} entries`), undefined);
+  }
+
+  const invalid = entries.map((entry, index) => {
+    if (!isObject(entry)) return `entry ${index}: must be an object`;
+    const problem = spec.validate(entry);
+    return problem ? `entry ${index}: ${problem}` : null;
+  }).filter(Boolean);
+  if (invalid.length) return callback(new Error(`Invalid entries: ${invalid.join('; ')}`), undefined);
+
+  const ctx = {};
+  const targets = [];
+  const unresolved = [];
+  forEachSeries(entries, (entry, index, next) => {
+    spec.resolve(entry, ctx, (err, target) => {
+      if (err) unresolved.push(`entry ${index}: ${toError(err).message}`);
+      targets[index] = target;
+      next();
+    });
+  }, () => {
+    if (unresolved.length) return callback(new Error(`Could not resolve: ${unresolved.join('; ')}`), undefined);
+
+    const seen = {};
+    const repeated = [];
+    targets.forEach((target, index) => {
+      const key = spec.keyOf ? spec.keyOf(entries[index], target) : null;
+      if (key === null || key === undefined) return;
+      if (seen[key] !== undefined) repeated.push(`entries ${seen[key]} and ${index}`);
+      else seen[key] = index;
+    });
+    if (repeated.length) return callback(new Error(`The same record is listed more than once: ${repeated.join('; ')}`), undefined);
+
+    const applyAll = (approvalErr) => {
+      if (approvalErr) return callback(approvalErr, undefined);
+      const results = [];
+      forEachSeries(entries, (entry, index, next) => {
+        spec.apply(entry, targets[index], ctx, (err, result) => {
+          results.push({
+            index,
+            id: err ? null : spec.idOf(targets[index], result),
+            error: err ? toError(err).message : null
+          });
+          next();
+        });
+      }, () => {
+        const failed = results.filter((r) => r.error).length;
+        callback(null, { [listName]: results, succeeded: results.length - failed, failed });
+      });
+    };
+    if (spec.approval) return requireUserApproval(spec.approval(entries, targets), applyAll);
+    applyAll(null);
+  });
+};
+
+/**
+ * A batch entry's fields can't be lists, so location batches declare no gallery images or action
+ * buttons. The single operation's action reads them; this hands it entries that cannot carry them,
+ * refusing an entry that tries, rather than reading params the batch never declared.
+ */
+const withoutListFields = (spec, names) => {
+  const strip = (entry) => {
+    const copy = {};
+    Object.keys(entry).forEach((key) => { if (names.indexOf(key) === -1) copy[key] = entry[key]; });
+    return copy;
+  };
+  return {
+    ...spec,
+    validate: (entry) => {
+      const listField = names.find((name) => Object.keys(entry).indexOf(name) !== -1);
+      if (listField) return `${listField} can't be part of a batch entry`;
+      return spec.validate(strip(entry));
+    },
+    resolve: (entry, ctx, cb) => spec.resolve(strip(entry), ctx, cb),
+    apply: (entry, target, ctx, cb) => spec.apply(strip(entry), target, ctx, cb)
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Location actions
+// ---------------------------------------------------------------------------
+
+const checkMarker = (type, color, image, prefix) => {
+  if (type === 'circle' && isGiven(color) && !RGB_COLOR.test(color)) return `${prefix}markerColor must be an rgb() or rgba() color`;
+  if (type === 'image' && !isNonEmptyString(image)) return `${prefix}markerImage is required when the marker is an image`;
+  return null;
+};
+
+const validateLocationCreate = (categoriesParam) => (entry) => firstProblem([
+  checkString(entry, 'title', { required: true }),
+  checkString(entry, 'subtitle'),
+  checkString(entry, 'address', { required: true }),
+  checkNumber(entry, 'latitude', { required: true, min: -90, max: 90 }),
+  checkNumber(entry, 'longitude', { required: true, min: -180, max: 180 }),
+  checkString(entry, 'addressAlias'),
+  checkString(entry, 'description', { required: true }),
+  checkImage(entry, 'listImage', { required: true }),
+  checkCategoriesText(entry, categoriesParam),
+  checkSelect(entry, 'priceRange', PRICE_RANGES),
+  checkSelect(entry, 'priceCurrency', CURRENCIES),
+  checkSelect(entry, 'markerType', MARKER_TYPES),
+  checkString(entry, 'markerColor'),
+  checkImage(entry, 'markerImage'),
+  checkBoolean(entry, 'showCategory'),
+  checkBoolean(entry, 'showOpeningHours'),
+  checkBoolean(entry, 'showPriceRange'),
+  checkBoolean(entry, 'showStarRating'),
+  checkBoolean(entry, 'pinned'),
+  checkImageList(entry, 'images'),
+  checkActionList(entry, 'actionItems'),
+  checkDayHours(entry),
+  checkMarker(entry.markerType || 'pin', entry.markerColor, entry.markerImage, '')
+]);
+
+/** createLocation's action; byId takes categoryIds instead of category titles. */
+const createLocationAction = (byId) => {
+  const categoriesParam = byId ? 'categoryIds' : 'categories';
+  return {
+    validate: validateLocationCreate(categoriesParam),
+    resolve: (entry, ctx, cb) => resolveCategories(ctx, entry[categoriesParam], byId, cb),
+    apply: (entry, categories, ctx, cb) => {
+      const type = entry.markerType || 'pin';
+      const loc = normalizeLocation({
+        title: entry.title,
+        subtitle: entry.subtitle,
+        address: entry.address,
+        // The address autocomplete fills both from the place's formatted address.
+        formattedAddress: entry.address,
+        addressAlias: entry.addressAlias,
+        coordinates: { lat: entry.latitude, lng: entry.longitude },
+        description: entry.description,
+        listImage: entry.listImage,
+        categories,
+        price: { range: isGiven(entry.priceRange) ? entry.priceRange : 1, currency: entry.priceCurrency || '$' },
+        marker: {
+          type,
+          image: type === 'image' ? entry.markerImage : null,
+          color: type === 'circle' ? markerColor(entry.markerColor || DEFAULT_MARKER_COLOR) : null,
+          base64Image: null
+        },
+        settings: {
+          showCategory: isGiven(entry.showCategory) ? entry.showCategory : true,
+          showOpeningHours: !!entry.showOpeningHours,
+          showPriceRange: !!entry.showPriceRange,
+          showStarRating: !!entry.showStarRating
+        },
+        openingHours: applyDayHours(defaultOpeningHours(), entry),
+        images: toImageItems(entry.images || []),
+        actionItems: toActionItems(entry.actionItems || []),
+        // Mirrors LocationsController.createLocation; createdBy stays empty because the app, not a person, creates it.
+        clientId: generateUUID(),
+        createdOn: new Date(),
+        wysiwygSource: 'control'
+      });
+      applyPinned(loc, null, entry.pinned, (pinErr) => {
+        if (pinErr) return cb(pinErr);
+        buildfire.publicData.insert(locationDocument(loc), LOCATIONS_TAG, (err, record) => {
+          if (err) return cb(toError(err));
+          const { id } = record;
+          sendContractEvent('locationCreated', { locationId: id, title: loc.title });
+          const analyticsRegistered = registerViewedEvent(id, loc.title);
+          const deeplinkRegistered = registerDeeplink(id, loc);
+          indexLocation(id, loc, (searchIndexed) => {
+            syncLocations();
+            cb(null, {
+              location: locationView(id, loc, ctx.categoriesById || {}),
+              sideEffects: { analyticsRegistered, deeplinkRegistered, searchIndexed }
+            });
+          });
+        });
+      });
+    },
+    idOf: (target, result) => result.location.id
+  };
+};
+
+const LOCATION_UPDATE_FIELDS = [
+  'newTitle', 'newSubtitle', 'newAddress', 'newLatitude', 'newLongitude', 'newAddressAlias', 'newDescription',
+  'newListImage', 'newPriceRange', 'newPriceCurrency', 'newMarkerType', 'newMarkerColor', 'newMarkerImage',
+  'newShowCategory', 'newShowOpeningHours', 'newShowPriceRange', 'newShowStarRating', 'pinned', 'newImages', 'newActionItems'
+].concat(DAYS.map((day) => dayParam(day, 'new')));
+
+/** updateLocation's action; byId names the location by id and takes newCategoryIds. */
+const updateLocationAction = (byId) => {
+  const categoriesParam = byId ? 'newCategoryIds' : 'newCategories';
+  const fields = LOCATION_UPDATE_FIELDS.concat([categoriesParam]);
+  const dayPrefix = 'new';
+  return {
+    validate: (entry) => firstProblem([
+      byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
+      requireAnyGiven(entry, fields),
+      // Subtitle, custom name and categories can be emptied in the location form; nothing else can.
+      findClearedProblem(entry, fields.filter((f) => ['newSubtitle', 'newAddressAlias', categoriesParam, 'newImages', 'newActionItems'].indexOf(f) === -1)),
+      checkString(entry, 'newTitle'),
+      checkNullable(entry, 'newSubtitle', checkString),
+      checkString(entry, 'newAddress'),
+      checkNumber(entry, 'newLatitude', { min: -90, max: 90 }),
+      checkNumber(entry, 'newLongitude', { min: -180, max: 180 }),
+      isGiven(entry.newLatitude) !== isGiven(entry.newLongitude) || (isGiven(entry.newAddress) && !isGiven(entry.newLatitude))
+        ? 'newAddress, newLatitude and newLongitude change together; pass the address with both coordinates'
+        : null,
+      checkNullable(entry, 'newAddressAlias', checkString),
+      checkString(entry, 'newDescription'),
+      checkImage(entry, 'newListImage'),
+      checkNullable(entry, categoriesParam, checkCategoriesText),
+      checkSelect(entry, 'newPriceRange', PRICE_RANGES),
+      checkSelect(entry, 'newPriceCurrency', CURRENCIES),
+      checkSelect(entry, 'newMarkerType', MARKER_TYPES),
+      checkString(entry, 'newMarkerColor'),
+      checkImage(entry, 'newMarkerImage'),
+      checkBoolean(entry, 'newShowCategory'),
+      checkBoolean(entry, 'newShowOpeningHours'),
+      checkBoolean(entry, 'newShowPriceRange'),
+      checkBoolean(entry, 'newShowStarRating'),
+      checkBoolean(entry, 'pinned'),
+      checkNullable(entry, 'newImages', checkImageList, { stringValued: false }),
+      checkNullable(entry, 'newActionItems', checkActionList, { stringValued: false }),
+      checkDayHours(entry, dayPrefix),
+      isGiven(entry.newMarkerColor) && !RGB_COLOR.test(entry.newMarkerColor) ? 'newMarkerColor must be an rgb() or rgba() color' : null
+    ]),
+    resolve: (entry, ctx, cb) => {
+      findLocation(entry, byId, (err, record) => {
+        if (err) return cb(err);
+        if (!isGiven(entry[categoriesParam]) || entry[categoriesParam] === null) {
+          return loadCategories(ctx, (catErr) => cb(catErr, { id: record.id }));
+        }
+        resolveCategories(ctx, entry[categoriesParam], byId, (catErr, categories) => cb(catErr, { id: record.id, categories }));
+      });
+    },
+    keyOf: (entry, target) => target.id,
+    apply: (entry, target, ctx, cb) => {
+      // Re-read, so entries of one batch never overwrite each other's changes.
+      findLocationById(target.id, (err, record) => {
+        if (err) return cb(err);
+        const loc = normalizeLocation(record.data);
+        if (isGiven(entry.newTitle)) loc.title = entry.newTitle;
+        // The form stores an emptied text input as ''.
+        if (isGiven(entry.newSubtitle)) loc.subtitle = entry.newSubtitle === null ? '' : entry.newSubtitle;
+        if (isGiven(entry.newAddressAlias)) loc.addressAlias = entry.newAddressAlias === null ? '' : entry.newAddressAlias;
+        if (isGiven(entry.newLatitude)) {
+          loc.coordinates = { lat: entry.newLatitude, lng: entry.newLongitude };
+          if (isGiven(entry.newAddress)) {
+            loc.address = entry.newAddress;
+            loc.formattedAddress = entry.newAddress;
+          }
+        }
+        if (isGiven(entry.newDescription)) {
+          loc.description = entry.newDescription;
+          loc.wysiwygSource = 'control';
+        }
+        if (isGiven(entry.newListImage)) loc.listImage = entry.newListImage;
+        if (isGiven(entry[categoriesParam])) {
+          loc.categories = entry[categoriesParam] === null || entry[categoriesParam] === '' ? { main: [], subcategories: [] } : target.categories;
+        }
+        if (isGiven(entry.newPriceRange)) loc.price = { ...loc.price, range: entry.newPriceRange };
+        if (isGiven(entry.newPriceCurrency)) loc.price = { ...loc.price, currency: entry.newPriceCurrency };
+        if (isGiven(entry.newMarkerType) || isGiven(entry.newMarkerColor) || isGiven(entry.newMarkerImage)) {
+          const marker = { ...loc.marker };
+          if (isGiven(entry.newMarkerType)) marker.type = entry.newMarkerType;
+          if (isGiven(entry.newMarkerColor)) marker.color = markerColor(entry.newMarkerColor);
+          if (isGiven(entry.newMarkerImage)) marker.image = entry.newMarkerImage;
+          // Switching to a circle with no color picks the default red, as the marker radios do.
+          if (marker.type === 'circle' && !(marker.color && marker.color.color)) marker.color = markerColor(DEFAULT_MARKER_COLOR);
+          const problem = checkMarker(marker.type, marker.color && marker.color.color, marker.image, 'new');
+          if (problem) return cb(new Error(problem));
+          loc.marker = marker;
+        }
+        ['Category', 'OpeningHours', 'PriceRange', 'StarRating'].forEach((key) => {
+          const value = entry[`newShow${key}`];
+          if (isGiven(value)) loc.settings = { ...loc.settings, [`show${key}`]: value };
+        });
+        if (isGiven(entry.newImages)) loc.images = entry.newImages === null ? [] : toImageItems(entry.newImages);
+        if (isGiven(entry.newActionItems)) loc.actionItems = entry.newActionItems === null ? [] : toActionItems(entry.newActionItems);
+        if (DAYS.some((day) => isGiven(entry[dayParam(day, 'new')]))) {
+          // A location saved without hours has none stored; the form starts it from the default week.
+          if (!Object.keys(loc.openingHours.days || {}).length) loc.openingHours = defaultOpeningHours();
+          applyDayHours(loc.openingHours, entry, 'new');
+        }
+        applyPinned(loc, target.id, entry.pinned, (pinErr) => {
+          if (pinErr) return cb(pinErr);
+          writeLocation(target.id, loc, ctx, cb);
+        });
+      });
+    },
+    idOf: (target) => target.id
+  };
+};
+
+/** deleteLocation's action: the plugin hard-deletes, then drops the deep link and the search entry. */
+const deleteLocationAction = (byId) => ({
+  validate: (entry) => (byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true })),
+  resolve: (entry, ctx, cb) => findLocation(entry, byId, cb),
+  keyOf: (entry, target) => target.id,
+  apply: (entry, target, ctx, cb) => {
+    buildfire.publicData.delete(target.id, LOCATIONS_TAG, (err) => {
+      if (err) return cb(toError(err));
+      sendContractEvent('locationDeleted', { locationId: target.id });
+      const deeplinkRemoved = unregisterDeeplink(target.id);
+      unindexLocation(target.id, (searchEntryRemoved) => {
+        syncLocations();
+        cb(null, {
+          deleted: true, locationId: target.id, title: target.data.title, sideEffects: { deeplinkRemoved, searchEntryRemoved }
+        });
+      });
+    });
   },
-  resolve: (options, cb) => FIELD_BY_LABEL.find(options, (err) => {
-    if (!err) return cb(new Error(`A location field labelled "${options.label.trim()}" already exists`), undefined);
-    if (!/^No location field labelled/.test(err.message)) return cb(err, undefined);
+  idOf: (target) => target.id
+});
+
+/** Mirrors the control panel's _validateFieldValue (content/js/locations/customFields.js). */
+const validateFieldValue = (value, type) => {
+  const parsed = value.trim();
+  if (type === 'PHONE' && !/^[0-9\s+\-()]+$/.test(parsed)) return { error: 'Enter a valid phone number' };
+  if (type === 'EMAIL') {
+    const at = parsed.indexOf('@');
+    if (parsed.indexOf(' ') !== -1 || at === -1 || parsed.indexOf('.', at) === -1) return { error: 'Enter a valid email address' };
+  }
+  if (type === 'URL') {
+    if (parsed.indexOf(' ') !== -1 || parsed.indexOf('.') === -1) return { error: 'Enter a valid URL' };
+    return { value: /^https?:\/\//i.test(parsed) ? parsed : `https://${parsed}` };
+  }
+  return { value: parsed };
+};
+
+const findField = (settings, { label, id }) => {
+  const all = [];
+  ['quickActions', 'content'].forEach((section) => {
+    settings.customFields[section].forEach((field, index) => all.push({ section, index, field }));
+  });
+  if (isGiven(id)) {
+    const found = all.find((f) => f.field.id === id);
+    return found ? { found } : { error: `No location field with id "${id}"` };
+  }
+  return pickOne(all.filter((f) => f.field.label === label), 'location field', label);
+};
+
+const fieldsById = (settings) => {
+  const map = {};
+  ['quickActions', 'content'].forEach((section) => {
+    settings.customFields[section].forEach((field) => { map[field.id] = field; });
+  });
+  return map;
+};
+
+/** updateLocationFieldValue's action: fills in one location field on one location. */
+const updateFieldValueAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
+    byId ? checkString(entry, 'fieldId', { required: true }) : checkString(entry, 'fieldLabel', { required: true }),
+    requireAnyGiven(entry, ['value', 'customLabel']),
+    checkNullable(entry, 'value', checkString),
+    checkNullable(entry, 'customLabel', checkString)
+  ]),
+  resolve: (entry, ctx, cb) => {
+    readSettings((err, { settings } = {}) => {
+      if (err) return cb(err);
+      const field = findField(settings, byId ? { id: entry.fieldId } : { label: entry.fieldLabel });
+      if (field.error) return cb(new Error(field.error));
+      const {
+        type, required, enableCustomLabel, label
+      } = field.found.field;
+      if (isGiven(entry.value) && isCleared(entry.value) && required) return cb(new Error(`"${label}" is a required field and cannot be emptied`));
+      if (isNonEmptyString(entry.value)) {
+        const checked = validateFieldValue(entry.value, type);
+        if (checked.error) return cb(new Error(`${label}: ${checked.error}`));
+      }
+      if (isGiven(entry.customLabel) && !enableCustomLabel) return cb(new Error(`"${label}" does not allow a custom label`));
+      ctx.fieldsById = fieldsById(settings);
+      findLocation(entry, byId, (locErr, record) => (locErr ? cb(locErr) : cb(null, { id: record.id, field: field.found })));
+    });
+  },
+  keyOf: (entry, target) => `${target.id}:${target.field.field.id}`,
+  apply: (entry, target, ctx, cb) => {
+    findLocationById(target.id, (err, record) => {
+      if (err) return cb(err);
+      const loc = normalizeLocation(record.data);
+      const { section, field } = target.field;
+      const values = loc.additionalFields[section];
+      let current = values.find((v) => v.id === field.id);
+      if (!current) {
+        current = { id: field.id, customLabel: null, value: null };
+        values.push(current);
+      }
+      // An emptied field is stored as null, as Location's model stores the form's empty input.
+      if (isGiven(entry.value)) current.value = isCleared(entry.value) ? null : validateFieldValue(entry.value, field.type).value;
+      if (isGiven(entry.customLabel)) current.customLabel = isCleared(entry.customLabel) ? null : entry.customLabel;
+      loadCategories(ctx, (catErr) => (catErr ? cb(catErr) : writeLocation(target.id, loc, ctx, cb)));
+    });
+  },
+  idOf: (target) => target.id
+});
+
+/** deleteLocationSubscriber's action: Locations.unsubscribeFromLocationUpdates, as the app. */
+const deleteSubscriberAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
+    checkString(entry, 'userId', { required: true })
+  ]),
+  resolve: (entry, ctx, cb) => {
+    resolveUserId(entry.userId, (userErr, userId) => {
+      if (userErr) return cb(userErr);
+      findLocation(entry, byId, (err, record) => {
+        if (err) return cb(err);
+        if ((record.data.subscribers || []).indexOf(userId) === -1) {
+          return cb(new Error(`That user is not following "${record.data.title}"`));
+        }
+        cb(null, { id: record.id, title: record.data.title, userId });
+      });
+    });
+  },
+  keyOf: (entry, target) => `${target.id}:${target.userId}`,
+  apply: (entry, target, ctx, cb) => {
+    buildfire.publicData.update(target.id, { $pull: { subscribers: target.userId } }, LOCATIONS_TAG, (err) => {
+      if (err) return cb(toError(err));
+      sendContractEvent('locationUnsubscribed', { locationId: target.id, userId: target.userId });
+      cb(null, { removed: true, locationId: target.id, userId: target.userId });
+    });
+  },
+  idOf: (target) => target.id
+});
+
+/** sendLocationNotification's action: the "Notify Users of Location Update" dialog, as the app. */
+const sendNotificationAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
+    checkString(entry, 'notificationTitle', { required: true }),
+    checkString(entry, 'message', { required: true })
+  ]),
+  resolve: (entry, ctx, cb) => {
+    readSettings((err, { settings } = {}) => {
+      if (err) return cb(err);
+      // The notify button only exists while location subscribing is on.
+      if (!settings.subscription.enabled) return cb(new Error('Location subscribing is turned off for this plugin'));
+      findLocation(entry, byId, (locErr, record) => {
+        if (locErr) return cb(locErr);
+        const subscribers = record.data.subscribers || [];
+        if (!subscribers.length) return cb(new Error(`"${record.data.title}" has no subscribers to notify`));
+        cb(null, { id: record.id, title: record.data.title, subscribers });
+      });
+    });
+  },
+  approval: (entries, targets) => `Send "${entries[0].notificationTitle}" to the ${targets[0].subscribers.length} people following "${targets[0].title}"?`,
+  apply: (entry, target, ctx, cb) => {
+    ensureSdkService('pushNotifications', (loadErr) => {
+      if (loadErr) return cb(loadErr);
+      buildfire.notifications.pushNotification.schedule({
+        title: entry.notificationTitle,
+        text: entry.message,
+        users: target.subscribers,
+        queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: target.id }))}`
+      }, (err, result) => {
+        if (err) return cb(toError(err));
+        cb(null, { sent: true, recipientCount: target.subscribers.length, notificationId: (result && (result.id || result._id)) || null });
+      });
+    });
+  },
+  idOf: (target) => target.id
+});
+
+/** updatePinnedLocationOrder's action: the intro screen's drag-to-reorder of pinned locations. */
+const pinnedOrderAction = (byId) => {
+  const names = byId ? ['firstLocationId', 'secondLocationId', 'thirdLocationId'] : ['firstLocationTitle', 'secondLocationTitle', 'thirdLocationTitle'];
+  return {
+    validate: (entry) => firstProblem([
+      checkString(entry, names[0], { required: true }),
+      checkString(entry, names[1]),
+      checkString(entry, names[2]),
+      isGiven(entry[names[2]]) && !isGiven(entry[names[1]]) ? `${names[2]} needs ${names[1]}` : null
+    ]),
+    resolve: (entry, ctx, cb) => {
+      const handles = names.map((n) => entry[n]).filter(isGiven);
+      const ids = [];
+      forEachSeries(handles, (handle, index, next) => {
+        const finder = byId ? findLocationById : findLocationByTitle;
+        finder(handle, (err, record) => {
+          if (err) return cb(err);
+          ids.push(record.id);
+          next();
+        });
+      }, () => {
+        if (new Set(ids).size !== ids.length) return cb(new Error('The same location is listed more than once'));
+        countPinned((err, rows) => {
+          if (err) return cb(err);
+          const pinnedIds = rows.map((r) => r.id);
+          const same = pinnedIds.length === ids.length && ids.every((id) => pinnedIds.indexOf(id) !== -1);
+          if (!same) return cb(new Error(`List exactly the ${pinnedIds.length} pinned locations, in their new order`));
+          cb(null, { ids });
+        });
+      });
+    },
+    apply: (entry, target, ctx, cb) => {
+      const results = [];
+      loadCategories(ctx, (catErr) => {
+        if (catErr) return cb(catErr);
+        forEachSeries(target.ids, (id, index, next) => {
+          findLocationById(id, (err, record) => {
+            if (err) return cb(err);
+            const loc = normalizeLocation(record.data);
+            loc.pinIndex = index + 1;
+            writeLocation(id, loc, ctx, (writeErr, written) => {
+              if (writeErr) return cb(writeErr);
+              results.push(written.location);
+              next();
+            });
+          });
+        }, () => {
+          syncWidget({ cmd: 'sync', scope: 'intro' });
+          cb(null, { locations: results });
+        });
+      });
+    }
+  };
+};
+
+// ---------------------------------------------------------------------------
+// Searches
+// ---------------------------------------------------------------------------
+
+const SEARCH_CHECKS = (entry, byId) => firstProblem([
+  checkString(entry, 'searchText'),
+  checkString(entry, 'title'),
+  byId ? checkString(entry, 'categoryId') : checkString(entry, 'categoryTitle'),
+  byId ? checkString(entry, 'subcategoryId') : checkString(entry, 'subcategoryTitle'),
+  checkSelect(entry, 'priceRange', PRICE_RANGES),
+  checkBoolean(entry, 'openNow'),
+  checkNumber(entry, 'page', { min: 0, integer: true }),
+  checkNumber(entry, 'pageSize', { min: 1, max: MAX_PAGE_SIZE, integer: true })
+]);
+
+/** The array1 index values a category/subcategory/price filter narrows by (shared.js buildSearchCriteria). */
+const resolveIndexFilters = (entry, byId, ctx, callback) => {
+  const values = [];
+  if (isGiven(entry.priceRange)) values.push(`pr_${entry.priceRange}`);
+  const categoryHandle = byId ? entry.categoryId : entry.categoryTitle;
+  const subHandle = byId ? entry.subcategoryId : entry.subcategoryTitle;
+  if (!isGiven(categoryHandle) && !isGiven(subHandle)) return callback(null, values);
+  if (!isGiven(categoryHandle)) return callback(new Error(`${byId ? 'subcategoryId' : 'subcategoryTitle'} needs ${byId ? 'categoryId' : 'categoryTitle'}`));
+  const finder = byId ? findCategoryById : findCategoryByTitle;
+  finder(ctx, categoryHandle, (err, category) => {
+    if (err) return callback(err);
+    if (!isGiven(subHandle)) {
+      values.push(`c_${category.id}`);
+      return callback(null, values);
+    }
+    const sub = findSubcategory(category, byId ? { id: subHandle } : { title: subHandle });
+    if (sub.error) return callback(new Error(sub.error));
+    values.push(`s_${sub.found.id}`);
+    callback(null, values);
+  });
+};
+
+const searchLocationsImpl = (byId) => (options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) return callback(new Error('options must be an object'), undefined);
+  const problem = firstProblem([
+    SEARCH_CHECKS(options, byId),
+    checkBoolean(options, 'pinned'),
+    checkString(options, 'createdBy'),
+    checkSelect(options, 'sortBy', Object.keys(LOCATION_SORTS))
+  ]);
+  if (problem) return callback(new Error(problem), undefined);
+
+  const ctx = {};
+  const page = options.page || 0;
+  const pageSize = options.pageSize || DEFAULT_PAGE_SIZE;
+  resolveIndexFilters(options, byId, ctx, (err, indexValues) => {
+    if (err) return callback(err, undefined);
+    const resolveCreator = (cb) => (isGiven(options.createdBy) ? resolveUserId(options.createdBy, cb) : cb(null, null));
+    resolveCreator((userErr, creatorId) => {
+      if (userErr) return callback(userErr, undefined);
+      // Every filter given narrows the results further (AND); each one left out is dropped.
+      const and = indexValues.map((value) => ({ '_buildfire.index.array1.string1': value }));
+      if (isGiven(options.title)) and.push({ '_buildfire.index.string1': options.title.toLowerCase() });
+      if (isNonEmptyString(options.searchText)) {
+        and.push({ '_buildfire.index.text': { $regex: escapeRegex(options.searchText.toLowerCase()), $options: 'i' } });
+      }
+      if (isGiven(options.pinned)) {
+        and.push({ '_buildfire.index.number1': options.pinned ? { $in: [1, 2, 3] } : { $nin: [1, 2, 3] } });
+      }
+      // "My Locations" on the intro screen matches createdBy.userId.
+      if (creatorId) and.push({ '$json.createdBy.userId': creatorId });
+      if (options.openNow) {
+        const { dayName, at } = openNowKeys();
+        and.push({ [`$json.openingHours.days.${dayName}.active`]: true });
+        and.push({ [`$json.openingHours.days.${dayName}.intervals`]: { $elemMatch: { from: { $lte: at }, to: { $gt: at } } } });
+      }
+      const filter = and.length ? { $and: and } : {};
+      const sort = LOCATION_SORTS[options.sortBy || 'alphabetical'];
+      buildfire.publicData.search({
+        filter, sort, page, pageSize, recordCount: true
+      }, LOCATIONS_TAG, (searchErr, response) => {
+        if (searchErr) return callback(toError(searchErr), undefined);
+        const rows = (response && response.result) || [];
+        const total = (response && response.totalRecord) || 0;
+        loadCategories(ctx, (catErr) => {
+          if (catErr) return callback(catErr, undefined);
+          callback(null, {
+            locations: rows.map((row) => locationView(row.id, row.data, ctx.categoriesById)),
+            total,
+            page,
+            hasMore: (page + 1) * pageSize < total
+          });
+        });
+      });
+    });
+  });
+};
+
+const searchNearPointImpl = (byId) => (options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) return callback(new Error('options must be an object'), undefined);
+  const problem = firstProblem([
+    checkNumber(options, 'latitude', { required: true, min: -90, max: 90 }),
+    checkNumber(options, 'longitude', { required: true, min: -180, max: 180 }),
+    checkNumber(options, 'radiusMiles', { min: MIN_AREA_RADIUS_MILES, max: MAX_AREA_RADIUS_MILES }),
+    SEARCH_CHECKS(options, byId)
+  ]);
+  if (problem) return callback(new Error(problem), undefined);
+
+  const ctx = {};
+  const page = options.page || 0;
+  const pageSize = options.pageSize || DEFAULT_PAGE_SIZE;
+  resolveIndexFilters(options, byId, ctx, (err, indexValues) => {
+    if (err) return callback(err, undefined);
+    const query = {};
+    if (indexValues.length) query['_buildfire.index.array1.string1'] = { $all: indexValues };
+    if (isGiven(options.title)) query['_buildfire.index.string1'] = options.title.toLowerCase();
+    if (isNonEmptyString(options.searchText)) {
+      query['_buildfire.index.text'] = { $regex: escapeRegex(options.searchText.toLowerCase()), $options: 'i' };
+    }
+    // Same pipeline shape as the intro screen's IntroSearchService: $geoNear for the distance, then the area.
+    const pipelineStages = [{
+      $geoNear: {
+        near: { type: 'Point', coordinates: [options.longitude, options.latitude] },
+        key: '_buildfire.geo',
+        distanceField: 'distance',
+        query
+      }
+    }];
+    if (isGiven(options.radiusMiles)) {
+      pipelineStages.push({
+        $match: { '_buildfire.geo': { $geoWithin: { $centerSphere: [[options.longitude, options.latitude], options.radiusMiles / EARTH_RADIUS_MILES] } } }
+      });
+    }
+    if (options.openNow) {
+      const { dayName, at } = openNowKeys();
+      pipelineStages.push({
+        $match: {
+          [`openingHours.days.${dayName}.active`]: true,
+          [`openingHours.days.${dayName}.intervals`]: { $elemMatch: { from: { $lte: at }, to: { $gt: at } } }
+        }
+      });
+    }
+    pipelineStages.push({ $sort: { distance: 1 } });
+    buildfire.publicData.aggregate({ pipelineStages, page, pageSize }, LOCATIONS_TAG, (aggErr, rows) => {
+      if (aggErr) return callback(toError(aggErr), undefined);
+      loadCategories(ctx, (catErr) => {
+        if (catErr) return callback(catErr, undefined);
+        const list = rows || [];
+        callback(null, {
+          locations: list.map((row) => ({
+            ...locationView(row._id || row.id, row.data || row, ctx.categoriesById),
+            distanceKm: Math.round((row.distance / 1000) * 100) / 100,
+            distanceMiles: Math.round((row.distance / METERS_PER_MILE) * 100) / 100
+          })),
+          page,
+          hasMore: list.length === pageSize
+        });
+      });
+    });
+  });
+};
+
+const getLocationImpl = (byId) => (options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) return callback(new Error('options must be an object'), undefined);
+  const problem = byId ? checkString(options, 'locationId', { required: true }) : checkString(options, 'title', { required: true });
+  if (problem) return callback(new Error(problem), undefined);
+  const ctx = {};
+  findLocation(options, byId, (err, record) => {
+    if (err) return callback(err, undefined);
+    readSettings((settingsErr, { settings } = {}) => {
+      if (settingsErr) return callback(settingsErr, undefined);
+      loadCategories(ctx, (catErr) => {
+        if (catErr) return callback(catErr, undefined);
+        callback(null, locationView(record.id, record.data, ctx.categoriesById, fieldsById(settings)));
+      });
+    });
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Category and subcategory actions — mirrors CategoriesController and the Category model
+// (src/widget/js/global/data/Category.js); categories are soft-deleted.
+// ---------------------------------------------------------------------------
+
+const categoryDocument = (category) => {
+  const { id, ...rest } = category; // eslint-disable-line no-unused-vars
+  return {
+    title: rest.title || '',
+    iconUrl: rest.iconUrl || null,
+    iconClassName: rest.iconClassName || null,
+    subcategories: rest.subcategories || [],
+    quickAccess: [0, 1].indexOf(rest.quickAccess) !== -1 ? rest.quickAccess : 0,
+    createdOn: rest.createdOn || new Date(),
+    createdBy: rest.createdBy || null,
+    lastUpdatedOn: rest.lastUpdatedOn || new Date(),
+    lastUpdatedBy: rest.lastUpdatedBy || null,
+    deletedOn: rest.deletedOn || null,
+    deletedBy: rest.deletedBy || null,
+    isActive: [0, 1].indexOf(rest.isActive) !== -1 ? rest.isActive : 1,
+    _buildfire: {
+      index: {
+        string1: (rest.title || '').toLowerCase(),
+        date1: rest.deletedOn || null,
+        number1: [0, 1].indexOf(rest.quickAccess) !== -1 ? rest.quickAccess : 0
+      }
+    }
+  };
+};
+
+const categoryView = (id, data) => ({
+  id,
+  title: data.title,
+  iconUrl: data.iconUrl || null,
+  subcategories: (data.subcategories || []).map((s) => ({ id: s.id, title: s.title, iconUrl: s.iconUrl || null }))
+});
+
+const syncCategories = () => syncWidget({ cmd: 'sync', scope: 'category' });
+
+/** Re-reads a category, applies mutate(category) (which may return an error message), and saves the whole document. */
+const rewriteCategory = (categoryId, mutate, callback) => {
+  buildfire.publicData.getById(categoryId, CATEGORIES_TAG, (err, record) => {
+    if (err) return callback(toError(err));
+    if (!record || !record.data || !Object.keys(record.data).length || record.data.deletedOn) {
+      return callback(new Error(`No category with id "${categoryId}"`));
+    }
+    const category = { ...record.data };
+    const problem = mutate(category);
+    if (problem) return callback(new Error(problem));
+    category.lastUpdatedOn = new Date();
+    category.lastUpdatedBy = null;
+    buildfire.publicData.update(categoryId, categoryDocument(category), CATEGORIES_TAG, (updateErr) => {
+      if (updateErr) return callback(toError(updateErr));
+      syncCategories();
+      callback(null, categoryView(categoryId, category));
+    });
+  });
+};
+
+const findCategory = (ctx, entry, byId, callback) => (byId
+  ? findCategoryById(ctx, entry.categoryId, callback)
+  : findCategoryByTitle(ctx, entry.categoryTitle, callback));
+
+const createCategoryAction = () => ({
+  validate: (entry) => firstProblem([checkString(entry, 'title', { required: true }), checkImage(entry, 'iconImage')]),
+  resolve: (entry, ctx, cb) => {
+    loadCategories(ctx, (err, categories) => {
+      if (err) return cb(err);
+      // Titles are how basic operations find a category, so a second one with the same title is refused.
+      if (categories.some((c) => c.title === entry.title)) return cb(new Error(`A category titled "${entry.title}" already exists`));
+      cb(null, {});
+    });
+  },
+  keyOf: (entry) => entry.title,
+  apply: (entry, target, ctx, cb) => {
+    const doc = categoryDocument({ title: entry.title, iconUrl: entry.iconImage || null, createdOn: new Date() });
+    buildfire.publicData.insert(doc, CATEGORIES_TAG, (err, record) => {
+      if (err) return cb(toError(err));
+      // CategoriesController.createCategory registers a "(Category Selected)" analytics event.
+      let analyticsRegistered = false;
+      try {
+        if (buildfire.analytics && typeof buildfire.analytics.registerEvent === 'function') {
+          buildfire.analytics.registerEvent({ title: `${entry.title} (Category Selected)`, key: `categories_${record.id}_selected`, description: '' }, { silentNotification: true });
+          analyticsRegistered = true;
+        }
+      } catch (e) { analyticsRegistered = false; }
+      syncCategories();
+      cb(null, { category: categoryView(record.id, doc), sideEffects: { analyticsRegistered } });
+    });
+  },
+  idOf: (target, result) => result.category.id
+});
+
+const updateCategoryAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    byId ? checkString(entry, 'categoryId', { required: true }) : checkString(entry, 'categoryTitle', { required: true }),
+    requireAnyGiven(entry, ['newTitle', 'newIconImage']),
+    findClearedProblem(entry, ['newTitle', 'newIconImage']),
+    checkString(entry, 'newTitle'),
+    checkImage(entry, 'newIconImage')
+  ]),
+  resolve: (entry, ctx, cb) => findCategory(ctx, entry, byId, (err, category) => {
+    if (err) return cb(err);
+    if (isGiven(entry.newTitle) && entry.newTitle !== category.title && ctx.categories.some((c) => c.title === entry.newTitle)) {
+      return cb(new Error(`A category titled "${entry.newTitle}" already exists`));
+    }
+    cb(null, category);
+  }),
+  keyOf: (entry, target) => target.id,
+  apply: (entry, target, ctx, cb) => rewriteCategory(target.id, (category) => {
+    if (isGiven(entry.newTitle)) category.title = entry.newTitle;
+    if (isGiven(entry.newIconImage)) {
+      category.iconUrl = entry.newIconImage;
+      category.iconClassName = null;
+    }
+    return null;
+  }, (err, view) => (err ? cb(err) : cb(null, { category: view }))),
+  idOf: (target) => target.id
+});
+
+const deleteCategoryAction = (byId) => ({
+  validate: (entry) => (byId ? checkString(entry, 'categoryId', { required: true }) : checkString(entry, 'categoryTitle', { required: true })),
+  resolve: (entry, ctx, cb) => findCategory(ctx, entry, byId, cb),
+  keyOf: (entry, target) => target.id,
+  apply: (entry, target, ctx, cb) => rewriteCategory(target.id, (category) => {
+    category.deletedOn = new Date();
+    category.deletedBy = null;
+    return null;
+  }, (err) => (err ? cb(err) : cb(null, { deleted: true, categoryId: target.id, title: target.title }))),
+  idOf: (target) => target.id
+});
+
+const createSubcategoryAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    byId ? checkString(entry, 'categoryId', { required: true }) : checkString(entry, 'categoryTitle', { required: true }),
+    checkString(entry, 'title', { required: true }),
+    checkImage(entry, 'iconImage')
+  ]),
+  resolve: (entry, ctx, cb) => findCategory(ctx, entry, byId, (err, category) => {
+    if (err) return cb(err);
+    if ((category.subcategories || []).some((s) => s.title === entry.title)) {
+      return cb(new Error(`"${category.title}" already has a subcategory titled "${entry.title}"`));
+    }
+    cb(null, category);
+  }),
+  keyOf: (entry, target) => `${target.id}:${entry.title}`,
+  apply: (entry, target, ctx, cb) => {
+    // Shape of a subcategory the "Add Subcategory" dialog creates.
+    const subcategory = {
+      id: generateUUID(), title: entry.title, iconUrl: entry.iconImage || null, iconClassName: null
+    };
+    rewriteCategory(target.id, (category) => {
+      category.subcategories = (category.subcategories || []).concat([subcategory]);
+      return null;
+    }, (err, view) => (err ? cb(err) : cb(null, { subcategory: { id: subcategory.id, title: subcategory.title, iconUrl: subcategory.iconUrl }, category: view })));
+  },
+  idOf: (target, result) => result.subcategory.id
+});
+
+const subcategoryHandle = (entry, byId) => (byId ? { id: entry.subcategoryId } : { title: entry.subcategoryTitle });
+
+const resolveSubcategory = (byId) => (entry, ctx, cb) => findCategory(ctx, entry, byId, (err, category) => {
+  if (err) return cb(err);
+  const sub = findSubcategory(category, subcategoryHandle(entry, byId));
+  if (sub.error) return cb(new Error(sub.error));
+  cb(null, { category, subcategory: sub.found });
+});
+
+const subcategoryTargetChecks = (entry, byId) => firstProblem([
+  byId ? checkString(entry, 'categoryId', { required: true }) : checkString(entry, 'categoryTitle', { required: true }),
+  byId ? checkString(entry, 'subcategoryId', { required: true }) : checkString(entry, 'subcategoryTitle', { required: true })
+]);
+
+const updateSubcategoryAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    subcategoryTargetChecks(entry, byId),
+    requireAnyGiven(entry, ['newTitle', 'newIconImage']),
+    findClearedProblem(entry, ['newTitle', 'newIconImage']),
+    checkString(entry, 'newTitle'),
+    checkImage(entry, 'newIconImage')
+  ]),
+  resolve: (entry, ctx, cb) => resolveSubcategory(byId)(entry, ctx, (err, target) => {
+    if (err) return cb(err);
+    const { category, subcategory } = target;
+    if (isGiven(entry.newTitle) && entry.newTitle !== subcategory.title && category.subcategories.some((s) => s.title === entry.newTitle)) {
+      return cb(new Error(`"${category.title}" already has a subcategory titled "${entry.newTitle}"`));
+    }
+    cb(null, target);
+  }),
+  keyOf: (entry, target) => `${target.category.id}:${target.subcategory.id}`,
+  apply: (entry, target, ctx, cb) => rewriteCategory(target.category.id, (category) => {
+    const sub = (category.subcategories || []).find((s) => s.id === target.subcategory.id);
+    if (!sub) return `The subcategory "${target.subcategory.title}" no longer exists`;
+    if (isGiven(entry.newTitle)) sub.title = entry.newTitle;
+    if (isGiven(entry.newIconImage)) {
+      sub.iconUrl = entry.newIconImage;
+      sub.iconClassName = null;
+    }
+    return null;
+  }, (err, view) => (err ? cb(err) : cb(null, { category: view }))),
+  idOf: (target) => target.subcategory.id
+});
+
+const deleteSubcategoryAction = (byId) => ({
+  validate: (entry) => subcategoryTargetChecks(entry, byId),
+  resolve: resolveSubcategory(byId),
+  keyOf: (entry, target) => `${target.category.id}:${target.subcategory.id}`,
+  apply: (entry, target, ctx, cb) => rewriteCategory(target.category.id, (category) => {
+    // The control panel only removes it from the category; locations keep the stale id, as there.
+    category.subcategories = (category.subcategories || []).filter((s) => s.id !== target.subcategory.id);
+    return null;
+  }, (err, view) => (err ? cb(err) : cb(null, { deleted: true, subcategoryId: target.subcategory.id, category: view }))),
+  idOf: (target) => target.subcategory.id
+});
+
+// ---------------------------------------------------------------------------
+// Location field (custom field) actions — the Settings tab's Location Fields page. It saves only
+// customFields, with $set, and then tells the widget (locationFields.js updateCustomFieldsWithDeilay).
+// ---------------------------------------------------------------------------
+
+const fieldView = (section, field) => ({
+  id: field.id, section, label: field.label, type: field.type, required: field.required, allowCustomLabel: field.enableCustomLabel
+});
+
+const saveCustomFields = (customFields, callback) => {
+  readSettings((err, { settings, saved } = {}) => {
+    if (err) return callback(err);
+    const done = (saveErr) => {
+      if (saveErr) return callback(toError(saveErr));
+      syncWidget({ cmd: 'sync', scope: 'customFields' });
+      callback(null);
+    };
+    // An instance that never saved settings gets its defaults saved first, as the Settings tab's load does.
+    if (!saved) return buildfire.datastore.save({ ...settings, customFields }, SETTINGS_TAG, done);
+    buildfire.datastore.save({ $set: { customFields } }, SETTINGS_TAG, done);
+  });
+};
+
+/** Re-reads settings, applies mutate(customFields), and saves. mutate returns an error message or a result. */
+const rewriteCustomFields = (mutate, callback) => {
+  readSettings((err, { settings } = {}) => {
+    if (err) return callback(err);
+    const { customFields } = settings;
+    const outcome = mutate(customFields);
+    if (outcome.error) return callback(new Error(outcome.error));
+    saveCustomFields(customFields, (saveErr) => (saveErr ? callback(saveErr) : callback(null, outcome.result)));
+  });
+};
+
+const checkFieldType = (entry, name, section) => {
+  if (!isGiven(entry[name])) return null;
+  const allowed = FIELD_SECTIONS[section];
+  return allowed.indexOf(entry[name]) === -1 ? `${name} must be one of: ${allowed.join(', ')} for ${section}` : null;
+};
+
+const createFieldAction = () => ({
+  validate: (entry) => firstProblem([
+    checkSelect(entry, 'section', Object.keys(FIELD_SECTIONS), { required: true }),
+    checkString(entry, 'label', { required: true }),
+    checkSelect(entry, 'type', FIELD_SECTIONS.content),
+    entry.section ? checkFieldType(entry, 'type', entry.section) : null,
+    checkBoolean(entry, 'required'),
+    checkBoolean(entry, 'allowCustomLabel')
+  ]),
+  resolve: (entry, ctx, cb) => readSettings((err, { settings } = {}) => {
+    if (err) return cb(err);
+    // Labels are how basic operations find a field, so a second one with the same label is refused.
+    if (!findField(settings, { label: entry.label }).error) return cb(new Error(`A location field labeled "${entry.label}" already exists`));
     cb(null, {});
   }),
-  keys: (options) => [`label:${options.label.trim().toLowerCase()}`],
-  apply: (options, found, callback) => readSettings((err, settings, wasSaved) => {
-    if (err) return callback(err, undefined);
-    if (listFields(settings).length >= MAX_LOCATION_FIELDS) {
-      return callback(new Error(`There are already ${MAX_LOCATION_FIELDS} location fields, the most the plugin allows`), undefined);
-    }
-    const field = {
+  keyOf: (entry) => entry.label,
+  apply: (entry, target, ctx, cb) => {
+    const field = normalizeCustomField({
       id: generateUUID(),
-      label: options.label.trim(),
-      type: options.type,
-      required: options.required === true,
-      enableCustomLabel: options.enableCustomLabel === true,
+      label: entry.label,
+      // The add buttons start a new field as Email.
+      type: entry.type || 'EMAIL',
+      required: !!entry.required,
+      enableCustomLabel: !!entry.allowCustomLabel,
       visibility: { value: 'ALL', tags: [] }
-    };
-    const list = settings.customFields[options.section];
-    list.push(field);
-    saveCustomFields(settings, wasSaved, (saveErr, widgetRefreshed) => {
-      if (saveErr) return callback(saveErr, undefined);
-      callback(null, { ...toPublicField(field, options.section, list.length - 1), widgetRefreshed });
     });
-  }),
-  idOf: (result) => result.id
-});
-
-/**
- * Shared by updateLocationField, updateLocationFieldByFieldId and their batches: renames a field,
- * changes its type or checkboxes, or moves it within its section (the page's drag to reorder),
- * leaving the rest as it was. Values already filled in on locations are kept, as they are when
- * the page edits a field.
- */
-const fieldUpdate = (handle) => ({
-  check: (options) => {
-    const missing = findMissingStringParam(options, [handle.param]);
-    if (missing) return missing;
-    const cleared = findClearedProblem(options, ['newLabel', 'newType', 'newRequired', 'newEnableCustomLabel', 'newPosition']);
-    if (cleared) return cleared;
-    if (isGiven(options.newLabel) && (typeof options.newLabel !== 'string' || !options.newLabel.trim())) return 'newLabel cannot be blank';
-    if (isGiven(options.newType) && !FIELD_TYPES.includes(options.newType)) return `newType must be one of: ${FIELD_TYPES.join(', ')}`;
-    if (isGiven(options.newPosition) && (!Number.isInteger(options.newPosition) || options.newPosition < 1 || options.newPosition > MAX_LOCATION_FIELDS)) {
-      return `newPosition must be a whole number from 1 to ${MAX_LOCATION_FIELDS}`;
-    }
-    const booleanProblem = readBooleans(options, ['newRequired', 'newEnableCustomLabel'], {});
-    if (booleanProblem) return booleanProblem;
-    const given = ['newLabel', 'newType', 'newRequired', 'newEnableCustomLabel', 'newPosition'].some((n) => isGiven(options[n]));
-    return given ? null : 'Pass at least one of newLabel, newType, newRequired, newEnableCustomLabel or newPosition';
-  },
-  resolve: (options, cb) => handle.find(options, (err, match) => {
-    if (err) return cb(err, undefined);
-    if (isGiven(options.newType) && !FIELD_SECTIONS[match.section].includes(options.newType)) {
-      return cb(new Error(`newType must be one of: ${FIELD_SECTIONS[match.section].join(', ')} in the ${match.section} section`), undefined);
-    }
-    const newLabel = isGiven(options.newLabel) ? options.newLabel.trim() : '';
-    if (!newLabel || newLabel.toLowerCase() === (match.field.label || '').toLowerCase()) return cb(null, match);
-    FIELD_BY_LABEL.find({ label: newLabel }, (clashErr) => {
-      if (!clashErr) return cb(new Error(`A location field labelled "${newLabel}" already exists`), undefined);
-      if (!/^No location field labelled/.test(clashErr.message)) return cb(clashErr, undefined);
-      cb(null, match);
-    });
-  }),
-  keys: (options, found) => {
-    const keys = [`field:${found.field.id}`];
-    if (isGiven(options.newLabel)) keys.push(`label:${options.newLabel.trim().toLowerCase()}`);
-    return keys;
-  },
-  apply: (options, found, callback) => withFreshField(found.field.id, (err, settings, wasSaved, match) => {
-    if (err) return callback(err, undefined);
-    const list = settings.customFields[match.section];
-    const field = list[match.index];
-    if (isGiven(options.newLabel)) field.label = options.newLabel.trim();
-    if (isGiven(options.newType)) field.type = options.newType;
-    if (isGiven(options.newRequired)) field.required = options.newRequired;
-    if (isGiven(options.newEnableCustomLabel)) field.enableCustomLabel = options.newEnableCustomLabel;
-    let position = match.index;
-    if (isGiven(options.newPosition)) {
-      if (options.newPosition > list.length) {
-        return callback(new Error(`newPosition must be from 1 to ${list.length} in the ${match.section} section`), undefined);
+    rewriteCustomFields((customFields) => {
+      if (customFields.quickActions.length + customFields.content.length >= MAX_LOCATION_FIELDS) {
+        return { error: `There are already ${MAX_LOCATION_FIELDS} location fields, the most the plugin allows` };
       }
-      list.splice(match.index, 1);
-      position = options.newPosition - 1;
-      list.splice(position, 0, field);
+      customFields[entry.section].push(field);
+      return { result: { field: fieldView(entry.section, field) } };
+    }, cb);
+  },
+  idOf: (target, result) => result.field.id
+});
+
+const fieldTargetChecks = (entry, byId) => (byId ? checkString(entry, 'fieldId', { required: true }) : checkString(entry, 'label', { required: true }));
+
+const resolveField = (byId) => (entry, ctx, cb) => readSettings((err, { settings } = {}) => {
+  if (err) return cb(err);
+  const found = findField(settings, byId ? { id: entry.fieldId } : { label: entry.label });
+  if (found.error) return cb(new Error(found.error));
+  cb(null, { ...found.found, settings });
+});
+
+const updateFieldAction = (byId) => ({
+  validate: (entry) => firstProblem([
+    fieldTargetChecks(entry, byId),
+    requireAnyGiven(entry, ['newLabel', 'newType', 'newRequired', 'newAllowCustomLabel', 'newPosition']),
+    findClearedProblem(entry, ['newLabel', 'newType', 'newRequired', 'newAllowCustomLabel', 'newPosition']),
+    checkString(entry, 'newLabel'),
+    checkSelect(entry, 'newType', FIELD_SECTIONS.content),
+    checkBoolean(entry, 'newRequired'),
+    checkBoolean(entry, 'newAllowCustomLabel'),
+    checkNumber(entry, 'newPosition', { min: 1, max: MAX_LOCATION_FIELDS, integer: true })
+  ]),
+  resolve: (entry, ctx, cb) => resolveField(byId)(entry, ctx, (err, target) => {
+    if (err) return cb(err);
+    const problem = firstProblem([
+      checkFieldType(entry, 'newType', target.section),
+      isGiven(entry.newPosition) && entry.newPosition > target.settings.customFields[target.section].length
+        ? `newPosition must be between 1 and ${target.settings.customFields[target.section].length}`
+        : null,
+      isGiven(entry.newLabel) && entry.newLabel !== target.field.label && !findField(target.settings, { label: entry.newLabel }).error
+        ? `A location field labeled "${entry.newLabel}" already exists`
+        : null
+    ]);
+    cb(problem ? new Error(problem) : null, target);
+  }),
+  keyOf: (entry, target) => target.field.id,
+  apply: (entry, target, ctx, cb) => rewriteCustomFields((customFields) => {
+    const list = customFields[target.section];
+    const index = list.findIndex((f) => f.id === target.field.id);
+    if (index === -1) return { error: `The location field "${target.field.label}" no longer exists` };
+    const field = list[index];
+    if (isGiven(entry.newLabel)) field.label = entry.newLabel;
+    if (isGiven(entry.newType)) field.type = entry.newType;
+    if (isGiven(entry.newRequired)) field.required = entry.newRequired;
+    if (isGiven(entry.newAllowCustomLabel)) field.enableCustomLabel = entry.newAllowCustomLabel;
+    // Drag-to-reorder within its section.
+    if (isGiven(entry.newPosition)) {
+      list.splice(index, 1);
+      list.splice(Math.min(entry.newPosition - 1, list.length), 0, field);
     }
-    saveCustomFields(settings, wasSaved, (saveErr, widgetRefreshed) => {
-      if (saveErr) return callback(saveErr, undefined);
-      callback(null, { ...toPublicField(field, match.section, position), widgetRefreshed });
-    });
-  }),
-  idOf: (result, found) => found.field.id
+    return { result: { field: fieldView(target.section, field) } };
+  }, cb),
+  idOf: (target) => target.field.id
 });
 
-/**
- * Shared by deleteLocationField, deleteLocationFieldByFieldId and their batches: the page's delete
- * button. The field stops showing on every location; values already filled in stay on the
- * location records, as they do after the page deletes one, but nothing shows them again.
- */
-const fieldRemoval = (handle) => ({
-  check: (options) => findMissingStringParam(options, [handle.param]),
-  resolve: (options, cb) => handle.find(options, cb),
-  keys: (options, found) => [`field:${found.field.id}`],
-  apply: (options, found, callback) => withFreshField(found.field.id, (err, settings, wasSaved, match) => {
-    if (err) return callback(err, undefined);
-    settings.customFields[match.section].splice(match.index, 1);
-    saveCustomFields(settings, wasSaved, (saveErr, widgetRefreshed) => {
-      if (saveErr) return callback(saveErr, undefined);
-      callback(null, { deleted: true, label: match.field.label, widgetRefreshed });
-    });
-  }),
-  idOf: (result, found) => found.field.id
+const deleteFieldAction = (byId) => ({
+  validate: (entry) => fieldTargetChecks(entry, byId),
+  resolve: resolveField(byId),
+  keyOf: (entry, target) => target.field.id,
+  apply: (entry, target, ctx, cb) => rewriteCustomFields((customFields) => {
+    const list = customFields[target.section];
+    const index = list.findIndex((f) => f.id === target.field.id);
+    if (index === -1) return { error: `The location field "${target.field.label}" no longer exists` };
+    // As on the Location Fields page, values already filled in on locations are left in place.
+    list.splice(index, 1);
+    return { result: { deleted: true, fieldId: target.field.id, label: target.field.label } };
+  }, cb),
+  idOf: (target) => target.field.id
 });
 
-/**
- * Shared by updatePinnedLocationOrder and updatePinnedLocationOrderByLocationId: the
- * Introduction screen's drag-to-reorder of the pinned list (src/control/content/js/listView/index.js).
- * The locations given must be exactly the ones pinned now, in their new order; each gets
- * pinIndex = its position, written through the full update the control panel uses (deeplink and
- * search index refreshed, locationUpdated fired), then the widget's Introduction screen is refreshed.
- * @param {string[]} handleNames - the three positional params, first to third.
- * @param {function(string, function)} findOne - (handle value, cb(err, location)).
- */
-const reorderPinnedLocations = (options, handleNames, findOne, callback) => {
-  if (!requireStringParams(options, [handleNames[0]], callback)) return;
-  const given = handleNames.filter((name) => isGiven(options[name]));
-  const notText = given.find((name) => typeof options[name] !== 'string');
-  if (notText) return callback(new Error(`${notText} must be text`), undefined);
-  const gap = handleNames.findIndex((name, i) => i > 0 && isGiven(options[name]) && !isGiven(options[handleNames[i - 1]]));
-  if (gap > 0) return callback(new Error(`${handleNames[gap]} needs ${handleNames[gap - 1]}`), undefined);
+// ---------------------------------------------------------------------------
+// Settings, design and intro screen
+// ---------------------------------------------------------------------------
 
-  const located = [];
-  let pending = given.length;
-  const failures = [];
-  given.forEach((name, i) => findOne(options[name], (err, location) => {
-    if (err) failures[i] = err.message;
-    else located[i] = location;
-    pending -= 1;
-    if (pending) return;
-    if (failures.some(Boolean)) return callback(new Error(failures.filter(Boolean).join('; ')), undefined);
-    if (new Set(located.map((l) => l.id)).size !== located.length) return callback(new Error('The same location is listed more than once'), undefined);
+const SETTINGS_BOOLEANS = {
+  subscriptionEnabled: ['subscription', 'enabled'],
+  hideSorting: ['sorting', 'hideSorting'],
+  allowSortByReverseAlphabetical: ['sorting', 'allowSortByReverseAlphabetical'],
+  allowSortByNearest: ['sorting', 'allowSortByNearest'],
+  allowSortByPriceLowToHigh: ['sorting', 'allowSortByPriceLowToHigh'],
+  allowSortByPriceHighToLow: ['sorting', 'allowSortByPriceHighToLow'],
+  allowSortByDate: ['sorting', 'allowSortByDate'],
+  allowSortByRating: ['sorting', 'allowSortByRating'],
+  allowSortByViews: ['sorting', 'allowSortByViews'],
+  allowFilterByArea: ['filter', 'allowFilterByArea'],
+  allowFilterByBookmarks: ['filter', 'allowFilterByBookmarks'],
+  hideOpeningHoursFilter: ['filter', 'hideOpeningHoursFilter'],
+  hidePriceFilter: ['filter', 'hidePriceFilter'],
+  mapInitialAreaEnabled: ['map', 'initialArea'],
+  bookmarksEnabled: ['bookmarks', 'enabled'],
+  allowBookmarkLocations: ['bookmarks', 'allowForLocations'],
+  allowBookmarkSearches: ['bookmarks', 'allowForFilters']
+};
+const SETTINGS_PARAMS = Object.keys(SETTINGS_BOOLEANS).concat([
+  'openHoursEnabled', 'priceRangeEnabled', 'defaultSorting', 'measurementUnit',
+  'initialAreaLatitude', 'initialAreaLongitude', 'initialAreaAddress'
+]);
 
-    buildfire.publicData.search({
-      filter: { '_buildfire.index.number1': { $in: [1, 2, 3] } }, pageSize: MAX_PAGE_SIZE
-    }, LOCATIONS_TAG, (searchErr, response) => {
-      if (searchErr) return callback(searchErr, undefined);
-      const pinnedIds = readSearchResponse(response).records.map((r) => r.id);
-      const sameSet = pinnedIds.length === located.length && located.every((l) => pinnedIds.includes(l.id));
-      if (!sameSet) {
-        return callback(new Error(`List exactly the ${pinnedIds.length} pinned location(s), in their new order; pin or unpin with updateLocationPin`), undefined);
-      }
+const DESIGN_SELECTS = {
+  listViewPosition: LIST_VIEW_POSITIONS,
+  listViewStyle: LIST_VIEW_STYLES,
+  defaultMapType: MAP_TYPES,
+  detailsMapPosition: DETAILS_MAP_POSITIONS
+};
+const DESIGN_BOOLEANS = ['enableMapTerrainView', 'hideQuickFilter', 'allowStyleSelection', 'showDetailsCategory', 'showContributorName'];
+const DESIGN_PARAMS = Object.keys(DESIGN_SELECTS).concat(DESIGN_BOOLEANS);
 
-      const writeNext = (index) => {
-        if (index === located.length) {
-          const widgetRefreshed = syncWidget('intro');
-          return callback(null, { pinned: located.map((l) => l.data.title), widgetRefreshed });
-        }
-        writeLocationPin(located[index], index + 1, (writeErr, doc) => {
-          if (writeErr) return callback(writeErr, undefined);
-          registerDeeplink(located[index].id, doc);
-          saveSearchIndex(located[index].id, doc);
-          writeNext(index + 1);
-        });
-      };
-      writeNext(0);
-    });
-  }));
+const INTRO_PARAMS = ['description', 'sorting', 'locationSource', 'areaLatitude', 'areaLongitude', 'areaAddress', 'areaRadiusMiles'];
+
+const checkOptions = (options, callback) => {
+  requireCallback(callback);
+  if (!isObject(options)) {
+    callback(new Error('options must be an object'), undefined);
+    return false;
+  }
+  return true;
 };
 
-/** Mirrors the carousel editor's items: an action item with an image, stored with an id. */
-const isCarouselItem = (item) => item && typeof item === 'object' && !Array.isArray(item)
-  && typeof item.action === 'string' && item.action
-  && typeof item.iconUrl === 'string' && item.iconUrl.trim();
+/** Turns a field-access toggle off the way the Location Settings page does: access drops to nobody. */
+const setFieldEnabled = (entry, enabled) => {
+  entry.enabled = enabled;
+  if (!enabled) {
+    entry.inAppEnabled = 'none';
+    entry.tags = [];
+  }
+};
+
+// ---------------------------------------------------------------------------
+// widgetContract
+// ---------------------------------------------------------------------------
 
 widgetContract = {
   /**
@@ -1845,909 +2159,659 @@ widgetContract = {
   },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is searchLocationsByCategoryId. The one paged search over locations, every
-   * filter optional (title, text, category, subcategory, price range, creator, pinned, open now).
-   * Uses only buildfire.publicData and buildfire.auth, which behave the same in both frames and
-   * on the server; it only reads, so nothing about it needs to be watched — Background in both
-   * frames. It is a function, not a declarative search, because a category is named by title and
-   * has to be resolved to its id first, and the open-now filter keys on the day name
-   * (`openingHours.days.<day>.intervals`), which a static query cannot express.
-   * @param {{ title?: string, text?: string, categoryTitle?: string, subcategoryTitle?: string,
-   *   priceRange?: number, createdByUserId?: string, pinnedOnly?: boolean, openNow?: boolean,
-   *   at?: string, utcOffsetMinutes?: number, sortBy?: string, page?: number, pageSize?: number }} options
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is searchLocationsAdvanced. Uses only buildfire.publicData, which behaves the same in both
+   * frames and on the server; nothing about it needs to be watched, so Background. A function rather
+   * than a declarative search because category and subcategory titles must be resolved to the ids the
+   * index holds, the open-now filter is keyed by today's day name, and the result carries category
+   * titles and an open-now answer. Filters combine with AND, unlike the widget's own OR across
+   * selected categories, because a caller narrowing by several filters expects all of them to apply.
+   * Sorts are the index-backed ones only (title, creation date).
+   * @param {{ searchText?: string, title?: string, categoryTitle?: string, subcategoryTitle?: string, priceRange?: number, openNow?: boolean, pinned?: boolean, createdBy?: string, sortBy?: string, page?: number, pageSize?: number }} options
    * @param {function(Error=, object=)} callback - (error, { locations, total, page, hasMore })
    */
-  searchLocations(options, callback) {
-    searchLocationRecords(options, false, callback);
-  },
+  searchLocations: searchLocationsImpl(false),
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * searchLocations, taking the category and subcategory by id (as searchCategories gives them)
-   * instead of by title. Same hosts, filters and result, via the same searchLocationRecords; an id
-   * that matches no live category or subcategory is refused.
-   * @param {{ title?: string, text?: string, categoryId?: string, subcategoryId?: string,
-   *   priceRange?: number, createdByUserId?: string, pinnedOnly?: boolean, openNow?: boolean,
-   *   at?: string, utcOffsetMinutes?: number, sortBy?: string, page?: number, pageSize?: number }} options
+   * searchLocations, taking a category id and subcategory id instead of titles. Same implementation,
+   * hosts and result; an id that matches no live category is refused.
+   * @param {{ categoryId?: string, subcategoryId?: string }} options - plus searchLocations' other filters.
    * @param {function(Error=, object=)} callback - (error, { locations, total, page, hasMore })
    */
-  searchLocationsByCategoryId(options, callback) {
-    searchLocationRecords(options, true, callback);
-  },
+  searchLocationsAdvanced: searchLocationsImpl(true),
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic, with no advanced
-   * alternative: it names nothing by a handle. Locations within a radius of a point, nearest
-   * first, each with its distance. Kept apart from searchLocations because it answers a different
-   * shape (every location carries a distance). Uses only buildfire.publicData.aggregate, which
-   * behaves the same in both frames and on the server; it only reads, so Background in both
-   * frames. It is a function because the radius is taken in kilometres and converted to the
-   * radians $centerSphere expects, the same conversion introSearchService does.
-   * @param {{ lat: number, lng: number, radiusKm?: number, page?: number, pageSize?: number }} options
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is searchLocationsNearPointAdvanced. Mirrors the intro screen's IntroSearchService: a
+   * publicData.aggregate with $geoNear for the distance and $geoWithin for the optional radius (miles,
+   * 1 to 200 as on the intro screen's radius input). Kept apart from searchLocations because each
+   * result carries a distance. Uses only buildfire.publicData, so it runs in both frames and on the
+   * server; Background because nothing needs watching. The aggregate gives no total, so hasMore is
+   * true whenever a full page came back.
+   * @param {{ latitude: number, longitude: number, radiusMiles?: number, searchText?: string, title?: string, categoryTitle?: string, subcategoryTitle?: string, priceRange?: number, openNow?: boolean, page?: number, pageSize?: number }} options
    * @param {function(Error=, object=)} callback - (error, { locations, page, hasMore })
    */
-  searchLocationsNearPoint(options, callback) {
-    if (!requireStringParams(options, [], callback)) return;
-    if (!isFiniteNumber(options.lat) || options.lat < -90 || options.lat > 90) {
-      return callback(new Error('lat must be a number from -90 to 90'), undefined);
-    }
-    if (!isFiniteNumber(options.lng) || options.lng < -180 || options.lng > 180) {
-      return callback(new Error('lng must be a number from -180 to 180'), undefined);
-    }
-    const radiusKm = isGiven(options.radiusKm) ? options.radiusKm : DEFAULT_NEAR_RADIUS_KM;
-    if (!isFiniteNumber(radiusKm) || radiusKm <= 0) {
-      return callback(new Error('radiusKm must be a number above 0'), undefined);
-    }
-    const paging = readPaging(options, callback);
-    if (!paging) return;
-
-    const point = [options.lng, options.lat];
-    const moment = resolveOpeningMoment(undefined, undefined);
-    const pipelineStages = [
-      {
-        $geoNear: {
-          near: { type: 'Point', coordinates: point }, key: '_buildfire.geo', distanceField: 'distance', query: {}
-        }
-      },
-      { $match: { '_buildfire.geo': { $geoWithin: { $centerSphere: [point, radiusKm / EARTH_RADIUS_KM] } } } }
-    ];
-    buildfire.publicData.aggregate(
-      { pipelineStages, page: paging.page, pageSize: paging.pageSize },
-      LOCATIONS_TAG,
-      (err, response) => {
-        if (err) return callback(err, undefined);
-        const records = (Array.isArray(response) ? response : []).filter(Boolean);
-        // A GeoJSON $geoNear reports distance in metres.
-        const locations = records.map((r) => ({
-          ...toLocationSummary(r._id || r.id, r.data || {}, moment),
-          distanceKm: typeof r.distance === 'number' ? Math.round(r.distance) / 1000 : null
-        }));
-        callback(null, { locations, page: paging.page, hasMore: records.length === paging.pageSize });
-      }
-    );
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is getLocationByLocationId. One location, named by its exact title, with its
-   * category and subcategory titles resolved and whether it is open at the given moment. Uses
-   * only buildfire.publicData, which behaves the same in both frames and on the server; it only
-   * reads, so Background in both frames. Multi-step: the title is resolved by a search, then the
-   * category ids on the record are resolved to titles by a second search, which is why it is not
-   * a declarative operation.
-   * @param {{ title: string, at?: string, utcOffsetMinutes?: number }} options
-   * @param {function(Error=, object=)} callback - (error, location)
-   */
-  getLocation(options, callback) {
-    if (!requireStringParams(options, ['title'], callback)) return;
-    readLocation(options, findLocationByTitle(options), callback);
-  },
+  searchLocationsNearPoint: searchNearPointImpl(false),
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * getLocation, taking the location's record id instead of its title. Same hosts and result, via
-   * the same readLocation; it checks the id exists instead of searching.
-   * @param {{ locationId: string, at?: string, utcOffsetMinutes?: number }} options
-   * @param {function(Error=, object=)} callback - (error, location)
+   * searchLocationsNearPoint, taking a category id and subcategory id instead of titles.
+   * @param {{ latitude: number, longitude: number, categoryId?: string, subcategoryId?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { locations, page, hasMore })
    */
-  getLocationByLocationId(options, callback) {
-    if (!requireStringParams(options, ['locationId'], callback)) return;
-    readLocation(options, findLocationById(options), callback);
-  },
+  searchLocationsNearPointAdvanced: searchNearPointImpl(true),
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is createLocationByCategoryId. Adds a location the way the widget's and control
-   * panel's create forms do: the same required fields, a fresh clientId, the default 08:00–20:00
-   * opening hours, then the deeplink, search-index and analytics registrations (best effort, as
-   * in the plugin) and the locationCreated event. Uses only buildfire.publicData plus optional
-   * services, so it runs in both frames and on the server. Background in both frames: adding a
-   * location is the same routine content edit the control panel makes, and it can be undone by
-   * deleteLocation.
-   * @param {{ title: string, description: string, address: string, lat: number, lng: number,
-   *   listImage: string, subtitle?: string, addressAlias?: string, categoryTitle?: string,
-   *   subcategoryTitle?: string, priceRange?: number, currency?: string }} options
-   * @param {function(Error=, object=)} callback - (error, created location)
-   */
-  createLocation(options, callback) {
-    runAction(locationCreation(false), options, callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * createLocation, taking the category and subcategory by id (as searchCategories gives them)
-   * instead of by title. Same hosts, record, events and result, via the same locationCreation.
-   * @param {{ title: string, description: string, address: string, lat: number, lng: number,
-   *   listImage: string, subtitle?: string, addressAlias?: string, categoryId?: string,
-   *   subcategoryId?: string, priceRange?: number, currency?: string }} options
-   * @param {function(Error=, object=)} callback - (error, created location)
-   */
-  createLocationByCategoryId(options, callback) {
-    runAction(locationCreation(true), options, callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is updateLocationByLocationId. Edits one location, named by its exact current
-   * title, changing only the fields the caller passes (see locationUpdate). Uses only
-   * buildfire.publicData plus optional services, so it runs in both frames and on the server.
-   * Background in both frames: a routine content edit, undone by another update. Resolving the
-   * title is a search, which is why this is a function rather than a declarative update.
-   * @param {{ title: string, newTitle?: string, newSubtitle?: string, newDescription?: string,
-   *   newAddress?: string, newLat?: number, newLng?: number, newAddressAlias?: string,
-   *   newListImage?: string, newPriceRange?: number, newCurrency?: string,
-   *   newCategoryTitle?: string, newSubcategoryTitle?: string }} options
-   * @param {function(Error=, object=)} callback - (error, updated location)
-   */
-  updateLocation(options, callback) {
-    runAction(locationUpdate(LOCATION_BY_TITLE, false), options, callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * updateLocation, taking the location's record id instead of its title, and the new category
-   * and subcategory by newCategoryId / newSubcategoryId instead of by title. Same hosts, effect,
-   * events and result, via the same locationUpdate; it checks the id exists instead of
-   * searching.
-   * @param {{ locationId: string, newTitle?: string, newSubtitle?: string, newDescription?: string,
-   *   newAddress?: string, newLat?: number, newLng?: number, newAddressAlias?: string,
-   *   newListImage?: string, newPriceRange?: number, newCurrency?: string,
-   *   newCategoryId?: string, newSubcategoryId?: string }} options
-   * @param {function(Error=, object=)} callback - (error, updated location)
-   */
-  updateLocationByLocationId(options, callback) {
-    runAction(locationUpdate(LOCATION_BY_ID, true), options, callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * updateLocationPinByLocationId. Pins a location to the top of the list or unpins it, the
-   * control panel's "Pin to Top" / "Unpin" action (see locationPin). Kept separate from
-   * updateLocation because it has its own check (the three-pin limit). Uses only
-   * buildfire.publicData, so it runs in the control panel and on the server; no widget host,
-   * because pinning is an owner's curation of the list and the app offers no way to do it.
-   * Nothing about it needs to be watched and it is undone by the opposite call, so Background.
-   * @param {{ title: string, isPinned: boolean }} options
-   * @param {function(Error=, object=)} callback - (error, { title, isPinned, pinPosition })
-   */
-  updateLocationPin(options, callback) {
-    runAction(locationPin(LOCATION_BY_TITLE), options, callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of updateLocationPin,
-   * taking the location's record id instead of its title, via the same locationPin.
-   * @param {{ locationId: string, isPinned: boolean }} options
-   * @param {function(Error=, object=)} callback - (error, { title, isPinned, pinPosition })
-   */
-  updateLocationPinByLocationId(options, callback) {
-    runAction(locationPin(LOCATION_BY_ID), options, callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is deleteLocationByLocationId. Permanently deletes one location, named by its
-   * exact title (see locationRemoval). Uses only buildfire.publicData plus optional services, so it
-   * runs in both frames and on the server, where the `dangerous` flag makes the app owner confirm
-   * it. Background in both frames, as the control panel's own delete is. Resolving the title is a
-   * search, which is why this is a function rather than a declarative delete.
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is getLocationAdvanced. Resolves the title (ignoring case, refusing several matches), then
+   * reads categories and settings to show category titles and location field labels. Uses only
+   * buildfire.publicData and buildfire.datastore; Background.
    * @param {{ title: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, title, deeplinkRemoved, searchIndexRemoved })
+   * @param {function(Error=, object=)} callback - (error, location)
    */
-  deleteLocation(options, callback) {
-    runAction(locationRemoval(LOCATION_BY_TITLE), options, callback);
-  },
+  getLocation: getLocationImpl(false),
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * deleteLocation, taking the location's record id instead of its title. Checks the id exists
-   * first, so an unknown id is reported rather than silently doing nothing.
+   * getLocation, taking the location's record id and checking it exists.
    * @param {{ locationId: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, title, deeplinkRemoved, searchIndexRemoved })
+   * @param {function(Error=, object=)} callback - (error, location)
    */
-  deleteLocationByLocationId(options, callback) {
-    runAction(locationRemoval(LOCATION_BY_ID), options, callback);
-  },
+  getLocationAdvanced: getLocationImpl(true),
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced
-   * alternative is deleteLocationSubscriberByLocationId. Stops one app user from getting a
-   * location's update notifications, as the app (see locationSubscriberRemoval). The named user is
-   * the target, not the actor, and removing someone from a notification list only ever sends them
-   * less. Takes the user as a parameter, so it needs no signed-in session: uses only
-   * buildfire.publicData and buildfire.auth, which behave the same in both frames and on the
-   * server; confined to one list entry, so Background in both frames. Subscribing a user is
-   * deliberately not offered: opting someone in to notifications is their decision to make.
-   * @param {{ title: string, userId: string }} options
-   * @param {function(Error=, object=)} callback - (error, { title, userId, wasSubscribed })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is createLocationAdvanced. The control panel's Add Location save (LocationsController.
+   * createLocation): validates as the form does, inserts the location with the plugin's own index,
+   * then fires locationCreated, registers the "(Viewed)" analytics event and the deep link, adds the
+   * search-engine entry and refreshes the widget. Multi-step over the SDK, which is why it is a
+   * function. Background in both frames: the user chose to keep location writes unattended.
+   * Deep links and analytics do not exist on the server, so there they are skipped and reported as
+   * false in sideEffects; the searchEngine service is loaded on first use in a frame. New locations
+   * get the plugin's default hours (every day 08:00-20:00) unless <day>Hours are passed, and no
+   * location field values (the CSV import creates locations the same way; fill them in with
+   * updateLocationFieldValue).
+   * @param {object} options - title, address, latitude, longitude, description, listImage, and the optional fields declared in plugin.contract.json.
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  deleteLocationSubscriber(options, callback) {
-    runAction(locationSubscriberRemoval(LOCATION_BY_TITLE), options, callback);
-  },
+  createLocation(options, callback) { runAction(createLocationAction(false), options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * deleteLocationSubscriber, taking the location's record id instead of its title, via the same
-   * locationSubscriberRemoval.
-   * @param {{ locationId: string, userId: string }} options
-   * @param {function(Error=, object=)} callback - (error, { title, userId, wasSubscribed })
+   * createLocation, taking categoryIds ("categoryId->subcategoryId, ...") instead of titles.
+   * @param {object} options
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  deleteLocationSubscriberByLocationId(options, callback) {
-    runAction(locationSubscriberRemoval(LOCATION_BY_ID), options, callback);
-  },
+  createLocationAdvanced(options, callback) { runAction(createLocationAction(true), options, callback); },
 
   /**
-   * hosts: widgetForeground, controlForeground, headlessSdk. usage: basic; its advanced
-   * alternative is sendLocationNotificationByLocationId. Sends a push notification to everyone
-   * following a location, on behalf of the app (see notifyLocationSubscribers). Uses
-   * buildfire.datastore, buildfire.publicData and buildfire.notifications.pushNotification.schedule,
-   * all server-safe, so it keeps headlessSdk; there the `dangerous` and `throttable` flags make
-   * the app owner confirm it and requireUserApproval skips its own dialog. Foreground in both
-   * frames because it reaches real people and cannot be recalled, so the person watching approves
-   * it once the location and its subscribers are known.
-   * @param {{ title: string, notificationTitle: string, notificationText: string }} options
-   * @param {function(Error=, object=)} callback - (error, { title, recipientCount })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form
+   * of createLocationAdvanced, and what the control panel's CSV import does. Validates every entry and
+   * checks every category id first, then creates each through createLocationAdvanced's own action.
+   * Entries carry no gallery images or action buttons, since an entry's fields can't be lists.
+   * @param {{ locations: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  sendLocationNotification(options, callback) {
-    if (!requireStringParams(options, ['title'], callback)) return;
-    notifyLocationSubscribers(options, findLocationByTitle(options), callback);
-  },
+  createLocationsAdvanced(options, callback) { runBatch(withoutListFields(createLocationAction(true), ['images', 'actionItems']), 'locations', options, callback); },
 
   /**
-   * hosts: widgetForeground, controlForeground, headlessSdk. usage: advanced; the alternative of
-   * sendLocationNotification, taking the location's record id instead of its title. Same hosts,
-   * approval, gate and result, via the same notifyLocationSubscribers.
-   * @param {{ locationId: string, notificationTitle: string, notificationText: string }} options
-   * @param {function(Error=, object=)} callback - (error, { title, recipientCount })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is updateLocationAdvanced. The location form's Save in edit mode (LocationsController.
+   * updateLocation): changes only the fields passed, re-reads and rewrites the whole document with a
+   * fresh index, then fires locationUpdated, re-registers the deep link, updates the search entry and
+   * refreshes the widget. Subtitle, custom name, categories, gallery images and action buttons can be
+   * cleared with null (subtitle and custom name with "" too); clearing anything else is refused.
+   * Background, by the user's choice for location writes.
+   * @param {object} options - title plus the new* fields declared in plugin.contract.json.
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  sendLocationNotificationByLocationId(options, callback) {
-    if (!requireStringParams(options, ['locationId'], callback)) return;
-    notifyLocationSubscribers(options, findLocationById(options), callback);
-  },
+  updateLocation(options, callback) { runAction(updateLocationAction(false), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic, with no advanced alternative: it names
-   * nothing by a handle. Adds a category, the control panel's "Add Category" form: a title, an
-   * optional icon and optional subcategories given as one comma-separated list (the same split the
-   * category CSV import does), each subcategory with a fresh id, then the category's analytics
-   * events (best effort). Uses only buildfire.publicData plus optional analytics, so it runs in the
-   * control panel and on the server; no widget host, because categories are managed only from the
-   * control panel. Nothing about it needs to be watched, so Background.
-   * Assumption: a title already used by a live category is refused. The control panel does not
-   * check, but categories are named by title in every basic operation, so a duplicate would make
-   * both unaddressable there.
-   * @param {{ title: string, iconUrl?: string, subcategoryTitles?: string }} options
-   * @param {function(Error=, object=)} callback - (error, created category)
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
+   * updateLocation, taking locationId and newCategoryIds.
+   * @param {object} options
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  createCategory(options, callback) {
-    runAction(categoryCreation(), options, callback);
-  },
+  updateLocationAdvanced(options, callback) { runAction(updateLocationAction(true), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * updateCategoryByCategoryId. Edits one category, named by its exact current title (see
-   * categoryUpdate). Uses only buildfire.publicData, so it runs in the control panel and on
-   * the server; no widget host, because categories are managed only from the control panel.
-   * Nothing about it needs to be watched, so Background. Resolving the title is a search, which
-   * is why this is a function.
-   * @param {{ title: string, newTitle?: string, newIconUrl?: string, addSubcategoryTitles?: string }} options
-   * @param {function(Error=, object=)} callback - (error, updated category)
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * updateLocationAdvanced: each entry names its record by id.
+   * @param {{ locations: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  updateCategory(options, callback) {
-    runAction(categoryUpdate(CATEGORY_BY_TITLE), options, callback);
-  },
+  updateLocationsAdvanced(options, callback) { runBatch(withoutListFields(updateLocationAction(true), ['newImages', 'newActionItems']), 'locations', options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of updateCategory,
-   * taking the category's record id instead of its title, via the same categoryUpdate. The
-   * id must name a live category; a removed one counts as missing.
-   * @param {{ categoryId: string, newTitle?: string, newIconUrl?: string, addSubcategoryTitles?: string }} options
-   * @param {function(Error=, object=)} callback - (error, updated category)
-   */
-  updateCategoryByCategoryId(options, callback) {
-    runAction(categoryUpdate(CATEGORY_BY_ID), options, callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * deleteCategoryByCategoryId. Removes one category, named by its exact title, the way the
-   * control panel does (see categoryRemoval). Uses only buildfire.publicData, so it runs in the
-   * control panel and on the server; no widget host, because categories are managed only from the
-   * control panel. Nothing about it needs to be watched, so Background.
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is deleteLocationAdvanced. LocationsController.deleteLocation: a hard delete, then
+   * locationDeleted, the deep link and the search entry are removed and the widget refreshed.
+   * Background, by the user's choice; flagged dangerous because it cannot be undone.
    * @param {{ title: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, title })
+   * @param {function(Error=, object=)} callback - (error, { deleted, locationId, title, sideEffects })
    */
-  deleteCategory(options, callback) {
-    runAction(categoryRemoval(CATEGORY_BY_TITLE), options, callback);
-  },
+  deleteLocation(options, callback) { runAction(deleteLocationAction(false), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of deleteCategory,
-   * taking the category's record id instead of its title, via the same categoryRemoval. The id
-   * must name a live category; a removed one counts as missing.
-   * @param {{ categoryId: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, title })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
+   * deleteLocation, taking the location's record id.
+   * @param {{ locationId: string }} options
+   * @param {function(Error=, object=)} callback - (error, { deleted, locationId, title, sideEffects })
    */
-  deleteCategoryByCategoryId(options, callback) {
-    runAction(categoryRemoval(CATEGORY_BY_ID), options, callback);
-  },
-
-  // ---------------------------------------------------------------------------------------------
-  // Batch forms. Each one takes one list of entries shaped exactly like its single operation's
-  // params and runs them through that operation's own action with runBatch: every entry is checked
-  // and resolved before anything is written, a record named twice is refused, then each entry is
-  // applied in turn and reported as { index, id, error }. Same hosts, crudMode and usage as the
-  // single operation; throttable because it is a bulk write.
-  // ---------------------------------------------------------------------------------------------
+  deleteLocationAdvanced(options, callback) { runAction(deleteLocationAction(true), options, callback); },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; the batch form of
-   * createLocation (its advanced batch is createLocationsByCategoryId). The control panel's CSV
-   * import and the AI seeder add many locations at once with publicData.bulkInsert, but that path
-   * skips the locationCreated event; this runs each entry through createLocation's own
-   * locationCreation instead, so every location gets the event, deeplink, search index and analytics.
-   * @param {{ locations: Array<object> }} options - entries shaped like createLocation's params.
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  createLocations(options, callback) {
-    runBatch(locationCreation(false), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the batch form of
-   * createLocationByCategoryId, the alternative of createLocations.
-   * @param {{ locations: Array<object> }} options - entries shaped like createLocationByCategoryId's params.
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  createLocationsByCategoryId(options, callback) {
-    runBatch(locationCreation(true), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; the batch form of
-   * updateLocation (its advanced batch is updateLocationsByLocationId), via locationUpdate.
-   * @param {{ locations: Array<object> }} options - entries shaped like updateLocation's params.
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  updateLocations(options, callback) {
-    runBatch(locationUpdate(LOCATION_BY_TITLE, false), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the batch form of
-   * updateLocationByLocationId, the alternative of updateLocations.
-   * @param {{ locations: Array<object> }} options - entries shaped like updateLocationByLocationId's params.
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  updateLocationsByLocationId(options, callback) {
-    runBatch(locationUpdate(LOCATION_BY_ID, true), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of updateLocationPin (its
-   * advanced batch is updateLocationsPinByLocationId), via locationPin. The three-pin limit is
-   * checked again for each entry, so pinning a fourth fails that entry only.
-   * @param {{ locations: Array<{ title: string, isPinned: boolean }> }} options
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  updateLocationsPin(options, callback) {
-    runBatch(locationPin(LOCATION_BY_TITLE), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the batch form of
-   * updateLocationPinByLocationId, the alternative of updateLocationsPin.
-   * @param {{ locations: Array<{ locationId: string, isPinned: boolean }> }} options
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  updateLocationsPinByLocationId(options, callback) {
-    runBatch(locationPin(LOCATION_BY_ID), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; the batch form of
-   * deleteLocation (its advanced batch is deleteLocationsByLocationId), via locationRemoval. Every
-   * title is resolved before the first delete, so a typo deletes nothing.
-   * @param {{ locations: Array<{ title: string }> }} options
-   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
-   */
-  deleteLocations(options, callback) {
-    runBatch(locationRemoval(LOCATION_BY_TITLE), options, 'locations', callback);
-  },
-
-  /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the batch form of
-   * deleteLocationByLocationId, the alternative of deleteLocations.
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * deleteLocationAdvanced: each entry names its record by id.
    * @param {{ locations: Array<{ locationId: string }> }} options
    * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  deleteLocationsByLocationId(options, callback) {
-    runBatch(locationRemoval(LOCATION_BY_ID), options, 'locations', callback);
-  },
+  deleteLocationsAdvanced(options, callback) { runBatch(deleteLocationAction(true), 'locations', options, callback); },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; the batch form of
-   * deleteLocationSubscriber (its advanced batch is deleteLocationSubscribersByLocationId), via
-   * locationSubscriberRemoval. Each entry is one user on one location; the result's id is the location's.
-   * @param {{ subscribers: Array<{ title: string, userId: string }> }} options
-   * @param {function(Error=, object=)} callback - (error, { subscribers, succeeded, failed })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is updateLocationFieldValueAdvanced. Fills in one location field (a custom field from the
+   * Settings tab) on one location, validated by the field's type exactly as the location form's
+   * customFields.js does (URLs get https:// added). A separate operation from updateLocation because
+   * the fields are defined per app, so they cannot be fixed parameters. Saved through the same full
+   * update as updateLocation, with its side effects. Background.
+   * @param {{ title: string, fieldLabel: string, value?: string|null, customLabel?: string|null }} options
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  deleteLocationSubscribers(options, callback) {
-    runBatch(locationSubscriberRemoval(LOCATION_BY_TITLE), options, 'subscribers', callback);
-  },
+  updateLocationFieldValue(options, callback) { runAction(updateFieldValueAction(false), options, callback); },
 
   /**
-   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the batch form of
-   * deleteLocationSubscriberByLocationId, the alternative of deleteLocationSubscribers.
-   * @param {{ subscribers: Array<{ locationId: string, userId: string }> }} options
-   * @param {function(Error=, object=)} callback - (error, { subscribers, succeeded, failed })
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
+   * updateLocationFieldValue, taking locationId and fieldId.
+   * @param {{ locationId: string, fieldId: string, value?: string|null, customLabel?: string|null }} options
+   * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  deleteLocationSubscribersByLocationId(options, callback) {
-    runBatch(locationSubscriberRemoval(LOCATION_BY_ID), options, 'subscribers', callback);
-  },
+  updateLocationFieldValueAdvanced(options, callback) { runAction(updateFieldValueAction(true), options, callback); },
+
+  /**
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * updateLocationFieldValueAdvanced: each entry names its record by id.
+   * @param {{ locations: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
+   */
+  updateLocationsFieldValueAdvanced(options, callback) { runBatch(updateFieldValueAction(true), 'locations', options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * updatePinnedLocationOrderByLocationId. The Introduction screen's drag-to-reorder of the pinned
-   * locations (see reorderPinnedLocations). Already acts on every pinned location, so it has no
-   * batch. Uses only buildfire.publicData plus optional services and the widget refresh, so it runs
-   * in the control panel and on the server; no widget host, because the app offers no way to do it.
-   * Background: a routine curation, undone by another reorder.
-   * @param {{ firstTitle: string, secondTitle?: string, thirdTitle?: string }} options
-   * @param {function(Error=, object=)} callback - (error, { pinned, widgetRefreshed })
+   * updatePinnedLocationOrderAdvanced. The intro screen's drag-to-reorder of "Pinned to top
+   * locations": every pinned location is listed in its new order and renumbered 1..3 through the
+   * same full update as updateLocation, then the intro screen is refreshed. Acts on several
+   * locations at once, so it has no batch form. No widget host: only the control panel reorders
+   * pins. Background: it rearranges content, it does not publish or contact anyone.
+   * @param {{ firstLocationTitle: string, secondLocationTitle?: string, thirdLocationTitle?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { locations })
    */
-  updatePinnedLocationOrder(options, callback) {
-    reorderPinnedLocations(options, ['firstTitle', 'secondTitle', 'thirdTitle'], resolveLocation, callback);
-  },
+  updatePinnedLocationOrder(options, callback) { runAction(pinnedOrderAction(false), options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of
-   * updatePinnedLocationOrder, taking the locations' record ids instead of their titles.
+   * updatePinnedLocationOrder, taking location ids.
    * @param {{ firstLocationId: string, secondLocationId?: string, thirdLocationId?: string }} options
-   * @param {function(Error=, object=)} callback - (error, { pinned, widgetRefreshed })
+   * @param {function(Error=, object=)} callback - (error, { locations })
    */
-  updatePinnedLocationOrderByLocationId(options, callback) {
-    reorderPinnedLocations(options, ['firstLocationId', 'secondLocationId', 'thirdLocationId'], requireLocationById, callback);
-  },
+  updatePinnedLocationOrderAdvanced(options, callback) { runAction(pinnedOrderAction(true), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of createCategory, which has
-   * no advanced alternative, so neither does this. The control panel's category CSV import, but
-   * through createCategory's own categoryCreation: duplicate titles are refused and each category
-   * gets its analytics events.
-   * @param {{ categories: Array<{ title: string, iconUrl?: string, subcategoryTitles?: string }> }} options
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
+   * is deleteLocationSubscriberAdvanced. Stops one app user's updates about a location, as the
+   * app (Locations.unsubscribeFromLocationUpdates: $pull from subscribers), and fires
+   * locationUnsubscribed. The user is the target, never the actor. The reverse, subscribing someone,
+   * is not offered: opting a person in to notifications is their consent to give. Uses only
+   * buildfire.publicData (and buildfire.auth to resolve an email), so it runs everywhere; Background.
+   * @param {{ title: string, userId: string }} options
+   * @param {function(Error=, object=)} callback - (error, { removed, locationId, userId })
+   */
+  deleteLocationSubscriber(options, callback) { runAction(deleteSubscriberAction(false), options, callback); },
+
+  /**
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
+   * deleteLocationSubscriber, taking the location's record id.
+   * @param {{ locationId: string, userId: string }} options
+   * @param {function(Error=, object=)} callback - (error, { removed, locationId, userId })
+   */
+  deleteLocationSubscriberAdvanced(options, callback) { runAction(deleteSubscriberAction(true), options, callback); },
+
+  /**
+   * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * deleteLocationSubscriberAdvanced: each entry names its record by id.
+   * @param {{ subscribers: Array<{ locationId: string, userId: string }> }} options
+   * @param {function(Error=, object=)} callback - (error, { subscribers, succeeded, failed })
+   */
+  deleteLocationSubscribersAdvanced(options, callback) { runBatch(deleteSubscriberAction(true), 'subscribers', options, callback); },
+
+  /**
+   * hosts: widgetForeground, controlForeground, headlessSdk. usage: basic; its advanced alternative
+   * is sendLocationNotificationAdvanced. The "Notify Users of Location Update" dialog (control
+   * panel) and notification form (widget): a push to everyone following the location, sent as the
+   * app, refused while location subscribing is off or when nobody follows it. Foreground in both
+   * frames because it reaches real people, so the person watching approves it first
+   * (requireUserApproval). buildfire.notifications.pushNotification.schedule is server-safe, so it
+   * keeps headlessSdk, where the MCP server confirms instead; in a frame pushNotifications.js is
+   * loaded on first use. A send to several people is this operation's audience, so it has no batch.
+   * @param {{ title: string, notificationTitle: string, message: string }} options
+   * @param {function(Error=, object=)} callback - (error, { sent, recipientCount, notificationId })
+   */
+  sendLocationNotification(options, callback) { runAction(sendNotificationAction(false), options, callback); },
+
+  /**
+   * hosts: widgetForeground, controlForeground, headlessSdk. usage: advanced; the alternative of
+   * sendLocationNotification, taking the location's record id. Same approval step.
+   * @param {{ locationId: string, notificationTitle: string, message: string }} options
+   * @param {function(Error=, object=)} callback - (error, { sent, recipientCount, notificationId })
+   */
+  sendLocationNotificationAdvanced(options, callback) { runAction(sendNotificationAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic. The Categories tab's Add Category save
+   * (CategoriesController.createCategory): inserts the category, registers its analytics event and
+   * refreshes the widget. A function because it refuses a title that already exists, since basic
+   * operations find categories by title. No widget host: only the control panel manages categories.
+   * Background. Subcategories are added with createSubcategory. The icon picker's font icons are not
+   * offered; only an image icon.
+   * @param {{ title: string, iconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { category, sideEffects })
+   */
+  createCategory(options, callback) { runAction(createCategoryAction(), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * createCategory (the Categories tab's CSV import).
+   * @param {{ categories: Array<{ title: string, iconImage?: string }> }} options
    * @param {function(Error=, object=)} callback - (error, { categories, succeeded, failed })
    */
-  createCategories(options, callback) {
-    runBatch(categoryCreation(), options, 'categories', callback);
-  },
+  createCategoriesAdvanced(options, callback) { runBatch(createCategoryAction(), 'categories', options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of updateCategory (its
-   * advanced batch is updateCategoriesByCategoryId), via categoryUpdate.
-   * @param {{ categories: Array<object> }} options - entries shaped like updateCategory's params.
+   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
+   * updateCategoryAdvanced. The Edit Category save and the list's icon click: re-reads the
+   * category, changes the title and/or icon, and rewrites the whole document as
+   * CategoriesController.updateCategory does, then refreshes the widget. Background.
+   * @param {{ categoryTitle: string, newTitle?: string, newIconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { category })
+   */
+  updateCategory(options, callback) { runAction(updateCategoryAction(false), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of updateCategory,
+   * taking the category's record id.
+   * @param {{ categoryId: string, newTitle?: string, newIconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { category })
+   */
+  updateCategoryAdvanced(options, callback) { runAction(updateCategoryAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * updateCategoryAdvanced: each entry names its record by id.
+   * @param {{ categories: object[] }} options
    * @param {function(Error=, object=)} callback - (error, { categories, succeeded, failed })
    */
-  updateCategories(options, callback) {
-    runBatch(categoryUpdate(CATEGORY_BY_TITLE), options, 'categories', callback);
-  },
+  updateCategoriesAdvanced(options, callback) { runBatch(updateCategoryAction(true), 'categories', options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the batch form of
-   * updateCategoryByCategoryId, the alternative of updateCategories.
-   * @param {{ categories: Array<object> }} options - entries shaped like updateCategoryByCategoryId's params.
-   * @param {function(Error=, object=)} callback - (error, { categories, succeeded, failed })
+   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
+   * deleteCategoryAdvanced. A soft delete, as CategoriesController.deleteCategory does: the
+   * document is kept with deletedOn set (and its index date1), which hides it everywhere in the
+   * plugin. Locations keep the category id, as in the control panel. Background; safe because the
+   * record is kept.
+   * @param {{ categoryTitle: string }} options
+   * @param {function(Error=, object=)} callback - (error, { deleted, categoryId, title })
    */
-  updateCategoriesByCategoryId(options, callback) {
-    runBatch(categoryUpdate(CATEGORY_BY_ID), options, 'categories', callback);
-  },
+  deleteCategory(options, callback) { runAction(deleteCategoryAction(false), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of deleteCategory (its
-   * advanced batch is deleteCategoriesByCategoryId), via categoryRemoval. Flagged dangerous, unlike
-   * the single soft delete, because removing many categories at once is broadly destructive.
-   * @param {{ categories: Array<{ title: string }> }} options
-   * @param {function(Error=, object=)} callback - (error, { categories, succeeded, failed })
+   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of deleteCategory,
+   * taking the category's record id.
+   * @param {{ categoryId: string }} options
+   * @param {function(Error=, object=)} callback - (error, { deleted, categoryId, title })
    */
-  deleteCategories(options, callback) {
-    runBatch(categoryRemoval(CATEGORY_BY_TITLE), options, 'categories', callback);
-  },
+  deleteCategoryAdvanced(options, callback) { runAction(deleteCategoryAction(true), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the batch form of
-   * deleteCategoryByCategoryId, the alternative of deleteCategories.
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * deleteCategoryAdvanced: each entry names its record by id.
    * @param {{ categories: Array<{ categoryId: string }> }} options
    * @param {function(Error=, object=)} callback - (error, { categories, succeeded, failed })
    */
-  deleteCategoriesByCategoryId(options, callback) {
-    runBatch(categoryRemoval(CATEGORY_BY_ID), options, 'categories', callback);
-  },
-
-  // ---------------------------------------------------------------------------------------------
-  // Control panel: settings, design and the Introduction screen. All of them live in the one
-  // settings document (datastore tag 'settings'), which every control-panel tab saves whole, so each
-  // write here reads it, normalizes it the way new Settings(data).toJSON() does, changes only what
-  // was passed and saves it whole, then refreshes the widget with the tab's own sync scope. No widget
-  // host: app users must not change the owner's configuration. Background: none of them publishes
-  // to or contacts anyone.
-  // ---------------------------------------------------------------------------------------------
+  deleteCategoriesAdvanced(options, callback) { runBatch(deleteCategoryAction(true), 'categories', options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic, with no advanced alternative: settings have
-   * no handle. The plugin's current settings, with the plugin's defaults where nothing is saved yet
-   * (see normalizeSettings and toPublicSettings for what is left out). Uses only buildfire.datastore.
-   * It only reads, and unlike the control panel's own load it never saves the defaults or the migration.
-   * @param {object} options - takes no params.
-   * @param {function(Error=, object=)} callback - (error, settings)
+   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
+   * createSubcategoryAdvanced. The Add Subcategory dialog followed by the category's Save: a new
+   * subcategory (generated id, the dialog's shape) is appended and the whole category rewritten. A
+   * title already used in that category is refused. Background.
+   * @param {{ categoryTitle: string, title: string, iconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { subcategory, category })
+   */
+  createSubcategory(options, callback) { runAction(createSubcategoryAction(false), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of createSubcategory,
+   * taking the category's record id.
+   * @param {{ categoryId: string, title: string, iconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { subcategory, category })
+   */
+  createSubcategoryAdvanced(options, callback) { runAction(createSubcategoryAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * createSubcategoryAdvanced: each entry names its record by id.
+   * @param {{ subcategories: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { subcategories, succeeded, failed })
+   */
+  createSubcategoriesAdvanced(options, callback) { runBatch(createSubcategoryAction(true), 'subcategories', options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
+   * updateSubcategoryAdvanced. The Edit Subcategory dialog and the subcategory icon click,
+   * saved with the category. Background.
+   * @param {{ categoryTitle: string, subcategoryTitle: string, newTitle?: string, newIconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { category })
+   */
+  updateSubcategory(options, callback) { runAction(updateSubcategoryAction(false), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of updateSubcategory,
+   * taking category and subcategory ids.
+   * @param {{ categoryId: string, subcategoryId: string, newTitle?: string, newIconImage?: string }} options
+   * @param {function(Error=, object=)} callback - (error, { category })
+   */
+  updateSubcategoryAdvanced(options, callback) { runAction(updateSubcategoryAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * updateSubcategoryAdvanced: each entry names its record by id.
+   * @param {{ subcategories: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { subcategories, succeeded, failed })
+   */
+  updateSubcategoriesAdvanced(options, callback) { runBatch(updateSubcategoryAction(true), 'subcategories', options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
+   * deleteSubcategoryAdvanced. The subcategory delete in the category form, saved with the
+   * category: the subcategory is removed outright (dangerous; there is nothing to restore), and
+   * locations keep its id, as in the control panel. Background.
+   * @param {{ categoryTitle: string, subcategoryTitle: string }} options
+   * @param {function(Error=, object=)} callback - (error, { deleted, subcategoryId, category })
+   */
+  deleteSubcategory(options, callback) { runAction(deleteSubcategoryAction(false), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of deleteSubcategory,
+   * taking category and subcategory ids.
+   * @param {{ categoryId: string, subcategoryId: string }} options
+   * @param {function(Error=, object=)} callback - (error, { deleted, subcategoryId, category })
+   */
+  deleteSubcategoryAdvanced(options, callback) { runAction(deleteSubcategoryAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * deleteSubcategoryAdvanced: each entry names its record by id.
+   * @param {{ subcategories: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { subcategories, succeeded, failed })
+   */
+  deleteSubcategoriesAdvanced(options, callback) { runBatch(deleteSubcategoryAction(true), 'subcategories', options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic. What the control panel's tabs load
+   * (Settings.get): the stored settings with the plugin's defaults filled in and old field settings
+   * migrated, without the access, editor and billing settings, which the contract does not expose.
+   * Uses only buildfire.datastore. No widget host: it is the owner's configuration. Background.
+   * @param {object} options - takes no parameters.
+   * @param {function(Error=, object=)} callback - (error, { settings })
    */
   getSettings(options, callback) {
-    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-    readSettings((err, settings) => {
+    if (!checkOptions(options, callback)) return;
+    readSettings((err, { settings } = {}) => {
       if (err) return callback(err, undefined);
-      callback(null, toPublicSettings(settings));
+      callback(null, { settings: settingsView(settings) });
     });
   },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic. The Settings tab: changes only the
-   * settings passed (at least one), saved the way the tab does (see saveSettings). Pages and controls:
-   * Global (subscriptionEnabled), Location Settings (openHoursEnabled, priceRangeEnabled — turning
-   * one off also resets who may set it to nobody, as the page does), Sorting (defaultSorting and
-   * the toggles in SORTING_TOGGLES — with allowSortByNearest off the default sort becomes
-   * alphabetical, as the page forces), Filtering (FILTER_TOGGLES), Map (measurementUnit,
-   * mapInitialAreaEnabled, and initialAreaAddress / initialAreaLat / initialAreaLng together, the
-   * address picked on its map) and Bookmarks (bookmarksEnabled, allowBookmarkLocations,
-   * allowBookmarkSearch). Left out: the Global and Location Editing Permissions pages, who may add
-   * locations, photos, hours and prices, the charging options (permissions and billing), and
-   * "Show Map's points of interest", whose toggle is disabled.
-   * Refreshes the widget with sync 'settings', or 'locationSettings' (which reloads it) when the
-   * opening-hours or price-range field was switched, as each page does.
-   * @param {object} options - see SETTINGS_TOGGLES, SETTINGS_SELECTS and the initial-area trio.
-   * @param {function(Error=, object=)} callback - (error, { settings, widgetRefreshed })
+   * hosts: controlBackground, headlessSdk. usage: basic. The Settings tab's toggles and radios
+   * (Global Settings, Location Settings field toggles, Sorting, Filtering, Map, Bookmarks): changes
+   * only the settings passed, with the same rules the pages apply (turning off nearest sorting moves
+   * the default to alphabetical and distance can't be the default without it; turning a field off
+   * drops its in-app access to nobody), then saves the whole document as SettingsController.
+   * saveSettings does and tells the widget. Who-can-add, editors and charging are access and billing
+   * settings and are left out. No widget host. Background.
+   * @param {object} options - one optional param per setting, see plugin.contract.json.
+   * @param {function(Error=, object=)} callback - (error, { settings })
    */
   updateSettings(options, callback) {
-    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-    if (options === null || typeof options !== 'object') return callback(new Error('options must be an object'), undefined);
-
-    const values = {};
-    // Every setting always holds a value (toggles, radio groups, an address picked on the map).
-    const problem = findClearedProblem(options, [...SETTINGS_TOGGLES, ...Object.keys(SETTINGS_SELECTS), 'initialAreaAddress', 'initialAreaLat', 'initialAreaLng'])
-      || readBooleans(options, SETTINGS_TOGGLES, values) || readSelects(options, SETTINGS_SELECTS, values);
+    if (!checkOptions(options, callback)) return;
+    const problem = firstProblem([
+      requireAnyGiven(options, SETTINGS_PARAMS),
+      findClearedProblem(options, SETTINGS_PARAMS),
+      ...Object.keys(SETTINGS_BOOLEANS).map((name) => checkBoolean(options, name)),
+      checkBoolean(options, 'openHoursEnabled'),
+      checkBoolean(options, 'priceRangeEnabled'),
+      checkSelect(options, 'defaultSorting', DEFAULT_SORTINGS),
+      checkSelect(options, 'measurementUnit', MEASUREMENT_UNITS),
+      checkNumber(options, 'initialAreaLatitude', { min: -90, max: 90 }),
+      checkNumber(options, 'initialAreaLongitude', { min: -180, max: 180 }),
+      checkString(options, 'initialAreaAddress'),
+      isGiven(options.initialAreaLatitude) !== isGiven(options.initialAreaLongitude)
+        || (isGiven(options.initialAreaAddress) && !isGiven(options.initialAreaLatitude))
+        ? 'initialAreaLatitude, initialAreaLongitude and initialAreaAddress change together; pass both coordinates'
+        : null
+    ]);
     if (problem) return callback(new Error(problem), undefined);
-    const picked = readPickedAddress(options, ['initialAreaAddress', 'initialAreaLat', 'initialAreaLng']);
-    if (picked.problem) return callback(new Error(picked.problem), undefined);
-    if (!Object.keys(values).length && !picked.address) return callback(new Error('Pass at least one setting to change'), undefined);
 
-    readSettings((err, settings) => {
+    readSettings((err, { settings } = {}) => {
       if (err) return callback(err, undefined);
-      const has = (name) => name in values;
-      if (has('subscriptionEnabled')) settings.subscription.enabled = values.subscriptionEnabled;
-      [['openHoursEnabled', 'openHours'], ['priceRangeEnabled', 'priceRange']].forEach(([name, block]) => {
-        if (!has(name)) return;
-        const entry = settings.globalEntries[block] || { enabled: true, inAppEnabled: 'all', tags: [] };
-        entry.enabled = values[name];
-        if (!values[name]) {
-          entry.inAppEnabled = 'none';
-          entry.tags = [];
-        }
-        settings.globalEntries[block] = entry;
+      const scopes = ['settings'];
+      Object.keys(SETTINGS_BOOLEANS).forEach((name) => {
+        if (!isGiven(options[name])) return;
+        const [group, key] = SETTINGS_BOOLEANS[name];
+        settings[group][key] = options[name];
       });
-      SORTING_TOGGLES.forEach((name) => { if (has(name)) settings.sorting[name] = values[name]; });
-      if (has('defaultSorting')) settings.sorting.defaultSorting = values.defaultSorting;
-      if (settings.sorting.allowSortByNearest === false) {
-        if (values.defaultSorting === 'distance') {
-          return callback(new Error('defaultSorting cannot be distance while allowSortByNearest is off'), undefined);
+      if (options.allowSortByNearest === false) settings.sorting.defaultSorting = 'alphabetical';
+      if (isGiven(options.defaultSorting)) {
+        if (options.defaultSorting === 'distance' && !settings.sorting.allowSortByNearest) {
+          return callback(new Error('Distance can only be the default sorting while nearest sorting is allowed'), undefined);
         }
-        settings.sorting.defaultSorting = 'alphabetical';
+        settings.sorting.defaultSorting = options.defaultSorting;
       }
-      FILTER_TOGGLES.forEach((name) => { if (has(name)) settings.filter[name] = values[name]; });
-      if (has('measurementUnit')) settings.measurementUnit = values.measurementUnit;
-      if (has('mapInitialAreaEnabled')) settings.map.initialArea = values.mapInitialAreaEnabled;
-      if (picked.address) {
-        settings.map.initialAreaCoordinates = { lat: picked.address.lat, lng: picked.address.lng };
-        settings.map.initialAreaDisplayAddress = picked.address.text;
+      if (isGiven(options.openHoursEnabled)) setFieldEnabled(settings.globalEntries.openHours, options.openHoursEnabled);
+      if (isGiven(options.priceRangeEnabled)) setFieldEnabled(settings.globalEntries.priceRange, options.priceRangeEnabled);
+      if (isGiven(options.openHoursEnabled) || isGiven(options.priceRangeEnabled)) scopes.push('locationSettings');
+      if (isGiven(options.measurementUnit)) settings.measurementUnit = options.measurementUnit;
+      if (isGiven(options.initialAreaLatitude)) {
+        settings.map.initialAreaCoordinates = { lat: options.initialAreaLatitude, lng: options.initialAreaLongitude };
+        if (isGiven(options.initialAreaAddress)) settings.map.initialAreaDisplayAddress = options.initialAreaAddress;
       }
-      if (has('bookmarksEnabled')) settings.bookmarks.enabled = values.bookmarksEnabled;
-      if (has('allowBookmarkLocations')) settings.bookmarks.allowForLocations = values.allowBookmarkLocations;
-      if (has('allowBookmarkSearch')) settings.bookmarks.allowForFilters = values.allowBookmarkSearch;
-
-      const scope = has('openHoursEnabled') || has('priceRangeEnabled') ? 'locationSettings' : 'settings';
-      saveSettings(settings, scope, callback);
+      saveSettings(settings, scopes, (saveErr, saved) => (saveErr ? callback(saveErr, undefined) : callback(null, { settings: settingsView(saved) })));
     });
   },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic. The Design tab: changes only the design
-   * options passed (at least one; see DESIGN_TOGGLES and DESIGN_SELECTS), saved the way the tab
-   * does, then sync 'design'. Kept apart from updateSettings because it is its own tab with its own
-   * refresh, though it is stored in the same document.
-   * @param {object} options - see DESIGN_TOGGLES and DESIGN_SELECTS.
-   * @param {function(Error=, object=)} callback - (error, { settings, widgetRefreshed })
+   * hosts: controlBackground, headlessSdk. usage: basic. The Design tab: list view position and
+   * style, map type, details map position and its toggles; changes only what is passed, saves the
+   * whole settings document as DesignController.saveSettings does and tells the widget (scope
+   * design). The map style radios are disabled in the tab, so they are not offered. No widget host.
+   * Background.
+   * @param {object} options - one optional param per design setting.
+   * @param {function(Error=, object=)} callback - (error, { design })
    */
   updateDesign(options, callback) {
-    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-    if (options === null || typeof options !== 'object') return callback(new Error('options must be an object'), undefined);
-    const values = {};
-    const problem = findClearedProblem(options, [...DESIGN_TOGGLES, ...Object.keys(DESIGN_SELECTS)])
-      || readBooleans(options, DESIGN_TOGGLES, values) || readSelects(options, DESIGN_SELECTS, values);
+    if (!checkOptions(options, callback)) return;
+    const problem = firstProblem([
+      requireAnyGiven(options, DESIGN_PARAMS),
+      findClearedProblem(options, DESIGN_PARAMS),
+      ...Object.keys(DESIGN_SELECTS).map((name) => checkSelect(options, name, DESIGN_SELECTS[name])),
+      ...DESIGN_BOOLEANS.map((name) => checkBoolean(options, name))
+    ]);
     if (problem) return callback(new Error(problem), undefined);
-    if (!Object.keys(values).length) return callback(new Error('Pass at least one design option to change'), undefined);
-
-    readSettings((err, settings) => {
+    readSettings((err, { settings } = {}) => {
       if (err) return callback(err, undefined);
-      settings.design = { ...settings.design, ...values };
-      saveSettings(settings, 'design', callback);
+      DESIGN_PARAMS.forEach((name) => {
+        if (isGiven(options[name])) settings.design[name] = options[name];
+      });
+      saveSettings(settings, ['design'], (saveErr, saved) => (saveErr ? callback(saveErr, undefined) : callback(null, { design: saved.design })));
     });
   },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic. The Content tab's Introduction screen:
-   * its Location Source dropdown (locationSource), the Local Area centre and radius used when the
-   * source is AreaRadius (areaCenterAddress / areaCenterLat / areaCenterLng together, the address
-   * picked on its map, and areaRadiusMiles, which the page limits to 1–200), its Sort Locations by
-   * dropdown (sorting) and its description (rich text; an empty string clears it). Changes only
-   * what is passed, then sync 'intro'. The carousel is updateIntroScreenImages and the pinned order
-   * updatePinnedLocationOrder; who may see the screen is an access setting and is left out.
-   * @param {{ locationSource?: string, areaCenterAddress?: string, areaCenterLat?: number,
-   *   areaCenterLng?: number, areaRadiusMiles?: number, sorting?: string, description?: string }} options
-   * @param {function(Error=, object=)} callback - (error, { settings, widgetRefreshed })
+   * hosts: controlBackground, headlessSdk. usage: basic. The Content tab's Introduction screen: its
+   * description, location source, local area and sort order; changes only what is passed, saves the
+   * whole settings document as the intro page does and tells the widget (scope intro). The
+   * description can be cleared (stored as "", as the editor leaves it). Who sees the intro screen is
+   * an access setting and is left out. No widget host. Background.
+   * @param {{ description?: string|null, sorting?: string, locationSource?: string, areaLatitude?: number, areaLongitude?: number, areaAddress?: string, areaRadiusMiles?: number }} options
+   * @param {function(Error=, object=)} callback - (error, { introScreen })
    */
   updateIntroScreen(options, callback) {
-    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-    if (options === null || typeof options !== 'object') return callback(new Error('options must be an object'), undefined);
-    const values = {};
-    const problem = findClearedProblem(options, [...Object.keys(INTRO_SELECTS), 'areaCenterAddress', 'areaCenterLat', 'areaCenterLng', 'areaRadiusMiles'])
-      || readSelects(options, INTRO_SELECTS, values);
+    if (!checkOptions(options, callback)) return;
+    const problem = firstProblem([
+      requireAnyGiven(options, INTRO_PARAMS),
+      findClearedProblem(options, INTRO_PARAMS.filter((name) => name !== 'description')),
+      checkNullable(options, 'description', checkString),
+      checkSelect(options, 'sorting', INTRO_SORTINGS),
+      checkSelect(options, 'locationSource', INTRO_SOURCES),
+      checkNumber(options, 'areaLatitude', { min: -90, max: 90 }),
+      checkNumber(options, 'areaLongitude', { min: -180, max: 180 }),
+      checkString(options, 'areaAddress'),
+      checkNumber(options, 'areaRadiusMiles', { min: MIN_AREA_RADIUS_MILES, max: MAX_AREA_RADIUS_MILES }),
+      isGiven(options.areaLatitude) !== isGiven(options.areaLongitude)
+        || (isGiven(options.areaAddress) && !isGiven(options.areaLatitude))
+        ? 'areaLatitude, areaLongitude and areaAddress change together; pass both coordinates'
+        : null
+    ]);
     if (problem) return callback(new Error(problem), undefined);
-    const picked = readPickedAddress(options, ['areaCenterAddress', 'areaCenterLat', 'areaCenterLng']);
-    if (picked.problem) return callback(new Error(picked.problem), undefined);
-    if (isGiven(options.areaRadiusMiles) && (!isFiniteNumber(options.areaRadiusMiles)
-      || options.areaRadiusMiles < MIN_AREA_RADIUS_MILES || options.areaRadiusMiles > MAX_AREA_RADIUS_MILES)) {
-      return callback(new Error(`areaRadiusMiles must be a number from ${MIN_AREA_RADIUS_MILES} to ${MAX_AREA_RADIUS_MILES}`), undefined);
-    }
-    // The description is the one field here the page lets the owner empty; null or '' clears it.
-    const descriptionGiven = options.description !== undefined;
-    if (descriptionGiven && !isCleared(options.description) && typeof options.description !== 'string') {
-      return callback(new Error('description must be text, null or an empty string'), undefined);
-    }
-    if (!Object.keys(values).length && !picked.address && !isGiven(options.areaRadiusMiles) && !descriptionGiven) {
-      return callback(new Error('Pass at least one Introduction screen setting to change'), undefined);
-    }
-
-    readSettings((err, settings) => {
+    readSettings((err, { settings } = {}) => {
       if (err) return callback(err, undefined);
       const intro = settings.introductoryListView;
       intro.searchOptions = intro.searchOptions || { mode: 'UserPosition', areaRadiusOptions: {} };
-      intro.searchOptions.areaRadiusOptions = intro.searchOptions.areaRadiusOptions || {};
-      if (values.locationSource) intro.searchOptions.mode = values.locationSource;
-      if (picked.address) {
-        Object.assign(intro.searchOptions.areaRadiusOptions, {
-          formattedLocation: picked.address.text, lat: picked.address.lat, lng: picked.address.lng
-        });
+      const area = { ...(intro.searchOptions.areaRadiusOptions || {}) };
+      if (isGiven(options.description)) intro.description = options.description === null ? '' : options.description;
+      if (isGiven(options.sorting)) intro.sorting = options.sorting;
+      if (isGiven(options.locationSource)) intro.searchOptions.mode = options.locationSource;
+      if (isGiven(options.areaLatitude)) {
+        area.lat = options.areaLatitude;
+        area.lng = options.areaLongitude;
+        if (isGiven(options.areaAddress)) area.formattedLocation = options.areaAddress;
       }
-      if (isGiven(options.areaRadiusMiles)) intro.searchOptions.areaRadiusOptions.radius = options.areaRadiusMiles;
-      if (values.sorting) intro.sorting = values.sorting;
-      // An emptied editor saves '' (tinymce getContent in listView/index.js), so a cleared one does too.
-      if (descriptionGiven) intro.description = isCleared(options.description) ? '' : options.description;
-      saveSettings(settings, 'intro', callback);
+      if (isGiven(options.areaRadiusMiles)) area.radius = options.areaRadiusMiles;
+      intro.searchOptions.areaRadiusOptions = area;
+      saveSettings(settings, ['intro'], (saveErr, saved) => {
+        if (saveErr) return callback(saveErr, undefined);
+        const view = { ...saved.introductoryListView };
+        delete view.visibilityOptions;
+        callback(null, { introScreen: view });
+      });
     });
   },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic. Replaces the Introduction screen's image
-   * carousel with the items given, in order (an empty list clears it): what the page's carousel
-   * editor stores, one action item with an image (iconUrl) each, saved with a fresh id as the editor
-   * adds them. Then sync 'intro'. Dangerous: the previous carousel is not kept anywhere.
-   * @param {{ images: Array<object> }} options - carousel items: action items with an iconUrl.
-   * @param {function(Error=, object=)} callback - (error, { settings, widgetRefreshed })
+   * hosts: controlBackground, headlessSdk. usage: basic. The Introduction screen's image carousel
+   * (buildfire.components.carousel.editor): replaces every carousel item with the list given, in
+   * order, each an action item whose iconUrl is the picture, given an id as the page does. Flagged
+   * dangerous because the previous carousel is not kept anywhere. An empty list removes every image.
+   * No widget host. Background.
+   * @param {{ images: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { images })
    */
   updateIntroScreenImages(options, callback) {
-    if (typeof callback !== 'function') throw new TypeError('callback must be a function');
-    const images = options && options.images;
-    if (!Array.isArray(images)) return callback(new Error('images must be a list of carousel items'), undefined);
-    const bad = images.findIndex((item) => !isCarouselItem(item));
-    if (bad !== -1) {
-      return callback(new Error(`images[${bad}] must be an action item with an action and an iconUrl image`), undefined);
-    }
-
-    readSettings((err, settings) => {
+    if (!checkOptions(options, callback)) return;
+    const { images } = options;
+    if (!Array.isArray(images)) return callback(new Error('Missing required parameter: images (a list of action items)'), undefined);
+    const bad = images.findIndex((item) => !isObject(item) || !isNonEmptyString(item.iconUrl) || (isGiven(item.action) && typeof item.action !== 'string'));
+    if (bad !== -1) return callback(new Error(`images[${bad}] must be an action item with an iconUrl`), undefined);
+    readSettings((err, { settings } = {}) => {
       if (err) return callback(err, undefined);
-      settings.introductoryListView.images = images.map((item) => ({ ...item, id: generateUUID() }));
-      saveSettings(settings, 'intro', callback);
+      settings.introductoryListView.images = images.map((item) => ({ ...item, id: item.id || generateUUID() }));
+      saveSettings(settings, ['intro'], (saveErr, saved) => (saveErr ? callback(saveErr, undefined) : callback(null, { images: saved.introductoryListView.images })));
     });
   },
 
-  // ---------------------------------------------------------------------------------------------
-  // Control panel: the location fields defined on the Settings tab's "Location Fields" page
-  // (customFields in the settings document). Basic operations name a field by its exact label,
-  // advanced ones by its id. Uses only buildfire.datastore and the widget refresh, so they run in
-  // the control panel and on the server; no widget host; Background.
-  // ---------------------------------------------------------------------------------------------
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic. The Location Fields page's add buttons:
+   * a new field in Quick Actions or Text Content with the page's defaults, refused at ten fields in
+   * total and when the label is already used (basic operations find fields by label). Saved with
+   * $set on customFields, as the page does, and the widget is told. Field visibility by user tag is
+   * an access setting and is left out (new fields are visible to everyone, the page's default).
+   * Background.
+   * @param {{ section: string, label: string, type?: string, required?: boolean, allowCustomLabel?: boolean }} options
+   * @param {function(Error=, object=)} callback - (error, { field })
+   */
+  createLocationField(options, callback) { runAction(createFieldAction(), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic, with no advanced alternative: it names
-   * nothing by a handle. Adds a location field (see fieldCreation).
-   * @param {{ section: string, label: string, type: string, required?: boolean, enableCustomLabel?: boolean }} options
-   * @param {function(Error=, object=)} callback - (error, field)
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * createLocationField.
+   * @param {{ fields: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
-  createLocationField(options, callback) {
-    runAction(fieldCreation(), options, callback);
-  },
+  createLocationFieldsAdvanced(options, callback) { runBatch(createFieldAction(), 'fields', options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * updateLocationFieldByFieldId. Edits one location field, named by its exact label (see fieldUpdate).
-   * @param {{ label: string, newLabel?: string, newType?: string, newRequired?: boolean,
-   *   newEnableCustomLabel?: boolean, newPosition?: number }} options
-   * @param {function(Error=, object=)} callback - (error, field)
+   * updateLocationFieldAdvanced. Edits a field's label, type, required and custom-label switches, or
+   * moves it within its section (drag-to-reorder), as the page does; the type must fit the section.
+   * Background.
+   * @param {{ label: string, newLabel?: string, newType?: string, newRequired?: boolean, newAllowCustomLabel?: boolean, newPosition?: number }} options
+   * @param {function(Error=, object=)} callback - (error, { field })
    */
-  updateLocationField(options, callback) {
-    runAction(fieldUpdate(FIELD_BY_LABEL), options, callback);
-  },
+  updateLocationField(options, callback) { runAction(updateFieldAction(false), options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of updateLocationField,
-   * taking the field's id instead of its label, via the same fieldUpdate.
-   * @param {{ fieldId: string, newLabel?: string, newType?: string, newRequired?: boolean,
-   *   newEnableCustomLabel?: boolean, newPosition?: number }} options
-   * @param {function(Error=, object=)} callback - (error, field)
+   * taking the field's id.
+   * @param {{ fieldId: string }} options - plus updateLocationField's new* params.
+   * @param {function(Error=, object=)} callback - (error, { field })
    */
-  updateLocationFieldByFieldId(options, callback) {
-    runAction(fieldUpdate(FIELD_BY_ID), options, callback);
-  },
+  updateLocationFieldAdvanced(options, callback) { runAction(updateFieldAction(true), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * updateLocationFieldAdvanced: each entry names its record by id.
+   * @param {{ fields: object[] }} options
+   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
+   */
+  updateLocationFieldsAdvanced(options, callback) { runBatch(updateFieldAction(true), 'fields', options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: basic; its advanced alternative is
-   * deleteLocationFieldByFieldId. Removes one location field, named by its exact label (see fieldRemoval).
+   * deleteLocationFieldAdvanced. The page's delete: the field is removed outright (dangerous), and
+   * values already filled in on locations are left in place, as on the page. Background.
    * @param {{ label: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, label, widgetRefreshed })
+   * @param {function(Error=, object=)} callback - (error, { deleted, fieldId, label })
    */
-  deleteLocationField(options, callback) {
-    runAction(fieldRemoval(FIELD_BY_LABEL), options, callback);
-  },
+  deleteLocationField(options, callback) { runAction(deleteFieldAction(false), options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: advanced; the alternative of deleteLocationField,
-   * taking the field's id instead of its label, via the same fieldRemoval.
+   * taking the field's id.
    * @param {{ fieldId: string }} options
-   * @param {function(Error=, object=)} callback - (error, { deleted, label, widgetRefreshed })
+   * @param {function(Error=, object=)} callback - (error, { deleted, fieldId, label })
    */
-  deleteLocationFieldByFieldId(options, callback) {
-    runAction(fieldRemoval(FIELD_BY_ID), options, callback);
-  },
+  deleteLocationFieldAdvanced(options, callback) { runAction(deleteFieldAction(true), options, callback); },
 
   /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of createLocationField. The
-   * ten-field limit is checked again for each entry, so entries past it fail one by one.
-   * @param {{ fields: Array<object> }} options - entries shaped like createLocationField's params.
-   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
-   */
-  createLocationFields(options, callback) {
-    runBatch(fieldCreation(), options, 'fields', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of updateLocationField (its
-   * advanced batch is updateLocationFieldsByFieldId). Entries apply in order, so moves stack.
-   * @param {{ fields: Array<object> }} options - entries shaped like updateLocationField's params.
-   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
-   */
-  updateLocationFields(options, callback) {
-    runBatch(fieldUpdate(FIELD_BY_LABEL), options, 'fields', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the batch form of
-   * updateLocationFieldByFieldId, the alternative of updateLocationFields.
-   * @param {{ fields: Array<object> }} options - entries shaped like updateLocationFieldByFieldId's params.
-   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
-   */
-  updateLocationFieldsByFieldId(options, callback) {
-    runBatch(fieldUpdate(FIELD_BY_ID), options, 'fields', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: basic; the batch form of deleteLocationField (its
-   * advanced batch is deleteLocationFieldsByFieldId).
-   * @param {{ fields: Array<{ label: string }> }} options
-   * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
-   */
-  deleteLocationFields(options, callback) {
-    runBatch(fieldRemoval(FIELD_BY_LABEL), options, 'fields', callback);
-  },
-
-  /**
-   * hosts: controlBackground, headlessSdk. usage: advanced; the batch form of
-   * deleteLocationFieldByFieldId, the alternative of deleteLocationFields.
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
+   * deleteLocationFieldAdvanced: each entry names its record by id.
    * @param {{ fields: Array<{ fieldId: string }> }} options
    * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
-  deleteLocationFieldsByFieldId(options, callback) {
-    runBatch(fieldRemoval(FIELD_BY_ID), options, 'fields', callback);
-  }
+  deleteLocationFieldsAdvanced(options, callback) { runBatch(deleteFieldAction(true), 'fields', options, callback); }
 };
 
 /**
  * What the control panel's frame (control/contract.html) dispatches to: init plus every function
- * whose hosts include controlForeground or controlBackground, in plugin.contract.json order. The
- * implementations are widgetContract's own; every function here has a control host, so all are
- * listed.
+ * whose hosts include controlForeground or controlBackground, in plugin.contract.json order. Every
+ * function here has a control host. The implementations are widgetContract's own.
  */
 controlContract = {
-  init: widgetContract.init,
-  searchLocations: widgetContract.searchLocations,
-  searchLocationsByCategoryId: widgetContract.searchLocationsByCategoryId,
-  searchLocationsNearPoint: widgetContract.searchLocationsNearPoint,
-  getLocation: widgetContract.getLocation,
-  getLocationByLocationId: widgetContract.getLocationByLocationId,
-  createLocation: widgetContract.createLocation,
-  createLocationByCategoryId: widgetContract.createLocationByCategoryId,
-  createLocations: widgetContract.createLocations,
-  createLocationsByCategoryId: widgetContract.createLocationsByCategoryId,
-  updateLocation: widgetContract.updateLocation,
-  updateLocationByLocationId: widgetContract.updateLocationByLocationId,
-  updateLocations: widgetContract.updateLocations,
-  updateLocationsByLocationId: widgetContract.updateLocationsByLocationId,
-  updateLocationPin: widgetContract.updateLocationPin,
-  updateLocationPinByLocationId: widgetContract.updateLocationPinByLocationId,
-  updateLocationsPin: widgetContract.updateLocationsPin,
-  updateLocationsPinByLocationId: widgetContract.updateLocationsPinByLocationId,
-  updatePinnedLocationOrder: widgetContract.updatePinnedLocationOrder,
-  updatePinnedLocationOrderByLocationId: widgetContract.updatePinnedLocationOrderByLocationId,
-  deleteLocation: widgetContract.deleteLocation,
-  deleteLocationByLocationId: widgetContract.deleteLocationByLocationId,
-  deleteLocations: widgetContract.deleteLocations,
-  deleteLocationsByLocationId: widgetContract.deleteLocationsByLocationId,
-  deleteLocationSubscriber: widgetContract.deleteLocationSubscriber,
-  deleteLocationSubscriberByLocationId: widgetContract.deleteLocationSubscriberByLocationId,
-  deleteLocationSubscribers: widgetContract.deleteLocationSubscribers,
-  deleteLocationSubscribersByLocationId: widgetContract.deleteLocationSubscribersByLocationId,
-  sendLocationNotification: widgetContract.sendLocationNotification,
-  sendLocationNotificationByLocationId: widgetContract.sendLocationNotificationByLocationId,
-  createCategory: widgetContract.createCategory,
-  createCategories: widgetContract.createCategories,
-  updateCategory: widgetContract.updateCategory,
-  updateCategoryByCategoryId: widgetContract.updateCategoryByCategoryId,
-  updateCategories: widgetContract.updateCategories,
-  updateCategoriesByCategoryId: widgetContract.updateCategoriesByCategoryId,
-  deleteCategory: widgetContract.deleteCategory,
-  deleteCategoryByCategoryId: widgetContract.deleteCategoryByCategoryId,
-  deleteCategories: widgetContract.deleteCategories,
-  deleteCategoriesByCategoryId: widgetContract.deleteCategoriesByCategoryId,
-  getSettings: widgetContract.getSettings,
-  updateSettings: widgetContract.updateSettings,
-  updateDesign: widgetContract.updateDesign,
-  updateIntroScreen: widgetContract.updateIntroScreen,
-  updateIntroScreenImages: widgetContract.updateIntroScreenImages,
-  createLocationField: widgetContract.createLocationField,
-  updateLocationField: widgetContract.updateLocationField,
-  updateLocationFieldByFieldId: widgetContract.updateLocationFieldByFieldId,
-  deleteLocationField: widgetContract.deleteLocationField,
-  deleteLocationFieldByFieldId: widgetContract.deleteLocationFieldByFieldId,
-  createLocationFields: widgetContract.createLocationFields,
-  updateLocationFields: widgetContract.updateLocationFields,
-  updateLocationFieldsByFieldId: widgetContract.updateLocationFieldsByFieldId,
-  deleteLocationFields: widgetContract.deleteLocationFields,
-  deleteLocationFieldsByFieldId: widgetContract.deleteLocationFieldsByFieldId
+  init: widgetContract.init
 };
+Object.keys(widgetContract).forEach((name) => {
+  controlContract[name] = widgetContract[name];
+});
