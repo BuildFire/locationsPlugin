@@ -2,6 +2,15 @@
 /**
  * Locations contract — runtime implementation.
  *
+ * Storage: locations live in the app-wide buildfire.publicData collection
+ * 'locations' (hard-deleted); categories, each holding its subcategories, live
+ * in the app-wide buildfire.publicData collection 'categories' (soft-deleted: a
+ * removed category is kept with deletedOn set). The instance's settings, design,
+ * introduction screen and location fields (custom fields) live in one
+ * buildfire.datastore document under the 'settings' tag, scoped to this plugin
+ * instance. Basic operations name records by exact title or label; their
+ * `…Advanced` alternatives and every batch take record ids.
+ *
  * This file only implements the operations declared with "type": "function" in
  * plugin.contract.json. Operations typed publicData / datastore / userData /
  * appData / firebase are declarative: their platform call is built on the fly
@@ -84,8 +93,6 @@ const MARKER_TYPES = ['pin', 'circle', 'image'];
 const DEFAULT_MARKER_COLOR = 'rgba(253,35,5,1)';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-// "mondayHours" on create, "newMondayHours" on update.
-const dayParam = (day, prefix = '') => (prefix ? `${prefix}${day.charAt(0).toUpperCase()}${day.slice(1)}Hours` : `${day}Hours`);
 const DEFAULT_HOURS = { from: '08:00', to: '20:00' };
 
 // Mirrors src/widget/js/global/constants: field types per Location Fields section.
@@ -331,33 +338,6 @@ const dateToTime = (date) => {
   return `${pad(time.getUTCHours())}:${pad(time.getUTCMinutes())}`;
 };
 
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-/** @returns {{ closed: boolean, intervals: Array<{from: Date, to: Date}> } | { error: string }} */
-const parseDayHours = (name, text) => {
-  if (typeof text !== 'string' || !text.trim()) return { error: `${name} must be like "08:00-20:00" or "closed"` };
-  if (text.trim().toLowerCase() === 'closed') return { closed: true, intervals: [] };
-
-  const intervals = [];
-  const parts = text.split(',').map((part) => part.trim()).filter(Boolean);
-  for (let i = 0; i < parts.length; i += 1) {
-    const [from, to] = parts[i].split('-').map((s) => (s || '').trim());
-    if (!TIME.test(from) || !TIME.test(to)) return { error: `${name} must be like "08:00-20:00" or "closed"` };
-    // Control panel validateTimeInterval: an end earlier than the start is refused.
-    if (timeToDate(from).getTime() > timeToDate(to).getTime()) return { error: `${name}: ${parts[i]} ends before it starts` };
-    intervals.push({ from: timeToDate(from), to: timeToDate(to) });
-  }
-  // Widget validateDayOverlap / control validateOpeningHoursDuplication: intervals of one day may not overlap.
-  for (let i = 0; i < intervals.length; i += 1) {
-    for (let j = i + 1; j < intervals.length; j += 1) {
-      if (intervals[i].from < intervals[j].to && intervals[j].from < intervals[i].to) {
-        return { error: `${name}: intervals overlap` };
-      }
-    }
-  }
-  return { closed: false, intervals };
-};
-
 /** Mirrors getDefaultOpeningHours (control/content/utils/helpers.js): every day open 08:00-20:00. */
 const defaultOpeningHours = () => {
   const days = {};
@@ -366,30 +346,6 @@ const defaultOpeningHours = () => {
   });
   return { timezone: null, days };
 };
-
-/** Applies the given <day>Hours params; "closed" keeps the day's intervals and unticks it, as the form does. */
-const applyDayHours = (openingHours, entry, prefix = '') => {
-  DAYS.forEach((day, index) => {
-    const value = entry[dayParam(day, prefix)];
-    if (!isGiven(value)) return;
-    const parsed = parseDayHours(day, value);
-    const current = openingHours.days[day] || { index, active: true, intervals: [] };
-    openingHours.days[day] = parsed.closed
-      ? { ...current, index, active: false }
-      : {
-        ...current, index, active: true, intervals: parsed.intervals
-      };
-  });
-  return openingHours;
-};
-
-const checkDayHours = (entry, prefix = '') => firstProblem(DAYS.map((day) => {
-  const name = dayParam(day, prefix);
-  if (!isGiven(entry[name])) return null;
-  if (isCleared(entry[name])) return `${name} cannot be removed; pass "closed" instead`;
-  const parsed = parseDayHours(name, entry[name]);
-  return parsed.error || null;
-}));
 
 const hoursView = (openingHours) => {
   const view = {};
@@ -837,39 +793,73 @@ const findLocation = (entry, byId, callback) => (byId
   ? findLocationById(entry.locationId, callback)
   : findLocationByTitle(entry.title, callback));
 
+const splitHandles = (text) => (typeof text === 'string' ? text.split(',').map((part) => part.trim()).filter(Boolean) : []);
+
 /**
- * Categories text in the CSV import's format: "Category->Subcategory, Other category". With ids
- * instead of titles for the advanced operations. Every name must match; the import skips unknown
- * names, which would leave a caller's location silently uncategorized.
+ * A location's categories, comma-separated: titles for the basic operations, ids for the advanced
+ * ones. Every handle must match a live category; the CSV import skips unknown names, which would
+ * leave a caller's location silently uncategorized. Resolves to ids, as categories.main stores them.
  */
-const resolveCategories = (ctx, text, byId, callback) => {
-  if (!text || !text.trim()) return callback(null, { main: [], subcategories: [] });
+const resolveCategoryIds = (ctx, text, byId, callback) => {
   loadCategories(ctx, (err, categories) => {
     if (err) return callback(err);
-    const main = [];
-    const subcategories = [];
-    const parts = text.split(',').map((part) => part.trim()).filter(Boolean);
-    for (let i = 0; i < parts.length; i += 1) {
-      const [categoryHandle, subHandle] = parts[i].split('->').map((s) => (s || '').trim());
+    const ids = [];
+    const handles = splitHandles(text);
+    for (let i = 0; i < handles.length; i += 1) {
+      const handle = handles[i];
       const picked = byId
-        ? { found: ctx.categoriesById[categoryHandle], error: ctx.categoriesById[categoryHandle] ? null : `No category with id "${categoryHandle}"` }
-        : pickOne(categories.filter((c) => c.title === categoryHandle), 'category', categoryHandle);
+        ? { found: ctx.categoriesById[handle], error: ctx.categoriesById[handle] ? null : `No category with id "${handle}"` }
+        : pickOne(categories.filter((c) => c.title === handle), 'category', handle);
       if (picked.error) return callback(new Error(picked.error));
-      if (main.indexOf(picked.found.id) === -1) main.push(picked.found.id);
-      if (subHandle) {
-        const sub = findSubcategory(picked.found, byId ? { id: subHandle } : { title: subHandle });
-        if (sub.error) return callback(new Error(sub.error));
-        if (subcategories.indexOf(sub.found.id) === -1) subcategories.push(sub.found.id);
-      }
+      if (ids.indexOf(picked.found.id) === -1) ids.push(picked.found.id);
     }
-    callback(null, { main, subcategories });
+    callback(null, ids);
   });
 };
 
-const checkCategoriesText = (entry, name) => {
+/**
+ * A location's subcategories, comma-separated, matched only under the given categories (the form
+ * lists a category's subcategories once it is ticked). A title found under two of them is refused;
+ * the advanced operation names it by id. Resolves to ids, as categories.subcategories stores them.
+ */
+const resolveSubcategoryIds = (ctx, mainIds, text, byId, callback) => {
+  loadCategories(ctx, (err) => {
+    if (err) return callback(err);
+    const parents = mainIds.map((id) => ctx.categoriesById[id]).filter(Boolean);
+    const ids = [];
+    const handles = splitHandles(text);
+    for (let i = 0; i < handles.length; i += 1) {
+      const handle = handles[i];
+      const matches = [];
+      parents.forEach((category) => (category.subcategories || []).forEach((sub) => {
+        if ((byId ? sub.id : sub.title) === handle) matches.push(sub);
+      }));
+      if (!matches.length) {
+        return callback(new Error(`No subcategory ${byId ? 'with id' : 'titled'} "${handle}" under the location's categories`));
+      }
+      if (matches.length > 1) {
+        return callback(new Error(`${matches.length} of the location's categories have a subcategory "${handle}"; name it by id with the advanced operation`));
+      }
+      if (ids.indexOf(matches[0].id) === -1) ids.push(matches[0].id);
+    }
+    callback(null, ids);
+  });
+};
+
+/** Subcategory ids that still sit under one of the given categories; unticking a category drops its subcategories. */
+const subcategoriesUnder = (ctx, mainIds, subIds) => {
+  const kept = {};
+  mainIds.forEach((id) => {
+    const category = ctx.categoriesById[id];
+    ((category && category.subcategories) || []).forEach((sub) => { kept[sub.id] = true; });
+  });
+  return subIds.filter((id) => kept[id]);
+};
+
+const checkHandleList = (entry, name) => {
   const value = entry[name];
   if (!isGiven(value) || value === null) return null;
-  if (typeof value !== 'string') return `${name} must be text like "Category->Subcategory, Other category"`;
+  if (typeof value !== 'string') return `${name} must be text like "First, Second"`;
   return null;
 };
 
@@ -1089,11 +1079,11 @@ const runBatch = (spec, listName, options, callback) => {
 };
 
 /**
- * A batch entry's fields can't be lists, so location batches declare no gallery images or action
- * buttons. The single operation's action reads them; this hands it entries that cannot carry them,
- * refusing an entry that tries, rather than reading params the batch never declared.
+ * Hands an action entries that cannot carry the named params, refusing an entry that tries rather
+ * than reading params the operation never declared. Used where a batch entry can't hold list fields
+ * (gallery images, action buttons), and to keep a micro basic operation to the params it declares.
  */
-const withoutListFields = (spec, names) => {
+const withoutFields = (spec, names, why) => {
   const strip = (entry) => {
     const copy = {};
     Object.keys(entry).forEach((key) => { if (names.indexOf(key) === -1) copy[key] = entry[key]; });
@@ -1102,14 +1092,27 @@ const withoutListFields = (spec, names) => {
   return {
     ...spec,
     validate: (entry) => {
-      const listField = names.find((name) => Object.keys(entry).indexOf(name) !== -1);
-      if (listField) return `${listField} can't be part of a batch entry`;
+      const field = names.find((name) => Object.keys(entry).indexOf(name) !== -1);
+      if (field) return why(field);
       return spec.validate(strip(entry));
     },
     resolve: (entry, ctx, cb) => spec.resolve(strip(entry), ctx, cb),
     apply: (entry, target, ctx, cb) => spec.apply(strip(entry), target, ctx, cb)
   };
 };
+
+const inBatch = (field) => `${field} can't be part of a batch entry`;
+const onlyAdvanced = (advanced) => (field) => `${field} is only taken by ${advanced}`;
+
+// What the micro basic operations skip; their advanced alternatives take it (rule: basic is micro).
+const LOCATION_CREATE_SECONDARY = [
+  'subtitle', 'addressAlias', 'priceRange', 'priceCurrency', 'markerType', 'markerColor', 'markerImage',
+  'showCategory', 'showOpeningHours', 'showPriceRange', 'showStarRating', 'pinned', 'images', 'actionItems'
+];
+const LOCATION_UPDATE_SECONDARY = [
+  'newSubtitle', 'newAddressAlias', 'newPriceRange', 'newPriceCurrency', 'newMarkerType', 'newMarkerColor', 'newMarkerImage',
+  'newShowCategory', 'newShowOpeningHours', 'newShowPriceRange', 'newShowStarRating', 'pinned', 'newImages', 'newActionItems'
+];
 
 // ---------------------------------------------------------------------------
 // Location actions
@@ -1121,7 +1124,7 @@ const checkMarker = (type, color, image, prefix) => {
   return null;
 };
 
-const validateLocationCreate = (categoriesParam) => (entry) => firstProblem([
+const validateLocationCreate = (categoriesParam, subcategoriesParam) => (entry) => firstProblem([
   checkString(entry, 'title', { required: true }),
   checkString(entry, 'subtitle'),
   checkString(entry, 'address', { required: true }),
@@ -1130,7 +1133,10 @@ const validateLocationCreate = (categoriesParam) => (entry) => firstProblem([
   checkString(entry, 'addressAlias'),
   checkString(entry, 'description', { required: true }),
   checkImage(entry, 'listImage', { required: true }),
-  checkCategoriesText(entry, categoriesParam),
+  checkHandleList(entry, categoriesParam),
+  checkHandleList(entry, subcategoriesParam),
+  splitHandles(entry[subcategoriesParam]).length && !splitHandles(entry[categoriesParam]).length
+    ? `${subcategoriesParam} needs ${categoriesParam}` : null,
   checkSelect(entry, 'priceRange', PRICE_RANGES),
   checkSelect(entry, 'priceCurrency', CURRENCIES),
   checkSelect(entry, 'markerType', MARKER_TYPES),
@@ -1143,16 +1149,19 @@ const validateLocationCreate = (categoriesParam) => (entry) => firstProblem([
   checkBoolean(entry, 'pinned'),
   checkImageList(entry, 'images'),
   checkActionList(entry, 'actionItems'),
-  checkDayHours(entry),
   checkMarker(entry.markerType || 'pin', entry.markerColor, entry.markerImage, '')
 ]);
 
-/** createLocation's action; byId takes categoryIds instead of category titles. */
+/** createLocation's action; byId takes category and subcategory ids instead of titles. */
 const createLocationAction = (byId) => {
-  const categoriesParam = byId ? 'categoryIds' : 'categories';
+  const categoriesParam = byId ? 'categoryIds' : 'categoryTitles';
+  const subcategoriesParam = byId ? 'subcategoryIds' : 'subcategoryTitles';
   return {
-    validate: validateLocationCreate(categoriesParam),
-    resolve: (entry, ctx, cb) => resolveCategories(ctx, entry[categoriesParam], byId, cb),
+    validate: validateLocationCreate(categoriesParam, subcategoriesParam),
+    resolve: (entry, ctx, cb) => resolveCategoryIds(ctx, entry[categoriesParam], byId, (err, main) => {
+      if (err) return cb(err);
+      resolveSubcategoryIds(ctx, main, entry[subcategoriesParam], byId, (subErr, subcategories) => cb(subErr, { main, subcategories }));
+    }),
     apply: (entry, categories, ctx, cb) => {
       const type = entry.markerType || 'pin';
       const loc = normalizeLocation({
@@ -1179,7 +1188,8 @@ const createLocationAction = (byId) => {
           showPriceRange: !!entry.showPriceRange,
           showStarRating: !!entry.showStarRating
         },
-        openingHours: applyDayHours(defaultOpeningHours(), entry),
+        // Hours aren't a param (too complicated to pass as one); new locations get the form's default week.
+        openingHours: defaultOpeningHours(),
         images: toImageItems(entry.images || []),
         actionItems: toActionItems(entry.actionItems || []),
         // Mirrors LocationsController.createLocation; createdBy stays empty because the app, not a person, creates it.
@@ -1213,19 +1223,20 @@ const LOCATION_UPDATE_FIELDS = [
   'newTitle', 'newSubtitle', 'newAddress', 'newLatitude', 'newLongitude', 'newAddressAlias', 'newDescription',
   'newListImage', 'newPriceRange', 'newPriceCurrency', 'newMarkerType', 'newMarkerColor', 'newMarkerImage',
   'newShowCategory', 'newShowOpeningHours', 'newShowPriceRange', 'newShowStarRating', 'pinned', 'newImages', 'newActionItems'
-].concat(DAYS.map((day) => dayParam(day, 'new')));
+];
 
-/** updateLocation's action; byId names the location by id and takes newCategoryIds. */
+/** updateLocation's action; byId names the location, its categories and subcategories by id. */
 const updateLocationAction = (byId) => {
-  const categoriesParam = byId ? 'newCategoryIds' : 'newCategories';
-  const fields = LOCATION_UPDATE_FIELDS.concat([categoriesParam]);
-  const dayPrefix = 'new';
+  const categoriesParam = byId ? 'newCategoryIds' : 'newCategoryTitles';
+  const subcategoriesParam = byId ? 'newSubcategoryIds' : 'newSubcategoryTitles';
+  const fields = LOCATION_UPDATE_FIELDS.concat([categoriesParam, subcategoriesParam]);
   return {
     validate: (entry) => firstProblem([
       byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
-      requireAnyGiven(entry, fields),
+      // The basic operation is micro: it names only the fields it declares.
+      requireAnyGiven(entry, byId ? fields : fields.filter((f) => LOCATION_UPDATE_SECONDARY.indexOf(f) === -1)),
       // Subtitle, custom name and categories can be emptied in the location form; nothing else can.
-      findClearedProblem(entry, fields.filter((f) => ['newSubtitle', 'newAddressAlias', categoriesParam, 'newImages', 'newActionItems'].indexOf(f) === -1)),
+      findClearedProblem(entry, fields.filter((f) => ['newSubtitle', 'newAddressAlias', categoriesParam, subcategoriesParam, 'newImages', 'newActionItems'].indexOf(f) === -1)),
       checkString(entry, 'newTitle'),
       checkNullable(entry, 'newSubtitle', checkString),
       checkString(entry, 'newAddress'),
@@ -1237,7 +1248,8 @@ const updateLocationAction = (byId) => {
       checkNullable(entry, 'newAddressAlias', checkString),
       checkString(entry, 'newDescription'),
       checkImage(entry, 'newListImage'),
-      checkNullable(entry, categoriesParam, checkCategoriesText),
+      checkNullable(entry, categoriesParam, checkHandleList),
+      checkNullable(entry, subcategoriesParam, checkHandleList),
       checkSelect(entry, 'newPriceRange', PRICE_RANGES),
       checkSelect(entry, 'newPriceCurrency', CURRENCIES),
       checkSelect(entry, 'newMarkerType', MARKER_TYPES),
@@ -1250,16 +1262,23 @@ const updateLocationAction = (byId) => {
       checkBoolean(entry, 'pinned'),
       checkNullable(entry, 'newImages', checkImageList, { stringValued: false }),
       checkNullable(entry, 'newActionItems', checkActionList, { stringValued: false }),
-      checkDayHours(entry, dayPrefix),
       isGiven(entry.newMarkerColor) && !RGB_COLOR.test(entry.newMarkerColor) ? 'newMarkerColor must be an rgb() or rgba() color' : null
     ]),
     resolve: (entry, ctx, cb) => {
       findLocation(entry, byId, (err, record) => {
         if (err) return cb(err);
-        if (!isGiven(entry[categoriesParam]) || entry[categoriesParam] === null) {
-          return loadCategories(ctx, (catErr) => cb(catErr, { id: record.id }));
-        }
-        resolveCategories(ctx, entry[categoriesParam], byId, (catErr, categories) => cb(catErr, { id: record.id, categories }));
+        const categoriesGiven = isGiven(entry[categoriesParam]);
+        const subcategoriesGiven = isGiven(entry[subcategoriesParam]);
+        const current = normalizeLocation(record.data).categories;
+        resolveCategoryIds(ctx, categoriesGiven ? entry[categoriesParam] : '', byId, (catErr, picked) => {
+          if (catErr) return cb(catErr);
+          if (!categoriesGiven && !subcategoriesGiven) return cb(null, { id: record.id });
+          const main = categoriesGiven ? picked : current.main;
+          if (!subcategoriesGiven) {
+            return cb(null, { id: record.id, categories: { main, subcategories: subcategoriesUnder(ctx, main, current.subcategories) } });
+          }
+          resolveSubcategoryIds(ctx, main, entry[subcategoriesParam], byId, (subErr, subcategories) => cb(subErr, { id: record.id, categories: { main, subcategories } }));
+        });
       });
     },
     keyOf: (entry, target) => target.id,
@@ -1284,9 +1303,8 @@ const updateLocationAction = (byId) => {
           loc.wysiwygSource = 'control';
         }
         if (isGiven(entry.newListImage)) loc.listImage = entry.newListImage;
-        if (isGiven(entry[categoriesParam])) {
-          loc.categories = entry[categoriesParam] === null || entry[categoriesParam] === '' ? { main: [], subcategories: [] } : target.categories;
-        }
+        // A null or '' handle list resolves to no ids, which is how the form stores an emptied choice.
+        if (target.categories) loc.categories = target.categories;
         if (isGiven(entry.newPriceRange)) loc.price = { ...loc.price, range: entry.newPriceRange };
         if (isGiven(entry.newPriceCurrency)) loc.price = { ...loc.price, currency: entry.newPriceCurrency };
         if (isGiven(entry.newMarkerType) || isGiven(entry.newMarkerColor) || isGiven(entry.newMarkerImage)) {
@@ -1306,11 +1324,6 @@ const updateLocationAction = (byId) => {
         });
         if (isGiven(entry.newImages)) loc.images = entry.newImages === null ? [] : toImageItems(entry.newImages);
         if (isGiven(entry.newActionItems)) loc.actionItems = entry.newActionItems === null ? [] : toActionItems(entry.newActionItems);
-        if (DAYS.some((day) => isGiven(entry[dayParam(day, 'new')]))) {
-          // A location saved without hours has none stored; the form starts it from the default week.
-          if (!Object.keys(loc.openingHours.days || {}).length) loc.openingHours = defaultOpeningHours();
-          applyDayHours(loc.openingHours, entry, 'new');
-        }
         applyPinned(loc, target.id, entry.pinned, (pinErr) => {
           if (pinErr) return cb(pinErr);
           writeLocation(target.id, loc, ctx, cb);
@@ -2229,17 +2242,19 @@ widgetContract = {
    * function. Background in both frames: the user chose to keep location writes unattended.
    * Deep links and analytics do not exist on the server, so there they are skipped and reported as
    * false in sideEffects; the searchEngine service is loaded on first use in a frame. New locations
-   * get the plugin's default hours (every day 08:00-20:00) unless <day>Hours are passed, and no
-   * location field values (the CSV import creates locations the same way; fill them in with
-   * updateLocationFieldValue).
-   * @param {object} options - title, address, latitude, longitude, description, listImage, and the optional fields declared in plugin.contract.json.
+   * get the plugin's default hours (every day 08:00-20:00) and no location field values (the CSV
+   * import creates locations the same way; fill them in with updateLocationFieldValue). Micro: it
+   * takes the form's required fields plus categories and subcategories; everything else gets the
+   * form's empty-field default, and createLocationAdvanced takes it. Passing a skipped field is refused.
+   * @param {object} options - title, address, latitude, longitude, description, listImage, categoryTitles, subcategoryTitles.
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  createLocation(options, callback) { runAction(createLocationAction(false), options, callback); },
+  createLocation(options, callback) { runAction(withoutFields(createLocationAction(false), LOCATION_CREATE_SECONDARY, onlyAdvanced('createLocationAdvanced')), options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * createLocation, taking categoryIds ("categoryId->subcategoryId, ...") instead of titles.
+   * createLocation, taking categoryIds and subcategoryIds instead of titles, and every field the
+   * basic one skips (subtitle, custom name, price, marker, display toggles, pin, gallery, buttons).
    * @param {object} options
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
@@ -2253,24 +2268,26 @@ widgetContract = {
    * @param {{ locations: object[] }} options
    * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  createLocationsAdvanced(options, callback) { runBatch(withoutListFields(createLocationAction(true), ['images', 'actionItems']), 'locations', options, callback); },
+  createLocationsAdvanced(options, callback) { runBatch(withoutFields(createLocationAction(true), ['images', 'actionItems'], inBatch), 'locations', options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
    * is updateLocationAdvanced. The location form's Save in edit mode (LocationsController.
    * updateLocation): changes only the fields passed, re-reads and rewrites the whole document with a
    * fresh index, then fires locationUpdated, re-registers the deep link, updates the search entry and
-   * refreshes the widget. Subtitle, custom name, categories, gallery images and action buttons can be
-   * cleared with null (subtitle and custom name with "" too); clearing anything else is refused.
+   * refreshes the widget. Categories and subcategories can be cleared with null or ""; clearing
+   * anything else is refused. Micro: it changes title, address and position, description, list
+   * image and categories; updateLocationAdvanced changes the rest, and a skipped field is refused.
    * Background, by the user's choice for location writes.
    * @param {object} options - title plus the new* fields declared in plugin.contract.json.
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
-  updateLocation(options, callback) { runAction(updateLocationAction(false), options, callback); },
+  updateLocation(options, callback) { runAction(withoutFields(updateLocationAction(false), LOCATION_UPDATE_SECONDARY, onlyAdvanced('updateLocationAdvanced')), options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * updateLocation, taking locationId and newCategoryIds.
+   * updateLocation, taking locationId, newCategoryIds and newSubcategoryIds, and every field the
+   * basic one skips. Subtitle, custom name, gallery images and action buttons can also be cleared.
    * @param {object} options
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
@@ -2282,7 +2299,7 @@ widgetContract = {
    * @param {{ locations: object[] }} options
    * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  updateLocationsAdvanced(options, callback) { runBatch(withoutListFields(updateLocationAction(true), ['newImages', 'newActionItems']), 'locations', options, callback); },
+  updateLocationsAdvanced(options, callback) { runBatch(withoutFields(updateLocationAction(true), ['newImages', 'newActionItems'], inBatch), 'locations', options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative

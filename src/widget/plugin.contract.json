@@ -1,5 +1,5 @@
 {
-  "description": "The Locations plugin manages places shown on a map and in lists. Locations live in the app-wide buildfire.publicData collection 'locations' (hard-deleted); their categories, each holding its subcategories, live in the app-wide buildfire.publicData collection 'categories' (soft-deleted: a removed category is kept with deletedOn set). The plugin instance's settings, design, introduction screen and location fields (custom fields) live in one buildfire.datastore document under the 'settings' tag, scoped to this plugin instance. searchCategories is declarative: its publicData call is built at invoke time from context.query with $params.* interpolation, so it has no counterpart in plugin.contract.js. Every other operation is a function in plugin.contract.js on the widgetContract object (and on the controlContract object the control panel's frame dispatches to), dispatched by context.functionName and called with (options, callback). Basic operations name locations, categories, subcategories and location fields by their exact titles or labels; their advanced alternatives (names ending in Advanced) take record ids. Batch operations (plural names ending in Advanced) are advanced only and name records by id. Hosts: generic runs anywhere with no buildfire API; headlessSdk uses buildfire and runs on the server; widgetForeground and widgetBackground run in the iframe under the app, Foreground when someone should be watching (it asks them to approve first) and Background when it runs unattended; controlForeground and controlBackground are the same for the iframe under the control panel. An operation may list several hosts: at most one widget host, at most one control host, and headlessSdk. generic and headlessSdk run on the server and are exposed to the MCP; controlForeground, controlBackground, widgetForeground and widgetBackground are not, so an operation reaches the MCP only when generic or headlessSdk is among its hosts.",
+  "description": "Helps people find places on a map or in a list, see their details and opening hours, and get updates about them. It also lets you add places, sort them into categories and set how the feature looks.",
   "events": [
     {
       "name": "locationCreated",
@@ -1999,7 +1999,8 @@
       ],
       "usage": "basic",
       "availableFor": [
-        "API"
+        "API",
+        "form"
       ],
       "alternatives": [
         {
@@ -2023,13 +2024,6 @@
           "required": true,
           "description": "The location's title, shown on the map, in lists and on its details page.",
           "sampleValue": "[location title]"
-        },
-        "subtitle": {
-          "type": "string",
-          "displayName": "Location subtitle",
-          "required": false,
-          "description": "A short line shown under the title. Defaults to unset, which leaves the location without a subtitle.",
-          "sampleValue": "[location subtitle]"
         },
         "address": {
           "type": "string",
@@ -2056,13 +2050,6 @@
           "description": "The longitude of the location's map pin, in degrees.",
           "sampleValue": -117.1601157
         },
-        "addressAlias": {
-          "type": "string",
-          "displayName": "Location custom name",
-          "required": false,
-          "description": "A friendlier name shown in place of the address, such as a building name. Defaults to unset, which shows the address.",
-          "sampleValue": "[address display name]"
-        },
         "description": {
           "type": "string",
           "displayName": "Description",
@@ -2077,201 +2064,19 @@
           "description": "The picture shown for the location in lists and on its details page.",
           "sampleValue": "[image url]"
         },
-        "categories": {
+        "categoryTitles": {
           "type": "string",
           "displayName": "Categories",
           "required": false,
-          "description": "The categories the location is listed under, written as the plugin's CSV import writes them: category titles separated by commas, each optionally followed by -> and one of its subcategory titles, such as \"Food->Pizza, Outdoors\". Every title must match exactly one live category or subcategory. Defaults to unset, which leaves the location uncategorized.",
-          "sampleValue": "[category title]->[subcategory title]"
+          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Defaults to unset, which leaves the location uncategorized.",
+          "sampleValue": "[category title]"
         },
-        "priceRange": {
-          "type": "select",
-          "displayName": "Price range",
-          "required": false,
-          "enums": [
-            {
-              "label": "$",
-              "value": 1
-            },
-            {
-              "label": "$$",
-              "value": 2
-            },
-            {
-              "label": "$$$",
-              "value": 3
-            },
-            {
-              "label": "$$$$",
-              "value": 4
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "How pricey the location is, from $ to $$$$. Defaults to $.",
-          "sampleValue": 2
-        },
-        "priceCurrency": {
-          "type": "select",
-          "displayName": "Currency",
-          "required": false,
-          "enums": [
-            {
-              "label": "$",
-              "value": "$"
-            },
-            {
-              "label": "€",
-              "value": "€"
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "The currency sign the price range is shown with. Defaults to $.",
-          "sampleValue": "$"
-        },
-        "markerType": {
-          "type": "select",
-          "displayName": "Marker type",
-          "required": false,
-          "enums": [
-            {
-              "label": "Pin",
-              "value": "pin"
-            },
-            {
-              "label": "Circle",
-              "value": "circle"
-            },
-            {
-              "label": "Image",
-              "value": "image"
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "How the location is drawn on the map. Defaults to a pin.",
-          "sampleValue": "pin"
-        },
-        "markerColor": {
+        "subcategoryTitles": {
           "type": "string",
-          "displayName": "Marker color",
+          "displayName": "Subcategories",
           "required": false,
-          "description": "The circle marker's color as an rgb() or rgba() value. Used only when the marker type is Circle; defaults to red, rgba(253,35,5,1).",
-          "sampleValue": "rgba(253,35,5,1)"
-        },
-        "markerImage": {
-          "type": "image",
-          "displayName": "Marker image",
-          "required": false,
-          "description": "The picture used as the map marker. Required when the marker type is Image, ignored otherwise.",
-          "sampleValue": "[image url]"
-        },
-        "showCategory": {
-          "type": "boolean",
-          "displayName": "Show category",
-          "required": false,
-          "description": "Whether the location's category is shown on its details page. Defaults to true.",
-          "sampleValue": true
-        },
-        "showOpeningHours": {
-          "type": "boolean",
-          "displayName": "Show opening hours",
-          "required": false,
-          "description": "Whether the opening hours are shown on its details page. Defaults to false.",
-          "sampleValue": false
-        },
-        "showPriceRange": {
-          "type": "boolean",
-          "displayName": "Show price range",
-          "required": false,
-          "description": "Whether the price range is shown on its details page. Defaults to false.",
-          "sampleValue": false
-        },
-        "showStarRating": {
-          "type": "boolean",
-          "displayName": "Show star rating",
-          "required": false,
-          "description": "Whether app users' star rating is shown on its details page. Defaults to false.",
-          "sampleValue": false
-        },
-        "pinned": {
-          "type": "boolean",
-          "displayName": "Pin to top",
-          "required": false,
-          "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
-          "sampleValue": false
-        },
-        "mondayHours": {
-          "type": "string",
-          "displayName": "Monday hours",
-          "required": false,
-          "description": "Opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Monday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "tuesdayHours": {
-          "type": "string",
-          "displayName": "Tuesday hours",
-          "required": false,
-          "description": "Opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Tuesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "wednesdayHours": {
-          "type": "string",
-          "displayName": "Wednesday hours",
-          "required": false,
-          "description": "Opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Wednesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "thursdayHours": {
-          "type": "string",
-          "displayName": "Thursday hours",
-          "required": false,
-          "description": "Opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Thursday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "fridayHours": {
-          "type": "string",
-          "displayName": "Friday hours",
-          "required": false,
-          "description": "Opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Friday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "saturdayHours": {
-          "type": "string",
-          "displayName": "Saturday hours",
-          "required": false,
-          "description": "Opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Saturday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "sundayHours": {
-          "type": "string",
-          "displayName": "Sunday hours",
-          "required": false,
-          "description": "Opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Sunday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "images": {
-          "type": "image",
-          "displayName": "Location images",
-          "required": false,
-          "minValue": 0,
-          "description": "Pictures shown in the location's gallery, in order. Defaults to unset, which leaves the gallery empty.",
-          "sampleValue": [
-            "[image url]",
-            "[image url]"
-          ]
-        },
-        "actionItems": {
-          "type": "action",
-          "displayName": "Action items",
-          "required": false,
-          "minValue": 0,
-          "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Defaults to unset, which adds none.",
-          "sampleValue": [
-            {
-              "title": "Website",
-              "action": "linkToWeb",
-              "url": "https://example.com"
-            }
-          ]
+          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Defaults to unset, which picks no subcategory.",
+          "sampleValue": "[subcategory title]"
         },
         "callback": {
           "type": "function",
@@ -2512,7 +2317,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Adds a new location to the map and lists, using category ids to file it.",
+      "description": "Adds a new location with every detail, such as its subtitle, price, marker, pin, gallery and buttons, using category ids to file it.",
       "parameters": {
         "title": {
           "type": "string",
@@ -2578,8 +2383,15 @@
           "type": "string",
           "displayName": "Category ids",
           "required": false,
-          "description": "The categories the location is listed under, by id: category ids separated by commas, each optionally followed by -> and one of its subcategory ids, such as \"[category id]->[subcategory id], [category id]\". Ids come from the category search results; every id must match a live category or one of its subcategories. Defaults to unset, which leaves the location uncategorized.",
-          "sampleValue": "[category id]->[subcategory id]"
+          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Defaults to unset, which leaves the location uncategorized.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryIds": {
+          "type": "string",
+          "displayName": "Subcategory ids",
+          "required": false,
+          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Defaults to unset, which picks no subcategory.",
+          "sampleValue": "[subcategory id]"
         },
         "priceRange": {
           "type": "select",
@@ -2672,7 +2484,7 @@
           "type": "boolean",
           "displayName": "Show opening hours",
           "required": false,
-          "description": "Whether the opening hours are shown on its details page. Defaults to false.",
+          "description": "Whether the opening hours are shown on its details page. Defaults to false. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
           "sampleValue": false
         },
         "showPriceRange": {
@@ -2695,55 +2507,6 @@
           "required": false,
           "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
           "sampleValue": false
-        },
-        "mondayHours": {
-          "type": "string",
-          "displayName": "Monday hours",
-          "required": false,
-          "description": "Opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Monday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "tuesdayHours": {
-          "type": "string",
-          "displayName": "Tuesday hours",
-          "required": false,
-          "description": "Opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Tuesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "wednesdayHours": {
-          "type": "string",
-          "displayName": "Wednesday hours",
-          "required": false,
-          "description": "Opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Wednesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "thursdayHours": {
-          "type": "string",
-          "displayName": "Thursday hours",
-          "required": false,
-          "description": "Opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Thursday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "fridayHours": {
-          "type": "string",
-          "displayName": "Friday hours",
-          "required": false,
-          "description": "Opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Friday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "saturdayHours": {
-          "type": "string",
-          "displayName": "Saturday hours",
-          "required": false,
-          "description": "Opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Saturday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
-        },
-        "sundayHours": {
-          "type": "string",
-          "displayName": "Sunday hours",
-          "required": false,
-          "description": "Opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Sunday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start.",
-          "sampleValue": "08:00-20:00"
         },
         "images": {
           "type": "image",
@@ -3068,7 +2831,15 @@
               "type": "string",
               "displayName": "Category ids",
               "required": false,
-              "description": "The categories the location is listed under, by id: category ids separated by commas, each optionally followed by -> and one of its subcategory ids, such as \"[category id]->[subcategory id], [category id]\". Ids come from the category search results; every id must match a live category or one of its subcategories. Defaults to unset, which leaves the location uncategorized."
+              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Defaults to unset, which leaves the location uncategorized.",
+              "sampleValue": "[category id]"
+            },
+            "subcategoryIds": {
+              "type": "string",
+              "displayName": "Subcategory ids",
+              "required": false,
+              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Defaults to unset, which picks no subcategory.",
+              "sampleValue": "[subcategory id]"
             },
             "priceRange": {
               "type": "select",
@@ -3155,7 +2926,7 @@
               "type": "boolean",
               "displayName": "Show opening hours",
               "required": false,
-              "description": "Whether the opening hours are shown on its details page. Defaults to false."
+              "description": "Whether the opening hours are shown on its details page. Defaults to false. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
             },
             "showPriceRange": {
               "type": "boolean",
@@ -3174,48 +2945,6 @@
               "displayName": "Pin to top",
               "required": false,
               "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false."
-            },
-            "mondayHours": {
-              "type": "string",
-              "displayName": "Monday hours",
-              "required": false,
-              "description": "Opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Monday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "tuesdayHours": {
-              "type": "string",
-              "displayName": "Tuesday hours",
-              "required": false,
-              "description": "Opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Tuesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "wednesdayHours": {
-              "type": "string",
-              "displayName": "Wednesday hours",
-              "required": false,
-              "description": "Opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Wednesday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "thursdayHours": {
-              "type": "string",
-              "displayName": "Thursday hours",
-              "required": false,
-              "description": "Opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Thursday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "fridayHours": {
-              "type": "string",
-              "displayName": "Friday hours",
-              "required": false,
-              "description": "Opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Friday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "saturdayHours": {
-              "type": "string",
-              "displayName": "Saturday hours",
-              "required": false,
-              "description": "Opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Saturday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
-            },
-            "sundayHours": {
-              "type": "string",
-              "displayName": "Sunday hours",
-              "required": false,
-              "description": "Opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Defaults to unset, which gives Sunday the plugin's default of 08:00-20:00. Intervals may not overlap or end before they start."
             }
           },
           "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be; entries carry no gallery images or action buttons.",
@@ -3291,7 +3020,8 @@
       ],
       "usage": "basic",
       "availableFor": [
-        "API"
+        "API",
+        "form"
       ],
       "alternatives": [
         {
@@ -3307,7 +3037,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Changes a location's details, leaving everything not mentioned as it was.",
+      "description": "Changes a location's main details, leaving everything not mentioned as it was.",
       "parameters": {
         "title": {
           "type": "string",
@@ -3322,14 +3052,6 @@
           "required": false,
           "description": "The location's new title. Leave it out to keep the current title; it can't be removed.",
           "sampleValue": "[new location title]"
-        },
-        "newSubtitle": {
-          "type": "string",
-          "displayName": "New subtitle",
-          "required": false,
-          "nullable": true,
-          "description": "The location's new subtitle. Leave it out to keep the current subtitle; pass null or an empty string to remove it (stored as an empty value, as the form does).",
-          "sampleValue": "[new location subtitle]"
         },
         "newAddress": {
           "type": "string",
@@ -3356,14 +3078,6 @@
           "description": "The new longitude of the map pin. Leave it out to keep the current position; it changes only together with newLatitude.",
           "sampleValue": -117.1601157
         },
-        "newAddressAlias": {
-          "type": "string",
-          "displayName": "New custom name",
-          "required": false,
-          "nullable": true,
-          "description": "The location's new custom name. Leave it out to keep the current one; pass null or an empty string to remove it, so the address shows instead.",
-          "sampleValue": "[address display name]"
-        },
         "newDescription": {
           "type": "string",
           "displayName": "New description",
@@ -3378,203 +3092,21 @@
           "description": "The location's new list image. Leave it out to keep the current image; it can't be removed.",
           "sampleValue": "[image url]"
         },
-        "newCategories": {
+        "newCategoryTitles": {
           "type": "string",
           "displayName": "New categories",
           "required": false,
           "nullable": true,
-          "description": "The categories the location is listed under, written as the plugin's CSV import writes them: category titles separated by commas, each optionally followed by -> and one of its subcategory titles, such as \"Food->Pizza, Outdoors\". Every title must match exactly one live category or subcategory. Replaces every current category. Leave it out to keep the current categories; pass null or an empty string to remove them all.",
-          "sampleValue": "[category title]->[subcategory title]"
+          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+          "sampleValue": "[category title]"
         },
-        "newPriceRange": {
-          "type": "select",
-          "displayName": "New price range",
-          "required": false,
-          "enums": [
-            {
-              "label": "$",
-              "value": 1
-            },
-            {
-              "label": "$$",
-              "value": 2
-            },
-            {
-              "label": "$$$",
-              "value": 3
-            },
-            {
-              "label": "$$$$",
-              "value": 4
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "The location's new price range. Leave it out to keep the current one; it can't be removed.",
-          "sampleValue": 2
-        },
-        "newPriceCurrency": {
-          "type": "select",
-          "displayName": "New currency",
-          "required": false,
-          "enums": [
-            {
-              "label": "$",
-              "value": "$"
-            },
-            {
-              "label": "€",
-              "value": "€"
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "The currency sign for the price range. Leave it out to keep the current one; it can't be removed.",
-          "sampleValue": "$"
-        },
-        "newMarkerType": {
-          "type": "select",
-          "displayName": "New marker type",
-          "required": false,
-          "enums": [
-            {
-              "label": "Pin",
-              "value": "pin"
-            },
-            {
-              "label": "Circle",
-              "value": "circle"
-            },
-            {
-              "label": "Image",
-              "value": "image"
-            }
-          ],
-          "allowEnumCustomOption": false,
-          "description": "How the location is drawn on the map. Leave it out to keep the current marker; it can't be removed. Switching to Circle without a color uses red; switching to Image needs a marker image.",
-          "sampleValue": "circle"
-        },
-        "newMarkerColor": {
+        "newSubcategoryTitles": {
           "type": "string",
-          "displayName": "New marker color",
-          "required": false,
-          "description": "The circle marker's new rgb() or rgba() color. Leave it out to keep the current color; it can't be removed.",
-          "sampleValue": "rgba(253,35,5,1)"
-        },
-        "newMarkerImage": {
-          "type": "image",
-          "displayName": "New marker image",
-          "required": false,
-          "description": "The image marker's new picture. Leave it out to keep the current one; it can't be removed.",
-          "sampleValue": "[image url]"
-        },
-        "newShowCategory": {
-          "type": "boolean",
-          "displayName": "Show category",
-          "required": false,
-          "description": "Whether the category is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
-          "sampleValue": true
-        },
-        "newShowOpeningHours": {
-          "type": "boolean",
-          "displayName": "Show opening hours",
-          "required": false,
-          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed.",
-          "sampleValue": true
-        },
-        "newShowPriceRange": {
-          "type": "boolean",
-          "displayName": "Show price range",
-          "required": false,
-          "description": "Whether the price range is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
-          "sampleValue": true
-        },
-        "newShowStarRating": {
-          "type": "boolean",
-          "displayName": "Show star rating",
-          "required": false,
-          "description": "Whether the star rating is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
-          "sampleValue": true
-        },
-        "pinned": {
-          "type": "boolean",
-          "displayName": "Pin to top",
-          "required": false,
-          "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
-          "sampleValue": true
-        },
-        "newMondayHours": {
-          "type": "string",
-          "displayName": "New monday hours",
-          "required": false,
-          "description": "New opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Monday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newTuesdayHours": {
-          "type": "string",
-          "displayName": "New tuesday hours",
-          "required": false,
-          "description": "New opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Tuesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newWednesdayHours": {
-          "type": "string",
-          "displayName": "New wednesday hours",
-          "required": false,
-          "description": "New opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Wednesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newThursdayHours": {
-          "type": "string",
-          "displayName": "New thursday hours",
-          "required": false,
-          "description": "New opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Thursday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newFridayHours": {
-          "type": "string",
-          "displayName": "New friday hours",
-          "required": false,
-          "description": "New opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Friday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newSaturdayHours": {
-          "type": "string",
-          "displayName": "New saturday hours",
-          "required": false,
-          "description": "New opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Saturday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newSundayHours": {
-          "type": "string",
-          "displayName": "New sunday hours",
-          "required": false,
-          "description": "New opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Sunday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newImages": {
-          "type": "image",
-          "displayName": "New location images",
+          "displayName": "New subcategories",
           "required": false,
           "nullable": true,
-          "minValue": 0,
-          "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery; pass null to empty it.",
-          "sampleValue": [
-            "[image url]"
-          ]
-        },
-        "newActionItems": {
-          "type": "action",
-          "displayName": "New action items",
-          "required": false,
-          "nullable": true,
-          "minValue": 0,
-          "description": "Replaces the details page's buttons with these, in order. Leave it out to keep the current buttons; pass null to remove them all.",
-          "sampleValue": [
-            {
-              "title": "Call us",
-              "action": "callNumber",
-              "phoneNumber": "[phone number]"
-            }
-          ]
+          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+          "sampleValue": "[subcategory title]"
         },
         "callback": {
           "type": "function",
@@ -3815,7 +3347,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Changes a location's details, using the location's id.",
+      "description": "Changes any of a location's details, such as its subtitle, price, marker, pin, gallery or buttons, using the location's id.",
       "parameters": {
         "locationId": {
           "type": "string",
@@ -3891,8 +3423,16 @@
           "displayName": "New category ids",
           "required": false,
           "nullable": true,
-          "description": "The categories the location is listed under, by id: category ids separated by commas, each optionally followed by -> and one of its subcategory ids, such as \"[category id]->[subcategory id], [category id]\". Ids come from the category search results; every id must match a live category or one of its subcategories. Replaces every current category. Leave it out to keep the current categories; pass null or an empty string to remove them all.",
-          "sampleValue": "[category id]->[subcategory id]"
+          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+          "sampleValue": "[category id]"
+        },
+        "newSubcategoryIds": {
+          "type": "string",
+          "displayName": "New subcategory ids",
+          "required": false,
+          "nullable": true,
+          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+          "sampleValue": "[subcategory id]"
         },
         "newPriceRange": {
           "type": "select",
@@ -3985,7 +3525,7 @@
           "type": "boolean",
           "displayName": "Show opening hours",
           "required": false,
-          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
           "sampleValue": true
         },
         "newShowPriceRange": {
@@ -4008,55 +3548,6 @@
           "required": false,
           "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
           "sampleValue": true
-        },
-        "newMondayHours": {
-          "type": "string",
-          "displayName": "New monday hours",
-          "required": false,
-          "description": "New opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Monday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newTuesdayHours": {
-          "type": "string",
-          "displayName": "New tuesday hours",
-          "required": false,
-          "description": "New opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Tuesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newWednesdayHours": {
-          "type": "string",
-          "displayName": "New wednesday hours",
-          "required": false,
-          "description": "New opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Wednesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newThursdayHours": {
-          "type": "string",
-          "displayName": "New thursday hours",
-          "required": false,
-          "description": "New opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Thursday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newFridayHours": {
-          "type": "string",
-          "displayName": "New friday hours",
-          "required": false,
-          "description": "New opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Friday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newSaturdayHours": {
-          "type": "string",
-          "displayName": "New saturday hours",
-          "required": false,
-          "description": "New opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Saturday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
-        },
-        "newSundayHours": {
-          "type": "string",
-          "displayName": "New sunday hours",
-          "required": false,
-          "description": "New opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Sunday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start.",
-          "sampleValue": "09:00-17:00"
         },
         "newImages": {
           "type": "image",
@@ -4391,7 +3882,16 @@
               "displayName": "New category ids",
               "required": false,
               "nullable": true,
-              "description": "The categories the location is listed under, by id: category ids separated by commas, each optionally followed by -> and one of its subcategory ids, such as \"[category id]->[subcategory id], [category id]\". Ids come from the category search results; every id must match a live category or one of its subcategories. Replaces every current category. Leave it out to keep the current categories; pass null or an empty string to remove them all."
+              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+              "sampleValue": "[category id]"
+            },
+            "newSubcategoryIds": {
+              "type": "string",
+              "displayName": "New subcategory ids",
+              "required": false,
+              "nullable": true,
+              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+              "sampleValue": "[subcategory id]"
             },
             "newPriceRange": {
               "type": "select",
@@ -4478,7 +3978,7 @@
               "type": "boolean",
               "displayName": "Show opening hours",
               "required": false,
-              "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed."
+              "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
             },
             "newShowPriceRange": {
               "type": "boolean",
@@ -4497,48 +3997,6 @@
               "displayName": "Pin to top",
               "required": false,
               "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is."
-            },
-            "newMondayHours": {
-              "type": "string",
-              "displayName": "New monday hours",
-              "required": false,
-              "description": "New opening hours for Monday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Monday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newTuesdayHours": {
-              "type": "string",
-              "displayName": "New tuesday hours",
-              "required": false,
-              "description": "New opening hours for Tuesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Tuesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newWednesdayHours": {
-              "type": "string",
-              "displayName": "New wednesday hours",
-              "required": false,
-              "description": "New opening hours for Wednesday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Wednesday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newThursdayHours": {
-              "type": "string",
-              "displayName": "New thursday hours",
-              "required": false,
-              "description": "New opening hours for Thursday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Thursday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newFridayHours": {
-              "type": "string",
-              "displayName": "New friday hours",
-              "required": false,
-              "description": "New opening hours for Friday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Friday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newSaturdayHours": {
-              "type": "string",
-              "displayName": "New saturday hours",
-              "required": false,
-              "description": "New opening hours for Saturday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Saturday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
-            },
-            "newSundayHours": {
-              "type": "string",
-              "displayName": "New sunday hours",
-              "required": false,
-              "description": "New opening hours for Sunday, as 24-hour intervals separated by commas, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep Sunday's hours; they can't be removed, only set to \"closed\". Intervals may not overlap or end before they start."
             }
           },
           "description": "The changes to make, up to 50 per call, one location per entry. Each entry changes only the fields it passes, exactly as a single update would; entries carry no gallery images or action buttons.",
