@@ -1,0 +1,142 @@
+{
+  "name": "createLocationField",
+  "displayName": "Create location field",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createLocationField",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds an extra field, such as a phone number or website, that every location can fill in.",
+  "parameters": {
+    "section": {
+      "type": "select",
+      "displayName": "Section",
+      "required": true,
+      "enums": [
+        {
+          "label": "Quick Actions",
+          "value": "quickActions"
+        },
+        {
+          "label": "Text Content",
+          "value": "content"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "Where the field shows on a location's details page: Quick Actions are compact buttons at the top, Text Content full-width sections below.",
+      "sampleValue": "content"
+    },
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The field's label; one another field already has is refused.",
+      "sampleValue": "[field label]"
+    },
+    "type": {
+      "type": "select",
+      "displayName": "Type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich Text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "What the field holds. Quick Actions take Email, Phone or URL; Text Content takes any type. Defaults to Email.",
+      "sampleValue": "PHONE"
+    },
+    "required": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether every location must fill it in. Defaults to false.",
+      "sampleValue": false
+    },
+    "allowCustomLabel": {
+      "type": "boolean",
+      "displayName": "Custom label",
+      "required": false,
+      "description": "Whether a location may show its own label for it. Defaults to false.",
+      "sampleValue": false
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the new field.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when ten fields already exist, the label is taken, or the type doesn't fit the section."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "field": {
+              "type": "object",
+              "description": "The field.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "quickActions or content."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's label."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "EMAIL, PHONE, URL, TEXT or RICH_TEXT."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether locations must fill it in."
+                },
+                "allowCustomLabel": {
+                  "type": "boolean",
+                  "description": "Whether a location may show its own label for it."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

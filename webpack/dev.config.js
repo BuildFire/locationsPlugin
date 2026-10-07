@@ -252,8 +252,8 @@ const WebpackConfig = {
     // applies to single-file patterns too, so the contract's runtime and in-frame host page get
     // their own instance, as does the control panel's host page.
     new CopyWebpackPlugin([{
-      from: path.join(__dirname, '../src/widget/plugin.contract.js'),
-      to: path.join(__dirname, '../widget/plugin.contract.js'),
+      from: path.join(__dirname, '../src/widget/contract/plugin.contract.js'),
+      to: path.join(__dirname, '../widget/contract/plugin.contract.js'),
       toType: 'file',
     }, {
       from: path.join(__dirname, '../src/widget/contract.html'),

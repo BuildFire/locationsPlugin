@@ -110,7 +110,8 @@
         "sortBy",
         "page",
         "pageSize"
-      ]
+      ],
+      "filePath": "operations/searchLocations.json"
     },
     {
       "name": "searchLocationsAdvanced",
@@ -148,7 +149,8 @@
         "sortBy",
         "page",
         "pageSize"
-      ]
+      ],
+      "filePath": "operations/searchLocationsAdvanced.json"
     },
     {
       "name": "searchLocationsNearPoint",
@@ -186,7 +188,8 @@
         "openNow",
         "page",
         "pageSize"
-      ]
+      ],
+      "filePath": "operations/searchLocationsNearPoint.json"
     },
     {
       "name": "searchLocationsNearPointAdvanced",
@@ -224,7 +227,8 @@
         "openNow",
         "page",
         "pageSize"
-      ]
+      ],
+      "filePath": "operations/searchLocationsNearPointAdvanced.json"
     },
     {
       "name": "getLocation",
@@ -252,7 +256,8 @@
       "description": "Shows everything about one location, found by its title.",
       "parameters": [
         "title"
-      ]
+      ],
+      "filePath": "operations/getLocation.json"
     },
     {
       "name": "getLocationAdvanced",
@@ -280,7 +285,8 @@
       "description": "Shows everything about one location, using the location's id.",
       "parameters": [
         "locationId"
-      ]
+      ],
+      "filePath": "operations/getLocationAdvanced.json"
     },
     {
       "name": "createLocation",
@@ -315,7 +321,8 @@
         "listImage",
         "categoryTitles",
         "subcategoryTitles"
-      ]
+      ],
+      "filePath": "operations/createLocation.json"
     },
     {
       "name": "createLocationAdvanced",
@@ -363,7 +370,8 @@
         "pinned",
         "images",
         "actionItems"
-      ]
+      ],
+      "filePath": "operations/createLocationAdvanced.json"
     },
     {
       "name": "createLocationsAdvanced",
@@ -390,7 +398,8 @@
       "description": "Adds several new locations at once, using category ids to file them.",
       "parameters": [
         "locations"
-      ]
+      ],
+      "filePath": "operations/createLocationsAdvanced.json"
     },
     {
       "name": "updateLocation",
@@ -426,7 +435,8 @@
         "newListImage",
         "newCategoryTitles",
         "newSubcategoryTitles"
-      ]
+      ],
+      "filePath": "operations/updateLocation.json"
     },
     {
       "name": "updateLocationAdvanced",
@@ -475,7 +485,8 @@
         "pinned",
         "newImages",
         "newActionItems"
-      ]
+      ],
+      "filePath": "operations/updateLocationAdvanced.json"
     },
     {
       "name": "updateLocationsAdvanced",
@@ -502,7 +513,8 @@
       "description": "Changes the details of several locations at once, using their ids.",
       "parameters": [
         "locations"
-      ]
+      ],
+      "filePath": "operations/updateLocationsAdvanced.json"
     },
     {
       "name": "deleteLocation",
@@ -530,7 +542,8 @@
       "description": "Permanently removes a location from the map and lists.",
       "parameters": [
         "title"
-      ]
+      ],
+      "filePath": "operations/deleteLocation.json"
     },
     {
       "name": "deleteLocationAdvanced",
@@ -558,7 +571,8 @@
       "description": "Permanently removes a location from the map and lists, using the location's id.",
       "parameters": [
         "locationId"
-      ]
+      ],
+      "filePath": "operations/deleteLocationAdvanced.json"
     },
     {
       "name": "deleteLocationsAdvanced",
@@ -585,7 +599,8 @@
       "description": "Permanently removes several locations at once, using their ids.",
       "parameters": [
         "locations"
-      ]
+      ],
+      "filePath": "operations/deleteLocationsAdvanced.json"
     },
     {
       "name": "updateLocationFieldValue",
@@ -616,7 +631,8 @@
         "fieldLabel",
         "value",
         "customLabel"
-      ]
+      ],
+      "filePath": "operations/updateLocationFieldValue.json"
     },
     {
       "name": "updateLocationFieldValueAdvanced",
@@ -647,7 +663,8 @@
         "fieldId",
         "value",
         "customLabel"
-      ]
+      ],
+      "filePath": "operations/updateLocationFieldValueAdvanced.json"
     },
     {
       "name": "updateLocationsFieldValueAdvanced",
@@ -674,7 +691,8 @@
       "description": "Fills in or changes extra fields on several locations at once, using ids.",
       "parameters": [
         "locations"
-      ]
+      ],
+      "filePath": "operations/updateLocationsFieldValueAdvanced.json"
     },
     {
       "name": "updatePinnedLocationOrder",
@@ -703,7 +721,8 @@
         "firstLocationTitle",
         "secondLocationTitle",
         "thirdLocationTitle"
-      ]
+      ],
+      "filePath": "operations/updatePinnedLocationOrder.json"
     },
     {
       "name": "updatePinnedLocationOrderAdvanced",
@@ -732,7 +751,8 @@
         "firstLocationId",
         "secondLocationId",
         "thirdLocationId"
-      ]
+      ],
+      "filePath": "operations/updatePinnedLocationOrderAdvanced.json"
     },
     {
       "name": "deleteLocationSubscriber",
@@ -761,7 +781,8 @@
       "parameters": [
         "title",
         "userId"
-      ]
+      ],
+      "filePath": "operations/deleteLocationSubscriber.json"
     },
     {
       "name": "deleteLocationSubscriberAdvanced",
@@ -790,7 +811,8 @@
       "parameters": [
         "locationId",
         "userId"
-      ]
+      ],
+      "filePath": "operations/deleteLocationSubscriberAdvanced.json"
     },
     {
       "name": "deleteLocationSubscribersAdvanced",
@@ -817,7 +839,8 @@
       "description": "Stops several people's update notifications about locations at once, on behalf of the app.",
       "parameters": [
         "subscribers"
-      ]
+      ],
+      "filePath": "operations/deleteLocationSubscribersAdvanced.json"
     },
     {
       "name": "sendLocationNotification",
@@ -847,7 +870,8 @@
         "title",
         "notificationTitle",
         "message"
-      ]
+      ],
+      "filePath": "operations/sendLocationNotification.json"
     },
     {
       "name": "sendLocationNotificationAdvanced",
@@ -877,7 +901,8 @@
         "locationId",
         "notificationTitle",
         "message"
-      ]
+      ],
+      "filePath": "operations/sendLocationNotificationAdvanced.json"
     },
     {
       "name": "searchCategories",
@@ -921,7 +946,8 @@
       "parameters": [
         "title",
         "page"
-      ]
+      ],
+      "filePath": "operations/searchCategories.json"
     },
     {
       "name": "createCategory",
@@ -949,7 +975,8 @@
       "parameters": [
         "title",
         "iconImage"
-      ]
+      ],
+      "filePath": "operations/createCategory.json"
     },
     {
       "name": "createCategoriesAdvanced",
@@ -975,7 +1002,8 @@
       "description": "Adds several new categories at once.",
       "parameters": [
         "categories"
-      ]
+      ],
+      "filePath": "operations/createCategoriesAdvanced.json"
     },
     {
       "name": "updateCategory",
@@ -1004,7 +1032,8 @@
         "categoryTitle",
         "newTitle",
         "newIconImage"
-      ]
+      ],
+      "filePath": "operations/updateCategory.json"
     },
     {
       "name": "updateCategoryAdvanced",
@@ -1033,7 +1062,8 @@
         "categoryId",
         "newTitle",
         "newIconImage"
-      ]
+      ],
+      "filePath": "operations/updateCategoryAdvanced.json"
     },
     {
       "name": "updateCategoriesAdvanced",
@@ -1059,7 +1089,8 @@
       "description": "Renames or changes the icons of several categories at once.",
       "parameters": [
         "categories"
-      ]
+      ],
+      "filePath": "operations/updateCategoriesAdvanced.json"
     },
     {
       "name": "deleteCategory",
@@ -1086,7 +1117,8 @@
       "description": "Removes a category from the app; it is kept behind the scenes and can be restored.",
       "parameters": [
         "categoryTitle"
-      ]
+      ],
+      "filePath": "operations/deleteCategory.json"
     },
     {
       "name": "deleteCategoryAdvanced",
@@ -1113,7 +1145,8 @@
       "description": "Removes a category from the app, using its id; it is kept behind the scenes and can be restored.",
       "parameters": [
         "categoryId"
-      ]
+      ],
+      "filePath": "operations/deleteCategoryAdvanced.json"
     },
     {
       "name": "deleteCategoriesAdvanced",
@@ -1139,7 +1172,8 @@
       "description": "Removes several categories from the app at once; they are kept behind the scenes and can be restored.",
       "parameters": [
         "categories"
-      ]
+      ],
+      "filePath": "operations/deleteCategoriesAdvanced.json"
     },
     {
       "name": "createSubcategory",
@@ -1168,7 +1202,8 @@
         "categoryTitle",
         "title",
         "iconImage"
-      ]
+      ],
+      "filePath": "operations/createSubcategory.json"
     },
     {
       "name": "createSubcategoryAdvanced",
@@ -1197,7 +1232,8 @@
         "categoryId",
         "title",
         "iconImage"
-      ]
+      ],
+      "filePath": "operations/createSubcategoryAdvanced.json"
     },
     {
       "name": "createSubcategoriesAdvanced",
@@ -1223,7 +1259,8 @@
       "description": "Adds several subcategories at once.",
       "parameters": [
         "subcategories"
-      ]
+      ],
+      "filePath": "operations/createSubcategoriesAdvanced.json"
     },
     {
       "name": "updateSubcategory",
@@ -1253,7 +1290,8 @@
         "subcategoryTitle",
         "newTitle",
         "newIconImage"
-      ]
+      ],
+      "filePath": "operations/updateSubcategory.json"
     },
     {
       "name": "updateSubcategoryAdvanced",
@@ -1283,7 +1321,8 @@
         "subcategoryId",
         "newTitle",
         "newIconImage"
-      ]
+      ],
+      "filePath": "operations/updateSubcategoryAdvanced.json"
     },
     {
       "name": "updateSubcategoriesAdvanced",
@@ -1309,7 +1348,8 @@
       "description": "Renames or changes the icons of several subcategories at once.",
       "parameters": [
         "subcategories"
-      ]
+      ],
+      "filePath": "operations/updateSubcategoriesAdvanced.json"
     },
     {
       "name": "deleteSubcategory",
@@ -1337,7 +1377,8 @@
       "parameters": [
         "categoryTitle",
         "subcategoryTitle"
-      ]
+      ],
+      "filePath": "operations/deleteSubcategory.json"
     },
     {
       "name": "deleteSubcategoryAdvanced",
@@ -1365,7 +1406,8 @@
       "parameters": [
         "categoryId",
         "subcategoryId"
-      ]
+      ],
+      "filePath": "operations/deleteSubcategoryAdvanced.json"
     },
     {
       "name": "deleteSubcategoriesAdvanced",
@@ -1391,7 +1433,8 @@
       "description": "Permanently removes several subcategories at once.",
       "parameters": [
         "subcategories"
-      ]
+      ],
+      "filePath": "operations/deleteSubcategoriesAdvanced.json"
     },
     {
       "name": "getSettings",
@@ -1416,7 +1459,8 @@
         ]
       },
       "description": "Shows how the locations feature is set up: sorting, filters, map, bookmarks, design, introduction screen and location fields.",
-      "parameters": []
+      "parameters": [],
+      "filePath": "operations/getSettings.json"
     },
     {
       "name": "updateSettings",
@@ -1466,7 +1510,8 @@
         "bookmarksEnabled",
         "allowBookmarkLocations",
         "allowBookmarkSearches"
-      ]
+      ],
+      "filePath": "operations/updateSettings.json"
     },
     {
       "name": "updateDesign",
@@ -1501,7 +1546,8 @@
         "allowStyleSelection",
         "showDetailsCategory",
         "showContributorName"
-      ]
+      ],
+      "filePath": "operations/updateDesign.json"
     },
     {
       "name": "updateIntroScreen",
@@ -1534,7 +1580,8 @@
         "areaLongitude",
         "areaAddress",
         "areaRadiusMiles"
-      ]
+      ],
+      "filePath": "operations/updateIntroScreen.json"
     },
     {
       "name": "updateIntroScreenImages",
@@ -1560,7 +1607,8 @@
       "description": "Replaces the pictures in the introduction screen's carousel.",
       "parameters": [
         "images"
-      ]
+      ],
+      "filePath": "operations/updateIntroScreenImages.json"
     },
     {
       "name": "createLocationField",
@@ -1591,7 +1639,8 @@
         "type",
         "required",
         "allowCustomLabel"
-      ]
+      ],
+      "filePath": "operations/createLocationField.json"
     },
     {
       "name": "createLocationFieldsAdvanced",
@@ -1617,7 +1666,8 @@
       "description": "Adds several extra location fields at once.",
       "parameters": [
         "fields"
-      ]
+      ],
+      "filePath": "operations/createLocationFieldsAdvanced.json"
     },
     {
       "name": "updateLocationField",
@@ -1649,7 +1699,8 @@
         "newRequired",
         "newAllowCustomLabel",
         "newPosition"
-      ]
+      ],
+      "filePath": "operations/updateLocationField.json"
     },
     {
       "name": "updateLocationFieldAdvanced",
@@ -1681,7 +1732,8 @@
         "newRequired",
         "newAllowCustomLabel",
         "newPosition"
-      ]
+      ],
+      "filePath": "operations/updateLocationFieldAdvanced.json"
     },
     {
       "name": "updateLocationFieldsAdvanced",
@@ -1707,7 +1759,8 @@
       "description": "Changes several extra location fields at once.",
       "parameters": [
         "fields"
-      ]
+      ],
+      "filePath": "operations/updateLocationFieldsAdvanced.json"
     },
     {
       "name": "deleteLocationField",
@@ -1734,7 +1787,8 @@
       "description": "Permanently removes an extra location field, so locations no longer show it.",
       "parameters": [
         "label"
-      ]
+      ],
+      "filePath": "operations/deleteLocationField.json"
     },
     {
       "name": "deleteLocationFieldAdvanced",
@@ -1761,7 +1815,8 @@
       "description": "Permanently removes an extra location field, using its id.",
       "parameters": [
         "fieldId"
-      ]
+      ],
+      "filePath": "operations/deleteLocationFieldAdvanced.json"
     },
     {
       "name": "deleteLocationFieldsAdvanced",
@@ -1787,7 +1842,8 @@
       "description": "Permanently removes several extra location fields at once.",
       "parameters": [
         "fields"
-      ]
+      ],
+      "filePath": "operations/deleteLocationFieldsAdvanced.json"
     }
   ]
 }

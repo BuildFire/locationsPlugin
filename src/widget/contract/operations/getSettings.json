@@ -1,0 +1,135 @@
+{
+  "name": "getSettings",
+  "displayName": "Get settings",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getSettings",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows how the locations feature is set up: sorting, filters, map, bookmarks, design, introduction screen and location fields.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the settings.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, if it didn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was found.",
+          "properties": {
+            "settings": {
+              "type": "object",
+              "description": "The plugin's settings, in the shape the plugin stores them, without access, editor and billing settings.",
+              "properties": {
+                "subscription": {
+                  "type": "object",
+                  "description": "Location subscribing.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether app users can follow locations for updates."
+                    }
+                  }
+                },
+                "measurementUnit": {
+                  "type": "string",
+                  "description": "metric or imperial."
+                },
+                "sorting": {
+                  "type": "object",
+                  "description": "How locations are sorted at first, and which sort choices app users get."
+                },
+                "filter": {
+                  "type": "object",
+                  "description": "Which filters app users get."
+                },
+                "map": {
+                  "type": "object",
+                  "description": "Map settings, including the initial area."
+                },
+                "bookmarks": {
+                  "type": "object",
+                  "description": "Bookmark settings."
+                },
+                "design": {
+                  "type": "object",
+                  "description": "Design tab settings."
+                },
+                "introductoryListView": {
+                  "type": "object",
+                  "description": "Introduction screen content: images, description, sorting and location source."
+                },
+                "customFields": {
+                  "type": "object",
+                  "description": "Location fields set up for this plugin.",
+                  "properties": {
+                    "quickActions": {
+                      "type": "array",
+                      "description": "Quick Actions fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field: id, label, type, required, allowCustomLabel."
+                      }
+                    },
+                    "content": {
+                      "type": "array",
+                      "description": "Text Content fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field: id, label, type, required, allowCustomLabel."
+                      }
+                    }
+                  }
+                },
+                "locationFields": {
+                  "type": "object",
+                  "description": "Which built-in location fields are turned on.",
+                  "properties": {
+                    "openHoursEnabled": {
+                      "type": "boolean",
+                      "description": "Opening hours."
+                    },
+                    "priceRangeEnabled": {
+                      "type": "boolean",
+                      "description": "Price range."
+                    }
+                  }
+                },
+                "categoriesSortBy": {
+                  "type": "string",
+                  "description": "Asc or Desc."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When the settings were first saved."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When they were last saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

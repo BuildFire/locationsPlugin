@@ -10,7 +10,7 @@ export const generateUUID = () => {
 };
 
 /**
- * Fire a plugin contract event (see plugin.contract.json). The contract service in this
+ * Fire a plugin contract event (see contract/plugin.contract.json). The contract service in this
  * workspace's SDK ships no events API, so every send is feature-checked rather than
  * letting a missing service throw inside a user action.
  */

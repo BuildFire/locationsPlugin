@@ -8,7 +8,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The new location's record id."
+          "description": "The new location's id."
         },
         "title": {
           "type": "string",
@@ -23,7 +23,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "title": {
           "type": "string",
@@ -38,7 +38,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The removed location's record id."
+          "description": "The removed location's id."
         }
       }
     },
@@ -49,7 +49,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "userId": {
           "type": "string",
@@ -64,7 +64,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "userId": {
           "type": "string",
@@ -79,7 +79,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "bookmarkId": {
           "type": "string",
@@ -94,7 +94,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "bookmarkId": {
           "type": "string",
@@ -109,7 +109,7 @@
       "data": {
         "locationId": {
           "type": "string",
-          "description": "The location's record id."
+          "description": "The location's id."
         },
         "average": {
           "type": "number",
@@ -158,28 +158,28 @@
           "type": "string",
           "displayName": "Search text",
           "required": false,
-          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Defaults to unset, which drops this filter.",
+          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Leave it out to show every location.",
           "sampleValue": "[search text]"
         },
         "title": {
           "type": "string",
           "displayName": "Location title",
           "required": false,
-          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Defaults to unset, which drops this filter.",
+          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Leave it out to show every location.",
           "sampleValue": "[location title]"
         },
         "categoryTitle": {
           "type": "string",
           "displayName": "Category",
           "required": false,
-          "description": "Only locations listed under the live category with this exact title. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under the live category with this exact title. Leave it out to show every location.",
           "sampleValue": "[category title]"
         },
         "subcategoryTitle": {
           "type": "string",
           "displayName": "Subcategory",
           "required": false,
-          "description": "Only locations listed under the subcategory with this exact title, within the category given by categoryTitle, which it needs. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under the subcategory with this exact title, within the category given by categoryTitle, which it needs. Leave it out to show every location.",
           "sampleValue": "[subcategory title]"
         },
         "priceRange": {
@@ -205,28 +205,28 @@
             }
           ],
           "allowEnumCustomOption": false,
-          "description": "Only locations with this price range. Defaults to unset, which drops this filter.",
+          "description": "Only locations with this price range. Leave it out to show every location.",
           "sampleValue": 2
         },
         "openNow": {
           "type": "boolean",
           "displayName": "Open now",
           "required": false,
-          "description": "True returns only locations open right now by their opening hours, using the clock of wherever the call runs. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations open right now, by their opening hours. Leave it out to show every location.",
           "sampleValue": true
         },
         "pinned": {
           "type": "boolean",
           "displayName": "Pinned",
           "required": false,
-          "description": "True returns only locations pinned to the top of the introduction screen, false only the others. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations pinned to the top of the introduction screen, or off to show only the others. Leave it out to show every location.",
           "sampleValue": true
         },
         "createdBy": {
           "type": "user",
           "displayName": "Added by",
           "required": false,
-          "description": "Only locations an app user added in the app, by user id or email, like the introduction screen's My Locations. Defaults to unset, which drops this filter.",
+          "description": "Only locations an app user added in the app, by user id or email, like the introduction screen's My Locations. Leave it out to show every location.",
           "sampleValue": "[user id]"
         },
         "sortBy": {
@@ -260,7 +260,7 @@
           "displayName": "Page",
           "required": false,
           "minValue": 0,
-          "description": "Zero-based page index; defaults to 0.",
+          "description": "Which page to show, starting at 0. Leave it out for the first page.",
           "sampleValue": 0
         },
         "pageSize": {
@@ -275,15 +275,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with a page of matching locations or an error.",
+          "description": "Runs when it's done, with a page of matching locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a category or subcategory title matches nothing or several; null on success."
+              "description": "Why it didn't work, such as when a category or subcategory title matches nothing or several."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -294,7 +294,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -302,7 +302,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -310,7 +310,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -374,7 +374,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -443,7 +443,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -516,28 +516,28 @@
           "type": "string",
           "displayName": "Search text",
           "required": false,
-          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Defaults to unset, which drops this filter.",
+          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Leave it out to show every location.",
           "sampleValue": "[search text]"
         },
         "title": {
           "type": "string",
           "displayName": "Location title",
           "required": false,
-          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Defaults to unset, which drops this filter.",
+          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Leave it out to show every location.",
           "sampleValue": "[location title]"
         },
         "categoryId": {
           "type": "string",
           "displayName": "Category id",
           "required": false,
-          "description": "Only locations listed under this category, by its id from the category search. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under this category, by its id from the category search. Leave it out to show every location.",
           "sampleValue": "[category id]"
         },
         "subcategoryId": {
           "type": "string",
           "displayName": "Subcategory id",
           "required": false,
-          "description": "Only locations listed under this subcategory of the category given by categoryId, which it needs. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under this subcategory of the category given by categoryId, which it needs. Leave it out to show every location.",
           "sampleValue": "[subcategory id]"
         },
         "priceRange": {
@@ -563,28 +563,28 @@
             }
           ],
           "allowEnumCustomOption": false,
-          "description": "Only locations with this price range. Defaults to unset, which drops this filter.",
+          "description": "Only locations with this price range. Leave it out to show every location.",
           "sampleValue": 2
         },
         "openNow": {
           "type": "boolean",
           "displayName": "Open now",
           "required": false,
-          "description": "True returns only locations open right now by their opening hours, using the clock of wherever the call runs. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations open right now, by their opening hours. Leave it out to show every location.",
           "sampleValue": true
         },
         "pinned": {
           "type": "boolean",
           "displayName": "Pinned",
           "required": false,
-          "description": "True returns only locations pinned to the top of the introduction screen, false only the others. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations pinned to the top of the introduction screen, or off to show only the others. Leave it out to show every location.",
           "sampleValue": true
         },
         "createdBy": {
           "type": "user",
           "displayName": "Added by",
           "required": false,
-          "description": "Only locations an app user added in the app, by user id or email, like the introduction screen's My Locations. Defaults to unset, which drops this filter.",
+          "description": "Only locations an app user added in the app, by user id or email, like the introduction screen's My Locations. Leave it out to show every location.",
           "sampleValue": "[user id]"
         },
         "sortBy": {
@@ -618,7 +618,7 @@
           "displayName": "Page",
           "required": false,
           "minValue": 0,
-          "description": "Zero-based page index; defaults to 0.",
+          "description": "Which page to show, starting at 0. Leave it out for the first page.",
           "sampleValue": 0
         },
         "pageSize": {
@@ -633,15 +633,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with a page of matching locations or an error.",
+          "description": "Runs when it's done, with a page of matching locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a category or subcategory id matches nothing; null on success."
+              "description": "Why it didn't work, such as when a category or subcategory id matches nothing."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -652,7 +652,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -660,7 +660,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -668,7 +668,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -732,7 +732,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -801,7 +801,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -894,35 +894,35 @@
           "required": false,
           "minValue": 1,
           "maxValue": 200,
-          "description": "Only locations within this many miles of the point, as on the introduction screen's local area. Defaults to unset, which returns locations at any distance.",
+          "description": "Only locations within this many miles of the point, as on the introduction screen's local area. Leave it out to show locations at any distance.",
           "sampleValue": 25
         },
         "searchText": {
           "type": "string",
           "displayName": "Search text",
           "required": false,
-          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Defaults to unset, which drops this filter.",
+          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Leave it out to show every location.",
           "sampleValue": "[search text]"
         },
         "title": {
           "type": "string",
           "displayName": "Location title",
           "required": false,
-          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Defaults to unset, which drops this filter.",
+          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Leave it out to show every location.",
           "sampleValue": "[location title]"
         },
         "categoryTitle": {
           "type": "string",
           "displayName": "Category",
           "required": false,
-          "description": "Only locations listed under the live category with this exact title. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under the live category with this exact title. Leave it out to show every location.",
           "sampleValue": "[category title]"
         },
         "subcategoryTitle": {
           "type": "string",
           "displayName": "Subcategory",
           "required": false,
-          "description": "Only locations listed under the subcategory with this exact title, within the category given by categoryTitle, which it needs. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under the subcategory with this exact title, within the category given by categoryTitle, which it needs. Leave it out to show every location.",
           "sampleValue": "[subcategory title]"
         },
         "priceRange": {
@@ -948,14 +948,14 @@
             }
           ],
           "allowEnumCustomOption": false,
-          "description": "Only locations with this price range. Defaults to unset, which drops this filter.",
+          "description": "Only locations with this price range. Leave it out to show every location.",
           "sampleValue": 2
         },
         "openNow": {
           "type": "boolean",
           "displayName": "Open now",
           "required": false,
-          "description": "True returns only locations open right now by their opening hours, using the clock of wherever the call runs. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations open right now, by their opening hours. Leave it out to show every location.",
           "sampleValue": true
         },
         "page": {
@@ -963,7 +963,7 @@
           "displayName": "Page",
           "required": false,
           "minValue": 0,
-          "description": "Zero-based page index; defaults to 0.",
+          "description": "Which page to show, starting at 0. Leave it out for the first page.",
           "sampleValue": 0
         },
         "pageSize": {
@@ -978,15 +978,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with a page of nearby locations or an error.",
+          "description": "Runs when it's done, with a page of nearby locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a category or subcategory title matches nothing or several; null on success."
+              "description": "Why it didn't work, such as when a category or subcategory title matches nothing or several."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -997,7 +997,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -1005,7 +1005,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -1013,7 +1013,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -1077,7 +1077,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -1146,7 +1146,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -1243,35 +1243,35 @@
           "required": false,
           "minValue": 1,
           "maxValue": 200,
-          "description": "Only locations within this many miles of the point, as on the introduction screen's local area. Defaults to unset, which returns locations at any distance.",
+          "description": "Only locations within this many miles of the point, as on the introduction screen's local area. Leave it out to show locations at any distance.",
           "sampleValue": 25
         },
         "searchText": {
           "type": "string",
           "displayName": "Search text",
           "required": false,
-          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Defaults to unset, which drops this filter.",
+          "description": "Text found anywhere in the title, subtitle, address or custom name, ignoring case. Leave it out to show every location.",
           "sampleValue": "[search text]"
         },
         "title": {
           "type": "string",
           "displayName": "Location title",
           "required": false,
-          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Defaults to unset, which drops this filter.",
+          "description": "An exact location title, matched ignoring case, for seeing every location that shares it. Leave it out to show every location.",
           "sampleValue": "[location title]"
         },
         "categoryId": {
           "type": "string",
           "displayName": "Category id",
           "required": false,
-          "description": "Only locations listed under this category, by its id from the category search. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under this category, by its id from the category search. Leave it out to show every location.",
           "sampleValue": "[category id]"
         },
         "subcategoryId": {
           "type": "string",
           "displayName": "Subcategory id",
           "required": false,
-          "description": "Only locations listed under this subcategory of the category given by categoryId, which it needs. Defaults to unset, which drops this filter.",
+          "description": "Only locations listed under this subcategory of the category given by categoryId, which it needs. Leave it out to show every location.",
           "sampleValue": "[subcategory id]"
         },
         "priceRange": {
@@ -1297,14 +1297,14 @@
             }
           ],
           "allowEnumCustomOption": false,
-          "description": "Only locations with this price range. Defaults to unset, which drops this filter.",
+          "description": "Only locations with this price range. Leave it out to show every location.",
           "sampleValue": 2
         },
         "openNow": {
           "type": "boolean",
           "displayName": "Open now",
           "required": false,
-          "description": "True returns only locations open right now by their opening hours, using the clock of wherever the call runs. Defaults to unset, which drops this filter.",
+          "description": "Turn it on to show only locations open right now, by their opening hours. Leave it out to show every location.",
           "sampleValue": true
         },
         "page": {
@@ -1312,7 +1312,7 @@
           "displayName": "Page",
           "required": false,
           "minValue": 0,
-          "description": "Zero-based page index; defaults to 0.",
+          "description": "Which page to show, starting at 0. Leave it out for the first page.",
           "sampleValue": 0
         },
         "pageSize": {
@@ -1327,15 +1327,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with a page of nearby locations or an error.",
+          "description": "Runs when it's done, with a page of nearby locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a category or subcategory id matches nothing; null on success."
+              "description": "Why it didn't work, such as when a category or subcategory id matches nothing."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -1346,7 +1346,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -1354,7 +1354,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -1362,7 +1362,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -1426,7 +1426,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -1495,7 +1495,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -1578,19 +1578,19 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the location or an error.",
+          "description": "Runs when it's done, with the location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location or several locations have that title; null on success."
+              "description": "Why it didn't work, such as when no location or several locations have that title."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "The location's record id."
+                  "description": "The location's id."
                 },
                 "title": {
                   "type": "string",
@@ -1598,7 +1598,7 @@
                 },
                 "subtitle": {
                   "type": "string",
-                  "description": "The subtitle; null or empty when it has none."
+                  "description": "The subtitle, if it has one."
                 },
                 "address": {
                   "type": "string",
@@ -1606,7 +1606,7 @@
                 },
                 "addressAlias": {
                   "type": "string",
-                  "description": "The custom name shown in place of the address; null or empty when it has none."
+                  "description": "The custom name shown in place of the address, if it has one."
                 },
                 "latitude": {
                   "type": "number",
@@ -1670,7 +1670,7 @@
                 },
                 "pinPosition": {
                   "type": "number",
-                  "description": "Its pinned position, 1 to 3; null when not pinned."
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
                 },
                 "isOpenNow": {
                   "type": "boolean",
@@ -1739,7 +1739,7 @@
                       },
                       "customLabel": {
                         "type": "string",
-                        "description": "The label shown instead of the field's own; null when none."
+                        "description": "The label shown instead of the field's own, if it has one."
                       }
                     }
                   }
@@ -1797,25 +1797,25 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the location or an error.",
+          "description": "Runs when it's done, with the location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location has that id; null on success."
+              "description": "Why it didn't work, such as when no location has that id."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "The location's record id."
+                  "description": "The location's id."
                 },
                 "title": {
                   "type": "string",
@@ -1823,7 +1823,7 @@
                 },
                 "subtitle": {
                   "type": "string",
-                  "description": "The subtitle; null or empty when it has none."
+                  "description": "The subtitle, if it has one."
                 },
                 "address": {
                   "type": "string",
@@ -1831,7 +1831,7 @@
                 },
                 "addressAlias": {
                   "type": "string",
-                  "description": "The custom name shown in place of the address; null or empty when it has none."
+                  "description": "The custom name shown in place of the address, if it has one."
                 },
                 "latitude": {
                   "type": "number",
@@ -1895,7 +1895,7 @@
                 },
                 "pinPosition": {
                   "type": "number",
-                  "description": "Its pinned position, 1 to 3; null when not pinned."
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
                 },
                 "isOpenNow": {
                   "type": "boolean",
@@ -1964,7 +1964,7 @@
                       },
                       "customLabel": {
                         "type": "string",
-                        "description": "The label shown instead of the field's own; null when none."
+                        "description": "The label shown instead of the field's own, if it has one."
                       }
                     }
                   }
@@ -2068,28 +2068,28 @@
           "type": "string",
           "displayName": "Categories",
           "required": false,
-          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Defaults to unset, which leaves the location uncategorized.",
+          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Leave it out to add the location without a category.",
           "sampleValue": "[category title]"
         },
         "subcategoryTitles": {
           "type": "string",
           "displayName": "Subcategories",
           "required": false,
-          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Defaults to unset, which picks no subcategory.",
+          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Leave it out to pick no subcategory.",
           "sampleValue": "[subcategory title]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new location or an error.",
+          "description": "Runs when it's done, with the new location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a required detail is missing, a category or subcategory title matches nothing or several, the hours are malformed, or three locations are already pinned; null on success."
+              "description": "Why it didn't work, such as when a required detail is missing, a category or subcategory title matches nothing or several, the hours are malformed, or three locations are already pinned."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -2097,7 +2097,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -2105,7 +2105,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -2113,7 +2113,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -2177,7 +2177,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -2246,7 +2246,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -2330,7 +2330,7 @@
           "type": "string",
           "displayName": "Location subtitle",
           "required": false,
-          "description": "A short line shown under the title. Defaults to unset, which leaves the location without a subtitle.",
+          "description": "A short line shown under the title. Leave it out for no subtitle.",
           "sampleValue": "[location subtitle]"
         },
         "address": {
@@ -2362,7 +2362,7 @@
           "type": "string",
           "displayName": "Location custom name",
           "required": false,
-          "description": "A friendlier name shown in place of the address, such as a building name. Defaults to unset, which shows the address.",
+          "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address.",
           "sampleValue": "[address display name]"
         },
         "description": {
@@ -2383,14 +2383,14 @@
           "type": "string",
           "displayName": "Category ids",
           "required": false,
-          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Defaults to unset, which leaves the location uncategorized.",
+          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Leave it out to add the location without a category.",
           "sampleValue": "[category id]"
         },
         "subcategoryIds": {
           "type": "string",
           "displayName": "Subcategory ids",
           "required": false,
-          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Defaults to unset, which picks no subcategory.",
+          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Leave it out to pick no subcategory.",
           "sampleValue": "[subcategory id]"
         },
         "priceRange": {
@@ -2484,7 +2484,7 @@
           "type": "boolean",
           "displayName": "Show opening hours",
           "required": false,
-          "description": "Whether the opening hours are shown on its details page. Defaults to false. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+          "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
           "sampleValue": false
         },
         "showPriceRange": {
@@ -2513,7 +2513,7 @@
           "displayName": "Location images",
           "required": false,
           "minValue": 0,
-          "description": "Pictures shown in the location's gallery, in order. Defaults to unset, which leaves the gallery empty.",
+          "description": "Pictures shown in the location's gallery, in order. Leave it out for an empty gallery.",
           "sampleValue": [
             "[image url]",
             "[image url]"
@@ -2524,7 +2524,7 @@
           "displayName": "Action items",
           "required": false,
           "minValue": 0,
-          "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Defaults to unset, which adds none.",
+          "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Leave it out to add none.",
           "sampleValue": [
             {
               "title": "Website",
@@ -2536,15 +2536,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new location or an error.",
+          "description": "Runs when it's done, with the new location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when a required detail is missing, a category or subcategory id matches nothing, the hours are malformed, or three locations are already pinned; null on success."
+              "description": "Why it didn't work, such as when a required detail is missing, a category or subcategory id matches nothing, the hours are malformed, or three locations are already pinned."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -2552,7 +2552,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -2560,7 +2560,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -2568,7 +2568,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -2632,7 +2632,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -2701,7 +2701,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -2785,7 +2785,7 @@
               "type": "string",
               "displayName": "Location subtitle",
               "required": false,
-              "description": "A short line shown under the title. Defaults to unset, which leaves the location without a subtitle."
+              "description": "A short line shown under the title. Leave it out for no subtitle."
             },
             "address": {
               "type": "string",
@@ -2813,7 +2813,7 @@
               "type": "string",
               "displayName": "Location custom name",
               "required": false,
-              "description": "A friendlier name shown in place of the address, such as a building name. Defaults to unset, which shows the address."
+              "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address."
             },
             "description": {
               "type": "string",
@@ -2831,14 +2831,14 @@
               "type": "string",
               "displayName": "Category ids",
               "required": false,
-              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Defaults to unset, which leaves the location uncategorized.",
+              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Leave it out to add the location without a category.",
               "sampleValue": "[category id]"
             },
             "subcategoryIds": {
               "type": "string",
               "displayName": "Subcategory ids",
               "required": false,
-              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Defaults to unset, which picks no subcategory.",
+              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Leave it out to pick no subcategory.",
               "sampleValue": "[subcategory id]"
             },
             "priceRange": {
@@ -2926,7 +2926,7 @@
               "type": "boolean",
               "displayName": "Show opening hours",
               "required": false,
-              "description": "Whether the opening hours are shown on its details page. Defaults to false. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
+              "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
             },
             "showPriceRange": {
               "type": "boolean",
@@ -2962,15 +2962,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each location's outcome or an error.",
+          "description": "Runs when it's done, with each location's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid or does not resolve, in which case nothing is added; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid or does not resolve, in which case nothing is added."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -2985,11 +2985,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The new location's id; null when the entry failed."
+                        "description": "The new location's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -3097,7 +3097,7 @@
           "displayName": "New categories",
           "required": false,
           "nullable": true,
-          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+          "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories, or leave it empty to remove them all, with their subcategories.",
           "sampleValue": "[category title]"
         },
         "newSubcategoryTitles": {
@@ -3105,21 +3105,21 @@
           "displayName": "New subcategories",
           "required": false,
           "nullable": true,
-          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+          "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
           "sampleValue": "[subcategory title]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated location or an error.",
+          "description": "Runs when it's done, with the updated location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location or several locations have that title, nothing to change is passed, a field that can't be removed is passed as null or empty, or a fourth location would be pinned; null on success."
+              "description": "Why it didn't work, such as when no location or several locations have that title, nothing to change is passed, a field that can't be removed is left empty, or a fourth location would be pinned."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -3127,7 +3127,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -3135,7 +3135,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -3143,7 +3143,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -3207,7 +3207,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -3276,7 +3276,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -3353,7 +3353,7 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "newTitle": {
@@ -3368,7 +3368,7 @@
           "displayName": "New subtitle",
           "required": false,
           "nullable": true,
-          "description": "The location's new subtitle. Leave it out to keep the current subtitle; pass null or an empty string to remove it (stored as an empty value, as the form does).",
+          "description": "The location's new subtitle. Leave it out to keep the current subtitle, or leave it empty to remove it.",
           "sampleValue": "[new location subtitle]"
         },
         "newAddress": {
@@ -3401,7 +3401,7 @@
           "displayName": "New custom name",
           "required": false,
           "nullable": true,
-          "description": "The location's new custom name. Leave it out to keep the current one; pass null or an empty string to remove it, so the address shows instead.",
+          "description": "The location's new custom name. Leave it out to keep the current one, or leave it empty to remove it, so the address shows instead.",
           "sampleValue": "[address display name]"
         },
         "newDescription": {
@@ -3423,7 +3423,7 @@
           "displayName": "New category ids",
           "required": false,
           "nullable": true,
-          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories, or leave it empty to remove them all, with their subcategories.",
           "sampleValue": "[category id]"
         },
         "newSubcategoryIds": {
@@ -3431,7 +3431,7 @@
           "displayName": "New subcategory ids",
           "required": false,
           "nullable": true,
-          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
           "sampleValue": "[subcategory id]"
         },
         "newPriceRange": {
@@ -3525,7 +3525,7 @@
           "type": "boolean",
           "displayName": "Show opening hours",
           "required": false,
-          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
           "sampleValue": true
         },
         "newShowPriceRange": {
@@ -3555,7 +3555,7 @@
           "required": false,
           "nullable": true,
           "minValue": 0,
-          "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery; pass null to empty it.",
+          "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery, or leave it empty to empty it.",
           "sampleValue": [
             "[image url]"
           ]
@@ -3566,7 +3566,7 @@
           "required": false,
           "nullable": true,
           "minValue": 0,
-          "description": "Replaces the details page's buttons with these, in order. Leave it out to keep the current buttons; pass null to remove them all.",
+          "description": "Replaces the details page's buttons with these, in order. Leave it out to keep the current buttons, or leave it empty to remove them all.",
           "sampleValue": [
             {
               "title": "Call us",
@@ -3578,15 +3578,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated location or an error.",
+          "description": "Runs when it's done, with the updated location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location has that id, nothing to change is passed, a field that can't be removed is passed as null or empty, or a fourth location would be pinned; null on success."
+              "description": "Why it didn't work, such as when no location has that id, nothing to change is passed, a field that can't be removed is left empty, or a fourth location would be pinned."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -3594,7 +3594,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -3602,7 +3602,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -3610,7 +3610,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -3674,7 +3674,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -3743,7 +3743,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -3821,7 +3821,7 @@
               "type": "string",
               "displayName": "Location id",
               "required": true,
-              "description": "The location's record id, as the plugin's search results give it."
+              "description": "The location's id, as shown in search results."
             },
             "newTitle": {
               "type": "string",
@@ -3834,7 +3834,7 @@
               "displayName": "New subtitle",
               "required": false,
               "nullable": true,
-              "description": "The location's new subtitle. Leave it out to keep the current subtitle; pass null or an empty string to remove it (stored as an empty value, as the form does)."
+              "description": "The location's new subtitle. Leave it out to keep the current subtitle, or leave it empty to remove it."
             },
             "newAddress": {
               "type": "string",
@@ -3863,7 +3863,7 @@
               "displayName": "New custom name",
               "required": false,
               "nullable": true,
-              "description": "The location's new custom name. Leave it out to keep the current one; pass null or an empty string to remove it, so the address shows instead."
+              "description": "The location's new custom name. Leave it out to keep the current one, or leave it empty to remove it, so the address shows instead."
             },
             "newDescription": {
               "type": "string",
@@ -3882,7 +3882,7 @@
               "displayName": "New category ids",
               "required": false,
               "nullable": true,
-              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories; pass null or an empty string to remove them all, with their subcategories.",
+              "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories, or leave it empty to remove them all, with their subcategories.",
               "sampleValue": "[category id]"
             },
             "newSubcategoryIds": {
@@ -3890,7 +3890,7 @@
               "displayName": "New subcategory ids",
               "required": false,
               "nullable": true,
-              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories; pass null or an empty string to remove them all and keep the categories.",
+              "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
               "sampleValue": "[subcategory id]"
             },
             "newPriceRange": {
@@ -3978,7 +3978,7 @@
               "type": "boolean",
               "displayName": "Show opening hours",
               "required": false,
-              "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's default week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
+              "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
             },
             "newShowPriceRange": {
               "type": "boolean",
@@ -4010,15 +4010,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each location's outcome or an error.",
+          "description": "Runs when it's done, with each location's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats a location, in which case nothing is changed; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a location, in which case nothing is changed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -4033,11 +4033,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The location's id; null when the entry failed."
+                        "description": "The location's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -4097,15 +4097,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location or several locations have that title; null on success."
+              "description": "Why it didn't work, such as when no location or several locations have that title."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -4174,21 +4174,21 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location has that id; null on success."
+              "description": "Why it didn't work, such as when no location has that id."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -4257,7 +4257,7 @@
               "type": "string",
               "displayName": "Location id",
               "required": true,
-              "description": "The location's record id, as the plugin's search results give it."
+              "description": "The location's id, as shown in search results."
             }
           },
           "description": "The locations to remove, up to 50 per call.",
@@ -4270,15 +4270,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each location's outcome or an error.",
+          "description": "Runs when it's done, with each location's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry does not resolve or repeats a location, in which case nothing is removed; null on success."
+              "description": "Why it didn't work, such as when any entry does not resolve or repeats a location, in which case nothing is removed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -4293,11 +4293,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The removed location's id; null when the entry failed."
+                        "description": "The removed location's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -4366,7 +4366,7 @@
           "displayName": "Value",
           "required": false,
           "nullable": true,
-          "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value; pass null or an empty string to empty it, unless the field is required.",
+          "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value, or leave it empty to empty it, unless the field is required.",
           "sampleValue": "[field value]"
         },
         "customLabel": {
@@ -4374,21 +4374,21 @@
           "displayName": "Custom label",
           "required": false,
           "nullable": true,
-          "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label; pass null or an empty string to remove it.",
+          "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label, or leave it empty to remove it.",
           "sampleValue": "[custom label]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated location or an error.",
+          "description": "Runs when it's done, with the updated location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the location or field can't be found or is ambiguous, the value doesn't fit the field's type, a required field would be emptied, or the field allows no custom label; null on success."
+              "description": "Why it didn't work, such as when the location or field can't be found or is ambiguous, the value doesn't fit the field's type, a required field would be emptied, or the field allows no custom label."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -4396,7 +4396,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -4404,7 +4404,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -4412,7 +4412,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -4476,7 +4476,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -4545,7 +4545,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -4623,7 +4623,7 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "fieldId": {
@@ -4638,7 +4638,7 @@
           "displayName": "Value",
           "required": false,
           "nullable": true,
-          "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value; pass null or an empty string to empty it, unless the field is required.",
+          "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value, or leave it empty to empty it, unless the field is required.",
           "sampleValue": "[field value]"
         },
         "customLabel": {
@@ -4646,21 +4646,21 @@
           "displayName": "Custom label",
           "required": false,
           "nullable": true,
-          "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label; pass null or an empty string to remove it.",
+          "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label, or leave it empty to remove it.",
           "sampleValue": "[custom label]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated location or an error.",
+          "description": "Runs when it's done, with the updated location.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the location or field can't be found or is ambiguous, the value doesn't fit the field's type, a required field would be emptied, or the field allows no custom label; null on success."
+              "description": "Why it didn't work, such as when the location or field can't be found or is ambiguous, the value doesn't fit the field's type, a required field would be emptied, or the field allows no custom label."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "location": {
                   "type": "object",
@@ -4668,7 +4668,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The location's record id."
+                      "description": "The location's id."
                     },
                     "title": {
                       "type": "string",
@@ -4676,7 +4676,7 @@
                     },
                     "subtitle": {
                       "type": "string",
-                      "description": "The subtitle; null or empty when it has none."
+                      "description": "The subtitle, if it has one."
                     },
                     "address": {
                       "type": "string",
@@ -4684,7 +4684,7 @@
                     },
                     "addressAlias": {
                       "type": "string",
-                      "description": "The custom name shown in place of the address; null or empty when it has none."
+                      "description": "The custom name shown in place of the address, if it has one."
                     },
                     "latitude": {
                       "type": "number",
@@ -4748,7 +4748,7 @@
                     },
                     "pinPosition": {
                       "type": "number",
-                      "description": "Its pinned position, 1 to 3; null when not pinned."
+                      "description": "Its pinned position, 1 to 3, if it is pinned."
                     },
                     "isOpenNow": {
                       "type": "boolean",
@@ -4817,7 +4817,7 @@
                           },
                           "customLabel": {
                             "type": "string",
-                            "description": "The label shown instead of the field's own; null when none."
+                            "description": "The label shown instead of the field's own, if it has one."
                           }
                         }
                       }
@@ -4895,7 +4895,7 @@
               "type": "string",
               "displayName": "Location id",
               "required": true,
-              "description": "The location's record id, as the plugin's search results give it."
+              "description": "The location's id, as shown in search results."
             },
             "fieldId": {
               "type": "string",
@@ -4908,14 +4908,14 @@
               "displayName": "Value",
               "required": false,
               "nullable": true,
-              "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value; pass null or an empty string to empty it, unless the field is required."
+              "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value, or leave it empty to empty it, unless the field is required."
             },
             "customLabel": {
               "type": "string",
               "displayName": "Custom label",
               "required": false,
               "nullable": true,
-              "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label; pass null or an empty string to remove it."
+              "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label, or leave it empty to remove it."
             }
           },
           "description": "The field values to set, up to 50 per call, each exactly as a single change would be.",
@@ -4930,15 +4930,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each entry's outcome or an error.",
+          "description": "Runs when it's done, with each entry's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats a location and field, in which case nothing is changed; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a location and field, in which case nothing is changed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -4953,11 +4953,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The location's id; null when the entry failed."
+                        "description": "The location's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -5017,28 +5017,28 @@
           "type": "string",
           "displayName": "Second location",
           "required": false,
-          "description": "Exact title of the pinned location to show second. Defaults to unset, for when only one location is pinned.",
+          "description": "Exact title of the pinned location to show second. Leave it out when only one location is pinned.",
           "sampleValue": "[location title]"
         },
         "thirdLocationTitle": {
           "type": "string",
           "displayName": "Third location",
           "required": false,
-          "description": "Exact title of the pinned location to show third; needs the second. Defaults to unset, for when fewer than three are pinned.",
+          "description": "Exact title of the pinned location to show third; needs the second. Leave it out when fewer than three are pinned.",
           "sampleValue": "[location title]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the pinned locations or an error.",
+          "description": "Runs when it's done, with the pinned locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the titles don't name exactly the locations pinned now, or a title matches nothing or several; null on success."
+              "description": "Why it didn't work, such as when the titles don't name exactly the locations pinned now, or a title matches nothing or several."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -5049,7 +5049,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -5057,7 +5057,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -5065,7 +5065,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -5129,7 +5129,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -5198,7 +5198,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -5258,35 +5258,35 @@
           "type": "string",
           "displayName": "First location id",
           "required": true,
-          "description": "Record id of the pinned location to show first.",
+          "description": "The id of the pinned location to show first.",
           "sampleValue": "[location id]"
         },
         "secondLocationId": {
           "type": "string",
           "displayName": "Second location id",
           "required": false,
-          "description": "Record id of the pinned location to show second. Defaults to unset, for when only one location is pinned.",
+          "description": "The id of the pinned location to show second. Leave it out when only one location is pinned.",
           "sampleValue": "[location id]"
         },
         "thirdLocationId": {
           "type": "string",
           "displayName": "Third location id",
           "required": false,
-          "description": "Record id of the pinned location to show third; needs the second. Defaults to unset, for when fewer than three are pinned.",
+          "description": "The id of the pinned location to show third; needs the second. Leave it out when fewer than three are pinned.",
           "sampleValue": "[location id]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the pinned locations or an error.",
+          "description": "Runs when it's done, with the pinned locations.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the ids don't name exactly the locations pinned now; null on success."
+              "description": "Why it didn't work, such as when the ids don't name exactly the locations pinned now."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "locations": {
                   "type": "array",
@@ -5297,7 +5297,7 @@
                     "properties": {
                       "id": {
                         "type": "string",
-                        "description": "The location's record id."
+                        "description": "The location's id."
                       },
                       "title": {
                         "type": "string",
@@ -5305,7 +5305,7 @@
                       },
                       "subtitle": {
                         "type": "string",
-                        "description": "The subtitle; null or empty when it has none."
+                        "description": "The subtitle, if it has one."
                       },
                       "address": {
                         "type": "string",
@@ -5313,7 +5313,7 @@
                       },
                       "addressAlias": {
                         "type": "string",
-                        "description": "The custom name shown in place of the address; null or empty when it has none."
+                        "description": "The custom name shown in place of the address, if it has one."
                       },
                       "latitude": {
                         "type": "number",
@@ -5377,7 +5377,7 @@
                       },
                       "pinPosition": {
                         "type": "number",
-                        "description": "Its pinned position, 1 to 3; null when not pinned."
+                        "description": "Its pinned position, 1 to 3, if it is pinned."
                       },
                       "isOpenNow": {
                         "type": "boolean",
@@ -5446,7 +5446,7 @@
                             },
                             "customLabel": {
                               "type": "string",
-                              "description": "The label shown instead of the field's own; null when none."
+                              "description": "The label shown instead of the field's own, if it has one."
                             }
                           }
                         }
@@ -5520,15 +5520,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the location can't be found or is ambiguous, or that user isn't following it; null on success."
+              "description": "Why it didn't work, such as when the location can't be found or is ambiguous, or that user isn't following it."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "removed": {
                   "type": "boolean",
@@ -5583,7 +5583,7 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "userId": {
@@ -5596,15 +5596,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no location has that id, or that user isn't following it; null on success."
+              "description": "Why it didn't work, such as when no location has that id, or that user isn't following it."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "removed": {
                   "type": "boolean",
@@ -5659,7 +5659,7 @@
               "type": "string",
               "displayName": "Location id",
               "required": true,
-              "description": "The location's record id, as the plugin's search results give it."
+              "description": "The location's id, as shown in search results."
             },
             "userId": {
               "type": "user",
@@ -5679,15 +5679,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each entry's outcome or an error.",
+          "description": "Runs when it's done, with each entry's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry does not resolve or repeats a pair, in which case nothing is removed; null on success."
+              "description": "Why it didn't work, such as when any entry does not resolve or repeats a pair, in which case nothing is removed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "subscribers": {
                   "type": "array",
@@ -5702,11 +5702,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The location's id; null when the entry failed."
+                        "description": "The location's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -5780,15 +5780,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the notification or an error.",
+          "description": "Runs when it's done, with the notification.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location or several locations have that title; null on success."
+              "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location or several locations have that title."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "The notification that was sent.",
               "properties": {
                 "sent": {
                   "type": "boolean",
@@ -5800,7 +5800,7 @@
                 },
                 "notificationId": {
                   "type": "string",
-                  "description": "The scheduled notification's id, when the platform gives one; null otherwise."
+                  "description": "The scheduled notification's id, if there is one."
                 }
               }
             }
@@ -5843,7 +5843,7 @@
           "type": "string",
           "displayName": "Location id",
           "required": true,
-          "description": "The location's record id, as the plugin's search results give it.",
+          "description": "The location's id, as shown in search results.",
           "sampleValue": "[location id]"
         },
         "notificationTitle": {
@@ -5863,15 +5863,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the notification or an error.",
+          "description": "Runs when it's done, with the notification.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location has that id; null on success."
+              "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location has that id."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "The notification that was sent.",
               "properties": {
                 "sent": {
                   "type": "boolean",
@@ -5883,7 +5883,7 @@
                 },
                 "notificationId": {
                   "type": "string",
-                  "description": "The scheduled notification's id, when the platform gives one; null otherwise."
+                  "description": "The scheduled notification's id, if there is one."
                 }
               }
             }
@@ -5935,7 +5935,7 @@
           "type": "string",
           "displayName": "Category title",
           "required": false,
-          "description": "An exact category title, for seeing every category that shares it. Defaults to unset, which returns every category.",
+          "description": "An exact category title, for seeing every category that shares it. Leave it out to show every category.",
           "sampleValue": "[category title]"
         },
         "page": {
@@ -5943,28 +5943,28 @@
           "displayName": "Page",
           "required": false,
           "minValue": 0,
-          "description": "Zero-based page index, 50 categories per page; defaults to 0.",
+          "description": "Which page to show, 50 categories per page, starting at 0. Leave it out for the first page.",
           "sampleValue": 0
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the categories or an error.",
+          "description": "Runs when it's done, with the categories.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure; null on success."
+              "description": "Why it didn't work, if it didn't."
             },
             "result": {
               "type": "array",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "items": {
                 "type": "object",
                 "description": "One category record.",
                 "properties": {
                   "id": {
                     "type": "string",
-                    "description": "The category's record id."
+                    "description": "The category's id."
                   },
                   "data": {
                     "type": "object",
@@ -5976,11 +5976,11 @@
                       },
                       "iconUrl": {
                         "type": "string",
-                        "description": "Its image icon; null when it has none or uses a font icon."
+                        "description": "Its image icon, if it uses a picture."
                       },
                       "iconClassName": {
                         "type": "string",
-                        "description": "Its font icon class; null when it uses an image or none."
+                        "description": "Its font icon class, if it uses a font icon."
                       },
                       "subcategories": {
                         "type": "array",
@@ -5999,7 +5999,7 @@
                             },
                             "iconUrl": {
                               "type": "string",
-                              "description": "Its image icon; null when none."
+                              "description": "Its image icon, if it has one."
                             }
                           }
                         }
@@ -6052,21 +6052,21 @@
           "type": "image",
           "displayName": "Icon",
           "required": false,
-          "description": "The picture shown as the category's icon. Defaults to unset, which leaves the default icon.",
+          "description": "The picture shown as the category's icon. Leave it out to use the standard icon.",
           "sampleValue": "[image url]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new category or an error.",
+          "description": "Runs when it's done, with the new category.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the title is missing or already used; null on success."
+              "description": "Why it didn't work, such as when the title is missing or already used."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "category": {
                   "type": "object",
@@ -6074,7 +6074,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -6082,7 +6082,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -6101,7 +6101,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -6164,7 +6164,7 @@
               "type": "image",
               "displayName": "Icon",
               "required": false,
-              "description": "The picture shown as the category's icon. Defaults to unset, which leaves the default icon."
+              "description": "The picture shown as the category's icon. Leave it out to use the standard icon."
             }
           },
           "description": "The categories to add, up to 50 per call, each exactly as a single new category would be.",
@@ -6177,15 +6177,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each category's outcome or an error.",
+          "description": "Runs when it's done, with each category's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, repeats a title or uses one that exists, in which case nothing is added; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, repeats a title or uses one that exists, in which case nothing is added."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "categories": {
                   "type": "array",
@@ -6200,11 +6200,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The new category's id; null when the entry failed."
+                        "description": "The new category's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -6277,15 +6277,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated category or an error.",
+          "description": "Runs when it's done, with the updated category.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no category or several have that title, nothing to change is passed, or the new title is taken; null on success."
+              "description": "Why it didn't work, such as when no category or several have that title, nothing to change is passed, or the new title is taken."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "category": {
                   "type": "object",
@@ -6293,7 +6293,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -6301,7 +6301,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -6320,7 +6320,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -6367,7 +6367,7 @@
           "type": "string",
           "displayName": "Category id",
           "required": true,
-          "description": "The category's record id, as the category search gives it.",
+          "description": "The category's id, as shown in category search results.",
           "sampleValue": "[category id]"
         },
         "newTitle": {
@@ -6387,15 +6387,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated category or an error.",
+          "description": "Runs when it's done, with the updated category.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no category has that id, nothing to change is passed, or the new title is taken; null on success."
+              "description": "Why it didn't work, such as when no category has that id, nothing to change is passed, or the new title is taken."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "category": {
                   "type": "object",
@@ -6403,7 +6403,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -6411,7 +6411,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -6430,7 +6430,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -6477,7 +6477,7 @@
               "type": "string",
               "displayName": "Category id",
               "required": true,
-              "description": "The category's record id, as the category search gives it."
+              "description": "The category's id, as shown in category search results."
             },
             "newTitle": {
               "type": "string",
@@ -6503,15 +6503,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each category's outcome or an error.",
+          "description": "Runs when it's done, with each category's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats a category, in which case nothing is changed; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a category, in which case nothing is changed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "categories": {
                   "type": "array",
@@ -6526,11 +6526,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The category's id; null when the entry failed."
+                        "description": "The category's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -6589,15 +6589,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no category or several have that title; null on success."
+              "description": "Why it didn't work, such as when no category or several have that title."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -6651,21 +6651,21 @@
           "type": "string",
           "displayName": "Category id",
           "required": true,
-          "description": "The category's record id, as the category search gives it.",
+          "description": "The category's id, as shown in category search results.",
           "sampleValue": "[category id]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no category has that id; null on success."
+              "description": "Why it didn't work, such as when no category has that id."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -6719,7 +6719,7 @@
               "type": "string",
               "displayName": "Category id",
               "required": true,
-              "description": "The category's record id, as the category search gives it."
+              "description": "The category's id, as shown in category search results."
             }
           },
           "description": "The categories to remove, up to 50 per call.",
@@ -6732,15 +6732,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each category's outcome or an error.",
+          "description": "Runs when it's done, with each category's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry does not resolve or repeats a category, in which case nothing is removed; null on success."
+              "description": "Why it didn't work, such as when any entry does not resolve or repeats a category, in which case nothing is removed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "categories": {
                   "type": "array",
@@ -6755,11 +6755,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The category's id; null when the entry failed."
+                        "description": "The category's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -6826,21 +6826,21 @@
           "type": "image",
           "displayName": "Icon",
           "required": false,
-          "description": "The picture shown as the subcategory's icon. Defaults to unset, which leaves the default icon.",
+          "description": "The picture shown as the subcategory's icon. Leave it out to use the standard icon.",
           "sampleValue": "[image url]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new subcategory or an error.",
+          "description": "Runs when it's done, with the new subcategory.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the category can't be found or is ambiguous, or the title is already used in it; null on success."
+              "description": "Why it didn't work, such as when the category can't be found or is ambiguous, or the title is already used in it."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "subcategory": {
                   "type": "object",
@@ -6856,7 +6856,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its icon; null when none."
+                      "description": "Its icon, if it has one."
                     }
                   }
                 },
@@ -6866,7 +6866,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -6874,7 +6874,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -6893,7 +6893,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -6940,7 +6940,7 @@
           "type": "string",
           "displayName": "Category id",
           "required": true,
-          "description": "The category's record id, as the category search gives it.",
+          "description": "The category's id, as shown in category search results.",
           "sampleValue": "[category id]"
         },
         "title": {
@@ -6954,21 +6954,21 @@
           "type": "image",
           "displayName": "Icon",
           "required": false,
-          "description": "The picture shown as the subcategory's icon. Defaults to unset, which leaves the default icon.",
+          "description": "The picture shown as the subcategory's icon. Leave it out to use the standard icon.",
           "sampleValue": "[image url]"
         },
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new subcategory or an error.",
+          "description": "Runs when it's done, with the new subcategory.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no category has that id, or the title is already used in it; null on success."
+              "description": "Why it didn't work, such as when no category has that id, or the title is already used in it."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "subcategory": {
                   "type": "object",
@@ -6984,7 +6984,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its icon; null when none."
+                      "description": "Its icon, if it has one."
                     }
                   }
                 },
@@ -6994,7 +6994,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -7002,7 +7002,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -7021,7 +7021,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -7068,7 +7068,7 @@
               "type": "string",
               "displayName": "Category id",
               "required": true,
-              "description": "The category's record id, as the category search gives it."
+              "description": "The category's id, as shown in category search results."
             },
             "title": {
               "type": "string",
@@ -7080,7 +7080,7 @@
               "type": "image",
               "displayName": "Icon",
               "required": false,
-              "description": "The picture shown as the subcategory's icon. Defaults to unset, which leaves the default icon."
+              "description": "The picture shown as the subcategory's icon. Leave it out to use the standard icon."
             }
           },
           "description": "The subcategories to add, up to 50 per call, each exactly as a single new subcategory would be.",
@@ -7094,15 +7094,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each subcategory's outcome or an error.",
+          "description": "Runs when it's done, with each subcategory's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats one, in which case nothing is added; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats one, in which case nothing is added."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "subcategories": {
                   "type": "array",
@@ -7117,11 +7117,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The new subcategory's id; null when the entry failed."
+                        "description": "The new subcategory's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -7201,15 +7201,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated category or an error.",
+          "description": "Runs when it's done, with the updated category.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the category or subcategory can't be found or is ambiguous, nothing to change is passed, or the new title is taken; null on success."
+              "description": "Why it didn't work, such as when the category or subcategory can't be found or is ambiguous, nothing to change is passed, or the new title is taken."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "category": {
                   "type": "object",
@@ -7217,7 +7217,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -7225,7 +7225,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -7244,7 +7244,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -7291,7 +7291,7 @@
           "type": "string",
           "displayName": "Category id",
           "required": true,
-          "description": "The category's record id, as the category search gives it.",
+          "description": "The category's id, as shown in category search results.",
           "sampleValue": "[category id]"
         },
         "subcategoryId": {
@@ -7318,15 +7318,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated category or an error.",
+          "description": "Runs when it's done, with the updated category.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the ids match nothing, nothing to change is passed, or the new title is taken; null on success."
+              "description": "Why it didn't work, such as when the ids match nothing, nothing to change is passed, or the new title is taken."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "category": {
                   "type": "object",
@@ -7334,7 +7334,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -7342,7 +7342,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -7361,7 +7361,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -7408,7 +7408,7 @@
               "type": "string",
               "displayName": "Category id",
               "required": true,
-              "description": "The category's record id, as the category search gives it."
+              "description": "The category's id, as shown in category search results."
             },
             "subcategoryId": {
               "type": "string",
@@ -7441,15 +7441,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each subcategory's outcome or an error.",
+          "description": "Runs when it's done, with each subcategory's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats one, in which case nothing is changed; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats one, in which case nothing is changed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "subcategories": {
                   "type": "array",
@@ -7464,11 +7464,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The subcategory's id; null when the entry failed."
+                        "description": "The subcategory's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -7534,15 +7534,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the category or subcategory can't be found or is ambiguous; null on success."
+              "description": "Why it didn't work, such as when the category or subcategory can't be found or is ambiguous."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -7558,7 +7558,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -7566,7 +7566,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -7585,7 +7585,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -7632,7 +7632,7 @@
           "type": "string",
           "displayName": "Category id",
           "required": true,
-          "description": "The category's record id, as the category search gives it.",
+          "description": "The category's id, as shown in category search results.",
           "sampleValue": "[category id]"
         },
         "subcategoryId": {
@@ -7645,15 +7645,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the ids match nothing; null on success."
+              "description": "Why it didn't work, such as when the ids match nothing."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -7669,7 +7669,7 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "description": "The category's record id."
+                      "description": "The category's id."
                     },
                     "title": {
                       "type": "string",
@@ -7677,7 +7677,7 @@
                     },
                     "iconUrl": {
                       "type": "string",
-                      "description": "Its image icon; null when none."
+                      "description": "Its image icon, if it has one."
                     },
                     "subcategories": {
                       "type": "array",
@@ -7696,7 +7696,7 @@
                           },
                           "iconUrl": {
                             "type": "string",
-                            "description": "Its image icon; null when none."
+                            "description": "Its image icon, if it has one."
                           }
                         }
                       }
@@ -7743,7 +7743,7 @@
               "type": "string",
               "displayName": "Category id",
               "required": true,
-              "description": "The category's record id, as the category search gives it."
+              "description": "The category's id, as shown in category search results."
             },
             "subcategoryId": {
               "type": "string",
@@ -7763,15 +7763,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each subcategory's outcome or an error.",
+          "description": "Runs when it's done, with each subcategory's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry does not resolve or repeats one, in which case nothing is removed; null on success."
+              "description": "Why it didn't work, such as when any entry does not resolve or repeats one, in which case nothing is removed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "subcategories": {
                   "type": "array",
@@ -7786,11 +7786,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The subcategory's id; null when the entry failed."
+                        "description": "The subcategory's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -7836,15 +7836,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the settings or an error.",
+          "description": "Runs when it's done, with the settings.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure; null on success."
+              "description": "Why it didn't work, if it didn't."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was found.",
               "properties": {
                 "settings": {
                   "type": "object",
@@ -7866,7 +7866,7 @@
                     },
                     "sorting": {
                       "type": "object",
-                      "description": "Default sorting and which sort options app users get."
+                      "description": "How locations are sorted at first, and which sort choices app users get."
                     },
                     "filter": {
                       "type": "object",
@@ -8025,7 +8025,7 @@
           "type": "boolean",
           "displayName": "Nearest to user location",
           "required": false,
-          "description": "Whether app users can sort by distance. Turning it off makes Alphabetical the default sorting, as the settings page does. Leave it out to keep the current setting; it can't be removed.",
+          "description": "Whether app users can sort by distance. Turning it off makes Alphabetical the starting sort, as the settings page does. Leave it out to keep the current setting; it can't be removed.",
           "sampleValue": true
         },
         "allowSortByPriceLowToHigh": {
@@ -8165,15 +8165,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the saved settings or an error.",
+          "description": "Runs when it's done, with the saved settings.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when nothing to change is passed, a setting is passed as null or empty, or distance is made the default without nearest sorting; null on success."
+              "description": "Why it didn't work, such as when nothing to change is passed, a setting is left empty, or distance is picked as the starting sort while sorting by distance is off."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "settings": {
                   "type": "object",
@@ -8195,7 +8195,7 @@
                     },
                     "sorting": {
                       "type": "object",
-                      "description": "Default sorting and which sort options app users get."
+                      "description": "How locations are sorted at first, and which sort choices app users get."
                     },
                     "filter": {
                       "type": "object",
@@ -8411,15 +8411,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the saved design or an error.",
+          "description": "Runs when it's done, with the saved design.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when nothing to change is passed or a choice is passed as null or empty; null on success."
+              "description": "Why it didn't work, such as when nothing to change is passed or a choice is left empty."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "design": {
                   "type": "object",
@@ -8460,7 +8460,7 @@
           "displayName": "Description",
           "required": false,
           "nullable": true,
-          "description": "The text shown on the introduction screen, HTML formatting kept. Leave it out to keep the current text; pass null or an empty string to remove it (stored empty, as the editor leaves it).",
+          "description": "The text shown on the introduction screen, HTML formatting kept. Leave it out to keep the current text, or leave it empty to remove it.",
           "sampleValue": "<p>[introduction text]</p>"
         },
         "sorting": {
@@ -8548,15 +8548,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the saved introduction screen or an error.",
+          "description": "Runs when it's done, with the saved introduction screen.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when nothing to change is passed or a setting that can't be removed is passed as null or empty; null on success."
+              "description": "Why it didn't work, such as when nothing to change is passed or a setting that can't be removed is left empty."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "introScreen": {
                   "type": "object",
@@ -8608,15 +8608,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the saved carousel or an error.",
+          "description": "Runs when it's done, with the saved carousel.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when an item has no picture; null on success."
+              "description": "Why it didn't work, such as when an item has no picture."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "images": {
                   "type": "array",
@@ -8728,15 +8728,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the new field or an error.",
+          "description": "Runs when it's done, with the new field.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when ten fields already exist, the label is taken, or the type doesn't fit the section; null on success."
+              "description": "Why it didn't work, such as when ten fields already exist, the label is taken, or the type doesn't fit the section."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "field": {
                   "type": "object",
@@ -8880,15 +8880,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each field's outcome or an error.",
+          "description": "Runs when it's done, with each field's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, repeats a label or uses one that exists, in which case nothing is added; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, repeats a label or uses one that exists, in which case nothing is added."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was added.",
               "properties": {
                 "fields": {
                   "type": "array",
@@ -8903,11 +8903,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The new field's id; null when the entry failed."
+                        "description": "The new field's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -9026,15 +9026,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated field or an error.",
+          "description": "Runs when it's done, with the updated field.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the field can't be found or is ambiguous, nothing to change is passed, the new label is taken, or the type doesn't fit the section; null on success."
+              "description": "Why it didn't work, such as when the field can't be found or is ambiguous, nothing to change is passed, the new label is taken, or the type doesn't fit the section."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "field": {
                   "type": "object",
@@ -9172,15 +9172,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the updated field or an error.",
+          "description": "Runs when it's done, with the updated field.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when the field can't be found or is ambiguous, nothing to change is passed, the new label is taken, or the type doesn't fit the section; null on success."
+              "description": "Why it didn't work, such as when the field can't be found or is ambiguous, nothing to change is passed, the new label is taken, or the type doesn't fit the section."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "field": {
                   "type": "object",
@@ -9321,15 +9321,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each field's outcome or an error.",
+          "description": "Runs when it's done, with each field's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry is invalid, does not resolve or repeats a field, in which case nothing is changed; null on success."
+              "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a field, in which case nothing is changed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was changed.",
               "properties": {
                 "fields": {
                   "type": "array",
@@ -9344,11 +9344,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The field's id; null when the entry failed."
+                        "description": "The field's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }
@@ -9407,15 +9407,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no field or several have that label; null on success."
+              "description": "Why it didn't work, such as when no field or several have that label."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -9475,15 +9475,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with the removal or an error.",
+          "description": "Runs when it's done, with the removal.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when no field has that id; null on success."
+              "description": "Why it didn't work, such as when no field has that id."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "deleted": {
                   "type": "boolean",
@@ -9550,15 +9550,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Node-style callback invoked exactly once with each field's outcome or an error.",
+          "description": "Runs when it's done, with each field's outcome.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Populated on failure, including when any entry does not resolve or repeats a field, in which case nothing is removed; null on success."
+              "description": "Why it didn't work, such as when any entry does not resolve or repeats a field, in which case nothing is removed."
             },
             "result": {
               "type": "object",
-              "description": "Populated on success; undefined on failure.",
+              "description": "What was removed.",
               "properties": {
                 "fields": {
                   "type": "array",
@@ -9573,11 +9573,11 @@
                       },
                       "id": {
                         "type": "string",
-                        "description": "The removed field's id; null when the entry failed."
+                        "description": "The removed field's id, if it worked."
                       },
                       "error": {
                         "type": "string",
-                        "description": "Why the entry failed; null when it succeeded."
+                        "description": "Why the entry failed, if it didn't."
                       }
                     }
                   }

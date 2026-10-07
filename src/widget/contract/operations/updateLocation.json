@@ -1,0 +1,311 @@
+{
+  "name": "updateLocation",
+  "displayName": "Update location",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocation",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a location's main details, leaving everything not mentioned as it was.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": true,
+      "description": "The exact current title of the location, matched ignoring case. A title shared by several locations is refused, naming how many matched.",
+      "sampleValue": "[location title]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New title",
+      "required": false,
+      "description": "The location's new title. Leave it out to keep the current title; it can't be removed.",
+      "sampleValue": "[new location title]"
+    },
+    "newAddress": {
+      "type": "string",
+      "displayName": "New address",
+      "required": false,
+      "description": "The location's new street address. Leave it out to keep the current address; it can't be removed, and it changes only together with newLatitude and newLongitude.",
+      "sampleValue": "[street address]"
+    },
+    "newLatitude": {
+      "type": "number",
+      "displayName": "New latitude",
+      "required": false,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "The new latitude of the map pin. Leave it out to keep the current position; it changes only together with newLongitude.",
+      "sampleValue": 32.7182625
+    },
+    "newLongitude": {
+      "type": "number",
+      "displayName": "New longitude",
+      "required": false,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "The new longitude of the map pin. Leave it out to keep the current position; it changes only together with newLatitude.",
+      "sampleValue": -117.1601157
+    },
+    "newDescription": {
+      "type": "string",
+      "displayName": "New description",
+      "required": false,
+      "description": "The location's new description, HTML formatting kept. Leave it out to keep the current description; it can't be removed.",
+      "sampleValue": "<p>[location description]</p>"
+    },
+    "newListImage": {
+      "type": "image",
+      "displayName": "New list image",
+      "required": false,
+      "description": "The location's new list image. Leave it out to keep the current image; it can't be removed.",
+      "sampleValue": "[image url]"
+    },
+    "newCategoryTitles": {
+      "type": "string",
+      "displayName": "New categories",
+      "required": false,
+      "nullable": true,
+      "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Replaces every current category; subcategories that are not under the new categories are dropped, as unticking a category does. Leave it out to keep the current categories, or leave it empty to remove them all, with their subcategories.",
+      "sampleValue": "[category title]"
+    },
+    "newSubcategoryTitles": {
+      "type": "string",
+      "displayName": "New subcategories",
+      "required": false,
+      "nullable": true,
+      "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
+      "sampleValue": "[subcategory title]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the updated location.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when no location or several locations have that title, nothing to change is passed, a field that can't be removed is left empty, or a fourth location would be pinned."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "location": {
+              "type": "object",
+              "description": "One location.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The subtitle, if it has one."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The street address."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown in place of the address, if it has one."
+                },
+                "latitude": {
+                  "type": "number",
+                  "description": "The map pin's latitude."
+                },
+                "longitude": {
+                  "type": "number",
+                  "description": "The map pin's longitude."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description, as HTML."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "The list image URL."
+                },
+                "images": {
+                  "type": "array",
+                  "description": "The gallery image URLs, in order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One image URL."
+                  }
+                },
+                "categoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live categories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A category title."
+                  }
+                },
+                "subcategoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live subcategories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A subcategory title."
+                  }
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "The price range, 1 ($) to 4 ($$$$)."
+                },
+                "priceCurrency": {
+                  "type": "string",
+                  "description": "The currency sign."
+                },
+                "rating": {
+                  "type": "number",
+                  "description": "The average star rating app users gave it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "pinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the introduction screen."
+                },
+                "pinPosition": {
+                  "type": "number",
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether it is open right now by its opening hours, using the clock of wherever the call runs."
+                },
+                "hours": {
+                  "type": "object",
+                  "description": "Opening hours per day, each \"HH:MM-HH:MM\" intervals separated by commas, or \"closed\".",
+                  "properties": {
+                    "monday": {
+                      "type": "string",
+                      "description": "Monday's hours."
+                    },
+                    "tuesday": {
+                      "type": "string",
+                      "description": "Tuesday's hours."
+                    },
+                    "wednesday": {
+                      "type": "string",
+                      "description": "Wednesday's hours."
+                    },
+                    "thursday": {
+                      "type": "string",
+                      "description": "Thursday's hours."
+                    },
+                    "friday": {
+                      "type": "string",
+                      "description": "Friday's hours."
+                    },
+                    "saturday": {
+                      "type": "string",
+                      "description": "Saturday's hours."
+                    },
+                    "sunday": {
+                      "type": "string",
+                      "description": "Sunday's hours."
+                    }
+                  }
+                },
+                "markerType": {
+                  "type": "string",
+                  "description": "pin, circle or image."
+                },
+                "actionItems": {
+                  "type": "array",
+                  "description": "The details page's buttons, as action items.",
+                  "items": {
+                    "type": "object",
+                    "description": "One action item."
+                  }
+                },
+                "fieldValues": {
+                  "type": "array",
+                  "description": "Location field values filled in for it.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field value.",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "description": "The location field's label."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The label shown instead of the field's own, if it has one."
+                      }
+                    }
+                  }
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow it for updates."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When it was created."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When it was last changed."
+                }
+              }
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which of the plugin's follow-up steps ran; deep links and analytics exist only inside the app frames.",
+              "properties": {
+                "analyticsRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its \"Viewed\" analytics event was registered (create only)."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its deep link was registered."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether its search-engine entry was saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

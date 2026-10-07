@@ -1,0 +1,264 @@
+{
+  "name": "createLocationsAdvanced",
+  "displayName": "Create locations",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createLocationsAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several new locations at once, using category ids to file them.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Location title",
+          "required": true,
+          "description": "The location's title, shown on the map, in lists and on its details page."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Location subtitle",
+          "required": false,
+          "description": "A short line shown under the title. Leave it out for no subtitle."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "required": true,
+          "description": "The location's full street address, as an address search would format it. It is shown as is; the map position comes from the latitude and longitude."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "required": true,
+          "minValue": -90,
+          "maxValue": 90,
+          "description": "The latitude of the location's map pin, in degrees."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "required": true,
+          "minValue": -180,
+          "maxValue": 180,
+          "description": "The longitude of the location's map pin, in degrees."
+        },
+        "addressAlias": {
+          "type": "string",
+          "displayName": "Location custom name",
+          "required": false,
+          "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address."
+        },
+        "description": {
+          "type": "string",
+          "displayName": "Description",
+          "required": true,
+          "description": "The location's description, shown on its details page. HTML formatting is kept, as the description editor saves it."
+        },
+        "listImage": {
+          "type": "image",
+          "displayName": "List image",
+          "required": true,
+          "description": "The picture shown for the location in lists and on its details page."
+        },
+        "categoryIds": {
+          "type": "string",
+          "displayName": "Category ids",
+          "required": false,
+          "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Leave it out to add the location without a category.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryIds": {
+          "type": "string",
+          "displayName": "Subcategory ids",
+          "required": false,
+          "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Leave it out to pick no subcategory.",
+          "sampleValue": "[subcategory id]"
+        },
+        "priceRange": {
+          "type": "select",
+          "displayName": "Price range",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "How pricey the location is, from $ to $$$$. Defaults to $."
+        },
+        "priceCurrency": {
+          "type": "select",
+          "displayName": "Currency",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": "$"
+            },
+            {
+              "label": "€",
+              "value": "€"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "The currency sign the price range is shown with. Defaults to $."
+        },
+        "markerType": {
+          "type": "select",
+          "displayName": "Marker type",
+          "required": false,
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "How the location is drawn on the map. Defaults to a pin."
+        },
+        "markerColor": {
+          "type": "string",
+          "displayName": "Marker color",
+          "required": false,
+          "description": "The circle marker's color as an rgb() or rgba() value. Used only when the marker type is Circle; defaults to red, rgba(253,35,5,1)."
+        },
+        "markerImage": {
+          "type": "image",
+          "displayName": "Marker image",
+          "required": false,
+          "description": "The picture used as the map marker. Required when the marker type is Image, ignored otherwise."
+        },
+        "showCategory": {
+          "type": "boolean",
+          "displayName": "Show category",
+          "required": false,
+          "description": "Whether the location's category is shown on its details page. Defaults to true."
+        },
+        "showOpeningHours": {
+          "type": "boolean",
+          "displayName": "Show opening hours",
+          "required": false,
+          "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin."
+        },
+        "showPriceRange": {
+          "type": "boolean",
+          "displayName": "Show price range",
+          "required": false,
+          "description": "Whether the price range is shown on its details page. Defaults to false."
+        },
+        "showStarRating": {
+          "type": "boolean",
+          "displayName": "Show star rating",
+          "required": false,
+          "description": "Whether app users' star rating is shown on its details page. Defaults to false."
+        },
+        "pinned": {
+          "type": "boolean",
+          "displayName": "Pin to top",
+          "required": false,
+          "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false."
+        }
+      },
+      "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be; entries carry no gallery images or action buttons.",
+      "sampleValue": [
+        {
+          "title": "[location title]",
+          "address": "[street address]",
+          "latitude": 32.7182625,
+          "longitude": -117.1601157,
+          "description": "<p>[location description]</p>",
+          "listImage": "[image url]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each location's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry is invalid or does not resolve, in which case nothing is added."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The new location's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

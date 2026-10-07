@@ -1,0 +1,83 @@
+{
+  "name": "deleteLocationAdvanced",
+  "displayName": "Delete location",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteLocation",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "deleteLocationAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a location from the map and lists, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the removal.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when no location has that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "deleted": {
+              "type": "boolean",
+              "description": "Always true."
+            },
+            "locationId": {
+              "type": "string",
+              "description": "The removed location's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The removed location's title."
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which follow-up steps ran.",
+              "properties": {
+                "deeplinkRemoved": {
+                  "type": "boolean",
+                  "description": "Whether its deep link was removed."
+                },
+                "searchEntryRemoved": {
+                  "type": "boolean",
+                  "description": "Whether its search-engine entry was removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
