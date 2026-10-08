@@ -89,6 +89,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "searchLocationsAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "searchLocations",
         "hosts": [
@@ -127,6 +133,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "searchLocations",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "searchLocationsAdvanced",
@@ -167,6 +179,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "searchLocationsNearPointAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "searchLocationsNearPoint",
         "hosts": [
@@ -205,6 +223,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "searchLocationsNearPoint",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "searchLocationsNearPointAdvanced",
@@ -245,6 +269,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "getLocationAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "getLocation",
         "hosts": [
@@ -274,6 +304,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "getLocation",
+          "label": "Basic"
+        }
+      ],
       "context": {
         "functionName": "getLocationAdvanced",
         "hosts": [
@@ -302,6 +338,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "createLocationAdvanced",
+          "label": "Advanced"
+        }
       ],
       "context": {
         "functionName": "createLocation",
@@ -337,6 +379,12 @@
       "usage": "advanced",
       "availableFor": [
         "API"
+      ],
+      "alternatives": [
+        {
+          "operationName": "createLocation",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "createLocationAdvanced",
@@ -416,6 +464,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updateLocationAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updateLocation",
         "hosts": [
@@ -451,6 +505,12 @@
       "usage": "advanced",
       "availableFor": [
         "API"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updateLocation",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updateLocationAdvanced",
@@ -531,6 +591,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocationAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "deleteLocation",
         "hosts": [
@@ -559,6 +625,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocation",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "deleteLocationAdvanced",
@@ -617,6 +689,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldValueAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updateLocationFieldValue",
         "hosts": [
@@ -648,6 +726,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldValue",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updateLocationFieldValueAdvanced",
@@ -709,6 +793,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updatePinnedLocationOrderAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updatePinnedLocationOrder",
         "hosts": [
@@ -738,6 +828,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updatePinnedLocationOrder",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updatePinnedLocationOrderAdvanced",
@@ -769,6 +865,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocationSubscriberAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "deleteLocationSubscriber",
         "hosts": [
@@ -798,6 +900,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocationSubscriber",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "deleteLocationSubscriberAdvanced",
@@ -857,6 +965,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "sendLocationNotificationAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "sendLocationNotification",
         "hosts": [
@@ -887,6 +1001,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "sendLocationNotification",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "sendLocationNotificationAdvanced",
@@ -1020,6 +1140,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updateCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updateCategory",
         "hosts": [
@@ -1049,6 +1175,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updateCategory",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updateCategoryAdvanced",
@@ -1107,6 +1239,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "deleteCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "deleteCategory",
         "hosts": [
@@ -1134,6 +1272,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "deleteCategory",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "deleteCategoryAdvanced",
@@ -1190,6 +1334,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "createSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "createSubcategory",
         "hosts": [
@@ -1219,6 +1369,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "createSubcategory",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "createSubcategoryAdvanced",
@@ -1277,6 +1433,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updateSubcategory",
         "hosts": [
@@ -1307,6 +1469,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updateSubcategory",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updateSubcategoryAdvanced",
@@ -1366,6 +1534,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "deleteSubcategory",
         "hosts": [
@@ -1394,6 +1568,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategory",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "deleteSubcategoryAdvanced",
@@ -1684,6 +1864,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "updateLocationField",
         "hosts": [
@@ -1716,6 +1902,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "updateLocationField",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "updateLocationFieldAdvanced",
@@ -1777,6 +1969,12 @@
         "API",
         "form"
       ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
       "context": {
         "functionName": "deleteLocationField",
         "hosts": [
@@ -1804,6 +2002,12 @@
       "availableFor": [
         "API",
         "form"
+      ],
+      "alternatives": [
+        {
+          "operationName": "deleteLocationField",
+          "label": "Basic"
+        }
       ],
       "context": {
         "functionName": "deleteLocationFieldAdvanced",
