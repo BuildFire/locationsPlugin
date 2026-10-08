@@ -1,0 +1,152 @@
+{
+  "name": "createLocationFieldsAdvanced",
+  "displayName": "Create location fields",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createLocationFieldsAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several extra location fields at once.",
+  "parameters": {
+    "fields": {
+      "type": "list",
+      "displayName": "Fields",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "section": {
+          "type": "select",
+          "displayName": "Section",
+          "required": true,
+          "enums": [
+            {
+              "label": "Quick Actions",
+              "value": "quickActions"
+            },
+            {
+              "label": "Text Content",
+              "value": "content"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "Where the field shows on a location's details page: Quick Actions are compact buttons at the top, Text Content full-width sections below."
+        },
+        "label": {
+          "type": "string",
+          "displayName": "Field name",
+          "required": true,
+          "description": "The field's label; one another field already has is refused."
+        },
+        "type": {
+          "type": "select",
+          "displayName": "Type",
+          "required": false,
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich Text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "What the field holds. Quick Actions take Email, Phone or URL; Text Content takes any type. Defaults to Email."
+        },
+        "required": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether every location must fill it in. Defaults to false."
+        },
+        "allowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Custom label",
+          "required": false,
+          "description": "Whether a location may show its own label for it. Defaults to false."
+        }
+      },
+      "description": "The fields to add, up to 50 per call (the plugin allows ten in total), each exactly as a single new field would be.",
+      "sampleValue": [
+        {
+          "section": "content",
+          "label": "[field label]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each field's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry is invalid, repeats a label or uses one that exists, in which case nothing is added."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The new field's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

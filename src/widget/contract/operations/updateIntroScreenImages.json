@@ -1,0 +1,64 @@
+{
+  "name": "updateIntroScreenImages",
+  "displayName": "Update introduction screen images",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateIntroScreenImages",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Replaces the pictures in the introduction screen's carousel.",
+  "parameters": {
+    "images": {
+      "type": "action",
+      "displayName": "Carousel images",
+      "required": true,
+      "minValue": 0,
+      "description": "Every carousel item, in order, replacing the current ones: each an action item whose iconUrl is the picture and whose action runs when it is tapped. An empty list removes every picture.",
+      "sampleValue": [
+        {
+          "title": "[image title]",
+          "iconUrl": "[image url]",
+          "action": "noAction"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the saved carousel.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when an item has no picture."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "images": {
+              "type": "array",
+              "description": "The carousel items as saved.",
+              "items": {
+                "type": "object",
+                "description": "One carousel item."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

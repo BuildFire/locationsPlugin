@@ -1,0 +1,99 @@
+{
+  "name": "createCategoriesAdvanced",
+  "displayName": "Create categories",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createCategoriesAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several new categories at once.",
+  "parameters": {
+    "categories": {
+      "type": "list",
+      "displayName": "Categories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Category title",
+          "required": true,
+          "description": "The new category's title; a title another category already has is refused."
+        },
+        "iconImage": {
+          "type": "image",
+          "displayName": "Icon",
+          "required": false,
+          "description": "The picture shown as the category's icon. Leave it out to use the standard icon."
+        }
+      },
+      "description": "The categories to add, up to 50 per call, each exactly as a single new category would be.",
+      "sampleValue": [
+        {
+          "title": "[category title]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each category's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry is invalid, repeats a title or uses one that exists, in which case nothing is added."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The new category's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

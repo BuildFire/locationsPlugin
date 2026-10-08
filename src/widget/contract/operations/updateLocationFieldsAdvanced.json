@@ -1,0 +1,149 @@
+{
+  "name": "updateLocationFieldsAdvanced",
+  "displayName": "Update location fields",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationFieldsAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes several extra location fields at once.",
+  "parameters": {
+    "fields": {
+      "type": "list",
+      "displayName": "Fields",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The location field's id, as the plugin's settings give it."
+        },
+        "newLabel": {
+          "type": "string",
+          "displayName": "New field name",
+          "required": false,
+          "description": "The field's new label; one another field already has is refused. Leave it out to keep the current label; it can't be removed."
+        },
+        "newType": {
+          "type": "select",
+          "displayName": "New type",
+          "required": false,
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich Text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "What the field holds; must fit its section. Leave it out to keep the current type; it can't be removed."
+        },
+        "newRequired": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether every location must fill it in. Leave it out to keep the current setting; it can't be removed."
+        },
+        "newAllowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Custom label",
+          "required": false,
+          "description": "Whether a location may show its own label for it. Leave it out to keep the current setting; it can't be removed."
+        },
+        "newPosition": {
+          "type": "number",
+          "displayName": "New position",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 10,
+          "description": "The field's new place within its section, counting from 1. Leave it out to keep its place; it can't be removed."
+        }
+      },
+      "description": "The changes to make, up to 50 per call, one field per entry, each exactly as a single update would be.",
+      "sampleValue": [
+        {
+          "fieldId": "[field id]",
+          "newRequired": true
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each field's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a field, in which case nothing is changed."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

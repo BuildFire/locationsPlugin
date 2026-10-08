@@ -1,0 +1,128 @@
+{
+  "name": "createSubcategory",
+  "displayName": "Create subcategory",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "createSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "createSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a subcategory to a category.",
+  "parameters": {
+    "categoryTitle": {
+      "type": "string",
+      "displayName": "Category",
+      "required": true,
+      "description": "The exact title of the category. A title shared by several categories is refused.",
+      "sampleValue": "[category title]"
+    },
+    "title": {
+      "type": "string",
+      "displayName": "Subcategory title",
+      "required": true,
+      "description": "The new subcategory's title; one the category already has is refused.",
+      "sampleValue": "[subcategory title]"
+    },
+    "iconImage": {
+      "type": "image",
+      "displayName": "Icon",
+      "required": false,
+      "description": "The picture shown as the subcategory's icon. Leave it out to use the standard icon.",
+      "sampleValue": "[image url]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the new subcategory.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the category can't be found or is ambiguous, or the title is already used in it."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "subcategory": {
+              "type": "object",
+              "description": "The new subcategory.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Its id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Its title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "Its icon, if it has one."
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "description": "The category.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "Its image icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "Its image icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

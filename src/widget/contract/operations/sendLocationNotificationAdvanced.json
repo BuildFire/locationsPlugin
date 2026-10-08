@@ -1,0 +1,83 @@
+{
+  "name": "sendLocationNotificationAdvanced",
+  "displayName": "Send location notification",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "sendLocationNotification",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "sendLocationNotificationAdvanced",
+    "hosts": [
+      "widgetForeground",
+      "controlForeground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Sends a push notification about a location to everyone following it, on behalf of the app, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "notificationTitle": {
+      "type": "string",
+      "displayName": "Notification title",
+      "required": true,
+      "description": "The notification's title.",
+      "sampleValue": "[notification title]"
+    },
+    "message": {
+      "type": "string",
+      "displayName": "Message",
+      "required": true,
+      "description": "The notification's message.",
+      "sampleValue": "[notification message]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the notification.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location has that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The notification that was sent.",
+          "properties": {
+            "sent": {
+              "type": "boolean",
+              "description": "Always true."
+            },
+            "recipientCount": {
+              "type": "number",
+              "description": "How many followers it was sent to."
+            },
+            "notificationId": {
+              "type": "string",
+              "description": "The scheduled notification's id, if there is one."
+            }
+          }
+        }
+      }
+    }
+  }
+}

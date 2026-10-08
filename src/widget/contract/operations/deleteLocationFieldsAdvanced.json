@@ -1,0 +1,93 @@
+{
+  "name": "deleteLocationFieldsAdvanced",
+  "displayName": "Delete location fields",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "deleteLocationFieldsAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes several extra location fields at once.",
+  "parameters": {
+    "fields": {
+      "type": "list",
+      "displayName": "Fields",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The location field's id, as the plugin's settings give it."
+        }
+      },
+      "description": "The fields to remove, up to 50 per call.",
+      "sampleValue": [
+        {
+          "fieldId": "[field id]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each field's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry does not resolve or repeats a field, in which case nothing is removed."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The removed field's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,302 @@
+{
+  "name": "createLocation",
+  "displayName": "Create location",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "createLocationAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "createLocation",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a new location to the map and lists, where everyone using the app can find it.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": true,
+      "description": "The location's title, shown on the map, in lists and on its details page.",
+      "sampleValue": "[location title]"
+    },
+    "address": {
+      "type": "string",
+      "displayName": "Address",
+      "required": true,
+      "description": "The location's full street address, as an address search would format it. It is shown as is; the map position comes from the latitude and longitude.",
+      "sampleValue": "[street address]"
+    },
+    "latitude": {
+      "type": "number",
+      "displayName": "Latitude",
+      "required": true,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "The latitude of the location's map pin, in degrees.",
+      "sampleValue": 32.7182625
+    },
+    "longitude": {
+      "type": "number",
+      "displayName": "Longitude",
+      "required": true,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "The longitude of the location's map pin, in degrees.",
+      "sampleValue": -117.1601157
+    },
+    "description": {
+      "type": "string",
+      "displayName": "Description",
+      "required": true,
+      "description": "The location's description, shown on its details page. HTML formatting is kept, as the description editor saves it.",
+      "sampleValue": "<p>[location description]</p>"
+    },
+    "listImage": {
+      "type": "image",
+      "displayName": "List image",
+      "required": true,
+      "description": "The picture shown for the location in lists and on its details page.",
+      "sampleValue": "[image url]"
+    },
+    "categoryTitles": {
+      "type": "string",
+      "displayName": "Categories",
+      "required": false,
+      "description": "The titles of the categories the location is listed under, separated by commas, such as \"Food, Outdoors\". Every title must match exactly one live category. Leave it out to add the location without a category.",
+      "sampleValue": "[category title]"
+    },
+    "subcategoryTitles": {
+      "type": "string",
+      "displayName": "Subcategories",
+      "required": false,
+      "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Leave it out to pick no subcategory.",
+      "sampleValue": "[subcategory title]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the new location.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when a required detail is missing, a category or subcategory title matches nothing or several, the hours are malformed, or three locations are already pinned."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "location": {
+              "type": "object",
+              "description": "One location.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The subtitle, if it has one."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The street address."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown in place of the address, if it has one."
+                },
+                "latitude": {
+                  "type": "number",
+                  "description": "The map pin's latitude."
+                },
+                "longitude": {
+                  "type": "number",
+                  "description": "The map pin's longitude."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description, as HTML."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "The list image URL."
+                },
+                "images": {
+                  "type": "array",
+                  "description": "The gallery image URLs, in order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One image URL."
+                  }
+                },
+                "categoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live categories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A category title."
+                  }
+                },
+                "subcategoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live subcategories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A subcategory title."
+                  }
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "The price range, 1 ($) to 4 ($$$$)."
+                },
+                "priceCurrency": {
+                  "type": "string",
+                  "description": "The currency sign."
+                },
+                "rating": {
+                  "type": "number",
+                  "description": "The average star rating app users gave it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "pinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the introduction screen."
+                },
+                "pinPosition": {
+                  "type": "number",
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether it is open right now by its opening hours, using the clock of wherever the call runs."
+                },
+                "hours": {
+                  "type": "object",
+                  "description": "Opening hours per day, each \"HH:MM-HH:MM\" intervals separated by commas, or \"closed\".",
+                  "properties": {
+                    "monday": {
+                      "type": "string",
+                      "description": "Monday's hours."
+                    },
+                    "tuesday": {
+                      "type": "string",
+                      "description": "Tuesday's hours."
+                    },
+                    "wednesday": {
+                      "type": "string",
+                      "description": "Wednesday's hours."
+                    },
+                    "thursday": {
+                      "type": "string",
+                      "description": "Thursday's hours."
+                    },
+                    "friday": {
+                      "type": "string",
+                      "description": "Friday's hours."
+                    },
+                    "saturday": {
+                      "type": "string",
+                      "description": "Saturday's hours."
+                    },
+                    "sunday": {
+                      "type": "string",
+                      "description": "Sunday's hours."
+                    }
+                  }
+                },
+                "markerType": {
+                  "type": "string",
+                  "description": "pin, circle or image."
+                },
+                "actionItems": {
+                  "type": "array",
+                  "description": "The details page's buttons, as action items.",
+                  "items": {
+                    "type": "object",
+                    "description": "One action item."
+                  }
+                },
+                "fieldValues": {
+                  "type": "array",
+                  "description": "Location field values filled in for it.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field value.",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "description": "The location field's label."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The label shown instead of the field's own, if it has one."
+                      }
+                    }
+                  }
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow it for updates."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When it was created."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When it was last changed."
+                }
+              }
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which of the plugin's follow-up steps ran; deep links and analytics exist only inside the app frames.",
+              "properties": {
+                "analyticsRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its \"Viewed\" analytics event was registered (create only)."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its deep link was registered."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether its search-engine entry was saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

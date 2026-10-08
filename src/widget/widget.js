@@ -28,7 +28,7 @@ import {
   transformCategoriesToText,
   showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
-import { generateUUID } from './js/global/helpers';
+import { generateUUID, sendContractEvent } from './js/global/helpers';
 import Analytics from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
@@ -1650,8 +1650,16 @@ const onReceivedMessageHandler = (message) => {
   }
 };
 const onRatingHandler = (e) => {
+  const locationId = state.selectedLocation.id;
   WidgetController
-    .updateLocationRating(state.selectedLocation.id, e.summary)
+    .updateLocationRating(locationId, e.summary)
+    .then(() => {
+      sendContractEvent('locationRated', {
+        locationId,
+        average: e.summary.total / e.summary.count,
+        count: e.summary.count
+      });
+    })
     .catch((err) => {
       console.error('err updating rating: ', err);
     });

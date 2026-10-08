@@ -1,0 +1,158 @@
+{
+  "name": "updateDesign",
+  "displayName": "Update design",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateDesign",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes how the locations screens look, leaving every design choice not mentioned as it was.",
+  "parameters": {
+    "listViewPosition": {
+      "type": "select",
+      "displayName": "List view position",
+      "required": false,
+      "enums": [
+        {
+          "label": "Expanded",
+          "value": "expanded"
+        },
+        {
+          "label": "Collapsed",
+          "value": "collapsed"
+        },
+        {
+          "label": "Half Expanded",
+          "value": "halfExpanded"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "Where the list sits over the map when the screen opens. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "collapsed"
+    },
+    "listViewStyle": {
+      "type": "select",
+      "displayName": "Default list view style",
+      "required": false,
+      "enums": [
+        {
+          "label": "Background Image",
+          "value": "backgroundImage"
+        },
+        {
+          "label": "Small Image",
+          "value": "smallImage"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How each location looks in the list. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "smallImage"
+    },
+    "defaultMapType": {
+      "type": "select",
+      "displayName": "Default map type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Streets",
+          "value": "streets"
+        },
+        {
+          "label": "Satellite",
+          "value": "satellite"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The map's look when it opens. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "streets"
+    },
+    "detailsMapPosition": {
+      "type": "select",
+      "displayName": "Map position",
+      "required": false,
+      "enums": [
+        {
+          "label": "Top",
+          "value": "top"
+        },
+        {
+          "label": "Bottom",
+          "value": "bottom"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "Where the map sits on a location's details page. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "top"
+    },
+    "enableMapTerrainView": {
+      "type": "boolean",
+      "displayName": "Enable map terrain view",
+      "required": false,
+      "description": "Whether the map shows terrain. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "hideQuickFilter": {
+      "type": "boolean",
+      "displayName": "Hide quick filter",
+      "required": false,
+      "description": "Whether the quick category filter is hidden. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowStyleSelection": {
+      "type": "boolean",
+      "displayName": "Allow user's map style selection",
+      "required": false,
+      "description": "Whether app users can switch the map style. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "showDetailsCategory": {
+      "type": "boolean",
+      "displayName": "Show category and subcategory on location details screen",
+      "required": false,
+      "description": "Whether a location's category shows on its details page. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "showContributorName": {
+      "type": "boolean",
+      "displayName": "Contributor name",
+      "required": false,
+      "description": "Whether the name of the app user who added a location is shown. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the saved design.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when nothing to change is passed or a choice is left empty."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "design": {
+              "type": "object",
+              "description": "The design settings as saved."
+            }
+          }
+        }
+      }
+    }
+  }
+}
