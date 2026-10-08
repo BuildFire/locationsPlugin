@@ -111,7 +111,7 @@
         "page",
         "pageSize"
       ],
-      "filePath": "operations/searchLocations.json"
+      "definitionPath": "operations/searchLocations.json"
     },
     {
       "name": "searchLocationsAdvanced",
@@ -150,7 +150,7 @@
         "page",
         "pageSize"
       ],
-      "filePath": "operations/searchLocationsAdvanced.json"
+      "definitionPath": "operations/searchLocationsAdvanced.json"
     },
     {
       "name": "searchLocationsNearPoint",
@@ -189,7 +189,7 @@
         "page",
         "pageSize"
       ],
-      "filePath": "operations/searchLocationsNearPoint.json"
+      "definitionPath": "operations/searchLocationsNearPoint.json"
     },
     {
       "name": "searchLocationsNearPointAdvanced",
@@ -228,7 +228,7 @@
         "page",
         "pageSize"
       ],
-      "filePath": "operations/searchLocationsNearPointAdvanced.json"
+      "definitionPath": "operations/searchLocationsNearPointAdvanced.json"
     },
     {
       "name": "getLocation",
@@ -257,7 +257,7 @@
       "parameters": [
         "title"
       ],
-      "filePath": "operations/getLocation.json"
+      "definitionPath": "operations/getLocation.json"
     },
     {
       "name": "getLocationAdvanced",
@@ -286,7 +286,7 @@
       "parameters": [
         "locationId"
       ],
-      "filePath": "operations/getLocationAdvanced.json"
+      "definitionPath": "operations/getLocationAdvanced.json"
     },
     {
       "name": "createLocation",
@@ -322,7 +322,7 @@
         "categoryTitles",
         "subcategoryTitles"
       ],
-      "filePath": "operations/createLocation.json"
+      "definitionPath": "operations/createLocation.json"
     },
     {
       "name": "createLocationAdvanced",
@@ -371,7 +371,7 @@
         "images",
         "actionItems"
       ],
-      "filePath": "operations/createLocationAdvanced.json"
+      "definitionPath": "operations/createLocationAdvanced.json"
     },
     {
       "name": "createLocationsAdvanced",
@@ -399,7 +399,7 @@
       "parameters": [
         "locations"
       ],
-      "filePath": "operations/createLocationsAdvanced.json"
+      "definitionPath": "operations/createLocationsAdvanced.json"
     },
     {
       "name": "updateLocation",
@@ -436,7 +436,7 @@
         "newCategoryTitles",
         "newSubcategoryTitles"
       ],
-      "filePath": "operations/updateLocation.json"
+      "definitionPath": "operations/updateLocation.json"
     },
     {
       "name": "updateLocationAdvanced",
@@ -486,7 +486,7 @@
         "newImages",
         "newActionItems"
       ],
-      "filePath": "operations/updateLocationAdvanced.json"
+      "definitionPath": "operations/updateLocationAdvanced.json"
     },
     {
       "name": "updateLocationsAdvanced",
@@ -514,7 +514,7 @@
       "parameters": [
         "locations"
       ],
-      "filePath": "operations/updateLocationsAdvanced.json"
+      "definitionPath": "operations/updateLocationsAdvanced.json"
     },
     {
       "name": "deleteLocation",
@@ -543,7 +543,7 @@
       "parameters": [
         "title"
       ],
-      "filePath": "operations/deleteLocation.json"
+      "definitionPath": "operations/deleteLocation.json"
     },
     {
       "name": "deleteLocationAdvanced",
@@ -572,7 +572,7 @@
       "parameters": [
         "locationId"
       ],
-      "filePath": "operations/deleteLocationAdvanced.json"
+      "definitionPath": "operations/deleteLocationAdvanced.json"
     },
     {
       "name": "deleteLocationsAdvanced",
@@ -600,7 +600,7 @@
       "parameters": [
         "locations"
       ],
-      "filePath": "operations/deleteLocationsAdvanced.json"
+      "definitionPath": "operations/deleteLocationsAdvanced.json"
     },
     {
       "name": "updateLocationFieldValue",
@@ -632,7 +632,7 @@
         "value",
         "customLabel"
       ],
-      "filePath": "operations/updateLocationFieldValue.json"
+      "definitionPath": "operations/updateLocationFieldValue.json"
     },
     {
       "name": "updateLocationFieldValueAdvanced",
@@ -664,7 +664,7 @@
         "value",
         "customLabel"
       ],
-      "filePath": "operations/updateLocationFieldValueAdvanced.json"
+      "definitionPath": "operations/updateLocationFieldValueAdvanced.json"
     },
     {
       "name": "updateLocationsFieldValueAdvanced",
@@ -692,7 +692,7 @@
       "parameters": [
         "locations"
       ],
-      "filePath": "operations/updateLocationsFieldValueAdvanced.json"
+      "definitionPath": "operations/updateLocationsFieldValueAdvanced.json"
     },
     {
       "name": "updatePinnedLocationOrder",
@@ -722,7 +722,7 @@
         "secondLocationTitle",
         "thirdLocationTitle"
       ],
-      "filePath": "operations/updatePinnedLocationOrder.json"
+      "definitionPath": "operations/updatePinnedLocationOrder.json"
     },
     {
       "name": "updatePinnedLocationOrderAdvanced",
@@ -752,7 +752,7 @@
         "secondLocationId",
         "thirdLocationId"
       ],
-      "filePath": "operations/updatePinnedLocationOrderAdvanced.json"
+      "definitionPath": "operations/updatePinnedLocationOrderAdvanced.json"
     },
     {
       "name": "deleteLocationSubscriber",
@@ -782,7 +782,7 @@
         "title",
         "userId"
       ],
-      "filePath": "operations/deleteLocationSubscriber.json"
+      "definitionPath": "operations/deleteLocationSubscriber.json"
     },
     {
       "name": "deleteLocationSubscriberAdvanced",
@@ -812,7 +812,7 @@
         "locationId",
         "userId"
       ],
-      "filePath": "operations/deleteLocationSubscriberAdvanced.json"
+      "definitionPath": "operations/deleteLocationSubscriberAdvanced.json"
     },
     {
       "name": "deleteLocationSubscribersAdvanced",
@@ -840,7 +840,7 @@
       "parameters": [
         "subscribers"
       ],
-      "filePath": "operations/deleteLocationSubscribersAdvanced.json"
+      "definitionPath": "operations/deleteLocationSubscribersAdvanced.json"
     },
     {
       "name": "sendLocationNotification",
@@ -871,7 +871,7 @@
         "notificationTitle",
         "message"
       ],
-      "filePath": "operations/sendLocationNotification.json"
+      "definitionPath": "operations/sendLocationNotification.json"
     },
     {
       "name": "sendLocationNotificationAdvanced",
@@ -902,7 +902,7 @@
         "notificationTitle",
         "message"
       ],
-      "filePath": "operations/sendLocationNotificationAdvanced.json"
+      "definitionPath": "operations/sendLocationNotificationAdvanced.json"
     },
     {
       "name": "searchCategories",
@@ -947,7 +947,7 @@
         "title",
         "page"
       ],
-      "filePath": "operations/searchCategories.json"
+      "definitionPath": "operations/searchCategories.json"
     },
     {
       "name": "createCategory",
@@ -976,7 +976,7 @@
         "title",
         "iconImage"
       ],
-      "filePath": "operations/createCategory.json"
+      "definitionPath": "operations/createCategory.json"
     },
     {
       "name": "createCategoriesAdvanced",
@@ -1003,7 +1003,7 @@
       "parameters": [
         "categories"
       ],
-      "filePath": "operations/createCategoriesAdvanced.json"
+      "definitionPath": "operations/createCategoriesAdvanced.json"
     },
     {
       "name": "updateCategory",
@@ -1033,7 +1033,7 @@
         "newTitle",
         "newIconImage"
       ],
-      "filePath": "operations/updateCategory.json"
+      "definitionPath": "operations/updateCategory.json"
     },
     {
       "name": "updateCategoryAdvanced",
@@ -1063,7 +1063,7 @@
         "newTitle",
         "newIconImage"
       ],
-      "filePath": "operations/updateCategoryAdvanced.json"
+      "definitionPath": "operations/updateCategoryAdvanced.json"
     },
     {
       "name": "updateCategoriesAdvanced",
@@ -1090,7 +1090,7 @@
       "parameters": [
         "categories"
       ],
-      "filePath": "operations/updateCategoriesAdvanced.json"
+      "definitionPath": "operations/updateCategoriesAdvanced.json"
     },
     {
       "name": "deleteCategory",
@@ -1118,7 +1118,7 @@
       "parameters": [
         "categoryTitle"
       ],
-      "filePath": "operations/deleteCategory.json"
+      "definitionPath": "operations/deleteCategory.json"
     },
     {
       "name": "deleteCategoryAdvanced",
@@ -1146,7 +1146,7 @@
       "parameters": [
         "categoryId"
       ],
-      "filePath": "operations/deleteCategoryAdvanced.json"
+      "definitionPath": "operations/deleteCategoryAdvanced.json"
     },
     {
       "name": "deleteCategoriesAdvanced",
@@ -1173,7 +1173,7 @@
       "parameters": [
         "categories"
       ],
-      "filePath": "operations/deleteCategoriesAdvanced.json"
+      "definitionPath": "operations/deleteCategoriesAdvanced.json"
     },
     {
       "name": "createSubcategory",
@@ -1203,7 +1203,7 @@
         "title",
         "iconImage"
       ],
-      "filePath": "operations/createSubcategory.json"
+      "definitionPath": "operations/createSubcategory.json"
     },
     {
       "name": "createSubcategoryAdvanced",
@@ -1233,7 +1233,7 @@
         "title",
         "iconImage"
       ],
-      "filePath": "operations/createSubcategoryAdvanced.json"
+      "definitionPath": "operations/createSubcategoryAdvanced.json"
     },
     {
       "name": "createSubcategoriesAdvanced",
@@ -1260,7 +1260,7 @@
       "parameters": [
         "subcategories"
       ],
-      "filePath": "operations/createSubcategoriesAdvanced.json"
+      "definitionPath": "operations/createSubcategoriesAdvanced.json"
     },
     {
       "name": "updateSubcategory",
@@ -1291,7 +1291,7 @@
         "newTitle",
         "newIconImage"
       ],
-      "filePath": "operations/updateSubcategory.json"
+      "definitionPath": "operations/updateSubcategory.json"
     },
     {
       "name": "updateSubcategoryAdvanced",
@@ -1322,7 +1322,7 @@
         "newTitle",
         "newIconImage"
       ],
-      "filePath": "operations/updateSubcategoryAdvanced.json"
+      "definitionPath": "operations/updateSubcategoryAdvanced.json"
     },
     {
       "name": "updateSubcategoriesAdvanced",
@@ -1349,7 +1349,7 @@
       "parameters": [
         "subcategories"
       ],
-      "filePath": "operations/updateSubcategoriesAdvanced.json"
+      "definitionPath": "operations/updateSubcategoriesAdvanced.json"
     },
     {
       "name": "deleteSubcategory",
@@ -1378,7 +1378,7 @@
         "categoryTitle",
         "subcategoryTitle"
       ],
-      "filePath": "operations/deleteSubcategory.json"
+      "definitionPath": "operations/deleteSubcategory.json"
     },
     {
       "name": "deleteSubcategoryAdvanced",
@@ -1407,7 +1407,7 @@
         "categoryId",
         "subcategoryId"
       ],
-      "filePath": "operations/deleteSubcategoryAdvanced.json"
+      "definitionPath": "operations/deleteSubcategoryAdvanced.json"
     },
     {
       "name": "deleteSubcategoriesAdvanced",
@@ -1434,7 +1434,7 @@
       "parameters": [
         "subcategories"
       ],
-      "filePath": "operations/deleteSubcategoriesAdvanced.json"
+      "definitionPath": "operations/deleteSubcategoriesAdvanced.json"
     },
     {
       "name": "getSettings",
@@ -1460,7 +1460,7 @@
       },
       "description": "Shows how the locations feature is set up: sorting, filters, map, bookmarks, design, introduction screen and location fields.",
       "parameters": [],
-      "filePath": "operations/getSettings.json"
+      "definitionPath": "operations/getSettings.json"
     },
     {
       "name": "updateSettings",
@@ -1511,7 +1511,7 @@
         "allowBookmarkLocations",
         "allowBookmarkSearches"
       ],
-      "filePath": "operations/updateSettings.json"
+      "definitionPath": "operations/updateSettings.json"
     },
     {
       "name": "updateDesign",
@@ -1547,7 +1547,7 @@
         "showDetailsCategory",
         "showContributorName"
       ],
-      "filePath": "operations/updateDesign.json"
+      "definitionPath": "operations/updateDesign.json"
     },
     {
       "name": "updateIntroScreen",
@@ -1581,7 +1581,7 @@
         "areaAddress",
         "areaRadiusMiles"
       ],
-      "filePath": "operations/updateIntroScreen.json"
+      "definitionPath": "operations/updateIntroScreen.json"
     },
     {
       "name": "updateIntroScreenImages",
@@ -1608,7 +1608,7 @@
       "parameters": [
         "images"
       ],
-      "filePath": "operations/updateIntroScreenImages.json"
+      "definitionPath": "operations/updateIntroScreenImages.json"
     },
     {
       "name": "createLocationField",
@@ -1640,7 +1640,7 @@
         "required",
         "allowCustomLabel"
       ],
-      "filePath": "operations/createLocationField.json"
+      "definitionPath": "operations/createLocationField.json"
     },
     {
       "name": "createLocationFieldsAdvanced",
@@ -1667,7 +1667,7 @@
       "parameters": [
         "fields"
       ],
-      "filePath": "operations/createLocationFieldsAdvanced.json"
+      "definitionPath": "operations/createLocationFieldsAdvanced.json"
     },
     {
       "name": "updateLocationField",
@@ -1700,7 +1700,7 @@
         "newAllowCustomLabel",
         "newPosition"
       ],
-      "filePath": "operations/updateLocationField.json"
+      "definitionPath": "operations/updateLocationField.json"
     },
     {
       "name": "updateLocationFieldAdvanced",
@@ -1733,7 +1733,7 @@
         "newAllowCustomLabel",
         "newPosition"
       ],
-      "filePath": "operations/updateLocationFieldAdvanced.json"
+      "definitionPath": "operations/updateLocationFieldAdvanced.json"
     },
     {
       "name": "updateLocationFieldsAdvanced",
@@ -1760,7 +1760,7 @@
       "parameters": [
         "fields"
       ],
-      "filePath": "operations/updateLocationFieldsAdvanced.json"
+      "definitionPath": "operations/updateLocationFieldsAdvanced.json"
     },
     {
       "name": "deleteLocationField",
@@ -1788,7 +1788,7 @@
       "parameters": [
         "label"
       ],
-      "filePath": "operations/deleteLocationField.json"
+      "definitionPath": "operations/deleteLocationField.json"
     },
     {
       "name": "deleteLocationFieldAdvanced",
@@ -1816,7 +1816,7 @@
       "parameters": [
         "fieldId"
       ],
-      "filePath": "operations/deleteLocationFieldAdvanced.json"
+      "definitionPath": "operations/deleteLocationFieldAdvanced.json"
     },
     {
       "name": "deleteLocationFieldsAdvanced",
@@ -1843,7 +1843,7 @@
       "parameters": [
         "fields"
       ],
-      "filePath": "operations/deleteLocationFieldsAdvanced.json"
+      "definitionPath": "operations/deleteLocationFieldsAdvanced.json"
     }
   ]
 }
