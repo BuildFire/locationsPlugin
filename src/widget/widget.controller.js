@@ -77,18 +77,18 @@ export default {
       return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
     });
   },
-  deleteLocation(locationId) {
+  deleteLocation(locationId, title) {
     const promiseChain = [
-      Location.delete(locationId),
+      Location.delete(locationId, title),
       DeepLink.unregisterDeeplink(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
     return Promise.allSettled(promiseChain);
   },
-  subscribeToLocationUpdates(locationId, userId) {
-    return Location.subscribeToLocationUpdates(locationId, userId);
+  subscribeToLocationUpdates(locationId, userId, details) {
+    return Location.subscribeToLocationUpdates(locationId, userId, details);
   },
-  unsubscribeFromLocationUpdates(locationId, userId) {
-    return Location.unsubscribeFromLocationUpdates(locationId, userId);
+  unsubscribeFromLocationUpdates(locationId, userId, details) {
+    return Location.unsubscribeFromLocationUpdates(locationId, userId, details);
   }
 };

@@ -1,5 +1,7 @@
 import Location from "../data/Location";
-import { sendContractEvent } from "../helpers";
+import {
+  sendContractEvent, contractLocationDetails, contractEventDate, contractEventUser
+} from "../helpers";
 
 /**
  * Locations data access
@@ -37,7 +39,11 @@ export default class Locations {
     return new Promise((resolve, reject) => {
       buildfire.publicData.insert(data, Locations.TAG, (error, record) => {
         if (error) return reject(error);
-        sendContractEvent('locationCreated', { locationId: record.id, title: record.data.title });
+        sendContractEvent('locationCreated', {
+          ...contractLocationDetails(record.id, record.data),
+          createdOn: contractEventDate(record.data.createdOn),
+          createdBy: contractEventUser(record.data.createdBy)
+        });
         resolve(new Location({ ...record.data, id: record.id }).toJSON());
       });
     });
@@ -138,39 +144,43 @@ export default class Locations {
    * @static
    * @returns {promise}
    */
-  static delete(locationId) {
+  static delete(locationId, title = null) {
     return new Promise((resolve, reject) => {
       buildfire.publicData.delete(
         locationId,
         Locations.TAG,
         (error, result) => {
           if (error) return reject(error);
-          sendContractEvent('locationDeleted', { locationId });
+          sendContractEvent('locationDeleted', { locationId, title });
           resolve(result);
         }
       );
     });
   }
 
-  static subscribeToLocationUpdates(locationId, userId) {
+  static subscribeToLocationUpdates(locationId, userId, details = {}) {
     return new Promise((resolve, reject) => {
       buildfire.publicData.update(locationId, {
         $push: { subscribers: userId }
       }, Locations.TAG, (err, res) => {
         if (err) return reject(err);
-        sendContractEvent('locationSubscribed', { locationId, userId });
+        sendContractEvent('locationSubscribed', {
+          locationId, userId, title: details.title || null, user: contractEventUser(details.user)
+        });
         resolve(res);
       });
     });
   }
 
-  static unsubscribeFromLocationUpdates(locationId, userId) {
+  static unsubscribeFromLocationUpdates(locationId, userId, details = {}) {
     return new Promise((resolve, reject) => {
       buildfire.publicData.update(locationId, {
         $pull: { subscribers: userId }
       }, Locations.TAG, (err, res) => {
         if (err) return reject(err);
-        sendContractEvent('locationUnsubscribed', { locationId, userId });
+        sendContractEvent('locationUnsubscribed', {
+          locationId, userId, title: details.title || null, user: contractEventUser(details.user)
+        });
         resolve(res);
       });
     });

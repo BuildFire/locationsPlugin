@@ -13,7 +13,9 @@ import {
   getActiveTemplate,
   cropImage,
 } from '../util/helpers';
-import { generateUUID, sendContractEvent } from '../global/helpers';
+import {
+  generateUUID, sendContractEvent, contractLocationDetails, contractEventDate, contractEventUser
+} from '../global/helpers';
 import { uploadImages, validateDayOverlap } from '../util/forms';
 import { navigateTo, resetBodyScroll } from '../util/ui';
 import Accordion from './components/Accordion';
@@ -215,7 +217,11 @@ const updateLocation = (locationId, location) => {
   location.lastUpdatedBy = state.sanitizedCurrentUser;
   const promiseChain = [
     Locations.update(locationId, location.toJSON()).then((result) => {
-      sendContractEvent('locationUpdated', { locationId, title: location.title });
+      sendContractEvent('locationUpdated', {
+        ...contractLocationDetails(locationId, location),
+        lastUpdatedOn: contractEventDate(location.lastUpdatedOn),
+        lastUpdatedBy: contractEventUser(location.lastUpdatedBy)
+      });
       return result;
     }),
     DeepLink.registerDeeplink(location),

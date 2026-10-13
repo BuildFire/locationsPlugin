@@ -27,7 +27,7 @@
       "headlessSdk"
     ]
   },
-  "description": "Changes a location's main details, leaving everything not mentioned as it was.",
+  "description": "Changes a location's details, leaving everything not mentioned as it was.",
   "parameters": {
     "title": {
       "type": "string",
@@ -42,6 +42,14 @@
       "required": false,
       "description": "The location's new title. Leave it out to keep the current title; it can't be removed.",
       "sampleValue": "[new location title]"
+    },
+    "newSubtitle": {
+      "type": "string",
+      "displayName": "New subtitle",
+      "required": false,
+      "nullable": true,
+      "description": "The location's new subtitle. Leave it out to keep the current subtitle, or leave it empty to remove it.",
+      "sampleValue": "[new location subtitle]"
     },
     "newAddress": {
       "type": "string",
@@ -67,6 +75,14 @@
       "maxValue": 180,
       "description": "The new longitude of the map pin. Leave it out to keep the current position; it changes only together with newLatitude.",
       "sampleValue": -117.1601157
+    },
+    "newAddressAlias": {
+      "type": "string",
+      "displayName": "New custom name",
+      "required": false,
+      "nullable": true,
+      "description": "The location's new custom name. Leave it out to keep the current one, or leave it empty to remove it, so the address shows instead.",
+      "sampleValue": "[address display name]"
     },
     "newDescription": {
       "type": "string",
@@ -97,6 +113,121 @@
       "nullable": true,
       "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
       "sampleValue": "[subcategory title]"
+    },
+    "newPriceRange": {
+      "type": "select",
+      "displayName": "New price range",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": 1
+        },
+        {
+          "label": "$$",
+          "value": 2
+        },
+        {
+          "label": "$$$",
+          "value": 3
+        },
+        {
+          "label": "$$$$",
+          "value": 4
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The location's new price range. Leave it out to keep the current one; it can't be removed.",
+      "sampleValue": 2
+    },
+    "newPriceCurrency": {
+      "type": "select",
+      "displayName": "New currency",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": "$"
+        },
+        {
+          "label": "€",
+          "value": "€"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The currency sign for the price range. Leave it out to keep the current one; it can't be removed.",
+      "sampleValue": "$"
+    },
+    "newMarkerType": {
+      "type": "select",
+      "displayName": "New marker type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Pin",
+          "value": "pin"
+        },
+        {
+          "label": "Circle",
+          "value": "circle"
+        },
+        {
+          "label": "Image",
+          "value": "image"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How the location is drawn on the map. Leave it out to keep the current marker; it can't be removed. Switching to Circle without a color uses red; switching to Image needs a marker image.",
+      "sampleValue": "circle"
+    },
+    "newMarkerColor": {
+      "type": "string",
+      "displayName": "New marker color",
+      "required": false,
+      "description": "The circle marker's new rgb() or rgba() color. Leave it out to keep the current color; it can't be removed.",
+      "sampleValue": "rgba(253,35,5,1)"
+    },
+    "newMarkerImage": {
+      "type": "image",
+      "displayName": "New marker image",
+      "required": false,
+      "description": "The image marker's new picture. Leave it out to keep the current one; it can't be removed.",
+      "sampleValue": "[image url]"
+    },
+    "newShowCategory": {
+      "type": "boolean",
+      "displayName": "Show category",
+      "required": false,
+      "description": "Whether the category is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+      "sampleValue": true
+    },
+    "newShowOpeningHours": {
+      "type": "boolean",
+      "displayName": "Show opening hours",
+      "required": false,
+      "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+      "sampleValue": true
+    },
+    "newShowPriceRange": {
+      "type": "boolean",
+      "displayName": "Show price range",
+      "required": false,
+      "description": "Whether the price range is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+      "sampleValue": true
+    },
+    "newShowStarRating": {
+      "type": "boolean",
+      "displayName": "Show star rating",
+      "required": false,
+      "description": "Whether the star rating is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+      "sampleValue": true
+    },
+    "pinned": {
+      "type": "boolean",
+      "displayName": "Pin to top",
+      "required": false,
+      "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
+      "sampleValue": true
     },
     "callback": {
       "type": "function",

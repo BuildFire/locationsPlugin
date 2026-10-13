@@ -170,6 +170,27 @@ const sendContractEvent = (name, data) => {
   } catch (e) { /* an event that cannot be sent must not fail the action that caused it */ }
 };
 
+/** A date as contract events send it (mirrors contractEventDate in src/widget/js/global/helpers.js). */
+const eventDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
+/** What every location event says about the location (mirrors contractLocationDetails). */
+const eventLocationDetails = (locationId, loc = {}) => {
+  const coordinates = loc.coordinates || {};
+  return {
+    locationId,
+    title: loc.title || null,
+    subtitle: loc.subtitle || null,
+    address: loc.address || null,
+    latitude: typeof coordinates.lat === 'number' ? coordinates.lat : null,
+    longitude: typeof coordinates.lng === 'number' ? coordinates.lng : null,
+    listImage: loc.listImage || null
+  };
+};
+
 /** Tell the widget to refresh, as every control-panel save does; only the control frame has a widget to tell. */
 const syncWidget = (message) => {
   try {
@@ -201,19 +222,14 @@ const requireUserApproval = (message, callback) => {
 };
 
 /**
- * searchEngine.js and pushNotifications.js are not part of buildfire.min.js, and contract.html may
- * only load three scripts, so in a frame they are loaded on first use from the same scripts/ folder
- * buildfire.min.js came from. On the server the headless SDK provides them, or does not.
+ * searchEngine.js is not part of buildfire.min.js, and contract.html may only load three scripts,
+ * so in a frame it is loaded on first use from the same scripts/ folder
+ * buildfire.min.js came from. On the server the headless SDK provides it, or does not.
  */
 const SDK_SERVICES = {
   searchEngine: {
     path: 'buildfire/services/searchEngine/searchEngine.js',
     ready: () => !!(buildfire.services && buildfire.services.searchEngine)
-  },
-  pushNotifications: {
-    path: 'buildfire/services/notifications/pushNotifications.js',
-    ready: () => !!(buildfire.notifications && buildfire.notifications.pushNotification
-      && typeof buildfire.notifications.pushNotification.schedule === 'function')
   }
 };
 
@@ -971,7 +987,8 @@ const writeLocation = (id, loc, ctx, callback) => {
   loc.lastUpdatedBy = null;
   buildfire.publicData.update(id, locationDocument(loc), LOCATIONS_TAG, (err) => {
     if (err) return callback(toError(err));
-    sendContractEvent('locationUpdated', { locationId: id, title: loc.title });
+    // Contract writes act as the app, so there is no person to name as the editor.
+    sendContractEvent('locationUpdated', { ...eventLocationDetails(id, loc), lastUpdatedOn: eventDate(loc.lastUpdatedOn), lastUpdatedBy: null });
     const deeplinkRegistered = registerDeeplink(id, loc);
     indexLocation(id, loc, (searchIndexed) => {
       syncLocations();
@@ -1081,7 +1098,7 @@ const runBatch = (spec, listName, options, callback) => {
 /**
  * Hands an action entries that cannot carry the named params, refusing an entry that tries rather
  * than reading params the operation never declared. Used where a batch entry can't hold list fields
- * (gallery images, action buttons), and to keep a micro basic operation to the params it declares.
+ * (gallery images, action buttons), and to keep a basic operation to the params it declares.
  */
 const withoutFields = (spec, names, why) => {
   const strip = (entry) => {
@@ -1104,15 +1121,11 @@ const withoutFields = (spec, names, why) => {
 const inBatch = (field) => `${field} can't be part of a batch entry`;
 const onlyAdvanced = (advanced) => (field) => `${field} is only taken by ${advanced}`;
 
-// What the micro basic operations skip; their advanced alternatives take it (rule: basic is micro).
-const LOCATION_CREATE_SECONDARY = [
-  'subtitle', 'addressAlias', 'priceRange', 'priceCurrency', 'markerType', 'markerColor', 'markerImage',
-  'showCategory', 'showOpeningHours', 'showPriceRange', 'showStarRating', 'pinned', 'images', 'actionItems'
-];
-const LOCATION_UPDATE_SECONDARY = [
-  'newSubtitle', 'newAddressAlias', 'newPriceRange', 'newPriceCurrency', 'newMarkerType', 'newMarkerColor', 'newMarkerImage',
-  'newShowCategory', 'newShowOpeningHours', 'newShowPriceRange', 'newShowStarRating', 'pinned', 'newImages', 'newActionItems'
-];
+// What the basic createLocation / updateLocation don't take: the gallery and action buttons are lists,
+// and adding a list would cost those existing operations their form use. Their advanced alternatives
+// take them. Every other field is the same on both sides of each pair.
+const LOCATION_CREATE_SECONDARY = ['images', 'actionItems'];
+const LOCATION_UPDATE_SECONDARY = ['newImages', 'newActionItems'];
 
 // ---------------------------------------------------------------------------
 // Location actions
@@ -1202,7 +1215,7 @@ const createLocationAction = (byId) => {
         buildfire.publicData.insert(locationDocument(loc), LOCATIONS_TAG, (err, record) => {
           if (err) return cb(toError(err));
           const { id } = record;
-          sendContractEvent('locationCreated', { locationId: id, title: loc.title });
+          sendContractEvent('locationCreated', { ...eventLocationDetails(id, loc), createdOn: eventDate(loc.createdOn), createdBy: null });
           const analyticsRegistered = registerViewedEvent(id, loc.title);
           const deeplinkRegistered = registerDeeplink(id, loc);
           indexLocation(id, loc, (searchIndexed) => {
@@ -1233,7 +1246,7 @@ const updateLocationAction = (byId) => {
   return {
     validate: (entry) => firstProblem([
       byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
-      // The basic operation is micro: it names only the fields it declares.
+      // The basic operation names only the fields it declares (no gallery or action buttons).
       requireAnyGiven(entry, byId ? fields : fields.filter((f) => LOCATION_UPDATE_SECONDARY.indexOf(f) === -1)),
       // Subtitle, custom name and categories can be emptied in the location form; nothing else can.
       findClearedProblem(entry, fields.filter((f) => ['newSubtitle', 'newAddressAlias', categoriesParam, subcategoriesParam, 'newImages', 'newActionItems'].indexOf(f) === -1)),
@@ -1342,7 +1355,7 @@ const deleteLocationAction = (byId) => ({
   apply: (entry, target, ctx, cb) => {
     buildfire.publicData.delete(target.id, LOCATIONS_TAG, (err) => {
       if (err) return cb(toError(err));
-      sendContractEvent('locationDeleted', { locationId: target.id });
+      sendContractEvent('locationDeleted', { locationId: target.id, title: target.data.title || null });
       const deeplinkRemoved = unregisterDeeplink(target.id);
       unindexLocation(target.id, (searchEntryRemoved) => {
         syncLocations();
@@ -1460,50 +1473,27 @@ const deleteSubscriberAction = (byId) => ({
   apply: (entry, target, ctx, cb) => {
     buildfire.publicData.update(target.id, { $pull: { subscribers: target.userId } }, LOCATIONS_TAG, (err) => {
       if (err) return cb(toError(err));
-      sendContractEvent('locationUnsubscribed', { locationId: target.id, userId: target.userId });
+      // Only the id is in hand here; the person's name would need another lookup.
+      sendContractEvent('locationUnsubscribed', {
+        locationId: target.id, userId: target.userId, title: target.title || null, user: { userId: target.userId, displayName: null }
+      });
       cb(null, { removed: true, locationId: target.id, userId: target.userId });
     });
   },
   idOf: (target) => target.id
 });
 
-/** sendLocationNotification's action: the "Notify Users of Location Update" dialog, as the app. */
-const sendNotificationAction = (byId) => ({
-  validate: (entry) => firstProblem([
-    byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
-    checkString(entry, 'notificationTitle', { required: true }),
-    checkString(entry, 'message', { required: true })
-  ]),
-  resolve: (entry, ctx, cb) => {
-    readSettings((err, { settings } = {}) => {
-      if (err) return cb(err);
-      // The notify button only exists while location subscribing is on.
-      if (!settings.subscription.enabled) return cb(new Error('Location subscribing is turned off for this plugin'));
-      findLocation(entry, byId, (locErr, record) => {
-        if (locErr) return cb(locErr);
-        const subscribers = record.data.subscribers || [];
-        if (!subscribers.length) return cb(new Error(`"${record.data.title}" has no subscribers to notify`));
-        cb(null, { id: record.id, title: record.data.title, subscribers });
-      });
-    });
-  },
-  approval: (entries, targets) => `Send "${entries[0].notificationTitle}" to the ${targets[0].subscribers.length} people following "${targets[0].title}"?`,
-  apply: (entry, target, ctx, cb) => {
-    ensureSdkService('pushNotifications', (loadErr) => {
-      if (loadErr) return cb(loadErr);
-      buildfire.notifications.pushNotification.schedule({
-        title: entry.notificationTitle,
-        text: entry.message,
-        users: target.subscribers,
-        queryString: `&dld=${encodeURIComponent(JSON.stringify({ locationId: target.id }))}`
-      }, (err, result) => {
-        if (err) return cb(toError(err));
-        cb(null, { sent: true, recipientCount: target.subscribers.length, notificationId: (result && (result.id || result._id)) || null });
-      });
-    });
-  },
-  idOf: (target) => target.id
-});
+/**
+ * sendLocationNotification and its advanced alternative are kept declared so existing callers get a
+ * clear answer, but a push whose recipients and text the caller chooses is a standalone send, which
+ * the contract no longer allows (skill rule 3 / learned rule 29). Both fail through the callback
+ * without reading or sending anything. The plugin's own notify dialog is unchanged.
+ */
+const SENDING_UNAVAILABLE = 'Sending notifications to a location\'s followers is no longer available here; send it from the plugin instead';
+const refuseSend = (options, callback) => {
+  requireCallback(callback);
+  callback(new Error(SENDING_UNAVAILABLE), undefined);
+};
 
 /** updatePinnedLocationOrder's action: the intro screen's drag-to-reorder of pinned locations. */
 const pinnedOrderAction = (byId) => {
@@ -2158,6 +2148,239 @@ const setFieldEnabled = (entry, enabled) => {
 // widgetContract
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Language strings — the control panel's Language tab (control/strings/strings.js)
+// ---------------------------------------------------------------------------
+
+// The only language the Language tab edits; it loads 'en-us' and offers no other.
+const LANGUAGE = 'en-us';
+// Mirrors buildfire.services.Strings#collectionName (src/shared/strings.js).
+const LANGUAGE_TAG = `$bfLanguageSettings_${LANGUAGE}`;
+
+// Generated from src/shared/stringsConfig.js; keep in step with it (and with the stringKey enums in
+// plugin.contract.json). Each row: key (section.label), section title, label title, default text,
+// required, maxLength (0 = no limit), isPlaceHolder.
+const LANGUAGE_STRINGS = [
+  ['general.search', 'General', 'Search', 'Search', false, 25, true],
+  ['general.price', 'General', 'Price', 'Price', true, 10, false],
+  ['general.currency', 'General', 'Currency', 'Currency', true, 10, false],
+  ['general.reset', 'General', 'Reset', 'Reset', true, 10, false],
+  ['general.notAvailable', 'General', 'N/A', 'N/A', false, 10, false],
+  ['general.open', 'General', 'Open', 'Open', true, 8, false],
+  ['general.closed', 'General', 'Closed', 'Closed', true, 8, false],
+  ['general.bookmark', 'General', 'Bookmark', 'Bookmark', true, 9, false],
+  ['general.bookmarks', 'General', 'Bookmarks', 'Bookmarks', true, 12, false],
+  ['general.bookmarkResults', 'General', 'Bookmark Results', 'Bookmark Results', false, 16, false],
+  ['general.enterBookmarkTitleHere', 'General', 'Enter bookmark title here', 'Enter bookmark title here', false, 50, false],
+  ['general.rateThisLocation', 'General', 'Rate This Location', 'Rate This Location', true, 40, false],
+  ['general.findWithinThisArea', 'General', 'Find Within This Area', 'Find within this area', true, 25, false],
+  ['general.findMore', 'General', 'Find More', 'Find More', true, 20, false],
+  ['general.nearYou', 'General', 'Near You', 'Near You', true, 40, false],
+  ['general.otherLocations', 'General', 'Other Locations', 'Other Locations', true, 40, false],
+  ['general.distanceUnitKm', 'General', 'KM', 'KM', true, 2, false],
+  ['general.distanceUnitMi', 'General', 'mi', 'mi', true, 2, false],
+  ['general.distanceUnitFt', 'General', 'ft', 'ft', true, 2, false],
+  ['general.openHours', 'General', 'Open Hours', 'Open Hours', false, 25, false],
+  ['general.monday', 'General', 'Monday', 'Monday', true, 25, false],
+  ['general.sunday', 'General', 'Sunday', 'Sunday', true, 25, false],
+  ['general.tuesday', 'General', 'Tuesday', 'Tuesday', true, 25, false],
+  ['general.wednesday', 'General', 'Wednesday', 'Wednesday', true, 25, false],
+  ['general.thursday', 'General', 'Thursday', 'Thursday', true, 25, false],
+  ['general.friday', 'General', 'Friday', 'Friday', true, 25, false],
+  ['general.saturday', 'General', 'Saturday', 'Saturday', true, 25, false],
+  ['general.follow', 'General', 'Follow', 'follow', true, 25, false],
+  ['general.following', 'General', 'Following', 'Following', true, 25, false],
+  ['general.purchaseSuccessful', 'General', 'Purchase Successful', 'Congratulations! You can add a location now.', true, 50, false],
+  ['general.purchaseCancelled', 'General', 'Purchase Cancelled', 'Purchase cancelled. No charges were made.', true, 50, false],
+  ['general.genericError', 'General', 'Generic Error', 'Something went wrong. Please try again.', true, 50, false],
+  ['general.pwaUnsupported', 'General', 'PWA Unsupported', 'Subscriptions are not supported on PWA. Please use the mobile app to add a new location.', true, 100, false],
+  ['general.appStoreNotAccessible', 'General', 'App Store Not Accessible', 'App store is not accessible.', true, 50, false],
+  ['general.promotionalOffersNotSupported', 'General', 'Promotional Offers Not Supported', 'Promotional offers are not supported', true, 50, false],
+  ['general.noSubscriptionsFound', 'General', 'No Subscriptions Found', 'No subscriptions were found', true, 50, false],
+  ['sortingOptions.alphabeticalAsc', 'Sorting Options', 'Title (A-Z)', 'Title (A-Z)', true, 12, false],
+  ['sortingOptions.alphabeticalDsc', 'Sorting Options', 'Title (Z-A)', 'Title (Z-A)', true, 12, false],
+  ['sortingOptions.distance', 'Sorting Options', 'Distance', 'Distance', true, 12, false],
+  ['sortingOptions.recommended', 'Sorting Options', 'Recommended', 'Recommended', true, 12, false],
+  ['sortingOptions.priceDsc', 'Sorting Options', '$$$ - $', '$$$ - $', true, 12, false],
+  ['sortingOptions.priceAsc', 'Sorting Options', '$ - $$$', '$ - $$$', true, 12, false],
+  ['sortingOptions.recent', 'Sorting Options', 'Recent', 'Recent', true, 12, false],
+  ['sortingOptions.mostViewed', 'Sorting Options', 'Most Viewed', 'Most Viewed', true, 12, false],
+  ['locationEditing.controlNote', 'Location Creating/Editing', 'For full customization options go to the admin Control Panel.', 'For full customization options go to the admin Control Panel.', true, 100, false],
+  ['locationEditing.locationDetails', 'Location Creating/Editing', 'Location Details', 'Location Details', false, 25, false],
+  ['locationEditing.locationName', 'Location Creating/Editing', 'Location Title', 'Location Title', true, 35, false],
+  ['locationEditing.locationAddress', 'Location Creating/Editing', 'Location Address', 'Location Address', true, 35, false],
+  ['locationEditing.additionalDetails', 'Location Creating/Editing', 'Additional Details', 'Additional Details', true, 35, false],
+  ['locationEditing.locationCustomLabel', 'Location Creating/Editing', 'Location Custom Label', 'Label (optional)', true, 35, false],
+  ['locationEditing.locationStreetNameAndNumber', 'Location Creating/Editing', 'Street Name and Number', 'Street Name and Number', true, 35, false],
+  ['locationEditing.locationCustomName', 'Location Creating/Editing', 'Location Custom Name', 'Location Custom Name', true, 35, false],
+  ['locationEditing.locationSubtitle', 'Location Creating/Editing', 'Location Subtitle', 'Location Subtitle', true, 35, false],
+  ['locationEditing.locationDescription', 'Location Creating/Editing', 'Location Description', 'Location Description', true, 300, false],
+  ['locationEditing.descriptionDialogPlaceholder', 'Location Creating/Editing', 'Enter your description here', 'Enter your description here', true, 30, false],
+  ['locationEditing.descriptionDialogSave', 'Location Creating/Editing', 'Save', 'Save', true, 9, false],
+  ['locationEditing.descriptionDialogCancel', 'Location Creating/Editing', 'Cancel', 'Cancel', true, 9, false],
+  ['locationEditing.categories', 'Location Creating/Editing', 'Categories', 'Categories', false, 25, false],
+  ['locationEditing.chooseCategory', 'Location Creating/Editing', 'Choose Category', 'Choose Category', false, 30, false],
+  ['locationEditing.starRating', 'Location Creating/Editing', 'Star Rating', 'Star Rating', true, 25, false],
+  ['locationEditing.showCategory', 'Location Creating/Editing', 'Show Category on Location Screen', 'Show Category on Location Screen', true, 25, false],
+  ['locationEditing.enableEditing', 'Location Creating/Editing', 'Enable Editing', 'Enable Editing', true, 25, false],
+  ['locationEditing.priceRange', 'Location Creating/Editing', 'Price Range', 'Price Range', true, 25, false],
+  ['locationEditing.listImage', 'Location Creating/Editing', 'List Image', 'List Image', true, 25, false],
+  ['locationEditing.listImageNote', 'Location Creating/Editing', 'This is the main location image displayed next to the location info in a list view.', 'This is the main location image displayed next to the location info in a list view.', true, 110, false],
+  ['locationEditing.mapNote', 'Location Creating/Editing', 'If you need adjustments, drag the map so the pin matches the exact location of your place.', 'If you need adjustments, drag the map so the pin matches the exact location of your place.', true, 110, false],
+  ['locationEditing.locationImages', 'Location Creating/Editing', 'Location Images', 'Location Images', true, 25, false],
+  ['locationEditing.locationImagesNote', 'Location Creating/Editing', 'These are the location details images. First image in the list will be displayed as location’s main image.', 'These are the location details images. First image in the list will be displayed as location’s main image.', true, 110, false],
+  ['locationEditing.monday', 'Location Creating/Editing', 'Mon', 'Mon', true, 10, false],
+  ['locationEditing.tuesday', 'Location Creating/Editing', 'Tue', 'Tue', true, 10, false],
+  ['locationEditing.wednesday', 'Location Creating/Editing', 'Wed', 'Wed', true, 10, false],
+  ['locationEditing.thursday', 'Location Creating/Editing', 'Thu', 'Thu', true, 10, false],
+  ['locationEditing.friday', 'Location Creating/Editing', 'Fri', 'Fri', true, 10, false],
+  ['locationEditing.saturday', 'Location Creating/Editing', 'Sat', 'Sat', true, 10, false],
+  ['locationEditing.sunday', 'Location Creating/Editing', 'Sun', 'Sun', true, 10, false],
+  ['locationEditing.fieldRequired', 'Location Creating/Editing', 'This field is required', 'This field is required', true, 25, false],
+  ['locationEditing.required', 'Location Creating/Editing', 'Required', 'Required', true, 25, false],
+  ['locationEditing.invalidTime', 'Location Creating/Editing', 'Choose an end time later than the start time.', 'Choose an end time later than the start time.', true, 45, false],
+  ['locationEditing.overlappingHours', 'Location Creating/Editing', 'Opening hours are overlapping for this day.', 'Opening hours are overlapping for this day.', true, 50, false],
+  ['locationEditing.confirmEditingTitle', 'Location Creating/Editing', 'Enable Editing', 'Enable Editing', true, 25, false],
+  ['locationEditing.confirmEditingMessage', 'Location Creating/Editing', 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?', 'The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?', true, 210, false],
+  ['locationEditing.confirmEditingConfirm', 'Location Creating/Editing', 'Confirm', 'Confirm', true, 15, false],
+  ['locationEditing.confirmEditingCancel', 'Location Creating/Editing', 'Cancel', 'Cancel', true, 15, false],
+  ['locationEditing.enterEmailAddress', 'Location Creating/Editing', 'Enter email address', 'Enter email address', true, 50, false],
+  ['locationEditing.enterPhoneNumber', 'Location Creating/Editing', 'Enter phone number', 'Enter phone number', true, 50, false],
+  ['locationEditing.enterURL', 'Location Creating/Editing', 'Enter URL', 'Enter URL', true, 50, false],
+  ['locationEditing.addDescription', 'Location Creating/Editing', 'Add description', 'Add description', true, 50, false],
+  ['locationEditing.enterDetails', 'Location Creating/Editing', 'Enter details', 'Enter details', true, 50, false],
+  ['locationEditing.validEmail', 'Location Creating/Editing', 'Enter a valid email address', 'Enter a valid email address', true, 50, false],
+  ['locationEditing.validPhone', 'Location Creating/Editing', 'Enter a valid phone number', 'Enter a valid phone number', true, 50, false],
+  ['locationEditing.validURL', 'Location Creating/Editing', 'Enter a valid URL', 'Enter a valid URL', true, 50, false],
+  ['toast.bookmarksRemoved', 'Toast Messages', 'Bookmark Removed', 'Bookmark removed', true, 50, false],
+  ['toast.bookmarksAdded', 'Toast Messages', 'Bookmark Added', 'Bookmark added', true, 50, false],
+  ['toast.bookmarksError', 'Toast Messages', 'Couldn\'t bookmark', 'Couldn\'t bookmark', true, 50, false],
+  ['toast.uploadingImages', 'Toast Messages', 'Uploading Images', 'Uploading images', true, 50, false],
+  ['toast.uploadingComplete', 'Toast Messages', 'Uploading Images is Complete', 'Uploading Images is Complete', true, 50, false],
+  ['toast.uploadingFailed', 'Toast Messages', 'Uploading Images Failed', 'Uploading Images Failed', true, 50, false],
+  ['toast.locationSaved', 'Toast Messages', 'Location Saved', 'Location Saved', true, 50, false],
+  ['toast.alreadyReported', 'Toast Messages', 'This item is already reported', 'This item is already reported', true, 50, false],
+  ['toast.reportedSuccessfully', 'Toast Messages', 'Reported successfully', 'Reported successfully', true, 50, false],
+  ['toast.uploadedSuccessfully', 'Toast Messages', 'Thanks for sharing your photos', 'Thanks for sharing your photos', true, 50, false],
+  ['toast.subscribeToLocationUpdates', 'Toast Messages', 'You\'ll now get notifications for location updates.', 'You\'ll now get notifications for location updates.', true, 75, false],
+  ['toast.unSubscribeFromLocationUpdates', 'Toast Messages', 'You\'ll no longer get notifications for location updates.', 'You\'ll no longer get notifications for location updates.', true, 75, false],
+  ['toast.sendNotificationSuccess', 'Toast Messages', 'Notification sent successfully', 'Notification sent successfully.', true, 75, false],
+  ['toast.sendNotificationFailed', 'Toast Messages', 'Notification failed', 'Failed to send notification. Please try again later.', true, 75, false],
+  ['toast.locationHasNoSubscribers', 'Toast Messages', 'Location has no subscribers', 'This location has no subscribers to notify', true, 75, false],
+  ['toast.locationDeleted', 'Toast Messages', 'Location Deleted', 'This location has been deleted.', true, 75, false],
+  ['toast.somethingWentWrong', 'Toast Messages', 'Something went wrong', 'Something went wrong', true, 50, false],
+  ['details.bookmark', 'Details Page', 'Bookmark', 'Bookmark', true, 25, false],
+  ['details.reportAbuse', 'Details Page', 'Report Abuse', 'Report Abuse', true, 25, false],
+  ['details.share', 'Details Page', 'Share', 'Share', true, 25, false],
+  ['details.edit', 'Details Page', 'Edit', 'Edit', true, 25, false],
+  ['details.notifySubscribers', 'Details Page', 'Notify Subscribers', 'Notify Subscribers', true, 50, false],
+  ['details.addPhotos', 'Details Page', 'Add Photos', 'Add Photos', true, 25, false],
+  ['details.contributorPrefix', 'Details Page', 'Contributor Name Prefix', 'by', true, 15, false],
+  ['details.unknownContributor', 'Details Page', 'Unknown Contributor', 'Someone', true, 25, false],
+  ['details.newPushNotification', 'Details Page', 'New Push Notification Title', 'New Push Notification', true, 50, false],
+  ['details.notificationWarningNote', 'Details Page', 'Notification Note', 'Notify users about changes to this location. Only users who have subscribed to this location will receive this notification.', true, 150, false],
+  ['details.notificationTitlePlaceholder', 'Details Page', 'Notification Title Placeholder', 'Title', true, 50, false],
+  ['details.notificationMessagePlaceholder', 'Details Page', 'Notification Message Placeholder', 'Message', true, 50, false],
+  ['details.done', 'Details Page', 'Done', 'Done', true, 9, false],
+  ['details.cancel', 'Details Page', 'Cancel', 'Cancel', true, 9, false],
+  ['details.notificationSend', 'Details Page', 'Send', 'Send', true, 15, false],
+  ['emptyState.emptyCategories', 'Empty State', 'No Categories Added', 'No Categories Added', false, 30, false],
+  ['emptyState.locationsListBeforeSearch', 'Empty State', 'Start your search', 'Start your search', false, 40, false],
+  ['emptyState.locationsListAfterSearch', 'Empty State', 'No locations found within this area', 'No locations found within this area', false, 40, false]
+].map(([key, section, label, defaultValue, required, maxLength, isPlaceHolder]) => ({
+  key, section, label, defaultValue, required, maxLength, isPlaceHolder
+}));
+const languageStringByKey = (key) => LANGUAGE_STRINGS.find((row) => row.key === key);
+
+/**
+ * The language document as Strings#init leaves it: every label from the config with its default,
+ * then every stored value laid over it (stored labels the config no longer has are kept). Read with
+ * search, as Strings#refresh does, because datastore.get has an edge-case bug with this tag.
+ */
+const readLanguageStrings = (callback) => {
+  buildfire.datastore.search({ limit: 1 }, LANGUAGE_TAG, (err, rows) => {
+    if (err) return callback(toError(err));
+    const data = {};
+    LANGUAGE_STRINGS.forEach((row) => {
+      const [sectionKey, labelKey] = row.key.split('.');
+      if (!data[sectionKey]) data[sectionKey] = {};
+      // undefined flags are dropped when saved, exactly as the Strings constructor's are.
+      data[sectionKey][labelKey] = {
+        defaultValue: row.defaultValue,
+        required: row.required || undefined,
+        isPlaceHolder: row.isPlaceHolder || undefined
+      };
+    });
+    const stored = (Array.isArray(rows) && rows[0] && rows[0].data) || {};
+    Object.keys(stored).forEach((sectionKey) => {
+      if (!isObject(stored[sectionKey])) return;
+      if (!data[sectionKey]) data[sectionKey] = {};
+      Object.keys(stored[sectionKey]).forEach((labelKey) => {
+        if (!data[sectionKey][labelKey]) data[sectionKey][labelKey] = {};
+        const saved = stored[sectionKey][labelKey];
+        data[sectionKey][labelKey].value = isObject(saved) ? saved.value : undefined;
+      });
+    });
+    callback(null, data);
+  });
+};
+
+/** One string as getLanguageStrings shows it; `text` is what the app shows, as Strings#get decides. */
+const languageStringView = (row, data) => {
+  const [sectionKey, labelKey] = row.key.split('.');
+  const value = data[sectionKey] && data[sectionKey][labelKey] ? data[sectionKey][labelKey].value : undefined;
+  const custom = typeof value === 'string' ? value : null;
+  const showsCustom = !!custom || (custom === '' && !row.required);
+  return {
+    key: row.key,
+    section: row.section,
+    label: row.label,
+    customText: custom,
+    defaultText: row.defaultValue,
+    text: showsCustom ? custom : row.defaultValue,
+    required: row.required,
+    maxLength: row.maxLength || null
+  };
+};
+
+/**
+ * updateLanguageString's action. The tab's inputs are `required` and `maxLength` inputs saved only
+ * when checkValidity() passes, so a required string can't be emptied and nothing longer than its
+ * limit is kept. An emptied optional string is stored as '' (what the input holds), which the app
+ * shows as blank; null is stored the same way, as the tab never stores null.
+ */
+const updateLanguageStringAction = () => ({
+  validate: (entry) => {
+    const problem = firstProblem([
+      isGiven(entry.stringKey) ? null : 'Missing required parameter: stringKey',
+      !isGiven(entry.stringKey) || languageStringByKey(entry.stringKey) ? null : `There is no app text "${entry.stringKey}"`,
+      isGiven(entry.value) ? null : 'value is required; pass the new text, or leave it empty to clear an optional string'
+    ]);
+    if (problem) return problem;
+    const row = languageStringByKey(entry.stringKey);
+    if (isCleared(entry.value)) return row.required ? `"${row.label}" can't be emptied` : null;
+    if (typeof entry.value !== 'string') return 'value must be text';
+    if (row.maxLength && entry.value.length > row.maxLength) return `"${row.label}" can be at most ${row.maxLength} characters`;
+    return null;
+  },
+  resolve: (entry, ctx, cb) => cb(null, languageStringByKey(entry.stringKey)),
+  keyOf: (entry, target) => target.key,
+  apply: (entry, target, ctx, cb) => {
+    readLanguageStrings((err, data) => {
+      if (err) return cb(err);
+      const [sectionKey, labelKey] = target.key.split('.');
+      data[sectionKey][labelKey].value = isCleared(entry.value) ? '' : entry.value;
+      // Strings#save: the whole document, then the tab tells the widget to reload its strings.
+      buildfire.datastore.save(data, LANGUAGE_TAG, (saveErr) => {
+        if (saveErr) return cb(toError(saveErr));
+        syncWidget({ cmd: 'sync', scope: 'strings' });
+        cb(null, { string: languageStringView(target, data) });
+      });
+    });
+  },
+  idOf: (target) => target.key
+});
+
 widgetContract = {
   /**
    * Bind this contract to a plugin instance. Called by the consumer; resolves
@@ -2405,25 +2628,22 @@ widgetContract = {
 
   /**
    * hosts: widgetForeground, controlForeground, headlessSdk. usage: basic; its advanced alternative
-   * is sendLocationNotificationAdvanced. The "Notify Users of Location Update" dialog (control
-   * panel) and notification form (widget): a push to everyone following the location, sent as the
-   * app, refused while location subscribing is off or when nobody follows it. Foreground in both
-   * frames because it reaches real people, so the person watching approves it first
-   * (requireUserApproval). buildfire.notifications.pushNotification.schedule is server-safe, so it
-   * keeps headlessSdk, where the MCP server confirms instead; in a frame pushNotifications.js is
-   * loaded on first use. A send to several people is this operation's audience, so it has no batch.
+   * is sendLocationNotificationAdvanced. No longer available: it used to push a caller-written
+   * message to everyone following a location, a standalone send the contract no longer allows. Kept
+   * declared, with its name, params and hosts unchanged, so callers get a clear error (refuseSend)
+   * instead of an unknown operation; it reads and sends nothing, so it asks for no approval.
    * @param {{ title: string, notificationTitle: string, message: string }} options
-   * @param {function(Error=, object=)} callback - (error, { sent, recipientCount, notificationId })
+   * @param {function(Error=)} callback - (error) always set.
    */
-  sendLocationNotification(options, callback) { runAction(sendNotificationAction(false), options, callback); },
+  sendLocationNotification(options, callback) { refuseSend(options, callback); },
 
   /**
    * hosts: widgetForeground, controlForeground, headlessSdk. usage: advanced; the alternative of
-   * sendLocationNotification, taking the location's record id. Same approval step.
+   * sendLocationNotification, taking the location's record id. No longer available, like it.
    * @param {{ locationId: string, notificationTitle: string, message: string }} options
-   * @param {function(Error=, object=)} callback - (error, { sent, recipientCount, notificationId })
+   * @param {function(Error=)} callback - (error) always set.
    */
-  sendLocationNotificationAdvanced(options, callback) { runAction(sendNotificationAction(true), options, callback); },
+  sendLocationNotificationAdvanced(options, callback) { refuseSend(options, callback); },
 
   /**
    * hosts: controlBackground, headlessSdk. usage: basic. The Categories tab's Add Category save
@@ -2818,7 +3038,45 @@ widgetContract = {
    * @param {{ fields: Array<{ fieldId: string }> }} options
    * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
-  deleteLocationFieldsAdvanced(options, callback) { runBatch(deleteFieldAction(true), 'fields', options, callback); }
+  deleteLocationFieldsAdvanced(options, callback) { runBatch(deleteFieldAction(true), 'fields', options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic. The Language tab as it loads
+   * (Strings#init): every app text in the 'en-us' language document, its default from
+   * src/shared/stringsConfig.js and any custom text the owner saved, with `text` being what the app
+   * shows (Strings#get). Uses only buildfire.datastore, so it runs the same in the control panel and
+   * on the server. No widget host: the texts are the owner's configuration. Background.
+   * @param {object} options - takes no parameters.
+   * @param {function(Error=, object=)} callback - (error, { strings })
+   */
+  getLanguageStrings(options, callback) {
+    if (!checkOptions(options, callback)) return;
+    readLanguageStrings((err, data) => {
+      if (err) return callback(err, undefined);
+      callback(null, { strings: LANGUAGE_STRINGS.map((row) => languageStringView(row, data)) });
+    });
+  },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: basic. Editing one text box on the Language tab and
+   * pressing Save: the text is checked as the tab's input does (required, maxLength), laid over the
+   * stored document and saved whole with datastore.save, as Strings#save does, then the widget is told
+   * to reload its strings. A string is named by its fixed key, offered as a select, so there is no
+   * technical form and no advanced alternative. Uses only buildfire.datastore; syncWidget is a no-op
+   * off the control frame. No widget host. Background: it changes wording, it contacts no one.
+   * @param {{ stringKey: string, value: string|null }} options
+   * @param {function(Error=, object=)} callback - (error, { string })
+   */
+  updateLanguageString(options, callback) { runAction(updateLanguageStringAction(), options, callback); },
+
+  /**
+   * hosts: controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form
+   * of updateLanguageString. Every entry is checked before the first save; each entry is then saved
+   * in turn through the same action, so each one re-reads the document and keeps the others' edits.
+   * @param {{ strings: Array<{ stringKey: string, value: string|null }> }} options
+   * @param {function(Error=, object=)} callback - (error, { strings, succeeded, failed })
+   */
+  updateLanguageStringsAdvanced(options, callback) { runBatch(updateLanguageStringAction(), 'strings', options, callback); }
 };
 
 /**

@@ -1,0 +1,85 @@
+{
+  "name": "getLanguageStrings",
+  "displayName": "Get app texts",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getLanguageStrings",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows every text the app uses for this feature, such as button and message wording, with any changes the owner made.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the texts.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, if it didn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was found.",
+          "properties": {
+            "strings": {
+              "type": "array",
+              "description": "Every app text, in the Language tab's order.",
+              "items": {
+                "type": "object",
+                "description": "One app text.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Which text this is, as listed in the app text choices."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "The part of the app the text belongs to."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The text's name on the Language tab."
+                  },
+                  "customText": {
+                    "type": "string",
+                    "description": "The text the owner saved, if any."
+                  },
+                  "defaultText": {
+                    "type": "string",
+                    "description": "The text the app uses when none is saved."
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "The text the app shows now."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether the text can't be left empty."
+                  },
+                  "maxLength": {
+                    "type": "number",
+                    "description": "The most characters the text can have, if there is a limit."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

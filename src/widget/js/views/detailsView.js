@@ -12,7 +12,9 @@ import {
   isLocationOpen,
   cdnImage
 } from '../util/helpers';
-import { generateUUID, sendContractEvent } from '../global/helpers';
+import {
+  generateUUID, sendContractEvent, contractLocationDetails, contractEventDate, contractEventUser
+} from '../global/helpers';
 import { uploadImages } from '../util/forms';
 import accessManager from '../accessManager';
 import reportAbuse from '../reportAbuse';
@@ -67,7 +69,11 @@ export default {
     location.lastUpdatedBy = state.sanitizedCurrentUser;
     const promiseChain = [
       Locations.update(location.id, location.toJSON()).then((result) => {
-        sendContractEvent('locationUpdated', { locationId: location.id, title: location.title });
+        sendContractEvent('locationUpdated', {
+          ...contractLocationDetails(location.id, location),
+          lastUpdatedOn: contractEventDate(location.lastUpdatedOn),
+          lastUpdatedBy: contractEventUser(location.lastUpdatedBy)
+        });
         return result;
       }),
       DeepLink.registerDeeplink(location),
@@ -331,7 +337,9 @@ export default {
       selectedLocation.subscribers = selectedLocation.subscribers.filter((id) => id !== authManager.currentUser.userId);
       selectors.subscribeBtnLabel.textContent = window.strings.get('general.follow').v;
       selectors.subscribeBtn.className = 'mdc-button mdc-button--outlined bf-outlined-btn disabled-btn';
-      widgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
+      widgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId, {
+        title: selectedLocation.title, user: authManager.currentUser
+      }).then(() => {
         selectors.subscribeBtn.classList.remove('disabled-btn');
         showToastMessage('unSubscribeFromLocationUpdates');
       }).catch((err) => {
@@ -345,7 +353,9 @@ export default {
       selectedLocation.subscribers.push(authManager.currentUser.userId);
       selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
       selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated bf-outlined-btn disabled-btn';
-      widgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
+      widgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId, {
+        title: selectedLocation.title, user: authManager.currentUser
+      }).then(() => {
         selectors.subscribeBtn.classList.remove('disabled-btn');
         showToastMessage('subscribeToLocationUpdates');
       }).catch((err) => {

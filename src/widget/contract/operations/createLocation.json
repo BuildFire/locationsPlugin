@@ -36,6 +36,13 @@
       "description": "The location's title, shown on the map, in lists and on its details page.",
       "sampleValue": "[location title]"
     },
+    "subtitle": {
+      "type": "string",
+      "displayName": "Location subtitle",
+      "required": false,
+      "description": "A short line shown under the title. Leave it out for no subtitle.",
+      "sampleValue": "[location subtitle]"
+    },
     "address": {
       "type": "string",
       "displayName": "Address",
@@ -60,6 +67,13 @@
       "maxValue": 180,
       "description": "The longitude of the location's map pin, in degrees.",
       "sampleValue": -117.1601157
+    },
+    "addressAlias": {
+      "type": "string",
+      "displayName": "Location custom name",
+      "required": false,
+      "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address.",
+      "sampleValue": "[address display name]"
     },
     "description": {
       "type": "string",
@@ -88,6 +102,121 @@
       "required": false,
       "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Leave it out to pick no subcategory.",
       "sampleValue": "[subcategory title]"
+    },
+    "priceRange": {
+      "type": "select",
+      "displayName": "Price range",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": 1
+        },
+        {
+          "label": "$$",
+          "value": 2
+        },
+        {
+          "label": "$$$",
+          "value": 3
+        },
+        {
+          "label": "$$$$",
+          "value": 4
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How pricey the location is, from $ to $$$$. Defaults to $.",
+      "sampleValue": 2
+    },
+    "priceCurrency": {
+      "type": "select",
+      "displayName": "Currency",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": "$"
+        },
+        {
+          "label": "€",
+          "value": "€"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The currency sign the price range is shown with. Defaults to $.",
+      "sampleValue": "$"
+    },
+    "markerType": {
+      "type": "select",
+      "displayName": "Marker type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Pin",
+          "value": "pin"
+        },
+        {
+          "label": "Circle",
+          "value": "circle"
+        },
+        {
+          "label": "Image",
+          "value": "image"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How the location is drawn on the map. Defaults to a pin.",
+      "sampleValue": "pin"
+    },
+    "markerColor": {
+      "type": "string",
+      "displayName": "Marker color",
+      "required": false,
+      "description": "The circle marker's color as an rgb() or rgba() value. Used only when the marker type is Circle; defaults to red, rgba(253,35,5,1).",
+      "sampleValue": "rgba(253,35,5,1)"
+    },
+    "markerImage": {
+      "type": "image",
+      "displayName": "Marker image",
+      "required": false,
+      "description": "The picture used as the map marker. Required when the marker type is Image, ignored otherwise.",
+      "sampleValue": "[image url]"
+    },
+    "showCategory": {
+      "type": "boolean",
+      "displayName": "Show category",
+      "required": false,
+      "description": "Whether the location's category is shown on its details page. Defaults to true.",
+      "sampleValue": true
+    },
+    "showOpeningHours": {
+      "type": "boolean",
+      "displayName": "Show opening hours",
+      "required": false,
+      "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+      "sampleValue": false
+    },
+    "showPriceRange": {
+      "type": "boolean",
+      "displayName": "Show price range",
+      "required": false,
+      "description": "Whether the price range is shown on its details page. Defaults to false.",
+      "sampleValue": false
+    },
+    "showStarRating": {
+      "type": "boolean",
+      "displayName": "Show star rating",
+      "required": false,
+      "description": "Whether app users' star rating is shown on its details page. Defaults to false.",
+      "sampleValue": false
+    },
+    "pinned": {
+      "type": "boolean",
+      "displayName": "Pin to top",
+      "required": false,
+      "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
+      "sampleValue": false
     },
     "callback": {
       "type": "function",

@@ -3,73 +3,98 @@
     {
       "name": "locationCreated",
       "displayName": "Location Created",
-      "description": "Fired after a new location is saved, from the control panel, the app or this contract.",
+      "description": "A new location was added.",
       "data": [
         "locationId",
-        "title"
+        "title",
+        "subtitle",
+        "address",
+        "latitude",
+        "longitude",
+        "listImage",
+        "createdOn",
+        "createdBy"
       ]
     },
     {
       "name": "locationUpdated",
       "displayName": "Location Updated",
-      "description": "Fired after a location's details are saved, from the control panel, the app or this contract.",
+      "description": "A location's details were changed.",
+      "data": [
+        "locationId",
+        "title",
+        "subtitle",
+        "address",
+        "latitude",
+        "longitude",
+        "listImage",
+        "lastUpdatedOn",
+        "lastUpdatedBy"
+      ]
+    },
+    {
+      "name": "locationDeleted",
+      "displayName": "Location Deleted",
+      "description": "A location was permanently removed.",
       "data": [
         "locationId",
         "title"
       ]
     },
     {
-      "name": "locationDeleted",
-      "displayName": "Location Deleted",
-      "description": "Fired after a location is permanently removed.",
-      "data": [
-        "locationId"
-      ]
-    },
-    {
       "name": "locationSubscribed",
       "displayName": "Location Subscribed",
-      "description": "Fired after an app user starts following a location for update notifications.",
+      "description": "Someone started following a location for updates.",
       "data": [
         "locationId",
-        "userId"
+        "userId",
+        "title",
+        "user"
       ]
     },
     {
       "name": "locationUnsubscribed",
       "displayName": "Location Unsubscribed",
-      "description": "Fired after an app user stops following a location, whether they chose to or the app removed them.",
+      "description": "Someone stopped following a location, by choice or because they were removed.",
       "data": [
         "locationId",
-        "userId"
+        "userId",
+        "title",
+        "user"
       ]
     },
     {
       "name": "locationBookmarked",
       "displayName": "Location Bookmarked",
-      "description": "Fired after an app user bookmarks a location in the app.",
+      "description": "Someone bookmarked a location in the app.",
       "data": [
         "locationId",
-        "bookmarkId"
+        "bookmarkId",
+        "title",
+        "user"
       ]
     },
     {
       "name": "locationUnbookmarked",
       "displayName": "Location Unbookmarked",
-      "description": "Fired after an app user removes a location bookmark in the app.",
+      "description": "Someone removed a location bookmark in the app.",
       "data": [
         "locationId",
-        "bookmarkId"
+        "bookmarkId",
+        "title",
+        "user"
       ]
     },
     {
       "name": "locationRated",
       "displayName": "Location Rated",
-      "description": "Fired after an app user rates a location and its rating summary is saved.",
+      "description": "Someone rated a location.",
       "data": [
         "locationId",
         "average",
-        "count"
+        "count",
+        "title",
+        "user"
       ]
     }
   ],
@@ -85,15 +110,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "searchLocationsAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "searchLocations",
@@ -130,15 +155,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "searchLocations",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "searchLocationsAdvanced",
@@ -175,15 +200,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "searchLocationsNearPointAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "searchLocationsNearPoint",
@@ -220,15 +245,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "searchLocationsNearPoint",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "searchLocationsNearPointAdvanced",
@@ -265,15 +290,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "getLocationAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "getLocation",
@@ -300,15 +325,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "getLocation",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "getLocationAdvanced",
@@ -335,15 +360,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "createLocationAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "createLocation",
@@ -356,13 +381,25 @@
       "description": "Adds a new location to the map and lists, where everyone using the app can find it.",
       "parameters": [
         "title",
+        "subtitle",
         "address",
         "latitude",
         "longitude",
+        "addressAlias",
         "description",
         "listImage",
         "categoryTitles",
-        "subcategoryTitles"
+        "subcategoryTitles",
+        "priceRange",
+        "priceCurrency",
+        "markerType",
+        "markerColor",
+        "markerImage",
+        "showCategory",
+        "showOpeningHours",
+        "showPriceRange",
+        "showStarRating",
+        "pinned"
       ],
       "definitionPath": "operations/createLocation.json"
     },
@@ -377,14 +414,14 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API"
-      ],
       "alternatives": [
         {
           "operationName": "createLocation",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API"
       ],
       "context": {
         "functionName": "createLocationAdvanced",
@@ -460,15 +497,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocationAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateLocation",
@@ -478,17 +515,29 @@
           "headlessSdk"
         ]
       },
-      "description": "Changes a location's main details, leaving everything not mentioned as it was.",
+      "description": "Changes a location's details, leaving everything not mentioned as it was.",
       "parameters": [
         "title",
         "newTitle",
+        "newSubtitle",
         "newAddress",
         "newLatitude",
         "newLongitude",
+        "newAddressAlias",
         "newDescription",
         "newListImage",
         "newCategoryTitles",
-        "newSubcategoryTitles"
+        "newSubcategoryTitles",
+        "newPriceRange",
+        "newPriceCurrency",
+        "newMarkerType",
+        "newMarkerColor",
+        "newMarkerImage",
+        "newShowCategory",
+        "newShowOpeningHours",
+        "newShowPriceRange",
+        "newShowStarRating",
+        "pinned"
       ],
       "definitionPath": "operations/updateLocation.json"
     },
@@ -503,14 +552,14 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocation",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API"
       ],
       "context": {
         "functionName": "updateLocationAdvanced",
@@ -587,15 +636,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocationAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocation",
@@ -622,15 +671,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocation",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocationAdvanced",
@@ -685,15 +734,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocationFieldValueAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateLocationFieldValue",
@@ -723,15 +772,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocationFieldValue",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateLocationFieldValueAdvanced",
@@ -789,15 +838,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updatePinnedLocationOrderAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updatePinnedLocationOrder",
@@ -825,15 +874,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updatePinnedLocationOrder",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updatePinnedLocationOrderAdvanced",
@@ -861,15 +910,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocationSubscriberAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocationSubscriber",
@@ -897,15 +946,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocationSubscriber",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocationSubscriberAdvanced",
@@ -961,15 +1010,15 @@
         "throttable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "sendLocationNotificationAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "sendLocationNotification",
@@ -979,7 +1028,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Sends a push notification about a location to everyone following it, on behalf of the app.",
+      "description": "No longer available: used to send a push notification about a location to everyone following it.",
       "parameters": [
         "title",
         "notificationTitle",
@@ -998,15 +1047,15 @@
         "throttable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "sendLocationNotification",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "sendLocationNotificationAdvanced",
@@ -1016,7 +1065,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Sends a push notification about a location to everyone following it, on behalf of the app, using the location's id.",
+      "description": "No longer available: used to send a push notification about a location to everyone following it, using the location's id.",
       "parameters": [
         "locationId",
         "notificationTitle",
@@ -1136,15 +1185,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateCategoryAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateCategory",
@@ -1172,15 +1221,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateCategory",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateCategoryAdvanced",
@@ -1235,15 +1284,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteCategoryAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteCategory",
@@ -1269,15 +1318,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteCategory",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteCategoryAdvanced",
@@ -1330,15 +1379,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "createSubcategoryAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "createSubcategory",
@@ -1366,15 +1415,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "createSubcategory",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "createSubcategoryAdvanced",
@@ -1429,15 +1478,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateSubcategoryAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateSubcategory",
@@ -1466,15 +1515,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateSubcategory",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateSubcategoryAdvanced",
@@ -1530,15 +1579,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteSubcategoryAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteSubcategory",
@@ -1565,15 +1614,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteSubcategory",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteSubcategoryAdvanced",
@@ -1860,15 +1909,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocationFieldAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateLocationField",
@@ -1899,15 +1948,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "updateLocationField",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "updateLocationFieldAdvanced",
@@ -1965,15 +2014,15 @@
         "unthrottable"
       ],
       "usage": "basic",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocationFieldAdvanced",
           "label": "Advanced"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocationField",
@@ -1999,15 +2048,15 @@
         "unthrottable"
       ],
       "usage": "advanced",
-      "availableFor": [
-        "API",
-        "form"
-      ],
       "alternatives": [
         {
           "operationName": "deleteLocationField",
           "label": "Basic"
         }
+      ],
+      "availableFor": [
+        "API",
+        "form"
       ],
       "context": {
         "functionName": "deleteLocationFieldAdvanced",
@@ -2048,6 +2097,88 @@
         "fields"
       ],
       "definitionPath": "operations/deleteLocationFieldsAdvanced.json"
+    },
+    {
+      "name": "getLanguageStrings",
+      "displayName": "Get app texts",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getLanguageStrings",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows every text the app uses for this feature, such as button and message wording, with any changes the owner made.",
+      "parameters": [],
+      "definitionPath": "operations/getLanguageStrings.json"
+    },
+    {
+      "name": "updateLanguageString",
+      "displayName": "Update app text",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLanguageString",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes the wording of one text the app shows, such as a button label or a message.",
+      "parameters": [
+        "stringKey",
+        "value"
+      ],
+      "definitionPath": "operations/updateLanguageString.json"
+    },
+    {
+      "name": "updateLanguageStringsAdvanced",
+      "displayName": "Update app texts",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateLanguageStringsAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes the wording of several app texts at once, up to 50.",
+      "parameters": [
+        "strings"
+      ],
+      "definitionPath": "operations/updateLanguageStringsAdvanced.json"
     }
   ]
 }

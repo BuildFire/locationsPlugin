@@ -4,120 +4,345 @@
     {
       "name": "locationCreated",
       "displayName": "Location Created",
-      "description": "Fired after a new location is saved, from the control panel, the app or this contract.",
+      "description": "A new location was added.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The new location's id."
         },
         "title": {
           "type": "string",
+          "displayName": "Title",
           "description": "The location's title."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The location's subtitle, if it has one."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "description": "Where the location is, north to south."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "description": "Where the location is, east to west."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "List Image",
+          "description": "The picture shown for the location in lists, if it has one."
+        },
+        "createdOn": {
+          "type": "datetime",
+          "displayName": "Added On",
+          "description": "When the location was added."
+        },
+        "createdBy": {
+          "type": "object",
+          "displayName": "Added By",
+          "description": "Who added it, when a person did.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationUpdated",
       "displayName": "Location Updated",
-      "description": "Fired after a location's details are saved, from the control panel, the app or this contract.",
+      "description": "A location's details were changed.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "title": {
           "type": "string",
+          "displayName": "Title",
           "description": "The location's title after the change."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The location's subtitle, if it has one."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "description": "Where the location is, north to south."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "description": "Where the location is, east to west."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "List Image",
+          "description": "The picture shown for the location in lists, if it has one."
+        },
+        "lastUpdatedOn": {
+          "type": "datetime",
+          "displayName": "Updated On",
+          "description": "When the location was changed."
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "displayName": "Updated By",
+          "description": "Who changed it, when a person did.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationDeleted",
       "displayName": "Location Deleted",
-      "description": "Fired after a location is permanently removed.",
+      "description": "A location was permanently removed.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The removed location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The removed location's title, when it is known."
         }
       }
     },
     {
       "name": "locationSubscribed",
       "displayName": "Location Subscribed",
-      "description": "Fired after an app user starts following a location for update notifications.",
+      "description": "Someone started following a location for updates.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "userId": {
           "type": "string",
-          "description": "The app user who started following it."
+          "displayName": "User ID",
+          "description": "The person who started following it."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "The person who started following it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationUnsubscribed",
       "displayName": "Location Unsubscribed",
-      "description": "Fired after an app user stops following a location, whether they chose to or the app removed them.",
+      "description": "Someone stopped following a location, by choice or because they were removed.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "userId": {
           "type": "string",
-          "description": "The app user who stopped following it."
+          "displayName": "User ID",
+          "description": "The person who stopped following it."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "The person who stopped following it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationBookmarked",
       "displayName": "Location Bookmarked",
-      "description": "Fired after an app user bookmarks a location in the app.",
+      "description": "Someone bookmarked a location in the app.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "bookmarkId": {
           "type": "string",
-          "description": "The bookmark's id (the location's client id)."
+          "displayName": "Bookmark ID",
+          "description": "The bookmark's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "The person who bookmarked it, when they are signed in.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationUnbookmarked",
       "displayName": "Location Unbookmarked",
-      "description": "Fired after an app user removes a location bookmark in the app.",
+      "description": "Someone removed a location bookmark in the app.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "bookmarkId": {
           "type": "string",
+          "displayName": "Bookmark ID",
           "description": "The removed bookmark's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "The person who removed it, when they are signed in.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     },
     {
       "name": "locationRated",
       "displayName": "Location Rated",
-      "description": "Fired after an app user rates a location and its rating summary is saved.",
+      "description": "Someone rated a location.",
       "data": {
         "locationId": {
           "type": "string",
+          "displayName": "Location ID",
           "description": "The location's id."
         },
         "average": {
           "type": "number",
+          "displayName": "Average Rating",
           "description": "The location's new average rating."
         },
         "count": {
           "type": "number",
+          "displayName": "Number of Ratings",
           "description": "How many ratings it now has."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "The person who rated it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
         }
       }
     }
@@ -2025,6 +2250,13 @@
           "description": "The location's title, shown on the map, in lists and on its details page.",
           "sampleValue": "[location title]"
         },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Location subtitle",
+          "required": false,
+          "description": "A short line shown under the title. Leave it out for no subtitle.",
+          "sampleValue": "[location subtitle]"
+        },
         "address": {
           "type": "string",
           "displayName": "Address",
@@ -2049,6 +2281,13 @@
           "maxValue": 180,
           "description": "The longitude of the location's map pin, in degrees.",
           "sampleValue": -117.1601157
+        },
+        "addressAlias": {
+          "type": "string",
+          "displayName": "Location custom name",
+          "required": false,
+          "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address.",
+          "sampleValue": "[address display name]"
         },
         "description": {
           "type": "string",
@@ -2077,6 +2316,121 @@
           "required": false,
           "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Needs categoryTitles. Leave it out to pick no subcategory.",
           "sampleValue": "[subcategory title]"
+        },
+        "priceRange": {
+          "type": "select",
+          "displayName": "Price range",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "How pricey the location is, from $ to $$$$. Defaults to $.",
+          "sampleValue": 2
+        },
+        "priceCurrency": {
+          "type": "select",
+          "displayName": "Currency",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": "$"
+            },
+            {
+              "label": "€",
+              "value": "€"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "The currency sign the price range is shown with. Defaults to $.",
+          "sampleValue": "$"
+        },
+        "markerType": {
+          "type": "select",
+          "displayName": "Marker type",
+          "required": false,
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "How the location is drawn on the map. Defaults to a pin.",
+          "sampleValue": "pin"
+        },
+        "markerColor": {
+          "type": "string",
+          "displayName": "Marker color",
+          "required": false,
+          "description": "The circle marker's color as an rgb() or rgba() value. Used only when the marker type is Circle; defaults to red, rgba(253,35,5,1).",
+          "sampleValue": "rgba(253,35,5,1)"
+        },
+        "markerImage": {
+          "type": "image",
+          "displayName": "Marker image",
+          "required": false,
+          "description": "The picture used as the map marker. Required when the marker type is Image, ignored otherwise.",
+          "sampleValue": "[image url]"
+        },
+        "showCategory": {
+          "type": "boolean",
+          "displayName": "Show category",
+          "required": false,
+          "description": "Whether the location's category is shown on its details page. Defaults to true.",
+          "sampleValue": true
+        },
+        "showOpeningHours": {
+          "type": "boolean",
+          "displayName": "Show opening hours",
+          "required": false,
+          "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+          "sampleValue": false
+        },
+        "showPriceRange": {
+          "type": "boolean",
+          "displayName": "Show price range",
+          "required": false,
+          "description": "Whether the price range is shown on its details page. Defaults to false.",
+          "sampleValue": false
+        },
+        "showStarRating": {
+          "type": "boolean",
+          "displayName": "Show star rating",
+          "required": false,
+          "description": "Whether app users' star rating is shown on its details page. Defaults to false.",
+          "sampleValue": false
+        },
+        "pinned": {
+          "type": "boolean",
+          "displayName": "Pin to top",
+          "required": false,
+          "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
+          "sampleValue": false
         },
         "callback": {
           "type": "function",
@@ -3037,7 +3391,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Changes a location's main details, leaving everything not mentioned as it was.",
+      "description": "Changes a location's details, leaving everything not mentioned as it was.",
       "parameters": {
         "title": {
           "type": "string",
@@ -3052,6 +3406,14 @@
           "required": false,
           "description": "The location's new title. Leave it out to keep the current title; it can't be removed.",
           "sampleValue": "[new location title]"
+        },
+        "newSubtitle": {
+          "type": "string",
+          "displayName": "New subtitle",
+          "required": false,
+          "nullable": true,
+          "description": "The location's new subtitle. Leave it out to keep the current subtitle, or leave it empty to remove it.",
+          "sampleValue": "[new location subtitle]"
         },
         "newAddress": {
           "type": "string",
@@ -3077,6 +3439,14 @@
           "maxValue": 180,
           "description": "The new longitude of the map pin. Leave it out to keep the current position; it changes only together with newLatitude.",
           "sampleValue": -117.1601157
+        },
+        "newAddressAlias": {
+          "type": "string",
+          "displayName": "New custom name",
+          "required": false,
+          "nullable": true,
+          "description": "The location's new custom name. Leave it out to keep the current one, or leave it empty to remove it, so the address shows instead.",
+          "sampleValue": "[address display name]"
         },
         "newDescription": {
           "type": "string",
@@ -3107,6 +3477,121 @@
           "nullable": true,
           "description": "The titles of the subcategories the location is listed under, separated by commas, such as \"Pizza, Hiking\". Each must be a subcategory of exactly one of the location's categories; a title found under two of them is refused, and the advanced operation picks it by id. Replaces every current subcategory, matched under the location's categories after this update. Leave it out to keep the current subcategories, or leave it empty to remove them all and keep the categories.",
           "sampleValue": "[subcategory title]"
+        },
+        "newPriceRange": {
+          "type": "select",
+          "displayName": "New price range",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "The location's new price range. Leave it out to keep the current one; it can't be removed.",
+          "sampleValue": 2
+        },
+        "newPriceCurrency": {
+          "type": "select",
+          "displayName": "New currency",
+          "required": false,
+          "enums": [
+            {
+              "label": "$",
+              "value": "$"
+            },
+            {
+              "label": "€",
+              "value": "€"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "The currency sign for the price range. Leave it out to keep the current one; it can't be removed.",
+          "sampleValue": "$"
+        },
+        "newMarkerType": {
+          "type": "select",
+          "displayName": "New marker type",
+          "required": false,
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "description": "How the location is drawn on the map. Leave it out to keep the current marker; it can't be removed. Switching to Circle without a color uses red; switching to Image needs a marker image.",
+          "sampleValue": "circle"
+        },
+        "newMarkerColor": {
+          "type": "string",
+          "displayName": "New marker color",
+          "required": false,
+          "description": "The circle marker's new rgb() or rgba() color. Leave it out to keep the current color; it can't be removed.",
+          "sampleValue": "rgba(253,35,5,1)"
+        },
+        "newMarkerImage": {
+          "type": "image",
+          "displayName": "New marker image",
+          "required": false,
+          "description": "The image marker's new picture. Leave it out to keep the current one; it can't be removed.",
+          "sampleValue": "[image url]"
+        },
+        "newShowCategory": {
+          "type": "boolean",
+          "displayName": "Show category",
+          "required": false,
+          "description": "Whether the category is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+          "sampleValue": true
+        },
+        "newShowOpeningHours": {
+          "type": "boolean",
+          "displayName": "Show opening hours",
+          "required": false,
+          "description": "Whether the opening hours are shown on the details page. Leave it out to keep the current choice; it can't be removed. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+          "sampleValue": true
+        },
+        "newShowPriceRange": {
+          "type": "boolean",
+          "displayName": "Show price range",
+          "required": false,
+          "description": "Whether the price range is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+          "sampleValue": true
+        },
+        "newShowStarRating": {
+          "type": "boolean",
+          "displayName": "Show star rating",
+          "required": false,
+          "description": "Whether the star rating is shown on the details page. Leave it out to keep the current choice; it can't be removed.",
+          "sampleValue": true
+        },
+        "pinned": {
+          "type": "boolean",
+          "displayName": "Pin to top",
+          "required": false,
+          "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
+          "sampleValue": true
         },
         "callback": {
           "type": "function",
@@ -5754,7 +6239,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Sends a push notification about a location to everyone following it, on behalf of the app.",
+      "description": "No longer available: used to send a push notification about a location to everyone following it.",
       "parameters": {
         "title": {
           "type": "string",
@@ -5780,15 +6265,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Runs when it's done, with the notification.",
+          "description": "Runs right away, saying sending is no longer available.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location or several locations have that title."
+              "description": "Always says that sending notifications is no longer available here."
             },
             "result": {
               "type": "object",
-              "description": "The notification that was sent.",
+              "description": "Nothing is sent any more, so this never comes back.",
               "properties": {
                 "sent": {
                   "type": "boolean",
@@ -5837,7 +6322,7 @@
           "headlessSdk"
         ]
       },
-      "description": "Sends a push notification about a location to everyone following it, on behalf of the app, using the location's id.",
+      "description": "No longer available: used to send a push notification about a location to everyone following it, using the location's id.",
       "parameters": {
         "locationId": {
           "type": "string",
@@ -5863,15 +6348,15 @@
         "callback": {
           "type": "function",
           "required": true,
-          "description": "Runs when it's done, with the notification.",
+          "description": "Runs right away, saying sending is no longer available.",
           "parameters": {
             "error": {
               "type": "object|string",
-              "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location has that id."
+              "description": "Always says that sending notifications is no longer available here."
             },
             "result": {
               "type": "object",
-              "description": "The notification that was sent.",
+              "description": "Nothing is sent any more, so this never comes back.",
               "properties": {
                 "sent": {
                   "type": "boolean",
@@ -9589,6 +10074,1306 @@
                 "failed": {
                   "type": "number",
                   "description": "How many entries failed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getLanguageStrings",
+      "displayName": "Get app texts",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getLanguageStrings",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows every text the app uses for this feature, such as button and message wording, with any changes the owner made.",
+      "parameters": {
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when it's done, with the texts.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, if it didn't."
+            },
+            "result": {
+              "type": "object",
+              "description": "What was found.",
+              "properties": {
+                "strings": {
+                  "type": "array",
+                  "description": "Every app text, in the Language tab's order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One app text.",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Which text this is, as listed in the app text choices."
+                      },
+                      "section": {
+                        "type": "string",
+                        "description": "The part of the app the text belongs to."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "The text's name on the Language tab."
+                      },
+                      "customText": {
+                        "type": "string",
+                        "description": "The text the owner saved, if any."
+                      },
+                      "defaultText": {
+                        "type": "string",
+                        "description": "The text the app uses when none is saved."
+                      },
+                      "text": {
+                        "type": "string",
+                        "description": "The text the app shows now."
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether the text can't be left empty."
+                      },
+                      "maxLength": {
+                        "type": "number",
+                        "description": "The most characters the text can have, if there is a limit."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLanguageString",
+      "displayName": "Update app text",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLanguageString",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes the wording of one text the app shows, such as a button label or a message.",
+      "parameters": {
+        "stringKey": {
+          "type": "select",
+          "displayName": "App text",
+          "required": true,
+          "description": "Which of the app's texts to change, as listed on the Language tab.",
+          "enums": [
+            {
+              "label": "General · Search",
+              "value": "general.search"
+            },
+            {
+              "label": "General · Price",
+              "value": "general.price"
+            },
+            {
+              "label": "General · Currency",
+              "value": "general.currency"
+            },
+            {
+              "label": "General · Reset",
+              "value": "general.reset"
+            },
+            {
+              "label": "General · N/A",
+              "value": "general.notAvailable"
+            },
+            {
+              "label": "General · Open",
+              "value": "general.open"
+            },
+            {
+              "label": "General · Closed",
+              "value": "general.closed"
+            },
+            {
+              "label": "General · Bookmark",
+              "value": "general.bookmark"
+            },
+            {
+              "label": "General · Bookmarks",
+              "value": "general.bookmarks"
+            },
+            {
+              "label": "General · Bookmark Results",
+              "value": "general.bookmarkResults"
+            },
+            {
+              "label": "General · Enter bookmark title here",
+              "value": "general.enterBookmarkTitleHere"
+            },
+            {
+              "label": "General · Rate This Location",
+              "value": "general.rateThisLocation"
+            },
+            {
+              "label": "General · Find Within This Area",
+              "value": "general.findWithinThisArea"
+            },
+            {
+              "label": "General · Find More",
+              "value": "general.findMore"
+            },
+            {
+              "label": "General · Near You",
+              "value": "general.nearYou"
+            },
+            {
+              "label": "General · Other Locations",
+              "value": "general.otherLocations"
+            },
+            {
+              "label": "General · KM",
+              "value": "general.distanceUnitKm"
+            },
+            {
+              "label": "General · mi",
+              "value": "general.distanceUnitMi"
+            },
+            {
+              "label": "General · ft",
+              "value": "general.distanceUnitFt"
+            },
+            {
+              "label": "General · Open Hours",
+              "value": "general.openHours"
+            },
+            {
+              "label": "General · Monday",
+              "value": "general.monday"
+            },
+            {
+              "label": "General · Sunday",
+              "value": "general.sunday"
+            },
+            {
+              "label": "General · Tuesday",
+              "value": "general.tuesday"
+            },
+            {
+              "label": "General · Wednesday",
+              "value": "general.wednesday"
+            },
+            {
+              "label": "General · Thursday",
+              "value": "general.thursday"
+            },
+            {
+              "label": "General · Friday",
+              "value": "general.friday"
+            },
+            {
+              "label": "General · Saturday",
+              "value": "general.saturday"
+            },
+            {
+              "label": "General · Follow",
+              "value": "general.follow"
+            },
+            {
+              "label": "General · Following",
+              "value": "general.following"
+            },
+            {
+              "label": "General · Purchase Successful",
+              "value": "general.purchaseSuccessful"
+            },
+            {
+              "label": "General · Purchase Cancelled",
+              "value": "general.purchaseCancelled"
+            },
+            {
+              "label": "General · Generic Error",
+              "value": "general.genericError"
+            },
+            {
+              "label": "General · PWA Unsupported",
+              "value": "general.pwaUnsupported"
+            },
+            {
+              "label": "General · App Store Not Accessible",
+              "value": "general.appStoreNotAccessible"
+            },
+            {
+              "label": "General · Promotional Offers Not Supported",
+              "value": "general.promotionalOffersNotSupported"
+            },
+            {
+              "label": "General · No Subscriptions Found",
+              "value": "general.noSubscriptionsFound"
+            },
+            {
+              "label": "Sorting Options · Title (A-Z)",
+              "value": "sortingOptions.alphabeticalAsc"
+            },
+            {
+              "label": "Sorting Options · Title (Z-A)",
+              "value": "sortingOptions.alphabeticalDsc"
+            },
+            {
+              "label": "Sorting Options · Distance",
+              "value": "sortingOptions.distance"
+            },
+            {
+              "label": "Sorting Options · Recommended",
+              "value": "sortingOptions.recommended"
+            },
+            {
+              "label": "Sorting Options · $$$ - $",
+              "value": "sortingOptions.priceDsc"
+            },
+            {
+              "label": "Sorting Options · $ - $$$",
+              "value": "sortingOptions.priceAsc"
+            },
+            {
+              "label": "Sorting Options · Recent",
+              "value": "sortingOptions.recent"
+            },
+            {
+              "label": "Sorting Options · Most Viewed",
+              "value": "sortingOptions.mostViewed"
+            },
+            {
+              "label": "Location Creating/Editing · For full customization options go to the admin Control Panel.",
+              "value": "locationEditing.controlNote"
+            },
+            {
+              "label": "Location Creating/Editing · Location Details",
+              "value": "locationEditing.locationDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Location Title",
+              "value": "locationEditing.locationName"
+            },
+            {
+              "label": "Location Creating/Editing · Location Address",
+              "value": "locationEditing.locationAddress"
+            },
+            {
+              "label": "Location Creating/Editing · Additional Details",
+              "value": "locationEditing.additionalDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Location Custom Label",
+              "value": "locationEditing.locationCustomLabel"
+            },
+            {
+              "label": "Location Creating/Editing · Street Name and Number",
+              "value": "locationEditing.locationStreetNameAndNumber"
+            },
+            {
+              "label": "Location Creating/Editing · Location Custom Name",
+              "value": "locationEditing.locationCustomName"
+            },
+            {
+              "label": "Location Creating/Editing · Location Subtitle",
+              "value": "locationEditing.locationSubtitle"
+            },
+            {
+              "label": "Location Creating/Editing · Location Description",
+              "value": "locationEditing.locationDescription"
+            },
+            {
+              "label": "Location Creating/Editing · Enter your description here",
+              "value": "locationEditing.descriptionDialogPlaceholder"
+            },
+            {
+              "label": "Location Creating/Editing · Save",
+              "value": "locationEditing.descriptionDialogSave"
+            },
+            {
+              "label": "Location Creating/Editing · Cancel",
+              "value": "locationEditing.descriptionDialogCancel"
+            },
+            {
+              "label": "Location Creating/Editing · Categories",
+              "value": "locationEditing.categories"
+            },
+            {
+              "label": "Location Creating/Editing · Choose Category",
+              "value": "locationEditing.chooseCategory"
+            },
+            {
+              "label": "Location Creating/Editing · Star Rating",
+              "value": "locationEditing.starRating"
+            },
+            {
+              "label": "Location Creating/Editing · Show Category on Location Screen",
+              "value": "locationEditing.showCategory"
+            },
+            {
+              "label": "Location Creating/Editing · Enable Editing",
+              "value": "locationEditing.enableEditing"
+            },
+            {
+              "label": "Location Creating/Editing · Price Range",
+              "value": "locationEditing.priceRange"
+            },
+            {
+              "label": "Location Creating/Editing · List Image",
+              "value": "locationEditing.listImage"
+            },
+            {
+              "label": "Location Creating/Editing · This is the main location image displayed next to the location info in a list view.",
+              "value": "locationEditing.listImageNote"
+            },
+            {
+              "label": "Location Creating/Editing · If you need adjustments, drag the map so the pin matches the exact location of your place.",
+              "value": "locationEditing.mapNote"
+            },
+            {
+              "label": "Location Creating/Editing · Location Images",
+              "value": "locationEditing.locationImages"
+            },
+            {
+              "label": "Location Creating/Editing · These are the location details images. First image in the list will be displayed as location’s main image.",
+              "value": "locationEditing.locationImagesNote"
+            },
+            {
+              "label": "Location Creating/Editing · Mon",
+              "value": "locationEditing.monday"
+            },
+            {
+              "label": "Location Creating/Editing · Tue",
+              "value": "locationEditing.tuesday"
+            },
+            {
+              "label": "Location Creating/Editing · Wed",
+              "value": "locationEditing.wednesday"
+            },
+            {
+              "label": "Location Creating/Editing · Thu",
+              "value": "locationEditing.thursday"
+            },
+            {
+              "label": "Location Creating/Editing · Fri",
+              "value": "locationEditing.friday"
+            },
+            {
+              "label": "Location Creating/Editing · Sat",
+              "value": "locationEditing.saturday"
+            },
+            {
+              "label": "Location Creating/Editing · Sun",
+              "value": "locationEditing.sunday"
+            },
+            {
+              "label": "Location Creating/Editing · This field is required",
+              "value": "locationEditing.fieldRequired"
+            },
+            {
+              "label": "Location Creating/Editing · Required",
+              "value": "locationEditing.required"
+            },
+            {
+              "label": "Location Creating/Editing · Choose an end time later than the start time.",
+              "value": "locationEditing.invalidTime"
+            },
+            {
+              "label": "Location Creating/Editing · Opening hours are overlapping for this day.",
+              "value": "locationEditing.overlappingHours"
+            },
+            {
+              "label": "Location Creating/Editing · Enable Editing",
+              "value": "locationEditing.confirmEditingTitle"
+            },
+            {
+              "label": "Location Creating/Editing · The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?",
+              "value": "locationEditing.confirmEditingMessage"
+            },
+            {
+              "label": "Location Creating/Editing · Confirm",
+              "value": "locationEditing.confirmEditingConfirm"
+            },
+            {
+              "label": "Location Creating/Editing · Cancel",
+              "value": "locationEditing.confirmEditingCancel"
+            },
+            {
+              "label": "Location Creating/Editing · Enter email address",
+              "value": "locationEditing.enterEmailAddress"
+            },
+            {
+              "label": "Location Creating/Editing · Enter phone number",
+              "value": "locationEditing.enterPhoneNumber"
+            },
+            {
+              "label": "Location Creating/Editing · Enter URL",
+              "value": "locationEditing.enterURL"
+            },
+            {
+              "label": "Location Creating/Editing · Add description",
+              "value": "locationEditing.addDescription"
+            },
+            {
+              "label": "Location Creating/Editing · Enter details",
+              "value": "locationEditing.enterDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid email address",
+              "value": "locationEditing.validEmail"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid phone number",
+              "value": "locationEditing.validPhone"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid URL",
+              "value": "locationEditing.validURL"
+            },
+            {
+              "label": "Toast Messages · Bookmark Removed",
+              "value": "toast.bookmarksRemoved"
+            },
+            {
+              "label": "Toast Messages · Bookmark Added",
+              "value": "toast.bookmarksAdded"
+            },
+            {
+              "label": "Toast Messages · Couldn't bookmark",
+              "value": "toast.bookmarksError"
+            },
+            {
+              "label": "Toast Messages · Uploading Images",
+              "value": "toast.uploadingImages"
+            },
+            {
+              "label": "Toast Messages · Uploading Images is Complete",
+              "value": "toast.uploadingComplete"
+            },
+            {
+              "label": "Toast Messages · Uploading Images Failed",
+              "value": "toast.uploadingFailed"
+            },
+            {
+              "label": "Toast Messages · Location Saved",
+              "value": "toast.locationSaved"
+            },
+            {
+              "label": "Toast Messages · This item is already reported",
+              "value": "toast.alreadyReported"
+            },
+            {
+              "label": "Toast Messages · Reported successfully",
+              "value": "toast.reportedSuccessfully"
+            },
+            {
+              "label": "Toast Messages · Thanks for sharing your photos",
+              "value": "toast.uploadedSuccessfully"
+            },
+            {
+              "label": "Toast Messages · You'll now get notifications for location updates.",
+              "value": "toast.subscribeToLocationUpdates"
+            },
+            {
+              "label": "Toast Messages · You'll no longer get notifications for location updates.",
+              "value": "toast.unSubscribeFromLocationUpdates"
+            },
+            {
+              "label": "Toast Messages · Notification sent successfully",
+              "value": "toast.sendNotificationSuccess"
+            },
+            {
+              "label": "Toast Messages · Notification failed",
+              "value": "toast.sendNotificationFailed"
+            },
+            {
+              "label": "Toast Messages · Location has no subscribers",
+              "value": "toast.locationHasNoSubscribers"
+            },
+            {
+              "label": "Toast Messages · Location Deleted",
+              "value": "toast.locationDeleted"
+            },
+            {
+              "label": "Toast Messages · Something went wrong",
+              "value": "toast.somethingWentWrong"
+            },
+            {
+              "label": "Details Page · Bookmark",
+              "value": "details.bookmark"
+            },
+            {
+              "label": "Details Page · Report Abuse",
+              "value": "details.reportAbuse"
+            },
+            {
+              "label": "Details Page · Share",
+              "value": "details.share"
+            },
+            {
+              "label": "Details Page · Edit",
+              "value": "details.edit"
+            },
+            {
+              "label": "Details Page · Notify Subscribers",
+              "value": "details.notifySubscribers"
+            },
+            {
+              "label": "Details Page · Add Photos",
+              "value": "details.addPhotos"
+            },
+            {
+              "label": "Details Page · Contributor Name Prefix",
+              "value": "details.contributorPrefix"
+            },
+            {
+              "label": "Details Page · Unknown Contributor",
+              "value": "details.unknownContributor"
+            },
+            {
+              "label": "Details Page · New Push Notification Title",
+              "value": "details.newPushNotification"
+            },
+            {
+              "label": "Details Page · Notification Note",
+              "value": "details.notificationWarningNote"
+            },
+            {
+              "label": "Details Page · Notification Title Placeholder",
+              "value": "details.notificationTitlePlaceholder"
+            },
+            {
+              "label": "Details Page · Notification Message Placeholder",
+              "value": "details.notificationMessagePlaceholder"
+            },
+            {
+              "label": "Details Page · Done",
+              "value": "details.done"
+            },
+            {
+              "label": "Details Page · Cancel",
+              "value": "details.cancel"
+            },
+            {
+              "label": "Details Page · Send",
+              "value": "details.notificationSend"
+            },
+            {
+              "label": "Empty State · No Categories Added",
+              "value": "emptyState.emptyCategories"
+            },
+            {
+              "label": "Empty State · Start your search",
+              "value": "emptyState.locationsListBeforeSearch"
+            },
+            {
+              "label": "Empty State · No locations found within this area",
+              "value": "emptyState.locationsListAfterSearch"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "general.search"
+        },
+        "value": {
+          "type": "string",
+          "displayName": "New text",
+          "required": true,
+          "nullable": true,
+          "description": "The new wording, within the text's length limit. Leave it empty to show no text, which only optional texts allow.",
+          "sampleValue": "[new text]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when it's done, with the changed text.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, such as the text being too long or a required text left empty."
+            },
+            "result": {
+              "type": "object",
+              "description": "The text after the change.",
+              "properties": {
+                "string": {
+                  "type": "object",
+                  "description": "One app text.",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "description": "Which text this is, as listed in the app text choices."
+                    },
+                    "section": {
+                      "type": "string",
+                      "description": "The part of the app the text belongs to."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "The text's name on the Language tab."
+                    },
+                    "customText": {
+                      "type": "string",
+                      "description": "The text the owner saved, if any."
+                    },
+                    "defaultText": {
+                      "type": "string",
+                      "description": "The text the app uses when none is saved."
+                    },
+                    "text": {
+                      "type": "string",
+                      "description": "The text the app shows now."
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "Whether the text can't be left empty."
+                    },
+                    "maxLength": {
+                      "type": "number",
+                      "description": "The most characters the text can have, if there is a limit."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLanguageStringsAdvanced",
+      "displayName": "Update app texts",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateLanguageStringsAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes the wording of several app texts at once, up to 50.",
+      "parameters": {
+        "strings": {
+          "type": "list",
+          "displayName": "App texts",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 50,
+          "description": "The texts to change, up to 50 at a time.",
+          "items": {
+            "stringKey": {
+              "type": "select",
+              "displayName": "App text",
+              "required": true,
+              "description": "Which of the app's texts to change, as listed on the Language tab.",
+              "enums": [
+                {
+                  "label": "General · Search",
+                  "value": "general.search"
+                },
+                {
+                  "label": "General · Price",
+                  "value": "general.price"
+                },
+                {
+                  "label": "General · Currency",
+                  "value": "general.currency"
+                },
+                {
+                  "label": "General · Reset",
+                  "value": "general.reset"
+                },
+                {
+                  "label": "General · N/A",
+                  "value": "general.notAvailable"
+                },
+                {
+                  "label": "General · Open",
+                  "value": "general.open"
+                },
+                {
+                  "label": "General · Closed",
+                  "value": "general.closed"
+                },
+                {
+                  "label": "General · Bookmark",
+                  "value": "general.bookmark"
+                },
+                {
+                  "label": "General · Bookmarks",
+                  "value": "general.bookmarks"
+                },
+                {
+                  "label": "General · Bookmark Results",
+                  "value": "general.bookmarkResults"
+                },
+                {
+                  "label": "General · Enter bookmark title here",
+                  "value": "general.enterBookmarkTitleHere"
+                },
+                {
+                  "label": "General · Rate This Location",
+                  "value": "general.rateThisLocation"
+                },
+                {
+                  "label": "General · Find Within This Area",
+                  "value": "general.findWithinThisArea"
+                },
+                {
+                  "label": "General · Find More",
+                  "value": "general.findMore"
+                },
+                {
+                  "label": "General · Near You",
+                  "value": "general.nearYou"
+                },
+                {
+                  "label": "General · Other Locations",
+                  "value": "general.otherLocations"
+                },
+                {
+                  "label": "General · KM",
+                  "value": "general.distanceUnitKm"
+                },
+                {
+                  "label": "General · mi",
+                  "value": "general.distanceUnitMi"
+                },
+                {
+                  "label": "General · ft",
+                  "value": "general.distanceUnitFt"
+                },
+                {
+                  "label": "General · Open Hours",
+                  "value": "general.openHours"
+                },
+                {
+                  "label": "General · Monday",
+                  "value": "general.monday"
+                },
+                {
+                  "label": "General · Sunday",
+                  "value": "general.sunday"
+                },
+                {
+                  "label": "General · Tuesday",
+                  "value": "general.tuesday"
+                },
+                {
+                  "label": "General · Wednesday",
+                  "value": "general.wednesday"
+                },
+                {
+                  "label": "General · Thursday",
+                  "value": "general.thursday"
+                },
+                {
+                  "label": "General · Friday",
+                  "value": "general.friday"
+                },
+                {
+                  "label": "General · Saturday",
+                  "value": "general.saturday"
+                },
+                {
+                  "label": "General · Follow",
+                  "value": "general.follow"
+                },
+                {
+                  "label": "General · Following",
+                  "value": "general.following"
+                },
+                {
+                  "label": "General · Purchase Successful",
+                  "value": "general.purchaseSuccessful"
+                },
+                {
+                  "label": "General · Purchase Cancelled",
+                  "value": "general.purchaseCancelled"
+                },
+                {
+                  "label": "General · Generic Error",
+                  "value": "general.genericError"
+                },
+                {
+                  "label": "General · PWA Unsupported",
+                  "value": "general.pwaUnsupported"
+                },
+                {
+                  "label": "General · App Store Not Accessible",
+                  "value": "general.appStoreNotAccessible"
+                },
+                {
+                  "label": "General · Promotional Offers Not Supported",
+                  "value": "general.promotionalOffersNotSupported"
+                },
+                {
+                  "label": "General · No Subscriptions Found",
+                  "value": "general.noSubscriptionsFound"
+                },
+                {
+                  "label": "Sorting Options · Title (A-Z)",
+                  "value": "sortingOptions.alphabeticalAsc"
+                },
+                {
+                  "label": "Sorting Options · Title (Z-A)",
+                  "value": "sortingOptions.alphabeticalDsc"
+                },
+                {
+                  "label": "Sorting Options · Distance",
+                  "value": "sortingOptions.distance"
+                },
+                {
+                  "label": "Sorting Options · Recommended",
+                  "value": "sortingOptions.recommended"
+                },
+                {
+                  "label": "Sorting Options · $$$ - $",
+                  "value": "sortingOptions.priceDsc"
+                },
+                {
+                  "label": "Sorting Options · $ - $$$",
+                  "value": "sortingOptions.priceAsc"
+                },
+                {
+                  "label": "Sorting Options · Recent",
+                  "value": "sortingOptions.recent"
+                },
+                {
+                  "label": "Sorting Options · Most Viewed",
+                  "value": "sortingOptions.mostViewed"
+                },
+                {
+                  "label": "Location Creating/Editing · For full customization options go to the admin Control Panel.",
+                  "value": "locationEditing.controlNote"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Details",
+                  "value": "locationEditing.locationDetails"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Title",
+                  "value": "locationEditing.locationName"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Address",
+                  "value": "locationEditing.locationAddress"
+                },
+                {
+                  "label": "Location Creating/Editing · Additional Details",
+                  "value": "locationEditing.additionalDetails"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Custom Label",
+                  "value": "locationEditing.locationCustomLabel"
+                },
+                {
+                  "label": "Location Creating/Editing · Street Name and Number",
+                  "value": "locationEditing.locationStreetNameAndNumber"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Custom Name",
+                  "value": "locationEditing.locationCustomName"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Subtitle",
+                  "value": "locationEditing.locationSubtitle"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Description",
+                  "value": "locationEditing.locationDescription"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter your description here",
+                  "value": "locationEditing.descriptionDialogPlaceholder"
+                },
+                {
+                  "label": "Location Creating/Editing · Save",
+                  "value": "locationEditing.descriptionDialogSave"
+                },
+                {
+                  "label": "Location Creating/Editing · Cancel",
+                  "value": "locationEditing.descriptionDialogCancel"
+                },
+                {
+                  "label": "Location Creating/Editing · Categories",
+                  "value": "locationEditing.categories"
+                },
+                {
+                  "label": "Location Creating/Editing · Choose Category",
+                  "value": "locationEditing.chooseCategory"
+                },
+                {
+                  "label": "Location Creating/Editing · Star Rating",
+                  "value": "locationEditing.starRating"
+                },
+                {
+                  "label": "Location Creating/Editing · Show Category on Location Screen",
+                  "value": "locationEditing.showCategory"
+                },
+                {
+                  "label": "Location Creating/Editing · Enable Editing",
+                  "value": "locationEditing.enableEditing"
+                },
+                {
+                  "label": "Location Creating/Editing · Price Range",
+                  "value": "locationEditing.priceRange"
+                },
+                {
+                  "label": "Location Creating/Editing · List Image",
+                  "value": "locationEditing.listImage"
+                },
+                {
+                  "label": "Location Creating/Editing · This is the main location image displayed next to the location info in a list view.",
+                  "value": "locationEditing.listImageNote"
+                },
+                {
+                  "label": "Location Creating/Editing · If you need adjustments, drag the map so the pin matches the exact location of your place.",
+                  "value": "locationEditing.mapNote"
+                },
+                {
+                  "label": "Location Creating/Editing · Location Images",
+                  "value": "locationEditing.locationImages"
+                },
+                {
+                  "label": "Location Creating/Editing · These are the location details images. First image in the list will be displayed as location’s main image.",
+                  "value": "locationEditing.locationImagesNote"
+                },
+                {
+                  "label": "Location Creating/Editing · Mon",
+                  "value": "locationEditing.monday"
+                },
+                {
+                  "label": "Location Creating/Editing · Tue",
+                  "value": "locationEditing.tuesday"
+                },
+                {
+                  "label": "Location Creating/Editing · Wed",
+                  "value": "locationEditing.wednesday"
+                },
+                {
+                  "label": "Location Creating/Editing · Thu",
+                  "value": "locationEditing.thursday"
+                },
+                {
+                  "label": "Location Creating/Editing · Fri",
+                  "value": "locationEditing.friday"
+                },
+                {
+                  "label": "Location Creating/Editing · Sat",
+                  "value": "locationEditing.saturday"
+                },
+                {
+                  "label": "Location Creating/Editing · Sun",
+                  "value": "locationEditing.sunday"
+                },
+                {
+                  "label": "Location Creating/Editing · This field is required",
+                  "value": "locationEditing.fieldRequired"
+                },
+                {
+                  "label": "Location Creating/Editing · Required",
+                  "value": "locationEditing.required"
+                },
+                {
+                  "label": "Location Creating/Editing · Choose an end time later than the start time.",
+                  "value": "locationEditing.invalidTime"
+                },
+                {
+                  "label": "Location Creating/Editing · Opening hours are overlapping for this day.",
+                  "value": "locationEditing.overlappingHours"
+                },
+                {
+                  "label": "Location Creating/Editing · Enable Editing",
+                  "value": "locationEditing.confirmEditingTitle"
+                },
+                {
+                  "label": "Location Creating/Editing · The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?",
+                  "value": "locationEditing.confirmEditingMessage"
+                },
+                {
+                  "label": "Location Creating/Editing · Confirm",
+                  "value": "locationEditing.confirmEditingConfirm"
+                },
+                {
+                  "label": "Location Creating/Editing · Cancel",
+                  "value": "locationEditing.confirmEditingCancel"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter email address",
+                  "value": "locationEditing.enterEmailAddress"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter phone number",
+                  "value": "locationEditing.enterPhoneNumber"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter URL",
+                  "value": "locationEditing.enterURL"
+                },
+                {
+                  "label": "Location Creating/Editing · Add description",
+                  "value": "locationEditing.addDescription"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter details",
+                  "value": "locationEditing.enterDetails"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter a valid email address",
+                  "value": "locationEditing.validEmail"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter a valid phone number",
+                  "value": "locationEditing.validPhone"
+                },
+                {
+                  "label": "Location Creating/Editing · Enter a valid URL",
+                  "value": "locationEditing.validURL"
+                },
+                {
+                  "label": "Toast Messages · Bookmark Removed",
+                  "value": "toast.bookmarksRemoved"
+                },
+                {
+                  "label": "Toast Messages · Bookmark Added",
+                  "value": "toast.bookmarksAdded"
+                },
+                {
+                  "label": "Toast Messages · Couldn't bookmark",
+                  "value": "toast.bookmarksError"
+                },
+                {
+                  "label": "Toast Messages · Uploading Images",
+                  "value": "toast.uploadingImages"
+                },
+                {
+                  "label": "Toast Messages · Uploading Images is Complete",
+                  "value": "toast.uploadingComplete"
+                },
+                {
+                  "label": "Toast Messages · Uploading Images Failed",
+                  "value": "toast.uploadingFailed"
+                },
+                {
+                  "label": "Toast Messages · Location Saved",
+                  "value": "toast.locationSaved"
+                },
+                {
+                  "label": "Toast Messages · This item is already reported",
+                  "value": "toast.alreadyReported"
+                },
+                {
+                  "label": "Toast Messages · Reported successfully",
+                  "value": "toast.reportedSuccessfully"
+                },
+                {
+                  "label": "Toast Messages · Thanks for sharing your photos",
+                  "value": "toast.uploadedSuccessfully"
+                },
+                {
+                  "label": "Toast Messages · You'll now get notifications for location updates.",
+                  "value": "toast.subscribeToLocationUpdates"
+                },
+                {
+                  "label": "Toast Messages · You'll no longer get notifications for location updates.",
+                  "value": "toast.unSubscribeFromLocationUpdates"
+                },
+                {
+                  "label": "Toast Messages · Notification sent successfully",
+                  "value": "toast.sendNotificationSuccess"
+                },
+                {
+                  "label": "Toast Messages · Notification failed",
+                  "value": "toast.sendNotificationFailed"
+                },
+                {
+                  "label": "Toast Messages · Location has no subscribers",
+                  "value": "toast.locationHasNoSubscribers"
+                },
+                {
+                  "label": "Toast Messages · Location Deleted",
+                  "value": "toast.locationDeleted"
+                },
+                {
+                  "label": "Toast Messages · Something went wrong",
+                  "value": "toast.somethingWentWrong"
+                },
+                {
+                  "label": "Details Page · Bookmark",
+                  "value": "details.bookmark"
+                },
+                {
+                  "label": "Details Page · Report Abuse",
+                  "value": "details.reportAbuse"
+                },
+                {
+                  "label": "Details Page · Share",
+                  "value": "details.share"
+                },
+                {
+                  "label": "Details Page · Edit",
+                  "value": "details.edit"
+                },
+                {
+                  "label": "Details Page · Notify Subscribers",
+                  "value": "details.notifySubscribers"
+                },
+                {
+                  "label": "Details Page · Add Photos",
+                  "value": "details.addPhotos"
+                },
+                {
+                  "label": "Details Page · Contributor Name Prefix",
+                  "value": "details.contributorPrefix"
+                },
+                {
+                  "label": "Details Page · Unknown Contributor",
+                  "value": "details.unknownContributor"
+                },
+                {
+                  "label": "Details Page · New Push Notification Title",
+                  "value": "details.newPushNotification"
+                },
+                {
+                  "label": "Details Page · Notification Note",
+                  "value": "details.notificationWarningNote"
+                },
+                {
+                  "label": "Details Page · Notification Title Placeholder",
+                  "value": "details.notificationTitlePlaceholder"
+                },
+                {
+                  "label": "Details Page · Notification Message Placeholder",
+                  "value": "details.notificationMessagePlaceholder"
+                },
+                {
+                  "label": "Details Page · Done",
+                  "value": "details.done"
+                },
+                {
+                  "label": "Details Page · Cancel",
+                  "value": "details.cancel"
+                },
+                {
+                  "label": "Details Page · Send",
+                  "value": "details.notificationSend"
+                },
+                {
+                  "label": "Empty State · No Categories Added",
+                  "value": "emptyState.emptyCategories"
+                },
+                {
+                  "label": "Empty State · Start your search",
+                  "value": "emptyState.locationsListBeforeSearch"
+                },
+                {
+                  "label": "Empty State · No locations found within this area",
+                  "value": "emptyState.locationsListAfterSearch"
+                }
+              ],
+              "allowEnumCustomOption": false
+            },
+            "value": {
+              "type": "string",
+              "displayName": "New text",
+              "required": true,
+              "nullable": true,
+              "description": "The new wording, within the text's length limit. Leave it empty to show no text, which only optional texts allow."
+            }
+          },
+          "sampleValue": [
+            {
+              "stringKey": "general.search",
+              "value": "[new text]"
+            },
+            {
+              "stringKey": "general.reset",
+              "value": "[new text]"
+            }
+          ]
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when all the texts are done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why nothing was changed, such as a text being too long."
+            },
+            "result": {
+              "type": "object",
+              "description": "How each text went.",
+              "properties": {
+                "strings": {
+                  "type": "array",
+                  "description": "One result per text, in the order they were given.",
+                  "items": {
+                    "type": "object",
+                    "description": "How one text went.",
+                    "properties": {
+                      "index": {
+                        "type": "number",
+                        "description": "Which text this is, counting from 0."
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "Which text was changed, if it was."
+                      },
+                      "error": {
+                        "type": "string",
+                        "description": "Why it wasn't changed, if it wasn't."
+                      }
+                    }
+                  }
+                },
+                "succeeded": {
+                  "type": "number",
+                  "description": "How many texts were changed."
+                },
+                "failed": {
+                  "type": "number",
+                  "description": "How many texts weren't changed."
                 }
               }
             }

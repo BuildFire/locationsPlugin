@@ -27,7 +27,7 @@
       "headlessSdk"
     ]
   },
-  "description": "Sends a push notification about a location to everyone following it, on behalf of the app, using the location's id.",
+  "description": "No longer available: used to send a push notification about a location to everyone following it, using the location's id.",
   "parameters": {
     "locationId": {
       "type": "string",
@@ -53,15 +53,15 @@
     "callback": {
       "type": "function",
       "required": true,
-      "description": "Runs when it's done, with the notification.",
+      "description": "Runs right away, saying sending is no longer available.",
       "parameters": {
         "error": {
           "type": "object|string",
-          "description": "Why it didn't work, such as when location subscribing is turned off, nobody follows the location, or the user cancels the approval, or no location has that id."
+          "description": "Always says that sending notifications is no longer available here."
         },
         "result": {
           "type": "object",
-          "description": "The notification that was sent.",
+          "description": "Nothing is sent any more, so this never comes back.",
           "properties": {
             "sent": {
               "type": "boolean",

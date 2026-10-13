@@ -28,7 +28,7 @@ import {
   transformCategoriesToText,
   showToastMessage, addBreadcrumb, isLocationOpen, areArraysEqual, getDistanceString, calculateLocationDistance
 } from './js/util/helpers';
-import { generateUUID, sendContractEvent } from './js/global/helpers';
+import { generateUUID, sendContractEvent, contractEventUser } from './js/global/helpers';
 import Analytics from '../utils/analytics';
 import '../shared/strings';
 import stringsConfig from '../shared/stringsConfig';
@@ -1651,13 +1651,16 @@ const onReceivedMessageHandler = (message) => {
 };
 const onRatingHandler = (e) => {
   const locationId = state.selectedLocation.id;
+  const { title } = state.selectedLocation;
   WidgetController
     .updateLocationRating(locationId, e.summary)
     .then(() => {
       sendContractEvent('locationRated', {
         locationId,
         average: e.summary.total / e.summary.count,
-        count: e.summary.count
+        count: e.summary.count,
+        title: title || null,
+        user: contractEventUser(state.sanitizedCurrentUser)
       });
     })
     .catch((err) => {

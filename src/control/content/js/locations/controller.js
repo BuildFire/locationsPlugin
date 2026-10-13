@@ -5,7 +5,9 @@ import Analytics from '../../../../utils/analytics';
 import DeepLink from '../../../../utils/deeplink';
 import SearchEngine from '../../../../widget/js/global/repository/searchEngine';
 import authManager from '../../../../UserAccessControl/authManager';
-import { generateUUID, sendContractEvent } from '../../../../widget/js/global/helpers';
+import {
+  generateUUID, sendContractEvent, contractLocationDetails, contractEventDate, contractEventUser
+} from '../../../../widget/js/global/helpers';
 import Settings from '../../../../widget/js/global/repository/Settings';
 
 export default {
@@ -43,7 +45,11 @@ export default {
     location.lastUpdatedBy = authManager.sanitizedCurrentUser;
     const promiseChain = [
       Location.update(locationId, location.toJSON()).then((result) => {
-        sendContractEvent('locationUpdated', { locationId, title: location.title });
+        sendContractEvent('locationUpdated', {
+          ...contractLocationDetails(locationId, location),
+          lastUpdatedOn: contractEventDate(location.lastUpdatedOn),
+          lastUpdatedBy: contractEventUser(location.lastUpdatedBy)
+        });
         return result;
       }),
       DeepLink.registerDeeplink(location),
@@ -60,9 +66,9 @@ export default {
     };
     return this.searchLocations(options);
   },
-  deleteLocation(locationId) {
+  deleteLocation(locationId, title) {
     const promiseChain = [
-      Location.delete(locationId),
+      Location.delete(locationId, title),
       DeepLink.unregisterDeeplink(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
