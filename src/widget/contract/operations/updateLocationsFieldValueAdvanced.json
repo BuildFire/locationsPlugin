@@ -1,0 +1,116 @@
+{
+  "name": "updateLocationsFieldValueAdvanced",
+  "displayName": "Update location field values",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationsFieldValueAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Fills in or changes extra fields on several locations at once, using ids.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Field values",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results."
+        },
+        "fieldId": {
+          "type": "string",
+          "displayName": "Location field id",
+          "required": true,
+          "description": "The location field's id, as the plugin's settings give it."
+        },
+        "value": {
+          "type": "string",
+          "displayName": "Value",
+          "required": false,
+          "nullable": true,
+          "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value, or leave it empty to empty it, unless the field is required."
+        },
+        "customLabel": {
+          "type": "string",
+          "displayName": "Custom label",
+          "required": false,
+          "nullable": true,
+          "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label, or leave it empty to remove it."
+        }
+      },
+      "description": "The field values to set, up to 50 per call, each exactly as a single change would be.",
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "fieldId": "[field id]",
+          "value": "[field value]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each entry's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry is invalid, does not resolve or repeats a location and field, in which case nothing is changed."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

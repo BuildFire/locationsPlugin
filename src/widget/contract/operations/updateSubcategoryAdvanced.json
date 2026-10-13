@@ -1,0 +1,117 @@
+{
+  "name": "updateSubcategoryAdvanced",
+  "displayName": "Update subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Renames a subcategory or changes its icon, using ids.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in category search results.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryId": {
+      "type": "string",
+      "displayName": "Subcategory id",
+      "required": true,
+      "description": "The subcategory's id, as the category search gives it.",
+      "sampleValue": "[subcategory id]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New title",
+      "required": false,
+      "description": "The subcategory's new title; one the category already has is refused. Leave it out to keep the current title; it can't be removed.",
+      "sampleValue": "[new subcategory title]"
+    },
+    "newIconImage": {
+      "type": "image",
+      "displayName": "New icon",
+      "required": false,
+      "description": "The subcategory's new icon picture. Leave it out to keep the current icon; it can't be removed.",
+      "sampleValue": "[image url]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the updated category.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the ids match nothing, nothing to change is passed, or the new title is taken."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "category": {
+              "type": "object",
+              "description": "The category.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "Its image icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "Its image icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

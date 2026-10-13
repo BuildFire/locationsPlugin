@@ -1,0 +1,111 @@
+{
+  "name": "deleteSubcategory",
+  "displayName": "Delete subcategory",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "deleteSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a subcategory from its category.",
+  "parameters": {
+    "categoryTitle": {
+      "type": "string",
+      "displayName": "Category",
+      "required": true,
+      "description": "The exact title of the category. A title shared by several categories is refused.",
+      "sampleValue": "[category title]"
+    },
+    "subcategoryTitle": {
+      "type": "string",
+      "displayName": "Subcategory",
+      "required": true,
+      "description": "The exact title of the subcategory within that category.",
+      "sampleValue": "[subcategory title]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the removal.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the category or subcategory can't be found or is ambiguous."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "deleted": {
+              "type": "boolean",
+              "description": "Always true."
+            },
+            "subcategoryId": {
+              "type": "string",
+              "description": "The removed subcategory's id."
+            },
+            "category": {
+              "type": "object",
+              "description": "The category.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "Its image icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "Its image icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

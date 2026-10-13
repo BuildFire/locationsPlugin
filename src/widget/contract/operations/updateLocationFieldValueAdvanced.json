@@ -1,0 +1,272 @@
+{
+  "name": "updateLocationFieldValueAdvanced",
+  "displayName": "Update location field value",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldValue",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldValueAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Fills in or changes one of a location's extra fields, using the location's and field's ids.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "fieldId": {
+      "type": "string",
+      "displayName": "Location field id",
+      "required": true,
+      "description": "The location field's id, as the plugin's settings give it.",
+      "sampleValue": "[field id]"
+    },
+    "value": {
+      "type": "string",
+      "displayName": "Value",
+      "required": false,
+      "nullable": true,
+      "description": "The field's new value, checked by the field's type: a phone number, an email address, a web address (https:// is added when missing) or text. Leave it out to keep the current value, or leave it empty to empty it, unless the field is required.",
+      "sampleValue": "[field value]"
+    },
+    "customLabel": {
+      "type": "string",
+      "displayName": "Custom label",
+      "required": false,
+      "nullable": true,
+      "description": "A label shown instead of the field's own, only for fields that allow one. Leave it out to keep the current label, or leave it empty to remove it.",
+      "sampleValue": "[custom label]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the updated location.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the location or field can't be found or is ambiguous, the value doesn't fit the field's type, a required field would be emptied, or the field allows no custom label."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "location": {
+              "type": "object",
+              "description": "One location.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The subtitle, if it has one."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The street address."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown in place of the address, if it has one."
+                },
+                "latitude": {
+                  "type": "number",
+                  "description": "The map pin's latitude."
+                },
+                "longitude": {
+                  "type": "number",
+                  "description": "The map pin's longitude."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description, as HTML."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "The list image URL."
+                },
+                "images": {
+                  "type": "array",
+                  "description": "The gallery image URLs, in order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One image URL."
+                  }
+                },
+                "categoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live categories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A category title."
+                  }
+                },
+                "subcategoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live subcategories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A subcategory title."
+                  }
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "The price range, 1 ($) to 4 ($$$$)."
+                },
+                "priceCurrency": {
+                  "type": "string",
+                  "description": "The currency sign."
+                },
+                "rating": {
+                  "type": "number",
+                  "description": "The average star rating app users gave it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "pinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the introduction screen."
+                },
+                "pinPosition": {
+                  "type": "number",
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether it is open right now by its opening hours, using the clock of wherever the call runs."
+                },
+                "hours": {
+                  "type": "object",
+                  "description": "Opening hours per day, each \"HH:MM-HH:MM\" intervals separated by commas, or \"closed\".",
+                  "properties": {
+                    "monday": {
+                      "type": "string",
+                      "description": "Monday's hours."
+                    },
+                    "tuesday": {
+                      "type": "string",
+                      "description": "Tuesday's hours."
+                    },
+                    "wednesday": {
+                      "type": "string",
+                      "description": "Wednesday's hours."
+                    },
+                    "thursday": {
+                      "type": "string",
+                      "description": "Thursday's hours."
+                    },
+                    "friday": {
+                      "type": "string",
+                      "description": "Friday's hours."
+                    },
+                    "saturday": {
+                      "type": "string",
+                      "description": "Saturday's hours."
+                    },
+                    "sunday": {
+                      "type": "string",
+                      "description": "Sunday's hours."
+                    }
+                  }
+                },
+                "markerType": {
+                  "type": "string",
+                  "description": "pin, circle or image."
+                },
+                "actionItems": {
+                  "type": "array",
+                  "description": "The details page's buttons, as action items.",
+                  "items": {
+                    "type": "object",
+                    "description": "One action item."
+                  }
+                },
+                "fieldValues": {
+                  "type": "array",
+                  "description": "Location field values filled in for it.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field value.",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "description": "The location field's label."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The label shown instead of the field's own, if it has one."
+                      }
+                    }
+                  }
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow it for updates."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When it was created."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When it was last changed."
+                }
+              }
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which of the plugin's follow-up steps ran; deep links and analytics exist only inside the app frames.",
+              "properties": {
+                "analyticsRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its \"Viewed\" analytics event was registered (create only)."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its deep link was registered."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether its search-engine entry was saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

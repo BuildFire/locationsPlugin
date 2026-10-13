@@ -1,0 +1,126 @@
+{
+  "name": "searchCategories",
+  "displayName": "Search categories",
+  "type": "publicData",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ],
+    "collection": "categories",
+    "operationType": "search",
+    "scope": "app",
+    "query": {
+      "filter": {
+        "_buildfire.index.date1": {
+          "$type": 10
+        },
+        "$json.title": "$params.title"
+      },
+      "sort": {
+        "_buildfire.index.string1": 1
+      },
+      "page": "$params.page",
+      "pageSize": 50
+    }
+  },
+  "description": "Shows the categories locations can be filed under, with their subcategories, A to Z.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category title",
+      "required": false,
+      "description": "An exact category title, for seeing every category that shares it. Leave it out to show every category.",
+      "sampleValue": "[category title]"
+    },
+    "page": {
+      "type": "number",
+      "displayName": "Page",
+      "required": false,
+      "minValue": 0,
+      "description": "Which page to show, 50 categories per page, starting at 0. Leave it out for the first page.",
+      "sampleValue": 0
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the categories.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, if it didn't."
+        },
+        "result": {
+          "type": "array",
+          "description": "What was found.",
+          "items": {
+            "type": "object",
+            "description": "One category record.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The category's id."
+              },
+              "data": {
+                "type": "object",
+                "description": "The stored category.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "The category title."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "Its image icon, if it uses a picture."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "Its font icon class, if it uses a font icon."
+                  },
+                  "subcategories": {
+                    "type": "array",
+                    "description": "Its subcategories, in order.",
+                    "items": {
+                      "type": "object",
+                      "description": "One subcategory.",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "The subcategory id."
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "The subcategory title."
+                        },
+                        "iconUrl": {
+                          "type": "string",
+                          "description": "Its image icon, if it has one."
+                        }
+                      }
+                    }
+                  },
+                  "createdOn": {
+                    "type": "datetime",
+                    "description": "When it was created."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

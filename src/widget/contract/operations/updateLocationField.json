@@ -1,0 +1,146 @@
+{
+  "name": "updateLocationField",
+  "displayName": "Update location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationField",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Renames, retypes, reorders or changes the rules of an extra location field.",
+  "parameters": {
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The exact label of the location field.",
+      "sampleValue": "[field label]"
+    },
+    "newLabel": {
+      "type": "string",
+      "displayName": "New field name",
+      "required": false,
+      "description": "The field's new label; one another field already has is refused. Leave it out to keep the current label; it can't be removed.",
+      "sampleValue": "[new field label]"
+    },
+    "newType": {
+      "type": "select",
+      "displayName": "New type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich Text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "What the field holds; must fit its section. Leave it out to keep the current type; it can't be removed.",
+      "sampleValue": "URL"
+    },
+    "newRequired": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether every location must fill it in. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "newAllowCustomLabel": {
+      "type": "boolean",
+      "displayName": "Custom label",
+      "required": false,
+      "description": "Whether a location may show its own label for it. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "newPosition": {
+      "type": "number",
+      "displayName": "New position",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 10,
+      "description": "The field's new place within its section, counting from 1. Leave it out to keep its place; it can't be removed.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the updated field.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the field can't be found or is ambiguous, nothing to change is passed, the new label is taken, or the type doesn't fit the section."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "field": {
+              "type": "object",
+              "description": "The field.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "quickActions or content."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's label."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "EMAIL, PHONE, URL, TEXT or RICH_TEXT."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether locations must fill it in."
+                },
+                "allowCustomLabel": {
+                  "type": "boolean",
+                  "description": "Whether a location may show its own label for it."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

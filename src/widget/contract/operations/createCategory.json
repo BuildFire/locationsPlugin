@@ -1,0 +1,107 @@
+{
+  "name": "createCategory",
+  "displayName": "Create category",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a new category that locations can be filed under.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category title",
+      "required": true,
+      "description": "The new category's title; a title another category already has is refused.",
+      "sampleValue": "[category title]"
+    },
+    "iconImage": {
+      "type": "image",
+      "displayName": "Icon",
+      "required": false,
+      "description": "The picture shown as the category's icon. Leave it out to use the standard icon.",
+      "sampleValue": "[image url]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the new category.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when the title is missing or already used."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "category": {
+              "type": "object",
+              "description": "The category.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category title."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "Its image icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "Its image icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which follow-up steps ran.",
+              "properties": {
+                "analyticsRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its \"Category Selected\" analytics event was registered."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

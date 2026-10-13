@@ -1,0 +1,68 @@
+{
+  "name": "deleteLocationFieldAdvanced",
+  "displayName": "Delete location field",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteLocationField",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "deleteLocationFieldAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes an extra location field, using its id.",
+  "parameters": {
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The location field's id, as the plugin's settings give it.",
+      "sampleValue": "[field id]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the removal.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when no field has that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "deleted": {
+              "type": "boolean",
+              "description": "Always true."
+            },
+            "fieldId": {
+              "type": "string",
+              "description": "The removed field's id."
+            },
+            "label": {
+              "type": "string",
+              "description": "The removed field's label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

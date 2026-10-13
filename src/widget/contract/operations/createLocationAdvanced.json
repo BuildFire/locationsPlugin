@@ -1,0 +1,455 @@
+{
+  "name": "createLocationAdvanced",
+  "displayName": "Create location",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "alternatives": [
+    {
+      "operationName": "createLocation",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "createLocationAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a new location with every detail, such as its subtitle, price, marker, pin, gallery and buttons, using category ids to file it.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": true,
+      "description": "The location's title, shown on the map, in lists and on its details page.",
+      "sampleValue": "[location title]"
+    },
+    "subtitle": {
+      "type": "string",
+      "displayName": "Location subtitle",
+      "required": false,
+      "description": "A short line shown under the title. Leave it out for no subtitle.",
+      "sampleValue": "[location subtitle]"
+    },
+    "address": {
+      "type": "string",
+      "displayName": "Address",
+      "required": true,
+      "description": "The location's full street address, as an address search would format it. It is shown as is; the map position comes from the latitude and longitude.",
+      "sampleValue": "[street address]"
+    },
+    "latitude": {
+      "type": "number",
+      "displayName": "Latitude",
+      "required": true,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "The latitude of the location's map pin, in degrees.",
+      "sampleValue": 32.7182625
+    },
+    "longitude": {
+      "type": "number",
+      "displayName": "Longitude",
+      "required": true,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "The longitude of the location's map pin, in degrees.",
+      "sampleValue": -117.1601157
+    },
+    "addressAlias": {
+      "type": "string",
+      "displayName": "Location custom name",
+      "required": false,
+      "description": "A friendlier name shown in place of the address, such as a building name. Leave it out to show the address.",
+      "sampleValue": "[address display name]"
+    },
+    "description": {
+      "type": "string",
+      "displayName": "Description",
+      "required": true,
+      "description": "The location's description, shown on its details page. HTML formatting is kept, as the description editor saves it.",
+      "sampleValue": "<p>[location description]</p>"
+    },
+    "listImage": {
+      "type": "image",
+      "displayName": "List image",
+      "required": true,
+      "description": "The picture shown for the location in lists and on its details page.",
+      "sampleValue": "[image url]"
+    },
+    "categoryIds": {
+      "type": "string",
+      "displayName": "Category ids",
+      "required": false,
+      "description": "The ids of the categories the location is listed under, separated by commas, as the category search gives them. Every id must match a live category. Leave it out to add the location without a category.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryIds": {
+      "type": "string",
+      "displayName": "Subcategory ids",
+      "required": false,
+      "description": "The ids of the subcategories the location is listed under, separated by commas, as the category search gives them. Each must be a subcategory of one of the location's categories. Needs categoryIds. Leave it out to pick no subcategory.",
+      "sampleValue": "[subcategory id]"
+    },
+    "priceRange": {
+      "type": "select",
+      "displayName": "Price range",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": 1
+        },
+        {
+          "label": "$$",
+          "value": 2
+        },
+        {
+          "label": "$$$",
+          "value": 3
+        },
+        {
+          "label": "$$$$",
+          "value": 4
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How pricey the location is, from $ to $$$$. Defaults to $.",
+      "sampleValue": 2
+    },
+    "priceCurrency": {
+      "type": "select",
+      "displayName": "Currency",
+      "required": false,
+      "enums": [
+        {
+          "label": "$",
+          "value": "$"
+        },
+        {
+          "label": "€",
+          "value": "€"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The currency sign the price range is shown with. Defaults to $.",
+      "sampleValue": "$"
+    },
+    "markerType": {
+      "type": "select",
+      "displayName": "Marker type",
+      "required": false,
+      "enums": [
+        {
+          "label": "Pin",
+          "value": "pin"
+        },
+        {
+          "label": "Circle",
+          "value": "circle"
+        },
+        {
+          "label": "Image",
+          "value": "image"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How the location is drawn on the map. Defaults to a pin.",
+      "sampleValue": "pin"
+    },
+    "markerColor": {
+      "type": "string",
+      "displayName": "Marker color",
+      "required": false,
+      "description": "The circle marker's color as an rgb() or rgba() value. Used only when the marker type is Circle; defaults to red, rgba(253,35,5,1).",
+      "sampleValue": "rgba(253,35,5,1)"
+    },
+    "markerImage": {
+      "type": "image",
+      "displayName": "Marker image",
+      "required": false,
+      "description": "The picture used as the map marker. Required when the marker type is Image, ignored otherwise.",
+      "sampleValue": "[image url]"
+    },
+    "showCategory": {
+      "type": "boolean",
+      "displayName": "Show category",
+      "required": false,
+      "description": "Whether the location's category is shown on its details page. Defaults to true.",
+      "sampleValue": true
+    },
+    "showOpeningHours": {
+      "type": "boolean",
+      "displayName": "Show opening hours",
+      "required": false,
+      "description": "Whether the opening hours are shown on its details page. Leave it out to hide them. New locations get the plugin's standard week, open 08:00-20:00 every day; the hours themselves are edited in the plugin.",
+      "sampleValue": false
+    },
+    "showPriceRange": {
+      "type": "boolean",
+      "displayName": "Show price range",
+      "required": false,
+      "description": "Whether the price range is shown on its details page. Defaults to false.",
+      "sampleValue": false
+    },
+    "showStarRating": {
+      "type": "boolean",
+      "displayName": "Show star rating",
+      "required": false,
+      "description": "Whether app users' star rating is shown on its details page. Defaults to false.",
+      "sampleValue": false
+    },
+    "pinned": {
+      "type": "boolean",
+      "displayName": "Pin to top",
+      "required": false,
+      "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
+      "sampleValue": false
+    },
+    "images": {
+      "type": "image",
+      "displayName": "Location images",
+      "required": false,
+      "minValue": 0,
+      "description": "Pictures shown in the location's gallery, in order. Leave it out for an empty gallery.",
+      "sampleValue": [
+        "[image url]",
+        "[image url]"
+      ]
+    },
+    "actionItems": {
+      "type": "action",
+      "displayName": "Action items",
+      "required": false,
+      "minValue": 0,
+      "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Leave it out to add none.",
+      "sampleValue": [
+        {
+          "title": "Website",
+          "action": "linkToWeb",
+          "url": "https://example.com"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the new location.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when a required detail is missing, a category or subcategory id matches nothing, the hours are malformed, or three locations are already pinned."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was added.",
+          "properties": {
+            "location": {
+              "type": "object",
+              "description": "One location.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The location's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The location title."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "The subtitle, if it has one."
+                },
+                "address": {
+                  "type": "string",
+                  "description": "The street address."
+                },
+                "addressAlias": {
+                  "type": "string",
+                  "description": "The custom name shown in place of the address, if it has one."
+                },
+                "latitude": {
+                  "type": "number",
+                  "description": "The map pin's latitude."
+                },
+                "longitude": {
+                  "type": "number",
+                  "description": "The map pin's longitude."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description, as HTML."
+                },
+                "listImage": {
+                  "type": "string",
+                  "description": "The list image URL."
+                },
+                "images": {
+                  "type": "array",
+                  "description": "The gallery image URLs, in order.",
+                  "items": {
+                    "type": "string",
+                    "description": "One image URL."
+                  }
+                },
+                "categoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live categories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A category title."
+                  }
+                },
+                "subcategoryTitles": {
+                  "type": "array",
+                  "description": "Titles of the live subcategories it is listed under.",
+                  "items": {
+                    "type": "string",
+                    "description": "A subcategory title."
+                  }
+                },
+                "priceRange": {
+                  "type": "number",
+                  "description": "The price range, 1 ($) to 4 ($$$$)."
+                },
+                "priceCurrency": {
+                  "type": "string",
+                  "description": "The currency sign."
+                },
+                "rating": {
+                  "type": "number",
+                  "description": "The average star rating app users gave it."
+                },
+                "ratingCount": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                },
+                "pinned": {
+                  "type": "boolean",
+                  "description": "Whether it is pinned to the top of the introduction screen."
+                },
+                "pinPosition": {
+                  "type": "number",
+                  "description": "Its pinned position, 1 to 3, if it is pinned."
+                },
+                "isOpenNow": {
+                  "type": "boolean",
+                  "description": "Whether it is open right now by its opening hours, using the clock of wherever the call runs."
+                },
+                "hours": {
+                  "type": "object",
+                  "description": "Opening hours per day, each \"HH:MM-HH:MM\" intervals separated by commas, or \"closed\".",
+                  "properties": {
+                    "monday": {
+                      "type": "string",
+                      "description": "Monday's hours."
+                    },
+                    "tuesday": {
+                      "type": "string",
+                      "description": "Tuesday's hours."
+                    },
+                    "wednesday": {
+                      "type": "string",
+                      "description": "Wednesday's hours."
+                    },
+                    "thursday": {
+                      "type": "string",
+                      "description": "Thursday's hours."
+                    },
+                    "friday": {
+                      "type": "string",
+                      "description": "Friday's hours."
+                    },
+                    "saturday": {
+                      "type": "string",
+                      "description": "Saturday's hours."
+                    },
+                    "sunday": {
+                      "type": "string",
+                      "description": "Sunday's hours."
+                    }
+                  }
+                },
+                "markerType": {
+                  "type": "string",
+                  "description": "pin, circle or image."
+                },
+                "actionItems": {
+                  "type": "array",
+                  "description": "The details page's buttons, as action items.",
+                  "items": {
+                    "type": "object",
+                    "description": "One action item."
+                  }
+                },
+                "fieldValues": {
+                  "type": "array",
+                  "description": "Location field values filled in for it.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field value.",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "description": "The location field's label."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The label shown instead of the field's own, if it has one."
+                      }
+                    }
+                  }
+                },
+                "subscriberCount": {
+                  "type": "number",
+                  "description": "How many app users follow it for updates."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When it was created."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When it was last changed."
+                }
+              }
+            },
+            "sideEffects": {
+              "type": "object",
+              "description": "Which of the plugin's follow-up steps ran; deep links and analytics exist only inside the app frames.",
+              "properties": {
+                "analyticsRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its \"Viewed\" analytics event was registered (create only)."
+                },
+                "deeplinkRegistered": {
+                  "type": "boolean",
+                  "description": "Whether its deep link was registered."
+                },
+                "searchIndexed": {
+                  "type": "boolean",
+                  "description": "Whether its search-engine entry was saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

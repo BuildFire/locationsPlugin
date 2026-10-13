@@ -1,0 +1,76 @@
+{
+  "name": "deleteLocationSubscriberAdvanced",
+  "displayName": "Delete location subscriber",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteLocationSubscriber",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "deleteLocationSubscriberAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Stops a person from getting update notifications about a location, on behalf of the app, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "userId": {
+      "type": "user",
+      "displayName": "App user",
+      "required": true,
+      "description": "The app user whose updates are stopped, by user id or email; the only user named.",
+      "sampleValue": "[user id]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the removal.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when no location has that id, or that user isn't following it."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "removed": {
+              "type": "boolean",
+              "description": "Always true."
+            },
+            "locationId": {
+              "type": "string",
+              "description": "The location's id."
+            },
+            "userId": {
+              "type": "string",
+              "description": "The user's id."
+            }
+          }
+        }
+      }
+    }
+  }
+}

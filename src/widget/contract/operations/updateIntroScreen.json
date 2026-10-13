@@ -1,0 +1,137 @@
+{
+  "name": "updateIntroScreen",
+  "displayName": "Update introduction screen",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateIntroScreen",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes the introduction screen's text, which locations it shows and their order.",
+  "parameters": {
+    "description": {
+      "type": "string",
+      "displayName": "Description",
+      "required": false,
+      "nullable": true,
+      "description": "The text shown on the introduction screen, HTML formatting kept. Leave it out to keep the current text, or leave it empty to remove it.",
+      "sampleValue": "<p>[introduction text]</p>"
+    },
+    "sorting": {
+      "type": "select",
+      "displayName": "Sort locations by",
+      "required": false,
+      "enums": [
+        {
+          "label": "Distance",
+          "value": "distance"
+        },
+        {
+          "label": "Alphabetical",
+          "value": "alphabetical"
+        },
+        {
+          "label": "Newest",
+          "value": "newest"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "The order of locations on the introduction screen. Leave it out to keep the current order; it can't be removed.",
+      "sampleValue": "distance"
+    },
+    "locationSource": {
+      "type": "select",
+      "displayName": "Location source",
+      "required": false,
+      "enums": [
+        {
+          "label": "All Locations",
+          "value": "All"
+        },
+        {
+          "label": "User's Position",
+          "value": "UserPosition"
+        },
+        {
+          "label": "Local Area",
+          "value": "AreaRadius"
+        },
+        {
+          "label": "My Locations",
+          "value": "MyLocations"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "Which locations the introduction screen shows. Leave it out to keep the current source; it can't be removed.",
+      "sampleValue": "AreaRadius"
+    },
+    "areaLatitude": {
+      "type": "number",
+      "displayName": "Area center latitude",
+      "required": false,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "Latitude of the local area's center, used by the Local Area source. Leave it out to keep the current center; it changes only together with areaLongitude.",
+      "sampleValue": 32.7182625
+    },
+    "areaLongitude": {
+      "type": "number",
+      "displayName": "Area center longitude",
+      "required": false,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "Longitude of the local area's center. Leave it out to keep the current center; it changes only together with areaLatitude.",
+      "sampleValue": -117.1601157
+    },
+    "areaAddress": {
+      "type": "string",
+      "displayName": "Area center",
+      "required": false,
+      "description": "The address shown for the local area's center. Leave it out to keep the current one; it can't be removed, and it changes only together with both coordinates.",
+      "sampleValue": "[street address]"
+    },
+    "areaRadiusMiles": {
+      "type": "number",
+      "displayName": "Area radius (miles)",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 200,
+      "description": "How far around the center the local area reaches, 1 to 200 miles. Leave it out to keep the current radius; it can't be removed.",
+      "sampleValue": 10
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the saved introduction screen.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when nothing to change is passed or a setting that can't be removed is left empty."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "introScreen": {
+              "type": "object",
+              "description": "The introduction screen settings as saved."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,7 +6,7 @@ import state from '../state';
 import Analytics from '../../../utils/analytics';
 import WidgetController from '../../widget.controller';
 import Location from '../global/data/Location';
-import { generateUUID } from '../global/helpers';
+import { generateUUID, sendContractEvent, contractEventUser } from '../global/helpers';
 
 export const deepObjectDiff = (a, b, reversible) => {
   const r = {};
@@ -153,8 +153,17 @@ export const bookmarkLocation = (locationId, e) => {
   setTimeout(() => { state.bookmarkLoading = false; }, 1000);
 
   if (location.clientId && state.bookmarks.find((l) => l.id === location.clientId)) {
-    buildfire.bookmarks.delete(location.clientId, () => {
+    const bookmarkId = location.clientId;
+    buildfire.bookmarks.delete(bookmarkId, (err) => {
       showToastMessage('bookmarksRemoved');
+      if (!err) {
+        sendContractEvent('locationUnbookmarked', {
+          locationId: location.id,
+          bookmarkId,
+          title: location.title || null,
+          user: contractEventUser(state.sanitizedCurrentUser)
+        });
+      }
     });
     state.bookmarks.splice(state.bookmarks.findIndex((l) => l.id === location.clientId), 1);
     e.target.textContent = 'star_outline';
@@ -182,6 +191,12 @@ export const bookmarkLocation = (locationId, e) => {
           return;
         }
         Analytics.locationBookmarkUsed();
+        sendContractEvent('locationBookmarked', {
+          locationId: location.id,
+          bookmarkId: location.clientId,
+          title: location.title || null,
+          user: contractEventUser(state.sanitizedCurrentUser)
+        });
         state.bookmarks.push({
           id: location.clientId,
           title: location.title

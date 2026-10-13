@@ -1,0 +1,329 @@
+{
+  "name": "updateSettings",
+  "displayName": "Update settings",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateSettings",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes how the locations feature behaves for app users, leaving every setting not mentioned as it was.",
+  "parameters": {
+    "subscriptionEnabled": {
+      "type": "boolean",
+      "displayName": "Enable locations subscribing",
+      "required": false,
+      "description": "Whether app users can follow locations to get update notifications. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "openHoursEnabled": {
+      "type": "boolean",
+      "displayName": "Open hours",
+      "required": false,
+      "description": "Whether locations have opening hours. Turning it off also stops app users from adding hours, as the settings page does. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "priceRangeEnabled": {
+      "type": "boolean",
+      "displayName": "Price range",
+      "required": false,
+      "description": "Whether locations have a price range. Turning it off also stops app users from adding prices, as the settings page does. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "defaultSorting": {
+      "type": "select",
+      "displayName": "Default locations sorting",
+      "required": false,
+      "enums": [
+        {
+          "label": "Distance",
+          "value": "distance"
+        },
+        {
+          "label": "Alphabetical",
+          "value": "alphabetical"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "How locations are sorted when the app opens. Distance needs nearest sorting allowed. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "alphabetical"
+    },
+    "hideSorting": {
+      "type": "boolean",
+      "displayName": "Hide user controlled sorting",
+      "required": false,
+      "description": "Whether app users are kept from changing the sort order. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByReverseAlphabetical": {
+      "type": "boolean",
+      "displayName": "Allow reverse alphabetical order",
+      "required": false,
+      "description": "Whether app users can sort Z to A. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByNearest": {
+      "type": "boolean",
+      "displayName": "Nearest to user location",
+      "required": false,
+      "description": "Whether app users can sort by distance. Turning it off makes Alphabetical the starting sort, as the settings page does. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByPriceLowToHigh": {
+      "type": "boolean",
+      "displayName": "Allow price low to high",
+      "required": false,
+      "description": "Whether app users can sort by price, low to high. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByPriceHighToLow": {
+      "type": "boolean",
+      "displayName": "Allow price high to low",
+      "required": false,
+      "description": "Whether app users can sort by price, high to low. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByDate": {
+      "type": "boolean",
+      "displayName": "Allow by date (new to old)",
+      "required": false,
+      "description": "Whether app users can sort by date. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByRating": {
+      "type": "boolean",
+      "displayName": "Allow by rating",
+      "required": false,
+      "description": "Whether app users can sort by rating. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowSortByViews": {
+      "type": "boolean",
+      "displayName": "Allow by views",
+      "required": false,
+      "description": "Whether app users can sort by views. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowFilterByArea": {
+      "type": "boolean",
+      "displayName": "Filter by selected area",
+      "required": false,
+      "description": "Whether app users can filter by the map area. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowFilterByBookmarks": {
+      "type": "boolean",
+      "displayName": "Filter by bookmarks",
+      "required": false,
+      "description": "Whether app users can filter to their bookmarks. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "hideOpeningHoursFilter": {
+      "type": "boolean",
+      "displayName": "Hide opening hours filter",
+      "required": false,
+      "description": "Whether the opening hours filter is hidden. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "hidePriceFilter": {
+      "type": "boolean",
+      "displayName": "Hide price filter",
+      "required": false,
+      "description": "Whether the price filter is hidden. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "measurementUnit": {
+      "type": "select",
+      "displayName": "Distance units",
+      "required": false,
+      "enums": [
+        {
+          "label": "Metric",
+          "value": "metric"
+        },
+        {
+          "label": "Imperial",
+          "value": "imperial"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "description": "Units distances are shown in. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": "imperial"
+    },
+    "mapInitialAreaEnabled": {
+      "type": "boolean",
+      "displayName": "Enable map initial area",
+      "required": false,
+      "description": "Whether the map opens on the initial area instead of the user's position. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "initialAreaLatitude": {
+      "type": "number",
+      "displayName": "Initial area latitude",
+      "required": false,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "Latitude of the map's initial area. Leave it out to keep the current area; it can't be removed, and it changes only together with initialAreaLongitude.",
+      "sampleValue": 32.7182625
+    },
+    "initialAreaLongitude": {
+      "type": "number",
+      "displayName": "Initial area longitude",
+      "required": false,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "Longitude of the map's initial area. Leave it out to keep the current area; it changes only together with initialAreaLatitude.",
+      "sampleValue": -117.1601157
+    },
+    "initialAreaAddress": {
+      "type": "string",
+      "displayName": "Initial area location",
+      "required": false,
+      "description": "The address shown for the initial area. Leave it out to keep the current one; it can't be removed, and it changes only together with both coordinates.",
+      "sampleValue": "[street address]"
+    },
+    "bookmarksEnabled": {
+      "type": "boolean",
+      "displayName": "Enable bookmarks",
+      "required": false,
+      "description": "Whether app users can bookmark at all. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowBookmarkLocations": {
+      "type": "boolean",
+      "displayName": "Allow bookmark location",
+      "required": false,
+      "description": "Whether app users can bookmark locations. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "allowBookmarkSearches": {
+      "type": "boolean",
+      "displayName": "Allow bookmark search",
+      "required": false,
+      "description": "Whether app users can bookmark searches. Leave it out to keep the current setting; it can't be removed.",
+      "sampleValue": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with the saved settings.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when nothing to change is passed, a setting is left empty, or distance is picked as the starting sort while sorting by distance is off."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was changed.",
+          "properties": {
+            "settings": {
+              "type": "object",
+              "description": "The plugin's settings, in the shape the plugin stores them, without access, editor and billing settings.",
+              "properties": {
+                "subscription": {
+                  "type": "object",
+                  "description": "Location subscribing.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether app users can follow locations for updates."
+                    }
+                  }
+                },
+                "measurementUnit": {
+                  "type": "string",
+                  "description": "metric or imperial."
+                },
+                "sorting": {
+                  "type": "object",
+                  "description": "How locations are sorted at first, and which sort choices app users get."
+                },
+                "filter": {
+                  "type": "object",
+                  "description": "Which filters app users get."
+                },
+                "map": {
+                  "type": "object",
+                  "description": "Map settings, including the initial area."
+                },
+                "bookmarks": {
+                  "type": "object",
+                  "description": "Bookmark settings."
+                },
+                "design": {
+                  "type": "object",
+                  "description": "Design tab settings."
+                },
+                "introductoryListView": {
+                  "type": "object",
+                  "description": "Introduction screen content: images, description, sorting and location source."
+                },
+                "customFields": {
+                  "type": "object",
+                  "description": "Location fields set up for this plugin.",
+                  "properties": {
+                    "quickActions": {
+                      "type": "array",
+                      "description": "Quick Actions fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field: id, label, type, required, allowCustomLabel."
+                      }
+                    },
+                    "content": {
+                      "type": "array",
+                      "description": "Text Content fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field: id, label, type, required, allowCustomLabel."
+                      }
+                    }
+                  }
+                },
+                "locationFields": {
+                  "type": "object",
+                  "description": "Which built-in location fields are turned on.",
+                  "properties": {
+                    "openHoursEnabled": {
+                      "type": "boolean",
+                      "description": "Opening hours."
+                    },
+                    "priceRangeEnabled": {
+                      "type": "boolean",
+                      "description": "Price range."
+                    }
+                  }
+                },
+                "categoriesSortBy": {
+                  "type": "string",
+                  "description": "Asc or Desc."
+                },
+                "createdOn": {
+                  "type": "datetime",
+                  "description": "When the settings were first saved."
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When they were last saved."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

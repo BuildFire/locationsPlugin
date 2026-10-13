@@ -1,0 +1,101 @@
+{
+  "name": "deleteLocationSubscribersAdvanced",
+  "displayName": "Delete location subscribers",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "deleteLocationSubscribersAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Stops several people's update notifications about locations at once, on behalf of the app.",
+  "parameters": {
+    "subscribers": {
+      "type": "list",
+      "displayName": "Subscribers",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results."
+        },
+        "userId": {
+          "type": "user",
+          "displayName": "App user",
+          "required": true,
+          "description": "The app user whose updates are stopped, by user id or email; the only user named."
+        }
+      },
+      "description": "The location and user pairs to remove, up to 50 per call.",
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "userId": "[user id]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when it's done, with each entry's outcome.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as when any entry does not resolve or repeats a pair, in which case nothing is removed."
+        },
+        "result": {
+          "type": "object",
+          "description": "What was removed.",
+          "properties": {
+            "subscribers": {
+              "type": "array",
+              "description": "One outcome per input entry, in input order.",
+              "items": {
+                "type": "object",
+                "description": "One entry's outcome.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "The entry's position in the input list, from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it worked."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why the entry failed, if it didn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many entries succeeded."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many entries failed."
+            }
+          }
+        }
+      }
+    }
+  }
+}
