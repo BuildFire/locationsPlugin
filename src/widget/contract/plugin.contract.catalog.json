@@ -399,7 +399,8 @@
         "showOpeningHours",
         "showPriceRange",
         "showStarRating",
-        "pinned"
+        "pinned",
+        "images"
       ],
       "definitionPath": "operations/createLocation.json"
     },
@@ -537,7 +538,8 @@
         "newShowOpeningHours",
         "newShowPriceRange",
         "newShowStarRating",
-        "pinned"
+        "pinned",
+        "newImages"
       ],
       "definitionPath": "operations/updateLocation.json"
     },

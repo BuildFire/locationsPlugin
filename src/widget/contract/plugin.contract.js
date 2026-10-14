@@ -1097,8 +1097,7 @@ const runBatch = (spec, listName, options, callback) => {
 
 /**
  * Hands an action entries that cannot carry the named params, refusing an entry that tries rather
- * than reading params the operation never declared. Used where a batch entry can't hold list fields
- * (gallery images, action buttons), and to keep a basic operation to the params it declares.
+ * than reading params the operation never declared. Keeps a basic operation to the params it declares.
  */
 const withoutFields = (spec, names, why) => {
   const strip = (entry) => {
@@ -1118,14 +1117,14 @@ const withoutFields = (spec, names, why) => {
   };
 };
 
-const inBatch = (field) => `${field} can't be part of a batch entry`;
 const onlyAdvanced = (advanced) => (field) => `${field} is only taken by ${advanced}`;
 
-// What the basic createLocation / updateLocation don't take: the gallery and action buttons are lists,
-// and adding a list would cost those existing operations their form use. Their advanced alternatives
-// take them. Every other field is the same on both sides of each pair.
-const LOCATION_CREATE_SECONDARY = ['images', 'actionItems'];
-const LOCATION_UPDATE_SECONDARY = ['newImages', 'newActionItems'];
+// What the basic createLocation / updateLocation don't take: action buttons are action items, and
+// adding one would cost those existing operations their form use (an image list still fills from a
+// form, so the gallery is on both sides). Their advanced alternatives take them. Every other field is
+// the same on both sides of each pair.
+const LOCATION_CREATE_SECONDARY = ['actionItems'];
+const LOCATION_UPDATE_SECONDARY = ['newActionItems'];
 
 // ---------------------------------------------------------------------------
 // Location actions
@@ -1246,7 +1245,7 @@ const updateLocationAction = (byId) => {
   return {
     validate: (entry) => firstProblem([
       byId ? checkString(entry, 'locationId', { required: true }) : checkString(entry, 'title', { required: true }),
-      // The basic operation names only the fields it declares (no gallery or action buttons).
+      // The basic operation names only the fields it declares (no action buttons).
       requireAnyGiven(entry, byId ? fields : fields.filter((f) => LOCATION_UPDATE_SECONDARY.indexOf(f) === -1)),
       // Subtitle, custom name and categories can be emptied in the location form; nothing else can.
       findClearedProblem(entry, fields.filter((f) => ['newSubtitle', 'newAddressAlias', categoriesParam, subcategoriesParam, 'newImages', 'newActionItems'].indexOf(f) === -1)),
@@ -2466,18 +2465,18 @@ widgetContract = {
    * Deep links and analytics do not exist on the server, so there they are skipped and reported as
    * false in sideEffects; the searchEngine service is loaded on first use in a frame. New locations
    * get the plugin's default hours (every day 08:00-20:00) and no location field values (the CSV
-   * import creates locations the same way; fill them in with updateLocationFieldValue). Micro: it
-   * takes the form's required fields plus categories and subcategories; everything else gets the
-   * form's empty-field default, and createLocationAdvanced takes it. Passing a skipped field is refused.
-   * @param {object} options - title, address, latitude, longitude, description, listImage, categoryTitles, subcategoryTitles.
+   * import creates locations the same way; fill them in with updateLocationFieldValue). It takes
+   * every field createLocationAdvanced does except action buttons (an action item would cost it its
+   * form use); passing actionItems is refused.
+   * @param {object} options - title, categoryTitles, subcategoryTitles plus the fields declared in plugin.contract.json.
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
   createLocation(options, callback) { runAction(withoutFields(createLocationAction(false), LOCATION_CREATE_SECONDARY, onlyAdvanced('createLocationAdvanced')), options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * createLocation, taking categoryIds and subcategoryIds instead of titles, and every field the
-   * basic one skips (subtitle, custom name, price, marker, display toggles, pin, gallery, buttons).
+   * createLocation, taking categoryIds and subcategoryIds instead of titles, plus the action buttons
+   * the basic one skips.
    * @param {object} options
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
@@ -2487,11 +2486,11 @@ widgetContract = {
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form
    * of createLocationAdvanced, and what the control panel's CSV import does. Validates every entry and
    * checks every category id first, then creates each through createLocationAdvanced's own action.
-   * Entries carry no gallery images or action buttons, since an entry's fields can't be lists.
+   * Entries take gallery images and action buttons as lists, like the single operation.
    * @param {{ locations: object[] }} options
    * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  createLocationsAdvanced(options, callback) { runBatch(withoutFields(createLocationAction(true), ['images', 'actionItems'], inBatch), 'locations', options, callback); },
+  createLocationsAdvanced(options, callback) { runBatch(createLocationAction(true), 'locations', options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative
@@ -2499,8 +2498,8 @@ widgetContract = {
    * updateLocation): changes only the fields passed, re-reads and rewrites the whole document with a
    * fresh index, then fires locationUpdated, re-registers the deep link, updates the search entry and
    * refreshes the widget. Categories and subcategories can be cleared with null or ""; clearing
-   * anything else is refused. Micro: it changes title, address and position, description, list
-   * image and categories; updateLocationAdvanced changes the rest, and a skipped field is refused.
+   * anything else is refused, apart from the gallery, which null or [] empties. It changes every field
+   * updateLocationAdvanced does except action buttons; passing newActionItems is refused.
    * Background, by the user's choice for location writes.
    * @param {object} options - title plus the new* fields declared in plugin.contract.json.
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
@@ -2509,8 +2508,8 @@ widgetContract = {
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced; the alternative of
-   * updateLocation, taking locationId, newCategoryIds and newSubcategoryIds, and every field the
-   * basic one skips. Subtitle, custom name, gallery images and action buttons can also be cleared.
+   * updateLocation, taking locationId, newCategoryIds and newSubcategoryIds, plus the action buttons
+   * the basic one skips. Subtitle, custom name, gallery images and action buttons can also be cleared.
    * @param {object} options
    * @param {function(Error=, object=)} callback - (error, { location, sideEffects })
    */
@@ -2518,11 +2517,12 @@ widgetContract = {
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: advanced (batches are never basic); the batch form of
-   * updateLocationAdvanced: each entry names its record by id.
+   * updateLocationAdvanced: each entry names its record by id, and may replace or empty the gallery
+   * and action buttons like the single operation.
    * @param {{ locations: object[] }} options
    * @param {function(Error=, object=)} callback - (error, { locations, succeeded, failed })
    */
-  updateLocationsAdvanced(options, callback) { runBatch(withoutFields(updateLocationAction(true), ['newImages', 'newActionItems'], inBatch), 'locations', options, callback); },
+  updateLocationsAdvanced(options, callback) { runBatch(updateLocationAction(true), 'locations', options, callback); },
 
   /**
    * hosts: widgetBackground, controlBackground, headlessSdk. usage: basic; its advanced alternative

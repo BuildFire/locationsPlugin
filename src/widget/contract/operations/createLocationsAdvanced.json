@@ -199,9 +199,34 @@
           "displayName": "Pin to top",
           "required": false,
           "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false."
+        },
+        "images": {
+          "type": "image",
+          "displayName": "Location images",
+          "required": false,
+          "minValue": 0,
+          "description": "Pictures shown in the location's gallery, in order. Leave it out for an empty gallery.",
+          "sampleValue": [
+            "[image url]",
+            "[image url]"
+          ]
+        },
+        "actionItems": {
+          "type": "action",
+          "displayName": "Action items",
+          "required": false,
+          "minValue": 0,
+          "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Leave it out to add none.",
+          "sampleValue": [
+            {
+              "title": "Website",
+              "action": "linkToWeb",
+              "url": "https://example.com"
+            }
+          ]
         }
       },
-      "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be; entries carry no gallery images or action buttons.",
+      "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be.",
       "sampleValue": [
         {
           "title": "[location title]",
