@@ -2432,6 +2432,17 @@
           "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false.",
           "sampleValue": false
         },
+        "images": {
+          "type": "image",
+          "displayName": "Location images",
+          "required": false,
+          "minValue": 0,
+          "description": "Pictures shown in the location's gallery, in order. Leave it out for an empty gallery.",
+          "sampleValue": [
+            "[image url]",
+            "[image url]"
+          ]
+        },
         "callback": {
           "type": "function",
           "required": true,
@@ -3299,9 +3310,34 @@
               "displayName": "Pin to top",
               "required": false,
               "description": "Whether the location is pinned to the top of the introduction screen. At most three locations can be pinned; a fourth is refused. Defaults to false."
+            },
+            "images": {
+              "type": "image",
+              "displayName": "Location images",
+              "required": false,
+              "minValue": 0,
+              "description": "Pictures shown in the location's gallery, in order. Leave it out for an empty gallery.",
+              "sampleValue": [
+                "[image url]",
+                "[image url]"
+              ]
+            },
+            "actionItems": {
+              "type": "action",
+              "displayName": "Action items",
+              "required": false,
+              "minValue": 0,
+              "description": "Buttons shown on the location's details page, such as a call, an email or a website link, in order. Leave it out to add none.",
+              "sampleValue": [
+                {
+                  "title": "Website",
+                  "action": "linkToWeb",
+                  "url": "https://example.com"
+                }
+              ]
             }
           },
-          "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be; entries carry no gallery images or action buttons.",
+          "description": "The locations to add, up to 50 per call. Each entry is added exactly as a single new location would be.",
           "sampleValue": [
             {
               "title": "[location title]",
@@ -3592,6 +3628,17 @@
           "required": false,
           "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
           "sampleValue": true
+        },
+        "newImages": {
+          "type": "image",
+          "displayName": "New location images",
+          "required": false,
+          "nullable": true,
+          "minValue": 0,
+          "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery, or leave it empty to empty it.",
+          "sampleValue": [
+            "[image url]"
+          ]
         },
         "callback": {
           "type": "function",
@@ -4482,9 +4529,35 @@
               "displayName": "Pin to top",
               "required": false,
               "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is."
+            },
+            "newImages": {
+              "type": "image",
+              "displayName": "New location images",
+              "required": false,
+              "nullable": true,
+              "minValue": 0,
+              "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery, or leave it empty to empty it.",
+              "sampleValue": [
+                "[image url]"
+              ]
+            },
+            "newActionItems": {
+              "type": "action",
+              "displayName": "New action items",
+              "required": false,
+              "nullable": true,
+              "minValue": 0,
+              "description": "Replaces the details page's buttons with these, in order. Leave it out to keep the current buttons, or leave it empty to remove them all.",
+              "sampleValue": [
+                {
+                  "title": "Call us",
+                  "action": "callNumber",
+                  "phoneNumber": "[phone number]"
+                }
+              ]
             }
           },
-          "description": "The changes to make, up to 50 per call, one location per entry. Each entry changes only the fields it passes, exactly as a single update would; entries carry no gallery images or action buttons.",
+          "description": "The changes to make, up to 50 per call, one location per entry. Each entry changes only the fields it passes, exactly as a single update would.",
           "sampleValue": [
             {
               "locationId": "[location id]",

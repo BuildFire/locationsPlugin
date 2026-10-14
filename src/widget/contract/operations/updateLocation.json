@@ -229,6 +229,17 @@
       "description": "True pins the location to the top of the introduction screen (at most three can be pinned), false unpins it. Leave it out to keep it as it is.",
       "sampleValue": true
     },
+    "newImages": {
+      "type": "image",
+      "displayName": "New location images",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "description": "Replaces the gallery with these pictures, in order. Leave it out to keep the current gallery, or leave it empty to empty it.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
     "callback": {
       "type": "function",
       "required": true,
