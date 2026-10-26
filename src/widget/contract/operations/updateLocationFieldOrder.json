@@ -1,0 +1,102 @@
+{
+  "name": "updateLocationFieldOrder",
+  "displayName": "Reorder location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldOrderAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateLocationFieldOrder",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves an extra location field to a new place within its section.",
+  "parameters": {
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The name of the field to move.",
+      "sampleValue": "[field name]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "minValue": 1,
+      "description": "Where the field goes in its section, counting from 1.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is moved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't moved, such as a place past the end of its section."
+        },
+        "result": {
+          "type": "object",
+          "description": "The fields of that section in their new order.",
+          "properties": {
+            "section": {
+              "type": "string",
+              "description": "The section the field is in."
+            },
+            "fields": {
+              "type": "array",
+              "description": "The fields of that section, in their new order.",
+              "items": {
+                "type": "object",
+                "description": "One field.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The field's name."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "Where the field shows: quick actions or text content."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "What the field holds, such as an email, a phone number or text."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether people must fill it in."
+                  },
+                  "allowCustomLabel": {
+                    "type": "boolean",
+                    "description": "Whether people can give it their own label."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

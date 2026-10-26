@@ -331,6 +331,16 @@ export default {
       widgetController.unsubscribeFromLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
         selectors.subscribeBtn.classList.remove('disabled-btn');
         showToastMessage('unSubscribeFromLocationUpdates');
+        buildfire.services.contract.events.send('locationUnsubscribed', {
+          locationId: selectedLocation.id,
+          title: selectedLocation.title,
+          address: selectedLocation.formattedAddress || selectedLocation.address || null,
+          user: {
+            userId: authManager.currentUser.userId,
+            displayName: authManager.currentUser.displayName || null,
+            email: authManager.currentUser.email || null
+          }
+        });
       }).catch((err) => {
         console.error(err);
         selectors.subscribeBtn.classList.remove('disabled-btn');
@@ -345,6 +355,16 @@ export default {
       widgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
         selectors.subscribeBtn.classList.remove('disabled-btn');
         showToastMessage('subscribeToLocationUpdates');
+        buildfire.services.contract.events.send('locationSubscribed', {
+          locationId: selectedLocation.id,
+          title: selectedLocation.title,
+          address: selectedLocation.formattedAddress || selectedLocation.address || null,
+          user: {
+            userId: authManager.currentUser.userId,
+            displayName: authManager.currentUser.displayName || null,
+            email: authManager.currentUser.email || null
+          }
+        });
       }).catch((err) => {
         console.error(err);
         selectors.subscribeBtn.classList.remove('disabled-btn');

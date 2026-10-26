@@ -1,0 +1,123 @@
+{
+  "name": "updateCategory",
+  "displayName": "Update category",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "alternatives": [
+    {
+      "operationName": "updateCategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Renames a category or changes its icon.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The current name of the category to change.",
+      "sampleValue": "[category name]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New category name",
+      "required": false,
+      "description": "The category's new name. Leave it out to keep the current one.",
+      "sampleValue": "[new category name]"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "New picture",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 1,
+      "description": "A new picture for the category, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "newIconName": {
+      "type": "string",
+      "displayName": "New font icon",
+      "required": false,
+      "description": "A new font icon for the category, by its name; it replaces its picture. Leave it out to keep the current icon.",
+      "sampleValue": "[icon name]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no category having that name."
+        },
+        "result": {
+          "type": "object",
+          "description": "The category as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The category's picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The category's font icon, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's name."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The subcategory's picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "The subcategory's font icon, if it has one."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "getLanguageStrings",
+  "displayName": "Get language texts",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getLanguageStrings",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows every text label of the app that can be changed, with what the app shows now.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the texts are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, if it didn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "The text labels.",
+          "properties": {
+            "strings": {
+              "type": "array",
+              "description": "Every text label.",
+              "items": {
+                "type": "object",
+                "description": "One text label.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Which label this is."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "What the label is for."
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "What the app shows now."
+                  },
+                  "defaultValue": {
+                    "type": "string",
+                    "description": "What the app shows when nothing else is set."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

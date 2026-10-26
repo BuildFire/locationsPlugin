@@ -1,0 +1,136 @@
+{
+  "name": "createLocationField",
+  "displayName": "Create location field",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createLocationField",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds an extra field that people fill in when adding or editing a location, up to 10 fields in all.",
+  "parameters": {
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The new field's name.",
+      "sampleValue": "[field name]"
+    },
+    "section": {
+      "type": "select",
+      "displayName": "Section",
+      "required": true,
+      "description": "Where the field shows on a location: as a compact button at the top, or as a full-width section below.",
+      "enums": [
+        {
+          "label": "Quick actions",
+          "value": "quickActions"
+        },
+        {
+          "label": "Text content",
+          "value": "content"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "content"
+    },
+    "type": {
+      "type": "select",
+      "displayName": "Field type",
+      "required": false,
+      "description": "What the field holds. Text and rich text are for text content fields only. Leave it out for an email field.",
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "TEXT"
+    },
+    "required": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether people must fill the field in. Leave it out to make it optional.",
+      "sampleValue": true
+    },
+    "allowCustomLabel": {
+      "type": "boolean",
+      "displayName": "Allow custom label",
+      "required": false,
+      "description": "Whether people can give the field their own label. Leave it out to not allow it.",
+      "sampleValue": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't added, such as there already being 10 fields."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new field.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's name."
+            },
+            "section": {
+              "type": "string",
+              "description": "Where the field shows: quick actions or text content."
+            },
+            "type": {
+              "type": "string",
+              "description": "What the field holds, such as an email, a phone number or text."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether people must fill it in."
+            },
+            "allowCustomLabel": {
+              "type": "boolean",
+              "description": "Whether people can give it their own label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

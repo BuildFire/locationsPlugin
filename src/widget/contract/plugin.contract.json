@@ -1,0 +1,5049 @@
+{
+  "description": "Shows your places on a map and in a list, grouped in categories, so app users can find, explore and follow them.",
+  "events": [
+    {
+      "name": "locationSubscribed",
+      "displayName": "Location Followed",
+      "description": "An app user started following a location to hear about its updates.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Location Name",
+          "description": "The location's name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "Who did it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationUnsubscribed",
+      "displayName": "Location Unfollowed",
+      "description": "An app user stopped following a location.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Location Name",
+          "description": "The location's name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "Who did it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    }
+  ],
+  "operations": [
+    {
+      "name": "searchLocations",
+      "displayName": "Search locations",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "searchLocations",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows the locations in this plugin with their details, in alphabetical order or in pinned order.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "displayName": "Location name",
+          "required": false,
+          "description": "Only show locations with exactly this name, in any letter case. Leave it out to show every location.",
+          "sampleValue": "[location name]"
+        },
+        "search": {
+          "type": "string",
+          "displayName": "Search",
+          "required": false,
+          "description": "Only show locations whose name, subtitle or address contains this text. Leave it out to skip this search.",
+          "sampleValue": "[search text]"
+        },
+        "category": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": false,
+          "description": "Only show locations in the category with this exact name. Leave it out to show every category.",
+          "sampleValue": "[category name]"
+        },
+        "pinnedOnly": {
+          "type": "boolean",
+          "displayName": "Pinned only",
+          "required": false,
+          "description": "Only show the locations pinned to the top, in their pinned order. Leave it out to show every location.",
+          "sampleValue": true
+        },
+        "page": {
+          "type": "number",
+          "displayName": "Page",
+          "required": false,
+          "minValue": 0,
+          "description": "Which page to show, counting from 0. Leave it out for the first page.",
+          "sampleValue": 0
+        },
+        "pageSize": {
+          "type": "number",
+          "displayName": "Locations per page",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 50,
+          "description": "How many locations to show at a time, up to 50. Leave it out for 50.",
+          "sampleValue": 20
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the search is done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, such as no category having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The locations that were found.",
+              "properties": {
+                "locations": {
+                  "type": "array",
+                  "description": "The locations found.",
+                  "items": {
+                    "type": "object",
+                    "description": "One location.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The location's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The location's name."
+                      },
+                      "subtitle": {
+                        "type": "string",
+                        "description": "The location's subtitle, if it has one."
+                      },
+                      "address": {
+                        "type": "string",
+                        "description": "The location's address."
+                      },
+                      "formattedAddress": {
+                        "type": "string",
+                        "description": "The full address shown on the map."
+                      },
+                      "addressAlias": {
+                        "type": "string",
+                        "description": "The custom name shown for the address, if it has one."
+                      },
+                      "latitude": {
+                        "type": "number",
+                        "description": "The location's latitude."
+                      },
+                      "longitude": {
+                        "type": "number",
+                        "description": "The location's longitude."
+                      },
+                      "categories": {
+                        "type": "array",
+                        "description": "The names of its categories.",
+                        "items": {
+                          "type": "string",
+                          "description": "One category name."
+                        }
+                      },
+                      "subcategories": {
+                        "type": "array",
+                        "description": "The names of its subcategories.",
+                        "items": {
+                          "type": "string",
+                          "description": "One subcategory name."
+                        }
+                      },
+                      "listImage": {
+                        "type": "string",
+                        "description": "The picture shown in the list."
+                      },
+                      "images": {
+                        "type": "array",
+                        "description": "The pictures in its gallery, in order.",
+                        "items": {
+                          "type": "string",
+                          "description": "One picture."
+                        }
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The location's description, as formatted text."
+                      },
+                      "markerType": {
+                        "type": "string",
+                        "description": "How it shows on the map: pin, circle or image."
+                      },
+                      "markerImage": {
+                        "type": "string",
+                        "description": "The picture used as its map marker, if it has one."
+                      },
+                      "markerColor": {
+                        "type": "string",
+                        "description": "The color of its circle marker, if it has one."
+                      },
+                      "showCategory": {
+                        "type": "boolean",
+                        "description": "Whether its category shows."
+                      },
+                      "showOpeningHours": {
+                        "type": "boolean",
+                        "description": "Whether its opening hours show."
+                      },
+                      "showPriceRange": {
+                        "type": "boolean",
+                        "description": "Whether its price range shows."
+                      },
+                      "showStarRating": {
+                        "type": "boolean",
+                        "description": "Whether its star rating shows."
+                      },
+                      "openingHours": {
+                        "type": "object",
+                        "description": "Its opening hours, day by day.",
+                        "properties": {
+                          "monday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "tuesday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "wednesday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "thursday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "friday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "saturday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "sunday": {
+                            "type": "object",
+                            "description": "One day of the week.",
+                            "properties": {
+                              "isOpen": {
+                                "type": "boolean",
+                                "description": "Whether the location opens that day."
+                              },
+                              "hours": {
+                                "type": "array",
+                                "description": "The opening hours that day.",
+                                "items": {
+                                  "type": "object",
+                                  "description": "One opening period.",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string",
+                                      "description": "When it opens, such as 08:00."
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "description": "When it closes, such as 20:00."
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "priceRange": {
+                        "type": "number",
+                        "description": "Its price range, from 1 to 4."
+                      },
+                      "priceCurrency": {
+                        "type": "string",
+                        "description": "The currency of its price range."
+                      },
+                      "rating": {
+                        "type": "object",
+                        "description": "What people rated it.",
+                        "properties": {
+                          "average": {
+                            "type": "number",
+                            "description": "Its average rating."
+                          },
+                          "count": {
+                            "type": "number",
+                            "description": "How many people rated it."
+                          }
+                        }
+                      },
+                      "pinPosition": {
+                        "type": "number",
+                        "description": "Its place among the locations pinned to the top, if it is pinned."
+                      },
+                      "actionItems": {
+                        "type": "array",
+                        "description": "Its buttons, such as calling or opening a website.",
+                        "items": {
+                          "type": "object",
+                          "description": "One button.",
+                          "properties": {
+                            "title": {
+                              "type": "string",
+                              "description": "The button's text."
+                            },
+                            "action": {
+                              "type": "string",
+                              "description": "What the button does."
+                            }
+                          }
+                        }
+                      },
+                      "customFields": {
+                        "type": "array",
+                        "description": "The extra fields filled in for it.",
+                        "items": {
+                          "type": "object",
+                          "description": "One extra field.",
+                          "properties": {
+                            "fieldId": {
+                              "type": "string",
+                              "description": "The field's id."
+                            },
+                            "label": {
+                              "type": "string",
+                              "description": "The field's name."
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "What was filled in."
+                            },
+                            "customLabel": {
+                              "type": "string",
+                              "description": "Its own label, if one was given."
+                            }
+                          }
+                        }
+                      },
+                      "views": {
+                        "type": "number",
+                        "description": "How many times it was viewed."
+                      },
+                      "createdOn": {
+                        "type": "datetime",
+                        "description": "When it was added."
+                      },
+                      "lastUpdatedOn": {
+                        "type": "datetime",
+                        "description": "When it was last changed."
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "number",
+                  "description": "How many locations match in all."
+                },
+                "page": {
+                  "type": "number",
+                  "description": "Which page this is, counting from 0."
+                },
+                "hasMore": {
+                  "type": "boolean",
+                  "description": "Whether there are more pages."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "searchCategories",
+      "displayName": "Search categories",
+      "type": "publicData",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ],
+        "collection": "categories",
+        "operationType": "search",
+        "scope": "app",
+        "query": {
+          "filter": {
+            "_buildfire.index.date1": {
+              "$type": 10
+            },
+            "$json.title": "$params.title"
+          },
+          "sort": {
+            "_buildfire.index.string1": 1
+          },
+          "page": "$params.page",
+          "pageSize": 50,
+          "recordCount": true
+        }
+      },
+      "description": "Shows the categories locations can be grouped in, with their subcategories, in alphabetical order, up to 50 at a time.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": false,
+          "description": "Only show the category with exactly this name. Leave it out to show every category.",
+          "sampleValue": "[category name]"
+        },
+        "page": {
+          "type": "number",
+          "displayName": "Page",
+          "required": false,
+          "minValue": 0,
+          "description": "Which page of 50 categories to show, counting from 0. Leave it out for the first page.",
+          "sampleValue": 0
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the search is done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, if it didn't."
+            },
+            "result": {
+              "type": "object",
+              "description": "The categories that were found.",
+              "properties": {
+                "result": {
+                  "type": "array",
+                  "description": "The categories found, in alphabetical order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One category.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The category's id."
+                      },
+                      "data": {
+                        "type": "object",
+                        "description": "The category's details.",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "The category's name."
+                          },
+                          "iconUrl": {
+                            "type": "string",
+                            "description": "The category's picture, if it has one."
+                          },
+                          "iconClassName": {
+                            "type": "string",
+                            "description": "The category's font icon, if it has one."
+                          },
+                          "subcategories": {
+                            "type": "array",
+                            "description": "Its subcategories, in order.",
+                            "items": {
+                              "type": "object",
+                              "description": "One subcategory.",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "The subcategory's id."
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "The subcategory's name."
+                                },
+                                "iconUrl": {
+                                  "type": "string",
+                                  "description": "The subcategory's picture, if it has one."
+                                },
+                                "iconClassName": {
+                                  "type": "string",
+                                  "description": "The subcategory's font icon, if it has one."
+                                }
+                              }
+                            }
+                          },
+                          "createdOn": {
+                            "type": "datetime",
+                            "description": "When it was added."
+                          },
+                          "lastUpdatedOn": {
+                            "type": "datetime",
+                            "description": "When it was last changed."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "totalRecord": {
+                  "type": "number",
+                  "description": "How many categories there are in all."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createCategory",
+      "displayName": "Create category",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createCategory",
+        "hosts": [
+          "controlBackground"
+        ]
+      },
+      "description": "Adds a category that locations can be grouped in.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The new category's name.",
+          "sampleValue": "[category name]"
+        },
+        "icon": {
+          "type": "image",
+          "displayName": "Picture",
+          "required": false,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "A picture for the category, as a list holding one image. Leave it out for no picture.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "iconName": {
+          "type": "string",
+          "displayName": "Font icon",
+          "required": false,
+          "description": "A font icon for the category instead of a picture, by its name. Leave it out for no font icon.",
+          "sampleValue": "[icon name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the category is added.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't added, such as a missing name or both a picture and a font icon."
+            },
+            "result": {
+              "type": "object",
+              "description": "The new category.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The category's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The category's font icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The subcategory's name."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The subcategory's picture, if it has one."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The subcategory's font icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createCategoriesAdvanced",
+      "displayName": "Create categories",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "createCategoriesAdvanced",
+        "hosts": [
+          "controlBackground"
+        ]
+      },
+      "description": "Adds several categories at once, up to 50.",
+      "parameters": {
+        "categories": {
+          "type": "list",
+          "displayName": "Categories",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 50,
+          "description": "The categories to add, up to 50 at a time.",
+          "items": {
+            "title": {
+              "type": "string",
+              "displayName": "Category name",
+              "required": true,
+              "description": "The new category's name.",
+              "sampleValue": "[category name]"
+            },
+            "icon": {
+              "type": "image",
+              "displayName": "Picture",
+              "required": false,
+              "minValue": 0,
+              "maxValue": 1,
+              "description": "A picture for the category, as a list holding one image. Leave it out for no picture.",
+              "sampleValue": [
+                "[image url]"
+              ]
+            },
+            "iconName": {
+              "type": "string",
+              "displayName": "Font icon",
+              "required": false,
+              "description": "A font icon for the category instead of a picture, by its name. Leave it out for no font icon.",
+              "sampleValue": "[icon name]"
+            }
+          },
+          "sampleValue": [
+            {
+              "title": "[category name]"
+            },
+            {
+              "title": "[category name]",
+              "icon": [
+                "[image url]"
+              ]
+            }
+          ]
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when all the categories are done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why nothing was added, such as a category missing its name."
+            },
+            "result": {
+              "type": "object",
+              "description": "How each category went.",
+              "properties": {
+                "categories": {
+                  "type": "array",
+                  "description": "One result per category, in the order they were given.",
+                  "items": {
+                    "type": "object",
+                    "description": "How one category went.",
+                    "properties": {
+                      "index": {
+                        "type": "number",
+                        "description": "Which category this is, counting from 0."
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "The category's id, if it was added."
+                      },
+                      "error": {
+                        "type": "string",
+                        "description": "Why it wasn't added, if it wasn't."
+                      }
+                    }
+                  }
+                },
+                "succeeded": {
+                  "type": "number",
+                  "description": "How many categories were added."
+                },
+                "failed": {
+                  "type": "number",
+                  "description": "How many categories weren't added."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateCategory",
+      "displayName": "Update category",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a category or changes its icon.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The current name of the category to change.",
+          "sampleValue": "[category name]"
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New category name",
+          "required": false,
+          "description": "The category's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new category name]"
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "New picture",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A new picture for the category, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "newIconName": {
+          "type": "string",
+          "displayName": "New font icon",
+          "required": false,
+          "description": "A new font icon for the category, by its name; it replaces its picture. Leave it out to keep the current icon.",
+          "sampleValue": "[icon name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the category is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no category having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category as it is now.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The category's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The category's font icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The subcategory's name."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The subcategory's picture, if it has one."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The subcategory's font icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateCategoryAdvanced",
+      "displayName": "Update category",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateCategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateCategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a category or changes its icon, using the category's id.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New category name",
+          "required": false,
+          "description": "The category's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new category name]"
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "New picture",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A new picture for the category, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "newIconName": {
+          "type": "string",
+          "displayName": "New font icon",
+          "required": false,
+          "description": "A new font icon for the category, by its name; it replaces its picture. Leave it out to keep the current icon.",
+          "sampleValue": "[icon name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the category is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no category having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category as it is now.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The category's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The category's font icon, if it has one."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The subcategory's name."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The subcategory's picture, if it has one."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The subcategory's font icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateCategoriesAdvanced",
+      "displayName": "Update categories",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateCategoriesAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes several categories at once, up to 50.",
+      "parameters": {
+        "categories": {
+          "type": "list",
+          "displayName": "Categories",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 50,
+          "description": "The categories to change and how, up to 50 at a time.",
+          "items": {
+            "categoryId": {
+              "type": "string",
+              "displayName": "Category id",
+              "required": true,
+              "description": "The category's id, as shown in search results.",
+              "sampleValue": "[category id]"
+            },
+            "newTitle": {
+              "type": "string",
+              "displayName": "New category name",
+              "required": false,
+              "description": "The category's new name. Leave it out to keep the current one.",
+              "sampleValue": "[new category name]"
+            },
+            "newIcon": {
+              "type": "image",
+              "displayName": "New picture",
+              "required": false,
+              "minValue": 1,
+              "maxValue": 1,
+              "description": "A new picture for the category, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+              "sampleValue": [
+                "[image url]"
+              ]
+            },
+            "newIconName": {
+              "type": "string",
+              "displayName": "New font icon",
+              "required": false,
+              "description": "A new font icon for the category, by its name; it replaces its picture. Leave it out to keep the current icon.",
+              "sampleValue": "[icon name]"
+            }
+          },
+          "sampleValue": [
+            {
+              "categoryId": "[category id]",
+              "newTitle": "[new category name]"
+            }
+          ]
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when all the categories are done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why nothing was changed, such as an unknown category or one listed twice."
+            },
+            "result": {
+              "type": "object",
+              "description": "How each category went.",
+              "properties": {
+                "categories": {
+                  "type": "array",
+                  "description": "One result per category, in the order they were given.",
+                  "items": {
+                    "type": "object",
+                    "description": "How one category went.",
+                    "properties": {
+                      "index": {
+                        "type": "number",
+                        "description": "Which category this is, counting from 0."
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "The category's id, if it was changed."
+                      },
+                      "error": {
+                        "type": "string",
+                        "description": "Why it wasn't changed, if it wasn't."
+                      }
+                    }
+                  }
+                },
+                "succeeded": {
+                  "type": "number",
+                  "description": "How many categories were changed."
+                },
+                "failed": {
+                  "type": "number",
+                  "description": "How many categories weren't changed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteCategory",
+      "displayName": "Delete category",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes a category so it no longer shows anywhere in the app.",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The name of the category to remove.",
+          "sampleValue": "[category name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the category is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no category having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category that was removed.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category's name."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteCategoryAdvanced",
+      "displayName": "Delete category",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteCategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteCategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes a category so it no longer shows anywhere in the app, using the category's id.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the category is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no category having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category that was removed.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The category's name."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteCategoriesAdvanced",
+      "displayName": "Delete categories",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "deleteCategoriesAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes several categories at once, up to 50.",
+      "parameters": {
+        "categories": {
+          "type": "list",
+          "displayName": "Categories",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 50,
+          "description": "The categories to remove, up to 50 at a time.",
+          "items": {
+            "categoryId": {
+              "type": "string",
+              "displayName": "Category id",
+              "required": true,
+              "description": "The category's id, as shown in search results.",
+              "sampleValue": "[category id]"
+            }
+          },
+          "sampleValue": [
+            {
+              "categoryId": "[category id]"
+            }
+          ]
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when all the categories are done.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why nothing was removed, such as an unknown category or one listed twice."
+            },
+            "result": {
+              "type": "object",
+              "description": "How each category went.",
+              "properties": {
+                "categories": {
+                  "type": "array",
+                  "description": "One result per category, in the order they were given.",
+                  "items": {
+                    "type": "object",
+                    "description": "How one category went.",
+                    "properties": {
+                      "index": {
+                        "type": "number",
+                        "description": "Which category this is, counting from 0."
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "The category's id, if it was removed."
+                      },
+                      "error": {
+                        "type": "string",
+                        "description": "Why it wasn't removed, if it wasn't."
+                      }
+                    }
+                  }
+                },
+                "succeeded": {
+                  "type": "number",
+                  "description": "How many categories were removed."
+                },
+                "failed": {
+                  "type": "number",
+                  "description": "How many categories weren't removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createSubcategory",
+      "displayName": "Create subcategory",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "createSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a subcategory to the end of a category.",
+      "parameters": {
+        "categoryTitle": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The name of the category to add it to.",
+          "sampleValue": "[category name]"
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Subcategory name",
+          "required": true,
+          "description": "The new subcategory's name.",
+          "sampleValue": "[subcategory name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is added.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't added, such as no category having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The new subcategory.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belongs to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The subcategory's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The subcategory's font icon, if it has one."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createSubcategoryAdvanced",
+      "displayName": "Create subcategory",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "createSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a subcategory to the end of a category, using the category's id.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Subcategory name",
+          "required": true,
+          "description": "The new subcategory's name.",
+          "sampleValue": "[subcategory name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is added.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't added, such as no category having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The new subcategory.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belongs to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The subcategory's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The subcategory's font icon, if it has one."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateSubcategory",
+      "displayName": "Update subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a subcategory or changes its icon.",
+      "parameters": {
+        "categoryTitle": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The name of the category it belongs to.",
+          "sampleValue": "[category name]"
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Subcategory name",
+          "required": true,
+          "description": "The current name of the subcategory to change.",
+          "sampleValue": "[subcategory name]"
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New subcategory name",
+          "required": false,
+          "description": "The subcategory's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new subcategory name]"
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "New picture",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A new picture for the subcategory, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "newIconName": {
+          "type": "string",
+          "displayName": "New font icon",
+          "required": false,
+          "description": "A new font icon for the subcategory, by its name; it replaces its picture. Leave it out to keep the current icon.",
+          "sampleValue": "[icon name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no subcategory having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The subcategory as it is now.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belongs to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The subcategory's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The subcategory's font icon, if it has one."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateSubcategoryAdvanced",
+      "displayName": "Update subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a subcategory or changes its icon, using the category's and the subcategory's ids.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryId": {
+          "type": "string",
+          "displayName": "Subcategory id",
+          "required": true,
+          "description": "The subcategory's id, as shown in the category's search results.",
+          "sampleValue": "[subcategory id]"
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New subcategory name",
+          "required": false,
+          "description": "The subcategory's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new subcategory name]"
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "New picture",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A new picture for the subcategory, as a list holding one image; it replaces its font icon. Leave it out to keep the current icon.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "newIconName": {
+          "type": "string",
+          "displayName": "New font icon",
+          "required": false,
+          "description": "A new font icon for the subcategory, by its name; it replaces its picture. Leave it out to keep the current icon.",
+          "sampleValue": "[icon name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no subcategory having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The subcategory as it is now.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belongs to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "iconUrl": {
+                  "type": "string",
+                  "description": "The subcategory's picture, if it has one."
+                },
+                "iconClassName": {
+                  "type": "string",
+                  "description": "The subcategory's font icon, if it has one."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteSubcategory",
+      "displayName": "Delete subcategory",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes a subcategory from its category.",
+      "parameters": {
+        "categoryTitle": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The name of the category it belongs to.",
+          "sampleValue": "[category name]"
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Subcategory name",
+          "required": true,
+          "description": "The name of the subcategory to remove.",
+          "sampleValue": "[subcategory name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no subcategory having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The subcategory that was removed.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belonged to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteSubcategoryAdvanced",
+      "displayName": "Delete subcategory",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes a subcategory from its category, using the category's and the subcategory's ids.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryId": {
+          "type": "string",
+          "displayName": "Subcategory id",
+          "required": true,
+          "description": "The subcategory's id, as shown in the category's search results.",
+          "sampleValue": "[subcategory id]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no subcategory having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The subcategory that was removed.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The id of the category it belonged to."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The subcategory's id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The subcategory's name."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateSubcategoryOrder",
+      "displayName": "Reorder subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryOrderAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryOrder",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves a subcategory to a new place in its category.",
+      "parameters": {
+        "categoryTitle": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The name of the category it belongs to.",
+          "sampleValue": "[category name]"
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Subcategory name",
+          "required": true,
+          "description": "The name of the subcategory to move.",
+          "sampleValue": "[subcategory name]"
+        },
+        "position": {
+          "type": "number",
+          "displayName": "Position",
+          "required": true,
+          "minValue": 1,
+          "description": "Where the subcategory goes in its category's list, counting from 1.",
+          "sampleValue": 1
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is moved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't moved, such as a place past the end of the list."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category's subcategories in their new order.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in their new order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The subcategory's name."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The subcategory's picture, if it has one."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The subcategory's font icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateSubcategoryOrderAdvanced",
+      "displayName": "Reorder subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryOrder",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryOrderAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves a subcategory to a new place in its category, using the category's and the subcategory's ids.",
+      "parameters": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryId": {
+          "type": "string",
+          "displayName": "Subcategory id",
+          "required": true,
+          "description": "The subcategory's id, as shown in the category's search results.",
+          "sampleValue": "[subcategory id]"
+        },
+        "position": {
+          "type": "number",
+          "displayName": "Position",
+          "required": true,
+          "minValue": 1,
+          "description": "Where the subcategory goes in its category's list, counting from 1.",
+          "sampleValue": 1
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the subcategory is moved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't moved, such as no subcategory having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The category's subcategories in their new order.",
+              "properties": {
+                "categoryId": {
+                  "type": "string",
+                  "description": "The category's id."
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "Its subcategories, in their new order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One subcategory.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The subcategory's id."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The subcategory's name."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The subcategory's picture, if it has one."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The subcategory's font icon, if it has one."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "createLocationField",
+      "displayName": "Create location field",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds an extra field that people fill in when adding or editing a location, up to 10 fields in all.",
+      "parameters": {
+        "label": {
+          "type": "string",
+          "displayName": "Field name",
+          "required": true,
+          "description": "The new field's name.",
+          "sampleValue": "[field name]"
+        },
+        "section": {
+          "type": "select",
+          "displayName": "Section",
+          "required": true,
+          "description": "Where the field shows on a location: as a compact button at the top, or as a full-width section below.",
+          "enums": [
+            {
+              "label": "Quick actions",
+              "value": "quickActions"
+            },
+            {
+              "label": "Text content",
+              "value": "content"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "content"
+        },
+        "type": {
+          "type": "select",
+          "displayName": "Field type",
+          "required": false,
+          "description": "What the field holds. Text and rich text are for text content fields only. Leave it out for an email field.",
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "TEXT"
+        },
+        "required": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether people must fill the field in. Leave it out to make it optional.",
+          "sampleValue": true
+        },
+        "allowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Allow custom label",
+          "required": false,
+          "description": "Whether people can give the field their own label. Leave it out to not allow it.",
+          "sampleValue": true
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is added.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't added, such as there already being 10 fields."
+            },
+            "result": {
+              "type": "object",
+              "description": "The new field.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's name."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "Where the field shows: quick actions or text content."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "What the field holds, such as an email, a phone number or text."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether people must fill it in."
+                },
+                "allowCustomLabel": {
+                  "type": "boolean",
+                  "description": "Whether people can give it their own label."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocationField",
+      "displayName": "Update location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes an extra location field's name, type, or whether it must be filled in.",
+      "parameters": {
+        "label": {
+          "type": "string",
+          "displayName": "Field name",
+          "required": true,
+          "description": "The current name of the field to change.",
+          "sampleValue": "[field name]"
+        },
+        "newLabel": {
+          "type": "string",
+          "displayName": "New field name",
+          "required": false,
+          "description": "The field's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new field name]"
+        },
+        "newType": {
+          "type": "select",
+          "displayName": "New field type",
+          "required": false,
+          "description": "What the field holds from now on. Text and rich text are for text content fields only. Leave it out to keep the current type.",
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "PHONE"
+        },
+        "required": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether people must fill the field in. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Allow custom label",
+          "required": false,
+          "description": "Whether people can give the field their own label. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no field having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The field as it is now.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's name."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "Where the field shows: quick actions or text content."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "What the field holds, such as an email, a phone number or text."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether people must fill it in."
+                },
+                "allowCustomLabel": {
+                  "type": "boolean",
+                  "description": "Whether people can give it their own label."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocationFieldAdvanced",
+      "displayName": "Update location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateLocationField",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes an extra location field's name, type, or whether it must be filled in, using the field's id.",
+      "parameters": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The field's id, as shown in the settings.",
+          "sampleValue": "[field id]"
+        },
+        "newLabel": {
+          "type": "string",
+          "displayName": "New field name",
+          "required": false,
+          "description": "The field's new name. Leave it out to keep the current one.",
+          "sampleValue": "[new field name]"
+        },
+        "newType": {
+          "type": "select",
+          "displayName": "New field type",
+          "required": false,
+          "description": "What the field holds from now on. Text and rich text are for text content fields only. Leave it out to keep the current type.",
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "PHONE"
+        },
+        "required": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether people must fill the field in. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Allow custom label",
+          "required": false,
+          "description": "Whether people can give the field their own label. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is changed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't changed, such as no field having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The field as it is now.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's name."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "Where the field shows: quick actions or text content."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "What the field holds, such as an email, a phone number or text."
+                },
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether people must fill it in."
+                },
+                "allowCustomLabel": {
+                  "type": "boolean",
+                  "description": "Whether people can give it their own label."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteLocationField",
+      "displayName": "Delete location field",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes an extra location field, so what was filled in for it no longer shows.",
+      "parameters": {
+        "label": {
+          "type": "string",
+          "displayName": "Field name",
+          "required": true,
+          "description": "The name of the field to remove.",
+          "sampleValue": "[field name]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no field having that name."
+            },
+            "result": {
+              "type": "object",
+              "description": "The field that was removed.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's name."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "Where the field showed."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "deleteLocationFieldAdvanced",
+      "displayName": "Delete location field",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteLocationField",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteLocationFieldAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes an extra location field, so what was filled in for it no longer shows, using the field's id.",
+      "parameters": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The field's id, as shown in the settings.",
+          "sampleValue": "[field id]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is removed.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't removed, such as no field having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The field that was removed.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The field's id."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The field's name."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "Where the field showed."
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "description": "Always yes once it is removed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocationFieldOrder",
+      "displayName": "Reorder location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldOrderAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldOrder",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves an extra location field to a new place within its section.",
+      "parameters": {
+        "label": {
+          "type": "string",
+          "displayName": "Field name",
+          "required": true,
+          "description": "The name of the field to move.",
+          "sampleValue": "[field name]"
+        },
+        "position": {
+          "type": "number",
+          "displayName": "Position",
+          "required": true,
+          "minValue": 1,
+          "description": "Where the field goes in its section, counting from 1.",
+          "sampleValue": 1
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is moved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't moved, such as a place past the end of its section."
+            },
+            "result": {
+              "type": "object",
+              "description": "The fields of that section in their new order.",
+              "properties": {
+                "section": {
+                  "type": "string",
+                  "description": "The section the field is in."
+                },
+                "fields": {
+                  "type": "array",
+                  "description": "The fields of that section, in their new order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "The field's name."
+                      },
+                      "section": {
+                        "type": "string",
+                        "description": "Where the field shows: quick actions or text content."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "What the field holds, such as an email, a phone number or text."
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether people must fill it in."
+                      },
+                      "allowCustomLabel": {
+                        "type": "boolean",
+                        "description": "Whether people can give it their own label."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLocationFieldOrderAdvanced",
+      "displayName": "Reorder location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldOrder",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldOrderAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves an extra location field to a new place within its section, using the field's id.",
+      "parameters": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The field's id, as shown in the settings.",
+          "sampleValue": "[field id]"
+        },
+        "position": {
+          "type": "number",
+          "displayName": "Position",
+          "required": true,
+          "minValue": 1,
+          "description": "Where the field goes in its section, counting from 1.",
+          "sampleValue": 1
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the field is moved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't moved, such as no field having that id."
+            },
+            "result": {
+              "type": "object",
+              "description": "The fields of that section in their new order.",
+              "properties": {
+                "section": {
+                  "type": "string",
+                  "description": "The section the field is in."
+                },
+                "fields": {
+                  "type": "array",
+                  "description": "The fields of that section, in their new order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "The field's name."
+                      },
+                      "section": {
+                        "type": "string",
+                        "description": "Where the field shows: quick actions or text content."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "What the field holds, such as an email, a phone number or text."
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether people must fill it in."
+                      },
+                      "allowCustomLabel": {
+                        "type": "boolean",
+                        "description": "Whether people can give it their own label."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getSettings",
+      "displayName": "Get settings",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getSettings",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows this plugin's settings, including the extra location fields.",
+      "parameters": {
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the settings are read.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, if it didn't."
+            },
+            "result": {
+              "type": "object",
+              "description": "The current settings.",
+              "properties": {
+                "subscription": {
+                  "type": "object",
+                  "description": "Following locations.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether app users can follow locations."
+                    },
+                    "allowCustomNotifications": {
+                      "type": "boolean",
+                      "description": "Whether location editors can send notifications to followers."
+                    }
+                  }
+                },
+                "measurementUnit": {
+                  "type": "string",
+                  "description": "The distance units: metric or imperial."
+                },
+                "introductoryListView": {
+                  "type": "object",
+                  "description": "The introduction screen.",
+                  "properties": {
+                    "images": {
+                      "type": "array",
+                      "description": "The carousel at the top, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One carousel item.",
+                        "properties": {
+                          "iconUrl": {
+                            "type": "string",
+                            "description": "The item's picture."
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "The item's title."
+                          },
+                          "action": {
+                            "type": "string",
+                            "description": "What tapping it does."
+                          }
+                        }
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The text below the carousel, as formatted text."
+                    },
+                    "sorting": {
+                      "type": "string",
+                      "description": "How its locations are sorted: distance, alphabetical or newest."
+                    },
+                    "searchOptions": {
+                      "type": "object",
+                      "description": "Which locations it shows.",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "description": "The location source: all, near the user, the local area, or the user's own."
+                        },
+                        "areaRadiusOptions": {
+                          "type": "object",
+                          "description": "The local area used when the source is the local area.",
+                          "properties": {
+                            "lat": {
+                              "type": "number",
+                              "description": "The area center's latitude."
+                            },
+                            "lng": {
+                              "type": "number",
+                              "description": "The area center's longitude."
+                            },
+                            "formattedLocation": {
+                              "type": "string",
+                              "description": "The area center's address."
+                            },
+                            "radius": {
+                              "type": "number",
+                              "description": "How far around the center, in miles."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "visibilityOptions": {
+                      "type": "object",
+                      "description": "Who sees it.",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "description": "None, users with tags, or all."
+                        }
+                      }
+                    }
+                  }
+                },
+                "sorting": {
+                  "type": "object",
+                  "description": "Sorting options.",
+                  "properties": {
+                    "defaultSorting": {
+                      "type": "string",
+                      "description": "How the list is sorted at first: distance or alphabetical."
+                    },
+                    "hideSorting": {
+                      "type": "boolean",
+                      "description": "Whether people cannot change the sorting."
+                    },
+                    "allowSortByReverseAlphabetical": {
+                      "type": "boolean",
+                      "description": "Whether reverse alphabetical order is offered."
+                    },
+                    "allowSortByNearest": {
+                      "type": "boolean",
+                      "description": "Whether nearest first is offered."
+                    },
+                    "allowSortByPriceLowToHigh": {
+                      "type": "boolean",
+                      "description": "Whether price low to high is offered."
+                    },
+                    "allowSortByPriceHighToLow": {
+                      "type": "boolean",
+                      "description": "Whether price high to low is offered."
+                    },
+                    "allowSortByDate": {
+                      "type": "boolean",
+                      "description": "Whether newest first is offered."
+                    },
+                    "allowSortByRating": {
+                      "type": "boolean",
+                      "description": "Whether rating is offered."
+                    },
+                    "allowSortByViews": {
+                      "type": "boolean",
+                      "description": "Whether views is offered."
+                    }
+                  }
+                },
+                "filter": {
+                  "type": "object",
+                  "description": "Filtering options.",
+                  "properties": {
+                    "allowFilterByArea": {
+                      "type": "boolean",
+                      "description": "Whether people can narrow the list to an area of the map."
+                    },
+                    "allowFilterByBookmarks": {
+                      "type": "boolean",
+                      "description": "Whether people can narrow the list to their bookmarks."
+                    },
+                    "hideOpeningHoursFilter": {
+                      "type": "boolean",
+                      "description": "Whether the opening hours choice is hidden when people narrow the list."
+                    },
+                    "hidePriceFilter": {
+                      "type": "boolean",
+                      "description": "Whether the price choice is hidden when people narrow the list."
+                    }
+                  }
+                },
+                "map": {
+                  "type": "object",
+                  "description": "Map options.",
+                  "properties": {
+                    "initialArea": {
+                      "type": "boolean",
+                      "description": "Whether the map starts on a chosen area."
+                    },
+                    "initialAreaCoordinates": {
+                      "type": "object",
+                      "description": "Where the map starts.",
+                      "properties": {
+                        "lat": {
+                          "type": "number",
+                          "description": "The starting point's latitude."
+                        },
+                        "lng": {
+                          "type": "number",
+                          "description": "The starting point's longitude."
+                        }
+                      }
+                    },
+                    "initialAreaDisplayAddress": {
+                      "type": "string",
+                      "description": "The starting point's address."
+                    }
+                  }
+                },
+                "bookmarks": {
+                  "type": "object",
+                  "description": "Bookmarks.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether bookmarks are on."
+                    },
+                    "allowForLocations": {
+                      "type": "boolean",
+                      "description": "Whether people can bookmark locations."
+                    },
+                    "allowForFilters": {
+                      "type": "boolean",
+                      "description": "Whether people can bookmark searches."
+                    }
+                  }
+                },
+                "customFields": {
+                  "type": "object",
+                  "description": "The extra fields people fill in for a location.",
+                  "properties": {
+                    "quickActions": {
+                      "type": "array",
+                      "description": "The quick action fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field.",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "The field's id."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "The field's name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "What the field holds."
+                          },
+                          "required": {
+                            "type": "boolean",
+                            "description": "Whether people must fill it in."
+                          },
+                          "enableCustomLabel": {
+                            "type": "boolean",
+                            "description": "Whether people can give it their own label."
+                          }
+                        }
+                      }
+                    },
+                    "content": {
+                      "type": "array",
+                      "description": "The text content fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field.",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "The field's id."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "The field's name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "What the field holds."
+                          },
+                          "required": {
+                            "type": "boolean",
+                            "description": "Whether people must fill it in."
+                          },
+                          "enableCustomLabel": {
+                            "type": "boolean",
+                            "description": "Whether people can give it their own label."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "design": {
+                  "type": "object",
+                  "description": "How things look.",
+                  "properties": {
+                    "listViewPosition": {
+                      "type": "string",
+                      "description": "Where the list starts: expanded, collapsed or half expanded."
+                    },
+                    "listViewStyle": {
+                      "type": "string",
+                      "description": "The list style: background image or small image."
+                    },
+                    "defaultMapType": {
+                      "type": "string",
+                      "description": "The map type: streets or satellite."
+                    },
+                    "enableMapTerrainView": {
+                      "type": "boolean",
+                      "description": "Whether the terrain view is on."
+                    },
+                    "hideQuickFilter": {
+                      "type": "boolean",
+                      "description": "Whether the quick category buttons above the list are hidden."
+                    },
+                    "allowStyleSelection": {
+                      "type": "boolean",
+                      "description": "Whether people can pick the map style."
+                    },
+                    "detailsMapPosition": {
+                      "type": "string",
+                      "description": "Where the map shows on a location: top or bottom."
+                    },
+                    "showDetailsCategory": {
+                      "type": "boolean",
+                      "description": "Whether categories show on a location."
+                    },
+                    "showContributorName": {
+                      "type": "boolean",
+                      "description": "Whether the contributor's name shows on a location."
+                    }
+                  }
+                },
+                "globalEntries": {
+                  "type": "object",
+                  "description": "What app users can add.",
+                  "properties": {
+                    "locations": {
+                      "type": "object",
+                      "description": "Adding new locations.",
+                      "properties": {
+                        "allowAdding": {
+                          "type": "string",
+                          "description": "Who it is for: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "photos": {
+                      "type": "object",
+                      "description": "Adding photos to locations.",
+                      "properties": {
+                        "allowAdding": {
+                          "type": "string",
+                          "description": "Who it is for: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "openHours": {
+                      "type": "object",
+                      "description": "Opening hours.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether locations can have opening hours."
+                        },
+                        "inAppEnabled": {
+                          "type": "string",
+                          "description": "Who can set them in the app: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "priceRange": {
+                      "type": "object",
+                      "description": "Price range.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether locations can have a price range."
+                        },
+                        "inAppEnabled": {
+                          "type": "string",
+                          "description": "Who can set it in the app: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "charging": {
+                      "type": "object",
+                      "description": "Charging for new locations.",
+                      "properties": {
+                        "enabled": {
+                          "type": "string",
+                          "description": "Who pays before adding a location: none, users with tags, or all."
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "The payment details people see, as formatted text."
+                        }
+                      }
+                    }
+                  }
+                },
+                "locationEditors": {
+                  "type": "object",
+                  "description": "Location editing.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether chosen people can edit chosen locations."
+                    },
+                    "time": {
+                      "type": "string",
+                      "description": "How opening hours are written: 12H or 24H."
+                    }
+                  }
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When the settings were last changed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateSettings",
+      "displayName": "Update settings",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateSettings",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes this plugin's settings, design and introduction screen, keeping every setting not given.",
+      "parameters": {
+        "allowSubscriptions": {
+          "type": "boolean",
+          "displayName": "Enable locations subscribing",
+          "required": false,
+          "description": "Whether app users can follow a location to hear about its updates. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "timeFormat": {
+          "type": "select",
+          "displayName": "Time format",
+          "required": false,
+          "description": "How opening hours are written in the app. Leave it out to keep the current format.",
+          "enums": [
+            {
+              "label": "12 hours format",
+              "value": "12H"
+            },
+            {
+              "label": "24 hours format",
+              "value": "24H"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "24H"
+        },
+        "defaultSorting": {
+          "type": "select",
+          "displayName": "Default locations sorting",
+          "required": false,
+          "description": "How the locations list is sorted at first. Distance needs nearest first sorting to be allowed. Leave it out to keep the current sorting.",
+          "enums": [
+            {
+              "label": "Distance",
+              "value": "distance"
+            },
+            {
+              "label": "Alphabetical",
+              "value": "alphabetical"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "alphabetical"
+        },
+        "hideSorting": {
+          "type": "boolean",
+          "displayName": "Hide user controlled sorting",
+          "required": false,
+          "description": "Whether people are kept from changing the sorting. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByReverseAlphabetical": {
+          "type": "boolean",
+          "displayName": "Allow reverse alphabetical order",
+          "required": false,
+          "description": "Whether people can sort from Z to A. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByNearest": {
+          "type": "boolean",
+          "displayName": "Nearest to user location",
+          "required": false,
+          "description": "Whether people can sort by how near locations are. Turning it off sorts the list alphabetically at first. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByPriceHighToLow": {
+          "type": "boolean",
+          "displayName": "Allow price high to low",
+          "required": false,
+          "description": "Whether people can sort from the highest price. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByPriceLowToHigh": {
+          "type": "boolean",
+          "displayName": "Allow price low to high",
+          "required": false,
+          "description": "Whether people can sort from the lowest price. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByViews": {
+          "type": "boolean",
+          "displayName": "Allow by views",
+          "required": false,
+          "description": "Whether people can sort by views. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByDate": {
+          "type": "boolean",
+          "displayName": "Allow by date (new to old)",
+          "required": false,
+          "description": "Whether people can sort newest first. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowSortByRating": {
+          "type": "boolean",
+          "displayName": "Allow by rating",
+          "required": false,
+          "description": "Whether people can sort by rating. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowFilterByArea": {
+          "type": "boolean",
+          "displayName": "Filter by selected area",
+          "required": false,
+          "description": "Whether people can narrow the list to an area of the map. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "hideOpeningHoursFilter": {
+          "type": "boolean",
+          "displayName": "Hide opening hours filter",
+          "required": false,
+          "description": "Whether the opening hours choice is hidden when people narrow the list. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "hidePriceFilter": {
+          "type": "boolean",
+          "displayName": "Hide price filter",
+          "required": false,
+          "description": "Whether the price choice is hidden when people narrow the list. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowFilterByBookmarks": {
+          "type": "boolean",
+          "displayName": "Filter by bookmarks",
+          "required": false,
+          "description": "Whether people can narrow the list to their bookmarks. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "distanceUnit": {
+          "type": "select",
+          "displayName": "Distance units",
+          "required": false,
+          "description": "The units distances are shown in. Leave it out to keep the current units.",
+          "enums": [
+            {
+              "label": "Metric",
+              "value": "metric"
+            },
+            {
+              "label": "Imperial",
+              "value": "imperial"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "imperial"
+        },
+        "enableInitialArea": {
+          "type": "boolean",
+          "displayName": "Enable map initial area",
+          "required": false,
+          "description": "Whether the map starts on the initial area. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "initialAreaLatitude": {
+          "type": "number",
+          "displayName": "Initial area latitude",
+          "required": false,
+          "minValue": -90,
+          "maxValue": 90,
+          "description": "The latitude of the map's starting point, given with its longitude. Leave it out to keep the current point.",
+          "sampleValue": 32.7157
+        },
+        "initialAreaLongitude": {
+          "type": "number",
+          "displayName": "Initial area longitude",
+          "required": false,
+          "minValue": -180,
+          "maxValue": 180,
+          "description": "The longitude of the map's starting point, given with its latitude. Leave it out to keep the current point.",
+          "sampleValue": -117.1611
+        },
+        "initialAreaAddress": {
+          "type": "string",
+          "displayName": "Initial area location",
+          "required": false,
+          "description": "The address shown for the map's starting point. Leave it out to keep the current one.",
+          "sampleValue": "[address]"
+        },
+        "enableBookmarks": {
+          "type": "boolean",
+          "displayName": "Bookmarks",
+          "required": false,
+          "description": "Whether people can bookmark locations and searches at all. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowBookmarkLocations": {
+          "type": "boolean",
+          "displayName": "Allow bookmark location",
+          "required": false,
+          "description": "Whether people can bookmark a location. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowBookmarkSearch": {
+          "type": "boolean",
+          "displayName": "Allow bookmark search",
+          "required": false,
+          "description": "Whether people can bookmark a search. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "enableOpenHours": {
+          "type": "boolean",
+          "displayName": "Open hours",
+          "required": false,
+          "description": "Whether locations can have opening hours. Turning it off also stops app users from setting them. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "enablePriceRange": {
+          "type": "boolean",
+          "displayName": "Price range",
+          "required": false,
+          "description": "Whether locations can have a price range. Turning it off also stops app users from setting it. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "chargeForNewLocations": {
+          "type": "select",
+          "displayName": "Charge for adding new locations",
+          "required": false,
+          "description": "Who pays before adding a new location in the app; users with tags means the tags chosen in the control panel. Charging needs adding new locations to be allowed. Leave it out to keep the current choice.",
+          "enums": [
+            {
+              "label": "No users",
+              "value": "none"
+            },
+            {
+              "label": "Users with tags",
+              "value": "limited"
+            },
+            {
+              "label": "All users",
+              "value": "all"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "none"
+        },
+        "paymentDetails": {
+          "type": "wysiwyg",
+          "displayName": "Payment details",
+          "required": false,
+          "nullable": true,
+          "description": "The payment terms shown to people who must pay before adding a location. Leave it out to keep the current text, or leave it empty to remove it.",
+          "sampleValue": "<p>[payment details]</p>"
+        },
+        "listViewPosition": {
+          "type": "select",
+          "displayName": "List view position",
+          "required": false,
+          "description": "Where the locations list starts on the map screen. Leave it out to keep the current position.",
+          "enums": [
+            {
+              "label": "Expanded",
+              "value": "expanded"
+            },
+            {
+              "label": "Collapsed",
+              "value": "collapsed"
+            },
+            {
+              "label": "Half expanded",
+              "value": "halfExpanded"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "halfExpanded"
+        },
+        "listViewStyle": {
+          "type": "select",
+          "displayName": "Default list view style",
+          "required": false,
+          "description": "How each location looks in the list. Leave it out to keep the current style.",
+          "enums": [
+            {
+              "label": "Background image",
+              "value": "backgroundImage"
+            },
+            {
+              "label": "Small image",
+              "value": "smallImage"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "smallImage"
+        },
+        "defaultMapType": {
+          "type": "select",
+          "displayName": "Default map type",
+          "required": false,
+          "description": "The kind of map shown at first. Leave it out to keep the current type.",
+          "enums": [
+            {
+              "label": "Streets",
+              "value": "streets"
+            },
+            {
+              "label": "Satellite",
+              "value": "satellite"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "streets"
+        },
+        "enableMapTerrainView": {
+          "type": "boolean",
+          "displayName": "Enable map terrain view",
+          "required": false,
+          "description": "Whether the map shows terrain. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "hideQuickFilter": {
+          "type": "boolean",
+          "displayName": "Hide quick filter",
+          "required": false,
+          "description": "Whether the quick category buttons above the list are hidden. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "allowMapStyleSelection": {
+          "type": "boolean",
+          "displayName": "Allow user's map style selection",
+          "required": false,
+          "description": "Whether people can pick the map style. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "showDetailsCategory": {
+          "type": "boolean",
+          "displayName": "Show category and subcategory on location details",
+          "required": false,
+          "description": "Whether a location's categories show on its page. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "showContributorName": {
+          "type": "boolean",
+          "displayName": "Contributor name",
+          "required": false,
+          "description": "Whether the name of the person who added a location shows on its page. Leave it out to keep the current choice.",
+          "sampleValue": true
+        },
+        "detailsMapPosition": {
+          "type": "select",
+          "displayName": "Map position",
+          "required": false,
+          "description": "Where the map shows on a location's page. Leave it out to keep the current position.",
+          "enums": [
+            {
+              "label": "Top",
+              "value": "top"
+            },
+            {
+              "label": "Bottom",
+              "value": "bottom"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "bottom"
+        },
+        "introVisibility": {
+          "type": "select",
+          "displayName": "Introduction screen",
+          "required": false,
+          "description": "Who sees the introduction screen; users with tags means the tags chosen in the control panel. Leave it out to keep the current choice.",
+          "enums": [
+            {
+              "label": "No users",
+              "value": "NONE"
+            },
+            {
+              "label": "Users with tags",
+              "value": "TAGS"
+            },
+            {
+              "label": "All users",
+              "value": "ALL"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "ALL"
+        },
+        "introDescription": {
+          "type": "wysiwyg",
+          "displayName": "Introduction description",
+          "required": false,
+          "nullable": true,
+          "description": "The text shown on the introduction screen. Leave it out to keep the current text, or leave it empty to remove it.",
+          "sampleValue": "<p>[introduction text]</p>"
+        },
+        "introImages": {
+          "type": "action",
+          "displayName": "Introduction carousel",
+          "required": false,
+          "minValue": 0,
+          "description": "The carousel at the top of the introduction screen, in order, each item with its picture and what tapping it does. Replaces the current carousel; an empty list removes it. Leave it out to keep the current carousel.",
+          "sampleValue": [
+            {
+              "title": "[carousel title]",
+              "iconUrl": "[image url]",
+              "action": "noAction"
+            }
+          ]
+        },
+        "introSorting": {
+          "type": "select",
+          "displayName": "Sort locations by",
+          "required": false,
+          "description": "How the introduction screen sorts its locations. Leave it out to keep the current sorting.",
+          "enums": [
+            {
+              "label": "Distance",
+              "value": "distance"
+            },
+            {
+              "label": "Alphabetical",
+              "value": "alphabetical"
+            },
+            {
+              "label": "Newest",
+              "value": "newest"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "newest"
+        },
+        "introLocationSource": {
+          "type": "select",
+          "displayName": "Location source",
+          "required": false,
+          "description": "Which locations the introduction screen shows. Leave it out to keep the current source.",
+          "enums": [
+            {
+              "label": "All locations",
+              "value": "All"
+            },
+            {
+              "label": "User's position",
+              "value": "UserPosition"
+            },
+            {
+              "label": "Local area",
+              "value": "AreaRadius"
+            },
+            {
+              "label": "My locations",
+              "value": "MyLocations"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "AreaRadius"
+        },
+        "introAreaLatitude": {
+          "type": "number",
+          "displayName": "Area center latitude",
+          "required": false,
+          "minValue": -90,
+          "maxValue": 90,
+          "description": "The latitude of the local area's center, given with its longitude. Leave it out to keep the current center.",
+          "sampleValue": 32.7157
+        },
+        "introAreaLongitude": {
+          "type": "number",
+          "displayName": "Area center longitude",
+          "required": false,
+          "minValue": -180,
+          "maxValue": 180,
+          "description": "The longitude of the local area's center, given with its latitude. Leave it out to keep the current center.",
+          "sampleValue": -117.1611
+        },
+        "introAreaAddress": {
+          "type": "string",
+          "displayName": "Area center",
+          "required": false,
+          "description": "The address shown for the local area's center. Leave it out to keep the current one.",
+          "sampleValue": "[address]"
+        },
+        "introAreaRadius": {
+          "type": "number",
+          "displayName": "Area radius (miles)",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 200,
+          "description": "How far around the center the local area reaches, in miles. Leave it out to keep the current radius.",
+          "sampleValue": 25
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the settings are saved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why nothing was saved, such as no setting being given or distance sorting while nearest first is off."
+            },
+            "result": {
+              "type": "object",
+              "description": "The settings as they are now.",
+              "properties": {
+                "subscription": {
+                  "type": "object",
+                  "description": "Following locations.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether app users can follow locations."
+                    },
+                    "allowCustomNotifications": {
+                      "type": "boolean",
+                      "description": "Whether location editors can send notifications to followers."
+                    }
+                  }
+                },
+                "measurementUnit": {
+                  "type": "string",
+                  "description": "The distance units: metric or imperial."
+                },
+                "introductoryListView": {
+                  "type": "object",
+                  "description": "The introduction screen.",
+                  "properties": {
+                    "images": {
+                      "type": "array",
+                      "description": "The carousel at the top, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One carousel item.",
+                        "properties": {
+                          "iconUrl": {
+                            "type": "string",
+                            "description": "The item's picture."
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "The item's title."
+                          },
+                          "action": {
+                            "type": "string",
+                            "description": "What tapping it does."
+                          }
+                        }
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The text below the carousel, as formatted text."
+                    },
+                    "sorting": {
+                      "type": "string",
+                      "description": "How its locations are sorted: distance, alphabetical or newest."
+                    },
+                    "searchOptions": {
+                      "type": "object",
+                      "description": "Which locations it shows.",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "description": "The location source: all, near the user, the local area, or the user's own."
+                        },
+                        "areaRadiusOptions": {
+                          "type": "object",
+                          "description": "The local area used when the source is the local area.",
+                          "properties": {
+                            "lat": {
+                              "type": "number",
+                              "description": "The area center's latitude."
+                            },
+                            "lng": {
+                              "type": "number",
+                              "description": "The area center's longitude."
+                            },
+                            "formattedLocation": {
+                              "type": "string",
+                              "description": "The area center's address."
+                            },
+                            "radius": {
+                              "type": "number",
+                              "description": "How far around the center, in miles."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "visibilityOptions": {
+                      "type": "object",
+                      "description": "Who sees it.",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "description": "None, users with tags, or all."
+                        }
+                      }
+                    }
+                  }
+                },
+                "sorting": {
+                  "type": "object",
+                  "description": "Sorting options.",
+                  "properties": {
+                    "defaultSorting": {
+                      "type": "string",
+                      "description": "How the list is sorted at first: distance or alphabetical."
+                    },
+                    "hideSorting": {
+                      "type": "boolean",
+                      "description": "Whether people cannot change the sorting."
+                    },
+                    "allowSortByReverseAlphabetical": {
+                      "type": "boolean",
+                      "description": "Whether reverse alphabetical order is offered."
+                    },
+                    "allowSortByNearest": {
+                      "type": "boolean",
+                      "description": "Whether nearest first is offered."
+                    },
+                    "allowSortByPriceLowToHigh": {
+                      "type": "boolean",
+                      "description": "Whether price low to high is offered."
+                    },
+                    "allowSortByPriceHighToLow": {
+                      "type": "boolean",
+                      "description": "Whether price high to low is offered."
+                    },
+                    "allowSortByDate": {
+                      "type": "boolean",
+                      "description": "Whether newest first is offered."
+                    },
+                    "allowSortByRating": {
+                      "type": "boolean",
+                      "description": "Whether rating is offered."
+                    },
+                    "allowSortByViews": {
+                      "type": "boolean",
+                      "description": "Whether views is offered."
+                    }
+                  }
+                },
+                "filter": {
+                  "type": "object",
+                  "description": "Filtering options.",
+                  "properties": {
+                    "allowFilterByArea": {
+                      "type": "boolean",
+                      "description": "Whether people can narrow the list to an area of the map."
+                    },
+                    "allowFilterByBookmarks": {
+                      "type": "boolean",
+                      "description": "Whether people can narrow the list to their bookmarks."
+                    },
+                    "hideOpeningHoursFilter": {
+                      "type": "boolean",
+                      "description": "Whether the opening hours choice is hidden when people narrow the list."
+                    },
+                    "hidePriceFilter": {
+                      "type": "boolean",
+                      "description": "Whether the price choice is hidden when people narrow the list."
+                    }
+                  }
+                },
+                "map": {
+                  "type": "object",
+                  "description": "Map options.",
+                  "properties": {
+                    "initialArea": {
+                      "type": "boolean",
+                      "description": "Whether the map starts on a chosen area."
+                    },
+                    "initialAreaCoordinates": {
+                      "type": "object",
+                      "description": "Where the map starts.",
+                      "properties": {
+                        "lat": {
+                          "type": "number",
+                          "description": "The starting point's latitude."
+                        },
+                        "lng": {
+                          "type": "number",
+                          "description": "The starting point's longitude."
+                        }
+                      }
+                    },
+                    "initialAreaDisplayAddress": {
+                      "type": "string",
+                      "description": "The starting point's address."
+                    }
+                  }
+                },
+                "bookmarks": {
+                  "type": "object",
+                  "description": "Bookmarks.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether bookmarks are on."
+                    },
+                    "allowForLocations": {
+                      "type": "boolean",
+                      "description": "Whether people can bookmark locations."
+                    },
+                    "allowForFilters": {
+                      "type": "boolean",
+                      "description": "Whether people can bookmark searches."
+                    }
+                  }
+                },
+                "customFields": {
+                  "type": "object",
+                  "description": "The extra fields people fill in for a location.",
+                  "properties": {
+                    "quickActions": {
+                      "type": "array",
+                      "description": "The quick action fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field.",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "The field's id."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "The field's name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "What the field holds."
+                          },
+                          "required": {
+                            "type": "boolean",
+                            "description": "Whether people must fill it in."
+                          },
+                          "enableCustomLabel": {
+                            "type": "boolean",
+                            "description": "Whether people can give it their own label."
+                          }
+                        }
+                      }
+                    },
+                    "content": {
+                      "type": "array",
+                      "description": "The text content fields, in order.",
+                      "items": {
+                        "type": "object",
+                        "description": "One field.",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "The field's id."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "The field's name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "What the field holds."
+                          },
+                          "required": {
+                            "type": "boolean",
+                            "description": "Whether people must fill it in."
+                          },
+                          "enableCustomLabel": {
+                            "type": "boolean",
+                            "description": "Whether people can give it their own label."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "design": {
+                  "type": "object",
+                  "description": "How things look.",
+                  "properties": {
+                    "listViewPosition": {
+                      "type": "string",
+                      "description": "Where the list starts: expanded, collapsed or half expanded."
+                    },
+                    "listViewStyle": {
+                      "type": "string",
+                      "description": "The list style: background image or small image."
+                    },
+                    "defaultMapType": {
+                      "type": "string",
+                      "description": "The map type: streets or satellite."
+                    },
+                    "enableMapTerrainView": {
+                      "type": "boolean",
+                      "description": "Whether the terrain view is on."
+                    },
+                    "hideQuickFilter": {
+                      "type": "boolean",
+                      "description": "Whether the quick category buttons above the list are hidden."
+                    },
+                    "allowStyleSelection": {
+                      "type": "boolean",
+                      "description": "Whether people can pick the map style."
+                    },
+                    "detailsMapPosition": {
+                      "type": "string",
+                      "description": "Where the map shows on a location: top or bottom."
+                    },
+                    "showDetailsCategory": {
+                      "type": "boolean",
+                      "description": "Whether categories show on a location."
+                    },
+                    "showContributorName": {
+                      "type": "boolean",
+                      "description": "Whether the contributor's name shows on a location."
+                    }
+                  }
+                },
+                "globalEntries": {
+                  "type": "object",
+                  "description": "What app users can add.",
+                  "properties": {
+                    "locations": {
+                      "type": "object",
+                      "description": "Adding new locations.",
+                      "properties": {
+                        "allowAdding": {
+                          "type": "string",
+                          "description": "Who it is for: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "photos": {
+                      "type": "object",
+                      "description": "Adding photos to locations.",
+                      "properties": {
+                        "allowAdding": {
+                          "type": "string",
+                          "description": "Who it is for: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "openHours": {
+                      "type": "object",
+                      "description": "Opening hours.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether locations can have opening hours."
+                        },
+                        "inAppEnabled": {
+                          "type": "string",
+                          "description": "Who can set them in the app: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "priceRange": {
+                      "type": "object",
+                      "description": "Price range.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether locations can have a price range."
+                        },
+                        "inAppEnabled": {
+                          "type": "string",
+                          "description": "Who can set it in the app: none, users with tags, or all."
+                        }
+                      }
+                    },
+                    "charging": {
+                      "type": "object",
+                      "description": "Charging for new locations.",
+                      "properties": {
+                        "enabled": {
+                          "type": "string",
+                          "description": "Who pays before adding a location: none, users with tags, or all."
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "The payment details people see, as formatted text."
+                        }
+                      }
+                    }
+                  }
+                },
+                "locationEditors": {
+                  "type": "object",
+                  "description": "Location editing.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether chosen people can edit chosen locations."
+                    },
+                    "time": {
+                      "type": "string",
+                      "description": "How opening hours are written: 12H or 24H."
+                    }
+                  }
+                },
+                "lastUpdatedOn": {
+                  "type": "datetime",
+                  "description": "When the settings were last changed."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "getLanguageStrings",
+      "displayName": "Get language texts",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getLanguageStrings",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows every text label of the app that can be changed, with what the app shows now.",
+      "parameters": {
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the texts are read.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it didn't work, if it didn't."
+            },
+            "result": {
+              "type": "object",
+              "description": "The text labels.",
+              "properties": {
+                "strings": {
+                  "type": "array",
+                  "description": "Every text label.",
+                  "items": {
+                    "type": "object",
+                    "description": "One text label.",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Which label this is."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "What the label is for."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "What the app shows now."
+                      },
+                      "defaultValue": {
+                        "type": "string",
+                        "description": "What the app shows when nothing else is set."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "updateLanguageString",
+      "displayName": "Update language text",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLanguageString",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes one text label the app shows, or puts it back to its original text.",
+      "parameters": {
+        "key": {
+          "type": "select",
+          "displayName": "Label",
+          "required": true,
+          "description": "The text label to change.",
+          "enums": [
+            {
+              "label": "General · Search",
+              "value": "general.search"
+            },
+            {
+              "label": "General · Price",
+              "value": "general.price"
+            },
+            {
+              "label": "General · Currency",
+              "value": "general.currency"
+            },
+            {
+              "label": "General · Reset",
+              "value": "general.reset"
+            },
+            {
+              "label": "General · N/A",
+              "value": "general.notAvailable"
+            },
+            {
+              "label": "General · Open",
+              "value": "general.open"
+            },
+            {
+              "label": "General · Closed",
+              "value": "general.closed"
+            },
+            {
+              "label": "General · Bookmark",
+              "value": "general.bookmark"
+            },
+            {
+              "label": "General · Bookmarks",
+              "value": "general.bookmarks"
+            },
+            {
+              "label": "General · Bookmark Results",
+              "value": "general.bookmarkResults"
+            },
+            {
+              "label": "General · Enter bookmark title here",
+              "value": "general.enterBookmarkTitleHere"
+            },
+            {
+              "label": "General · Rate This Location",
+              "value": "general.rateThisLocation"
+            },
+            {
+              "label": "General · Find Within This Area",
+              "value": "general.findWithinThisArea"
+            },
+            {
+              "label": "General · Find More",
+              "value": "general.findMore"
+            },
+            {
+              "label": "General · Near You",
+              "value": "general.nearYou"
+            },
+            {
+              "label": "General · Other Locations",
+              "value": "general.otherLocations"
+            },
+            {
+              "label": "General · KM",
+              "value": "general.distanceUnitKm"
+            },
+            {
+              "label": "General · mi",
+              "value": "general.distanceUnitMi"
+            },
+            {
+              "label": "General · ft",
+              "value": "general.distanceUnitFt"
+            },
+            {
+              "label": "General · Open Hours",
+              "value": "general.openHours"
+            },
+            {
+              "label": "General · Monday",
+              "value": "general.monday"
+            },
+            {
+              "label": "General · Sunday",
+              "value": "general.sunday"
+            },
+            {
+              "label": "General · Tuesday",
+              "value": "general.tuesday"
+            },
+            {
+              "label": "General · Wednesday",
+              "value": "general.wednesday"
+            },
+            {
+              "label": "General · Thursday",
+              "value": "general.thursday"
+            },
+            {
+              "label": "General · Friday",
+              "value": "general.friday"
+            },
+            {
+              "label": "General · Saturday",
+              "value": "general.saturday"
+            },
+            {
+              "label": "General · Follow",
+              "value": "general.follow"
+            },
+            {
+              "label": "General · Following",
+              "value": "general.following"
+            },
+            {
+              "label": "General · Purchase Successful",
+              "value": "general.purchaseSuccessful"
+            },
+            {
+              "label": "General · Purchase Cancelled",
+              "value": "general.purchaseCancelled"
+            },
+            {
+              "label": "General · Generic Error",
+              "value": "general.genericError"
+            },
+            {
+              "label": "General · PWA Unsupported",
+              "value": "general.pwaUnsupported"
+            },
+            {
+              "label": "General · App Store Not Accessible",
+              "value": "general.appStoreNotAccessible"
+            },
+            {
+              "label": "General · Promotional Offers Not Supported",
+              "value": "general.promotionalOffersNotSupported"
+            },
+            {
+              "label": "General · No Subscriptions Found",
+              "value": "general.noSubscriptionsFound"
+            },
+            {
+              "label": "Sorting Options · Title (A-Z)",
+              "value": "sortingOptions.alphabeticalAsc"
+            },
+            {
+              "label": "Sorting Options · Title (Z-A)",
+              "value": "sortingOptions.alphabeticalDsc"
+            },
+            {
+              "label": "Sorting Options · Distance",
+              "value": "sortingOptions.distance"
+            },
+            {
+              "label": "Sorting Options · Recommended",
+              "value": "sortingOptions.recommended"
+            },
+            {
+              "label": "Sorting Options · $$$ - $",
+              "value": "sortingOptions.priceDsc"
+            },
+            {
+              "label": "Sorting Options · $ - $$$",
+              "value": "sortingOptions.priceAsc"
+            },
+            {
+              "label": "Sorting Options · Recent",
+              "value": "sortingOptions.recent"
+            },
+            {
+              "label": "Sorting Options · Most Viewed",
+              "value": "sortingOptions.mostViewed"
+            },
+            {
+              "label": "Location Creating/Editing · For full customization options go to the admin Control Panel.",
+              "value": "locationEditing.controlNote"
+            },
+            {
+              "label": "Location Creating/Editing · Location Details",
+              "value": "locationEditing.locationDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Location Title",
+              "value": "locationEditing.locationName"
+            },
+            {
+              "label": "Location Creating/Editing · Location Address",
+              "value": "locationEditing.locationAddress"
+            },
+            {
+              "label": "Location Creating/Editing · Additional Details",
+              "value": "locationEditing.additionalDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Location Custom Label",
+              "value": "locationEditing.locationCustomLabel"
+            },
+            {
+              "label": "Location Creating/Editing · Street Name and Number",
+              "value": "locationEditing.locationStreetNameAndNumber"
+            },
+            {
+              "label": "Location Creating/Editing · Location Custom Name",
+              "value": "locationEditing.locationCustomName"
+            },
+            {
+              "label": "Location Creating/Editing · Location Subtitle",
+              "value": "locationEditing.locationSubtitle"
+            },
+            {
+              "label": "Location Creating/Editing · Location Description",
+              "value": "locationEditing.locationDescription"
+            },
+            {
+              "label": "Location Creating/Editing · Enter your description here",
+              "value": "locationEditing.descriptionDialogPlaceholder"
+            },
+            {
+              "label": "Location Creating/Editing · Save",
+              "value": "locationEditing.descriptionDialogSave"
+            },
+            {
+              "label": "Location Creating/Editing · Cancel",
+              "value": "locationEditing.descriptionDialogCancel"
+            },
+            {
+              "label": "Location Creating/Editing · Categories",
+              "value": "locationEditing.categories"
+            },
+            {
+              "label": "Location Creating/Editing · Choose Category",
+              "value": "locationEditing.chooseCategory"
+            },
+            {
+              "label": "Location Creating/Editing · Star Rating",
+              "value": "locationEditing.starRating"
+            },
+            {
+              "label": "Location Creating/Editing · Show Category on Location Screen",
+              "value": "locationEditing.showCategory"
+            },
+            {
+              "label": "Location Creating/Editing · Enable Editing",
+              "value": "locationEditing.enableEditing"
+            },
+            {
+              "label": "Location Creating/Editing · Price Range",
+              "value": "locationEditing.priceRange"
+            },
+            {
+              "label": "Location Creating/Editing · List Image",
+              "value": "locationEditing.listImage"
+            },
+            {
+              "label": "Location Creating/Editing · This is the main location image displayed next to the location info in a list view.",
+              "value": "locationEditing.listImageNote"
+            },
+            {
+              "label": "Location Creating/Editing · If you need adjustments, drag the map so the pin matches the exact location of your place.",
+              "value": "locationEditing.mapNote"
+            },
+            {
+              "label": "Location Creating/Editing · Location Images",
+              "value": "locationEditing.locationImages"
+            },
+            {
+              "label": "Location Creating/Editing · These are the location details images. First image in the list will be displayed as location’s main image.",
+              "value": "locationEditing.locationImagesNote"
+            },
+            {
+              "label": "Location Creating/Editing · Mon",
+              "value": "locationEditing.monday"
+            },
+            {
+              "label": "Location Creating/Editing · Tue",
+              "value": "locationEditing.tuesday"
+            },
+            {
+              "label": "Location Creating/Editing · Wed",
+              "value": "locationEditing.wednesday"
+            },
+            {
+              "label": "Location Creating/Editing · Thu",
+              "value": "locationEditing.thursday"
+            },
+            {
+              "label": "Location Creating/Editing · Fri",
+              "value": "locationEditing.friday"
+            },
+            {
+              "label": "Location Creating/Editing · Sat",
+              "value": "locationEditing.saturday"
+            },
+            {
+              "label": "Location Creating/Editing · Sun",
+              "value": "locationEditing.sunday"
+            },
+            {
+              "label": "Location Creating/Editing · This field is required",
+              "value": "locationEditing.fieldRequired"
+            },
+            {
+              "label": "Location Creating/Editing · Required",
+              "value": "locationEditing.required"
+            },
+            {
+              "label": "Location Creating/Editing · Choose an end time later than the start time.",
+              "value": "locationEditing.invalidTime"
+            },
+            {
+              "label": "Location Creating/Editing · Opening hours are overlapping for this day.",
+              "value": "locationEditing.overlappingHours"
+            },
+            {
+              "label": "Location Creating/Editing · Enable Editing",
+              "value": "locationEditing.confirmEditingTitle"
+            },
+            {
+              "label": "Location Creating/Editing · The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?",
+              "value": "locationEditing.confirmEditingMessage"
+            },
+            {
+              "label": "Location Creating/Editing · Confirm",
+              "value": "locationEditing.confirmEditingConfirm"
+            },
+            {
+              "label": "Location Creating/Editing · Cancel",
+              "value": "locationEditing.confirmEditingCancel"
+            },
+            {
+              "label": "Location Creating/Editing · Enter email address",
+              "value": "locationEditing.enterEmailAddress"
+            },
+            {
+              "label": "Location Creating/Editing · Enter phone number",
+              "value": "locationEditing.enterPhoneNumber"
+            },
+            {
+              "label": "Location Creating/Editing · Enter URL",
+              "value": "locationEditing.enterURL"
+            },
+            {
+              "label": "Location Creating/Editing · Add description",
+              "value": "locationEditing.addDescription"
+            },
+            {
+              "label": "Location Creating/Editing · Enter details",
+              "value": "locationEditing.enterDetails"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid email address",
+              "value": "locationEditing.validEmail"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid phone number",
+              "value": "locationEditing.validPhone"
+            },
+            {
+              "label": "Location Creating/Editing · Enter a valid URL",
+              "value": "locationEditing.validURL"
+            },
+            {
+              "label": "Toast Messages · Bookmark Removed",
+              "value": "toast.bookmarksRemoved"
+            },
+            {
+              "label": "Toast Messages · Bookmark Added",
+              "value": "toast.bookmarksAdded"
+            },
+            {
+              "label": "Toast Messages · Couldn't bookmark",
+              "value": "toast.bookmarksError"
+            },
+            {
+              "label": "Toast Messages · Uploading Images",
+              "value": "toast.uploadingImages"
+            },
+            {
+              "label": "Toast Messages · Uploading Images is Complete",
+              "value": "toast.uploadingComplete"
+            },
+            {
+              "label": "Toast Messages · Uploading Images Failed",
+              "value": "toast.uploadingFailed"
+            },
+            {
+              "label": "Toast Messages · Location Saved",
+              "value": "toast.locationSaved"
+            },
+            {
+              "label": "Toast Messages · This item is already reported",
+              "value": "toast.alreadyReported"
+            },
+            {
+              "label": "Toast Messages · Reported successfully",
+              "value": "toast.reportedSuccessfully"
+            },
+            {
+              "label": "Toast Messages · Thanks for sharing your photos",
+              "value": "toast.uploadedSuccessfully"
+            },
+            {
+              "label": "Toast Messages · You'll now get notifications for location updates.",
+              "value": "toast.subscribeToLocationUpdates"
+            },
+            {
+              "label": "Toast Messages · You'll no longer get notifications for location updates.",
+              "value": "toast.unSubscribeFromLocationUpdates"
+            },
+            {
+              "label": "Toast Messages · Notification sent successfully",
+              "value": "toast.sendNotificationSuccess"
+            },
+            {
+              "label": "Toast Messages · Notification failed",
+              "value": "toast.sendNotificationFailed"
+            },
+            {
+              "label": "Toast Messages · Location has no subscribers",
+              "value": "toast.locationHasNoSubscribers"
+            },
+            {
+              "label": "Toast Messages · Location Deleted",
+              "value": "toast.locationDeleted"
+            },
+            {
+              "label": "Toast Messages · Something went wrong",
+              "value": "toast.somethingWentWrong"
+            },
+            {
+              "label": "Details Page · Bookmark",
+              "value": "details.bookmark"
+            },
+            {
+              "label": "Details Page · Report Abuse",
+              "value": "details.reportAbuse"
+            },
+            {
+              "label": "Details Page · Share",
+              "value": "details.share"
+            },
+            {
+              "label": "Details Page · Edit",
+              "value": "details.edit"
+            },
+            {
+              "label": "Details Page · Notify Subscribers",
+              "value": "details.notifySubscribers"
+            },
+            {
+              "label": "Details Page · Add Photos",
+              "value": "details.addPhotos"
+            },
+            {
+              "label": "Details Page · Contributor Name Prefix",
+              "value": "details.contributorPrefix"
+            },
+            {
+              "label": "Details Page · Unknown Contributor",
+              "value": "details.unknownContributor"
+            },
+            {
+              "label": "Details Page · New Push Notification Title",
+              "value": "details.newPushNotification"
+            },
+            {
+              "label": "Details Page · Notification Note",
+              "value": "details.notificationWarningNote"
+            },
+            {
+              "label": "Details Page · Notification Title Placeholder",
+              "value": "details.notificationTitlePlaceholder"
+            },
+            {
+              "label": "Details Page · Notification Message Placeholder",
+              "value": "details.notificationMessagePlaceholder"
+            },
+            {
+              "label": "Details Page · Done",
+              "value": "details.done"
+            },
+            {
+              "label": "Details Page · Cancel",
+              "value": "details.cancel"
+            },
+            {
+              "label": "Details Page · Send",
+              "value": "details.notificationSend"
+            },
+            {
+              "label": "Empty State · No Categories Added",
+              "value": "emptyState.emptyCategories"
+            },
+            {
+              "label": "Empty State · Start your search",
+              "value": "emptyState.locationsListBeforeSearch"
+            },
+            {
+              "label": "Empty State · No locations found within this area",
+              "value": "emptyState.locationsListAfterSearch"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "general.search"
+        },
+        "value": {
+          "type": "string",
+          "displayName": "Text",
+          "required": true,
+          "nullable": true,
+          "description": "The label's new text, within its length limit. Leave it empty to show no text (labels the app needs cannot be empty), or clear it to go back to the original text.",
+          "sampleValue": "[label text]"
+        },
+        "callback": {
+          "type": "function",
+          "required": true,
+          "description": "Runs when the text is saved.",
+          "parameters": {
+            "error": {
+              "type": "object|string",
+              "description": "Why it wasn't saved, such as a text longer than the label allows."
+            },
+            "result": {
+              "type": "object",
+              "description": "The label as it is now.",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "Which label this is."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "What the app shows now."
+                },
+                "defaultValue": {
+                  "type": "string",
+                  "description": "Its original text."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
