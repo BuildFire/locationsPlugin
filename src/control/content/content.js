@@ -9,6 +9,7 @@ import './js/listView';
 import contentController from './content.controller';
 import state from './state';
 
+const myNameIs = 'abdalla';
 const templates = {};
 
 const createLoadingState = () => {
