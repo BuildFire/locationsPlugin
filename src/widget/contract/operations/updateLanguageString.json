@@ -1,0 +1,573 @@
+{
+  "name": "updateLanguageString",
+  "displayName": "Update language string",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateLanguageString",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes the text of one label the app shows.",
+  "parameters": {
+    "key": {
+      "type": "select",
+      "displayName": "Label",
+      "required": true,
+      "description": "Which text label to change.",
+      "enums": [
+        {
+          "label": "General: Search",
+          "value": "general.search"
+        },
+        {
+          "label": "General: Price",
+          "value": "general.price"
+        },
+        {
+          "label": "General: Currency",
+          "value": "general.currency"
+        },
+        {
+          "label": "General: Reset",
+          "value": "general.reset"
+        },
+        {
+          "label": "General: N/A",
+          "value": "general.notAvailable"
+        },
+        {
+          "label": "General: Open",
+          "value": "general.open"
+        },
+        {
+          "label": "General: Closed",
+          "value": "general.closed"
+        },
+        {
+          "label": "General: Bookmark",
+          "value": "general.bookmark"
+        },
+        {
+          "label": "General: Bookmarks",
+          "value": "general.bookmarks"
+        },
+        {
+          "label": "General: Bookmark Results",
+          "value": "general.bookmarkResults"
+        },
+        {
+          "label": "General: Enter bookmark title here",
+          "value": "general.enterBookmarkTitleHere"
+        },
+        {
+          "label": "General: Rate This Location",
+          "value": "general.rateThisLocation"
+        },
+        {
+          "label": "General: Find Within This Area",
+          "value": "general.findWithinThisArea"
+        },
+        {
+          "label": "General: Find More",
+          "value": "general.findMore"
+        },
+        {
+          "label": "General: Near You",
+          "value": "general.nearYou"
+        },
+        {
+          "label": "General: Other Locations",
+          "value": "general.otherLocations"
+        },
+        {
+          "label": "General: KM",
+          "value": "general.distanceUnitKm"
+        },
+        {
+          "label": "General: mi",
+          "value": "general.distanceUnitMi"
+        },
+        {
+          "label": "General: ft",
+          "value": "general.distanceUnitFt"
+        },
+        {
+          "label": "General: Open Hours",
+          "value": "general.openHours"
+        },
+        {
+          "label": "General: Monday",
+          "value": "general.monday"
+        },
+        {
+          "label": "General: Sunday",
+          "value": "general.sunday"
+        },
+        {
+          "label": "General: Tuesday",
+          "value": "general.tuesday"
+        },
+        {
+          "label": "General: Wednesday",
+          "value": "general.wednesday"
+        },
+        {
+          "label": "General: Thursday",
+          "value": "general.thursday"
+        },
+        {
+          "label": "General: Friday",
+          "value": "general.friday"
+        },
+        {
+          "label": "General: Saturday",
+          "value": "general.saturday"
+        },
+        {
+          "label": "General: Follow",
+          "value": "general.follow"
+        },
+        {
+          "label": "General: Following",
+          "value": "general.following"
+        },
+        {
+          "label": "General: Purchase Successful",
+          "value": "general.purchaseSuccessful"
+        },
+        {
+          "label": "General: Purchase Cancelled",
+          "value": "general.purchaseCancelled"
+        },
+        {
+          "label": "General: Generic Error",
+          "value": "general.genericError"
+        },
+        {
+          "label": "General: PWA Unsupported",
+          "value": "general.pwaUnsupported"
+        },
+        {
+          "label": "General: App Store Not Accessible",
+          "value": "general.appStoreNotAccessible"
+        },
+        {
+          "label": "General: Promotional Offers Not Supported",
+          "value": "general.promotionalOffersNotSupported"
+        },
+        {
+          "label": "General: No Subscriptions Found",
+          "value": "general.noSubscriptionsFound"
+        },
+        {
+          "label": "Sorting Options: Title (A-Z)",
+          "value": "sortingOptions.alphabeticalAsc"
+        },
+        {
+          "label": "Sorting Options: Title (Z-A)",
+          "value": "sortingOptions.alphabeticalDsc"
+        },
+        {
+          "label": "Sorting Options: Distance",
+          "value": "sortingOptions.distance"
+        },
+        {
+          "label": "Sorting Options: Recommended",
+          "value": "sortingOptions.recommended"
+        },
+        {
+          "label": "Sorting Options: $$$ - $",
+          "value": "sortingOptions.priceDsc"
+        },
+        {
+          "label": "Sorting Options: $ - $$$",
+          "value": "sortingOptions.priceAsc"
+        },
+        {
+          "label": "Sorting Options: Recent",
+          "value": "sortingOptions.recent"
+        },
+        {
+          "label": "Sorting Options: Most Viewed",
+          "value": "sortingOptions.mostViewed"
+        },
+        {
+          "label": "Location Creating/Editing: For full customization options go to the admin Control Panel.",
+          "value": "locationEditing.controlNote"
+        },
+        {
+          "label": "Location Creating/Editing: Location Details",
+          "value": "locationEditing.locationDetails"
+        },
+        {
+          "label": "Location Creating/Editing: Location Title",
+          "value": "locationEditing.locationName"
+        },
+        {
+          "label": "Location Creating/Editing: Location Address",
+          "value": "locationEditing.locationAddress"
+        },
+        {
+          "label": "Location Creating/Editing: Additional Details",
+          "value": "locationEditing.additionalDetails"
+        },
+        {
+          "label": "Location Creating/Editing: Location Custom Label",
+          "value": "locationEditing.locationCustomLabel"
+        },
+        {
+          "label": "Location Creating/Editing: Street Name and Number",
+          "value": "locationEditing.locationStreetNameAndNumber"
+        },
+        {
+          "label": "Location Creating/Editing: Location Custom Name",
+          "value": "locationEditing.locationCustomName"
+        },
+        {
+          "label": "Location Creating/Editing: Location Subtitle",
+          "value": "locationEditing.locationSubtitle"
+        },
+        {
+          "label": "Location Creating/Editing: Location Description",
+          "value": "locationEditing.locationDescription"
+        },
+        {
+          "label": "Location Creating/Editing: Enter your description here",
+          "value": "locationEditing.descriptionDialogPlaceholder"
+        },
+        {
+          "label": "Location Creating/Editing: Save",
+          "value": "locationEditing.descriptionDialogSave"
+        },
+        {
+          "label": "Location Creating/Editing: Cancel",
+          "value": "locationEditing.descriptionDialogCancel"
+        },
+        {
+          "label": "Location Creating/Editing: Categories",
+          "value": "locationEditing.categories"
+        },
+        {
+          "label": "Location Creating/Editing: Choose Category",
+          "value": "locationEditing.chooseCategory"
+        },
+        {
+          "label": "Location Creating/Editing: Star Rating",
+          "value": "locationEditing.starRating"
+        },
+        {
+          "label": "Location Creating/Editing: Show Category on Location Screen",
+          "value": "locationEditing.showCategory"
+        },
+        {
+          "label": "Location Creating/Editing: Enable Editing",
+          "value": "locationEditing.enableEditing"
+        },
+        {
+          "label": "Location Creating/Editing: Price Range",
+          "value": "locationEditing.priceRange"
+        },
+        {
+          "label": "Location Creating/Editing: List Image",
+          "value": "locationEditing.listImage"
+        },
+        {
+          "label": "Location Creating/Editing: This is the main location image displayed next to the location info in a list view.",
+          "value": "locationEditing.listImageNote"
+        },
+        {
+          "label": "Location Creating/Editing: If you need adjustments, drag the map so the pin matches the exact location of your place.",
+          "value": "locationEditing.mapNote"
+        },
+        {
+          "label": "Location Creating/Editing: Location Images",
+          "value": "locationEditing.locationImages"
+        },
+        {
+          "label": "Location Creating/Editing: These are the location details images. First image in the list will be displayed as location’s main image.",
+          "value": "locationEditing.locationImagesNote"
+        },
+        {
+          "label": "Location Creating/Editing: Mon",
+          "value": "locationEditing.monday"
+        },
+        {
+          "label": "Location Creating/Editing: Tue",
+          "value": "locationEditing.tuesday"
+        },
+        {
+          "label": "Location Creating/Editing: Wed",
+          "value": "locationEditing.wednesday"
+        },
+        {
+          "label": "Location Creating/Editing: Thu",
+          "value": "locationEditing.thursday"
+        },
+        {
+          "label": "Location Creating/Editing: Fri",
+          "value": "locationEditing.friday"
+        },
+        {
+          "label": "Location Creating/Editing: Sat",
+          "value": "locationEditing.saturday"
+        },
+        {
+          "label": "Location Creating/Editing: Sun",
+          "value": "locationEditing.sunday"
+        },
+        {
+          "label": "Location Creating/Editing: This field is required",
+          "value": "locationEditing.fieldRequired"
+        },
+        {
+          "label": "Location Creating/Editing: Required",
+          "value": "locationEditing.required"
+        },
+        {
+          "label": "Location Creating/Editing: Choose an end time later than the start time.",
+          "value": "locationEditing.invalidTime"
+        },
+        {
+          "label": "Location Creating/Editing: Opening hours are overlapping for this day.",
+          "value": "locationEditing.overlappingHours"
+        },
+        {
+          "label": "Location Creating/Editing: Enable Editing",
+          "value": "locationEditing.confirmEditingTitle"
+        },
+        {
+          "label": "Location Creating/Editing: The location description currently cannot be edited in the app. If you enable editing, the existing description will be deleted and can be replaced with a new description. Are you sure you want to proceed?",
+          "value": "locationEditing.confirmEditingMessage"
+        },
+        {
+          "label": "Location Creating/Editing: Confirm",
+          "value": "locationEditing.confirmEditingConfirm"
+        },
+        {
+          "label": "Location Creating/Editing: Cancel",
+          "value": "locationEditing.confirmEditingCancel"
+        },
+        {
+          "label": "Location Creating/Editing: Enter email address",
+          "value": "locationEditing.enterEmailAddress"
+        },
+        {
+          "label": "Location Creating/Editing: Enter phone number",
+          "value": "locationEditing.enterPhoneNumber"
+        },
+        {
+          "label": "Location Creating/Editing: Enter URL",
+          "value": "locationEditing.enterURL"
+        },
+        {
+          "label": "Location Creating/Editing: Add description",
+          "value": "locationEditing.addDescription"
+        },
+        {
+          "label": "Location Creating/Editing: Enter details",
+          "value": "locationEditing.enterDetails"
+        },
+        {
+          "label": "Location Creating/Editing: Enter a valid email address",
+          "value": "locationEditing.validEmail"
+        },
+        {
+          "label": "Location Creating/Editing: Enter a valid phone number",
+          "value": "locationEditing.validPhone"
+        },
+        {
+          "label": "Location Creating/Editing: Enter a valid URL",
+          "value": "locationEditing.validURL"
+        },
+        {
+          "label": "Toast Messages: Bookmark Removed",
+          "value": "toast.bookmarksRemoved"
+        },
+        {
+          "label": "Toast Messages: Bookmark Added",
+          "value": "toast.bookmarksAdded"
+        },
+        {
+          "label": "Toast Messages: Couldn't bookmark",
+          "value": "toast.bookmarksError"
+        },
+        {
+          "label": "Toast Messages: Uploading Images",
+          "value": "toast.uploadingImages"
+        },
+        {
+          "label": "Toast Messages: Uploading Images is Complete",
+          "value": "toast.uploadingComplete"
+        },
+        {
+          "label": "Toast Messages: Uploading Images Failed",
+          "value": "toast.uploadingFailed"
+        },
+        {
+          "label": "Toast Messages: Location Saved",
+          "value": "toast.locationSaved"
+        },
+        {
+          "label": "Toast Messages: This item is already reported",
+          "value": "toast.alreadyReported"
+        },
+        {
+          "label": "Toast Messages: Reported successfully",
+          "value": "toast.reportedSuccessfully"
+        },
+        {
+          "label": "Toast Messages: Thanks for sharing your photos",
+          "value": "toast.uploadedSuccessfully"
+        },
+        {
+          "label": "Toast Messages: You'll now get notifications for location updates.",
+          "value": "toast.subscribeToLocationUpdates"
+        },
+        {
+          "label": "Toast Messages: You'll no longer get notifications for location updates.",
+          "value": "toast.unSubscribeFromLocationUpdates"
+        },
+        {
+          "label": "Toast Messages: Notification sent successfully",
+          "value": "toast.sendNotificationSuccess"
+        },
+        {
+          "label": "Toast Messages: Notification failed",
+          "value": "toast.sendNotificationFailed"
+        },
+        {
+          "label": "Toast Messages: Location has no subscribers",
+          "value": "toast.locationHasNoSubscribers"
+        },
+        {
+          "label": "Toast Messages: Location Deleted",
+          "value": "toast.locationDeleted"
+        },
+        {
+          "label": "Toast Messages: Something went wrong",
+          "value": "toast.somethingWentWrong"
+        },
+        {
+          "label": "Details Page: Bookmark",
+          "value": "details.bookmark"
+        },
+        {
+          "label": "Details Page: Report Abuse",
+          "value": "details.reportAbuse"
+        },
+        {
+          "label": "Details Page: Share",
+          "value": "details.share"
+        },
+        {
+          "label": "Details Page: Edit",
+          "value": "details.edit"
+        },
+        {
+          "label": "Details Page: Notify Subscribers",
+          "value": "details.notifySubscribers"
+        },
+        {
+          "label": "Details Page: Add Photos",
+          "value": "details.addPhotos"
+        },
+        {
+          "label": "Details Page: Contributor Name Prefix",
+          "value": "details.contributorPrefix"
+        },
+        {
+          "label": "Details Page: Unknown Contributor",
+          "value": "details.unknownContributor"
+        },
+        {
+          "label": "Details Page: New Push Notification Title",
+          "value": "details.newPushNotification"
+        },
+        {
+          "label": "Details Page: Notification Note",
+          "value": "details.notificationWarningNote"
+        },
+        {
+          "label": "Details Page: Notification Title Placeholder",
+          "value": "details.notificationTitlePlaceholder"
+        },
+        {
+          "label": "Details Page: Notification Message Placeholder",
+          "value": "details.notificationMessagePlaceholder"
+        },
+        {
+          "label": "Details Page: Done",
+          "value": "details.done"
+        },
+        {
+          "label": "Details Page: Cancel",
+          "value": "details.cancel"
+        },
+        {
+          "label": "Details Page: Send",
+          "value": "details.notificationSend"
+        },
+        {
+          "label": "Empty State: No Categories Added",
+          "value": "emptyState.emptyCategories"
+        },
+        {
+          "label": "Empty State: Start your search",
+          "value": "emptyState.locationsListBeforeSearch"
+        },
+        {
+          "label": "Empty State: No locations found within this area",
+          "value": "emptyState.locationsListAfterSearch"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "general.search"
+    },
+    "value": {
+      "type": "string",
+      "displayName": "Text",
+      "required": true,
+      "description": "The label's new text, within its length limit. Leave it empty to show no text, for labels that allow it.",
+      "sampleValue": "Find",
+      "nullable": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the text is saved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not saved, such as text too long for the label."
+        },
+        "result": {
+          "type": "object",
+          "description": "The label as it is now.",
+          "properties": {
+            "key": {
+              "type": "string",
+              "description": "The label's key."
+            },
+            "value": {
+              "type": "string",
+              "description": "The text the app shows now."
+            }
+          }
+        }
+      }
+    }
+  }
+}

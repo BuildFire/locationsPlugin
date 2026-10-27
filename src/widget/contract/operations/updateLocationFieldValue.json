@@ -1,0 +1,560 @@
+{
+  "name": "updateLocationFieldValue",
+  "displayName": "Update location field value",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldValueAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldValue",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Fills in one of the extra location fields on a location, both found by name.",
+  "parameters": {
+    "locationTitle": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": true,
+      "description": "The exact title of the location.",
+      "sampleValue": "Balboa Park"
+    },
+    "fieldName": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The exact name of the location field, as set up in settings.",
+      "sampleValue": "Email"
+    },
+    "value": {
+      "type": "string",
+      "displayName": "Value",
+      "required": true,
+      "description": "What the location shows for the field: an email, phone number, web address or text, as the field holds. Leave it empty to remove it, unless the field is required.",
+      "sampleValue": "info@example.com",
+      "nullable": true
+    },
+    "customLabel": {
+      "type": "string",
+      "displayName": "Custom label",
+      "required": false,
+      "description": "The label shown instead of the field name, for fields that allow one. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "Email us",
+      "nullable": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the value is saved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not saved, such as a value that is not an email address."
+        },
+        "result": {
+          "type": "object",
+          "description": "The location as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The location's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The location's title."
+            },
+            "subtitle": {
+              "type": "string",
+              "description": "The location's subtitle, if it has one."
+            },
+            "address": {
+              "type": "string",
+              "description": "The location's address."
+            },
+            "formattedAddress": {
+              "type": "string",
+              "description": "The full address shown on the map."
+            },
+            "addressAlias": {
+              "type": "string",
+              "description": "The location's custom name, if it has one."
+            },
+            "coordinates": {
+              "type": "object",
+              "description": "Where the location is on the map.",
+              "properties": {
+                "lat": {
+                  "type": "number",
+                  "description": "Its latitude."
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Its longitude."
+                }
+              }
+            },
+            "listImage": {
+              "type": "string",
+              "description": "The picture shown for the location in lists."
+            },
+            "images": {
+              "type": "array",
+              "description": "The location's pictures, in order.",
+              "items": {
+                "type": "object",
+                "description": "One picture.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The picture's id."
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "description": "The picture's address."
+                  }
+                }
+              }
+            },
+            "description": {
+              "type": "string",
+              "description": "The location's description, as formatted text."
+            },
+            "categories": {
+              "type": "object",
+              "description": "The categories the location is in.",
+              "properties": {
+                "main": {
+                  "type": "array",
+                  "description": "The categories' ids.",
+                  "items": {
+                    "type": "string",
+                    "description": "A category's id."
+                  }
+                },
+                "subcategories": {
+                  "type": "array",
+                  "description": "The subcategories' ids.",
+                  "items": {
+                    "type": "string",
+                    "description": "A subcategory's id."
+                  }
+                }
+              }
+            },
+            "marker": {
+              "type": "object",
+              "description": "How the location is marked on the map.",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Pin, circle or image."
+                },
+                "image": {
+                  "type": "string",
+                  "description": "The picture used as an image marker, if any."
+                },
+                "color": {
+                  "type": "object",
+                  "description": "The circle marker's color, if any.",
+                  "properties": {
+                    "color": {
+                      "type": "string",
+                      "description": "The color."
+                    }
+                  }
+                }
+              }
+            },
+            "settings": {
+              "type": "object",
+              "description": "What the location screen shows.",
+              "properties": {
+                "showCategory": {
+                  "type": "boolean",
+                  "description": "Whether its categories are shown."
+                },
+                "showOpeningHours": {
+                  "type": "boolean",
+                  "description": "Whether its opening hours are shown."
+                },
+                "showPriceRange": {
+                  "type": "boolean",
+                  "description": "Whether its price range is shown."
+                },
+                "showStarRating": {
+                  "type": "boolean",
+                  "description": "Whether its star rating is shown."
+                }
+              }
+            },
+            "price": {
+              "type": "object",
+              "description": "The location's price range.",
+              "properties": {
+                "range": {
+                  "type": "number",
+                  "description": "From 1 ($) to 4 ($$$$)."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "The currency sign."
+                }
+              }
+            },
+            "openingHours": {
+              "type": "object",
+              "description": "When the location is open.",
+              "properties": {
+                "days": {
+                  "type": "object",
+                  "description": "Each day of the week, by name.",
+                  "properties": {
+                    "monday": {
+                      "type": "object",
+                      "description": "Monday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "tuesday": {
+                      "type": "object",
+                      "description": "Tuesday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "wednesday": {
+                      "type": "object",
+                      "description": "Wednesday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "thursday": {
+                      "type": "object",
+                      "description": "Thursday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "friday": {
+                      "type": "object",
+                      "description": "Friday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "saturday": {
+                      "type": "object",
+                      "description": "Saturday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sunday": {
+                      "type": "object",
+                      "description": "Sunday's hours.",
+                      "properties": {
+                        "active": {
+                          "type": "boolean",
+                          "description": "Whether it is open that day."
+                        },
+                        "intervals": {
+                          "type": "array",
+                          "description": "The times it is open.",
+                          "items": {
+                            "type": "object",
+                            "description": "One opening time.",
+                            "properties": {
+                              "from": {
+                                "type": "datetime",
+                                "description": "When it opens, on 1 January 1970."
+                              },
+                              "to": {
+                                "type": "datetime",
+                                "description": "When it closes, on 1 January 1970."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "pinIndex": {
+              "type": "number",
+              "description": "Its place among the pinned locations, if it is pinned."
+            },
+            "actionItems": {
+              "type": "array",
+              "description": "The location's buttons, such as a phone call or a website.",
+              "items": {
+                "type": "object",
+                "description": "One button.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "The button's text."
+                  },
+                  "action": {
+                    "type": "string",
+                    "description": "What it does."
+                  }
+                }
+              }
+            },
+            "additionalFields": {
+              "type": "object",
+              "description": "The location's values for the location fields.",
+              "properties": {
+                "quickActions": {
+                  "type": "array",
+                  "description": "Values of the quick action fields.",
+                  "items": {
+                    "type": "object",
+                    "description": "One value.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The custom label, if any."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value, if any."
+                      }
+                    }
+                  }
+                },
+                "content": {
+                  "type": "array",
+                  "description": "Values of the content fields.",
+                  "items": {
+                    "type": "object",
+                    "description": "One value.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "customLabel": {
+                        "type": "string",
+                        "description": "The custom label, if any."
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The value, if any."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "views": {
+              "type": "number",
+              "description": "How many times it was viewed."
+            },
+            "rating": {
+              "type": "object",
+              "description": "The location's star rating.",
+              "properties": {
+                "average": {
+                  "type": "number",
+                  "description": "The average rating."
+                },
+                "count": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                }
+              }
+            },
+            "createdOn": {
+              "type": "datetime",
+              "description": "When it was added."
+            },
+            "createdBy": {
+              "type": "object",
+              "description": "Who added it, if known.",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "description": "Their id."
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Their name."
+                }
+              }
+            },
+            "lastUpdatedOn": {
+              "type": "datetime",
+              "description": "When it was last changed."
+            },
+            "lastUpdatedBy": {
+              "type": "object",
+              "description": "Who last changed it, if known.",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "description": "Their id."
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "Their name."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

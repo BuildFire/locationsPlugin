@@ -1,0 +1,360 @@
+{
+  "name": "createLocationsAdvanced",
+  "displayName": "Create locations",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createLocationsAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several locations at once, up to 50.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The locations to add, up to 50 at a time.",
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Location title",
+          "required": true,
+          "description": "The location's title.",
+          "sampleValue": "Balboa Park"
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Location subtitle",
+          "required": false,
+          "description": "A short line shown under the title. Leave it out for none.",
+          "sampleValue": "Gardens and museums"
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Location address",
+          "required": true,
+          "description": "The location's address.",
+          "sampleValue": "1549 El Prado, San Diego, CA 92101"
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "required": true,
+          "description": "Where the location is, north to south.",
+          "minValue": -90,
+          "maxValue": 90,
+          "sampleValue": 32.7341
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "required": true,
+          "description": "Where the location is, east to west.",
+          "minValue": -180,
+          "maxValue": 180,
+          "sampleValue": -117.1446
+        },
+        "addressAlias": {
+          "type": "string",
+          "displayName": "Location custom name",
+          "required": false,
+          "description": "A name shown on the map instead of the address. Leave it out for none.",
+          "sampleValue": "The park"
+        },
+        "description": {
+          "type": "wysiwyg",
+          "displayName": "Description",
+          "required": true,
+          "description": "What the location screen says about it, as formatted text.",
+          "sampleValue": "<p>[location description]</p>"
+        },
+        "listImage": {
+          "type": "image",
+          "displayName": "List image",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "The picture shown for the location in lists, as a list holding one picture.",
+          "sampleValue": [
+            "https://example.com/location.png"
+          ]
+        },
+        "images": {
+          "type": "image",
+          "displayName": "Location images",
+          "required": false,
+          "minValue": 0,
+          "description": "The location's pictures, in order. Leave it out for none.",
+          "sampleValue": [
+            "https://example.com/photo-1.png",
+            "https://example.com/photo-2.png"
+          ]
+        },
+        "categories": {
+          "type": "string",
+          "displayName": "Location categories",
+          "required": false,
+          "description": "The categories it is in, by name, with a subcategory after an arrow, such as \"Parks -> Gardens, Museums\". Leave it out for none.",
+          "sampleValue": "Parks -> Gardens, Museums"
+        },
+        "markerType": {
+          "type": "select",
+          "displayName": "Marker type",
+          "required": false,
+          "description": "How the location is marked on the map. Leave it out for a pin.",
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "pin"
+        },
+        "markerImage": {
+          "type": "image",
+          "displayName": "Marker image",
+          "required": false,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "The picture used as an image marker, as a list holding one picture. Needed for an image marker.",
+          "sampleValue": [
+            "https://example.com/marker.png"
+          ]
+        },
+        "markerColor": {
+          "type": "string",
+          "displayName": "Marker color",
+          "required": false,
+          "description": "The color of a circle marker, such as \"rgba(253,35,5,1)\". Leave it out for red.",
+          "sampleValue": "rgba(253,35,5,1)"
+        },
+        "showCategory": {
+          "type": "boolean",
+          "displayName": "Show category on location screen",
+          "required": false,
+          "description": "Whether the location screen shows its categories. Leave it out to show them.",
+          "sampleValue": true
+        },
+        "showOpeningHours": {
+          "type": "boolean",
+          "displayName": "Enable opening hours",
+          "required": false,
+          "description": "Whether the location screen shows its opening hours. Leave it out to hide them.",
+          "sampleValue": true
+        },
+        "showPriceRange": {
+          "type": "boolean",
+          "displayName": "Enable price range",
+          "required": false,
+          "description": "Whether the location screen shows its price range. Leave it out to hide it.",
+          "sampleValue": true
+        },
+        "showStarRating": {
+          "type": "boolean",
+          "displayName": "Enable 5 star rating",
+          "required": false,
+          "description": "Whether people can rate the location with stars. Leave it out to turn rating off.",
+          "sampleValue": false
+        },
+        "priceRange": {
+          "type": "select",
+          "displayName": "Price range",
+          "required": false,
+          "description": "How expensive the location is. Leave it out for $.",
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": 2
+        },
+        "priceCurrency": {
+          "type": "select",
+          "displayName": "Price currency",
+          "required": false,
+          "description": "The currency sign of the price range. Leave it out for $.",
+          "enums": [
+            {
+              "label": "$",
+              "value": "$"
+            },
+            {
+              "label": "€",
+              "value": "€"
+            }
+          ],
+          "allowEnumCustomOption": false,
+          "sampleValue": "$"
+        },
+        "actionItems": {
+          "type": "action",
+          "displayName": "Actions",
+          "required": false,
+          "minValue": 0,
+          "description": "Buttons on the location screen, such as calling a number or opening a website. Leave it out for none.",
+          "sampleValue": [
+            {
+              "title": "Website",
+              "action": "linkToWeb",
+              "url": "https://example.com",
+              "openIn": "_blank"
+            }
+          ]
+        },
+        "pinned": {
+          "type": "boolean",
+          "displayName": "Pin to top",
+          "required": false,
+          "description": "Whether the location is pinned to the top of the list; up to 3 can be. Leave it out to not pin it.",
+          "sampleValue": false
+        },
+        "mondayHours": {
+          "type": "string",
+          "displayName": "Monday hours",
+          "required": false,
+          "description": "When it is open on Monday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "tuesdayHours": {
+          "type": "string",
+          "displayName": "Tuesday hours",
+          "required": false,
+          "description": "When it is open on Tuesday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "wednesdayHours": {
+          "type": "string",
+          "displayName": "Wednesday hours",
+          "required": false,
+          "description": "When it is open on Wednesday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "thursdayHours": {
+          "type": "string",
+          "displayName": "Thursday hours",
+          "required": false,
+          "description": "When it is open on Thursday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "fridayHours": {
+          "type": "string",
+          "displayName": "Friday hours",
+          "required": false,
+          "description": "When it is open on Friday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "saturdayHours": {
+          "type": "string",
+          "displayName": "Saturday hours",
+          "required": false,
+          "description": "When it is open on Saturday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        },
+        "sundayHours": {
+          "type": "string",
+          "displayName": "Sunday hours",
+          "required": false,
+          "description": "When it is open on Sunday, such as \"08:00-20:00\" or \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out for 08:00-20:00.",
+          "sampleValue": "08:00-20:00"
+        }
+      },
+      "sampleValue": [
+        {
+          "title": "Balboa Park",
+          "address": "1549 El Prado, San Diego, CA 92101",
+          "latitude": 32.7341,
+          "longitude": -117.1446,
+          "description": "<p>[location description]</p>",
+          "listImage": [
+            "https://example.com/location.png"
+          ]
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the locations are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as a location missing its title."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each location went.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One result per location, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one location went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which location this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it was added."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many were not added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

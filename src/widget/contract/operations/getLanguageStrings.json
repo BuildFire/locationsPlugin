@@ -1,0 +1,78 @@
+{
+  "name": "getLanguageStrings",
+  "displayName": "Get language strings",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getLanguageStrings",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows every text label the app shows, with its current text.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the labels are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it did not work, if it did not."
+        },
+        "result": {
+          "type": "object",
+          "description": "The text labels.",
+          "properties": {
+            "strings": {
+              "type": "array",
+              "description": "Every label, by section.",
+              "items": {
+                "type": "object",
+                "description": "One label.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "The label's key."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "The section it is in."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The label's name."
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The text the app shows now."
+                  },
+                  "defaultValue": {
+                    "type": "string",
+                    "description": "The text the app shows when none is set."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether it must have text."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

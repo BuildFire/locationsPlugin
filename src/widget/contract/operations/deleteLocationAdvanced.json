@@ -1,0 +1,65 @@
+{
+  "name": "deleteLocationAdvanced",
+  "displayName": "Delete location",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteLocation",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "deleteLocationAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a location, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the location is deleted.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not deleted, such as no location having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The location that was deleted.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The location's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The location's title."
+            }
+          }
+        }
+      }
+    }
+  }
+}

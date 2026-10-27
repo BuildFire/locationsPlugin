@@ -1,0 +1,115 @@
+{
+  "name": "createCategoriesAdvanced",
+  "displayName": "Create categories",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createCategoriesAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several categories at once, up to 50.",
+  "parameters": {
+    "categories": {
+      "type": "list",
+      "displayName": "Categories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The categories to add, up to 50 at a time.",
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The category's title.",
+          "sampleValue": "Parks"
+        },
+        "icon": {
+          "type": "image",
+          "displayName": "Category icon",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A picture for the category, as a list holding one picture. Leave it out for no icon, or give an icon name instead.",
+          "sampleValue": [
+            "https://example.com/icon.png"
+          ]
+        },
+        "iconClassName": {
+          "type": "string",
+          "displayName": "Library icon",
+          "required": false,
+          "description": "An icon from the icon library, by its name, instead of a picture. Leave it out for no icon.",
+          "sampleValue": "glyphicon glyphicon-tree-deciduous"
+        }
+      },
+      "sampleValue": [
+        {
+          "title": "Parks"
+        },
+        {
+          "title": "Museums"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the categories are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as a category missing its title."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each category went.",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "description": "One result per category, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one category went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which category this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The category's id, if it was added."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many were not added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

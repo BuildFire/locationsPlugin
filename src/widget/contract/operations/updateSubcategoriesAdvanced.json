@@ -1,0 +1,128 @@
+{
+  "name": "updateSubcategoriesAdvanced",
+  "displayName": "Update subcategories",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateSubcategoriesAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes several subcategories at once, up to 50.",
+  "parameters": {
+    "subcategories": {
+      "type": "list",
+      "displayName": "Subcategories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The changes to make, one per subcategory, up to 50 at a time.",
+      "items": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in the category list.",
+          "sampleValue": "[category id]"
+        },
+        "subcategoryId": {
+          "type": "string",
+          "displayName": "Subcategory id",
+          "required": true,
+          "description": "The subcategory's id, as shown in its category's details.",
+          "sampleValue": "[subcategory id]"
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New name",
+          "required": false,
+          "description": "The subcategory's new title. Leave it out to keep the current one.",
+          "sampleValue": "Botanical gardens"
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "Subcategory icon",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "A new picture for its icon, as a list holding one picture. Leave it out to keep the current icon.",
+          "sampleValue": [
+            "https://example.com/icon.png"
+          ]
+        },
+        "newIconClassName": {
+          "type": "string",
+          "displayName": "Library icon",
+          "required": false,
+          "description": "A new icon from the icon library, by its name, instead of a picture. Leave it out to keep the current icon.",
+          "sampleValue": "glyphicon glyphicon-leaf"
+        }
+      },
+      "sampleValue": [
+        {
+          "categoryId": "[category id]",
+          "subcategoryId": "[subcategory id]",
+          "newTitle": "Botanical gardens"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the subcategories are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was changed, such as a subcategory id no one has."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each subcategory went.",
+          "properties": {
+            "subcategories": {
+              "type": "array",
+              "description": "One result per subcategory, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one subcategory went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which subcategory this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id, if it was changed."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't changed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were changed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many were not changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

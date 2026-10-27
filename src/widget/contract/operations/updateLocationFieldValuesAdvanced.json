@@ -1,0 +1,120 @@
+{
+  "name": "updateLocationFieldValuesAdvanced",
+  "displayName": "Update location field values",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationFieldValuesAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Fills in several location field values at once, up to 50.",
+  "parameters": {
+    "values": {
+      "type": "list",
+      "displayName": "Values",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The values to fill in, one per location and field, up to 50 at a time.",
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results.",
+          "sampleValue": "[location id]"
+        },
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The location field's id, as shown in the settings.",
+          "sampleValue": "[field id]"
+        },
+        "value": {
+          "type": "string",
+          "displayName": "Value",
+          "required": true,
+          "description": "What the location shows for the field: an email, phone number, web address or text, as the field holds. Leave it empty to remove it, unless the field is required.",
+          "sampleValue": "info@example.com",
+          "nullable": true
+        },
+        "customLabel": {
+          "type": "string",
+          "displayName": "Custom label",
+          "required": false,
+          "description": "The label shown instead of the field name, for fields that allow one. Leave it out to keep the current one, or leave it empty to remove it.",
+          "sampleValue": "Email us",
+          "nullable": true
+        }
+      },
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "fieldId": "[field id]",
+          "value": "info@example.com"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the values are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was saved, such as a value that is not an email address."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each value went.",
+          "properties": {
+            "values": {
+              "type": "array",
+              "description": "One result per value, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one value went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which value this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The value's id, if it was saved."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't saved, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were saved."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many were not saved."
+            }
+          }
+        }
+      }
+    }
+  }
+}

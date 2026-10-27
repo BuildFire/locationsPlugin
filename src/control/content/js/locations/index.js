@@ -1284,7 +1284,16 @@ const deleteLocation = (item, row, callback = () => { }) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        LocationsController.deleteLocation(item.id).then(() => {
+        LocationsController.deleteLocation(item.id).then(([deletion]) => {
+          if (deletion.status === 'fulfilled' && buildfire.services && buildfire.services.contract) {
+            const user = authManager.currentUser;
+            buildfire.services.contract.events.send('locationDeleted', {
+              locationId: item.id,
+              title: item.title,
+              address: item.address,
+              deletedBy: user ? { userId: user._id || user.userId || null, displayName: user.displayName || null } : null
+            });
+          }
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
           triggerWidgetOnLocationsUpdate({});
@@ -2019,6 +2028,22 @@ const createLocation = (location) => LocationsController.createLocation(location
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {
+    const [record] = res;
+    const saved = record.data;
+    if (buildfire.services && buildfire.services.contract) {
+      buildfire.services.contract.events.send('locationUpdated', {
+        locationId: record.id,
+        title: saved.title,
+        subtitle: saved.subtitle || null,
+        address: saved.address,
+        listImage: saved.listImage,
+        latitude: saved.coordinates.lat,
+        longitude: saved.coordinates.lng,
+        pinned: !!saved.pinIndex,
+        updatedAt: saved.lastUpdatedOn,
+        updatedBy: location.lastUpdatedBy ? { userId: location.lastUpdatedBy._id || location.lastUpdatedBy.userId || null, displayName: location.lastUpdatedBy.displayName || null } : null
+      });
+    }
     refreshLocations();
     cancelAddLocation();
     triggerWidgetOnLocationsUpdate({});

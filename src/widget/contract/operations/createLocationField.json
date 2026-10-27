@@ -1,0 +1,136 @@
+{
+  "name": "createLocationField",
+  "displayName": "Create location field",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createLocationField",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds an extra field every location can fill in, such as an email or a website; up to 10 in all.",
+  "parameters": {
+    "group": {
+      "type": "select",
+      "displayName": "Field group",
+      "required": true,
+      "description": "Whether the field is a quick action button or a piece of content on the location screen.",
+      "enums": [
+        {
+          "label": "Quick actions",
+          "value": "quickActions"
+        },
+        {
+          "label": "Content",
+          "value": "content"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "content"
+    },
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The field's name, shown on the location screen.",
+      "sampleValue": "Email"
+    },
+    "type": {
+      "type": "select",
+      "displayName": "Field type",
+      "required": true,
+      "description": "What the field holds; quick actions take email, phone or URL only.",
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "EMAIL"
+    },
+    "required": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether every location must fill it in. Leave it out for not required.",
+      "sampleValue": false
+    },
+    "enableCustomLabel": {
+      "type": "boolean",
+      "displayName": "Custom label",
+      "required": false,
+      "description": "Whether each location can give the field its own label. Leave it out for no.",
+      "sampleValue": false
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not added, such as there already being 10 fields."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new field.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "group": {
+              "type": "string",
+              "description": "Quick actions or content."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's name."
+            },
+            "type": {
+              "type": "string",
+              "description": "What it holds: email, phone, URL, text or rich text."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether every location must fill it in."
+            },
+            "enableCustomLabel": {
+              "type": "boolean",
+              "description": "Whether each location can give it its own label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

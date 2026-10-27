@@ -1,0 +1,64 @@
+{
+  "name": "deleteCategory",
+  "displayName": "Delete category",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteCategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "deleteCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Removes a category, found by its title, from the app; it is kept behind the scenes.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The exact title of the category to remove.",
+      "sampleValue": "Parks"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is removed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not removed, such as no category having that title."
+        },
+        "result": {
+          "type": "object",
+          "description": "The category that was removed.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's title."
+            }
+          }
+        }
+      }
+    }
+  }
+}

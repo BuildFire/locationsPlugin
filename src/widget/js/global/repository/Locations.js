@@ -36,7 +36,22 @@ export default class Locations {
     return new Promise((resolve, reject) => {
       buildfire.publicData.insert(data, Locations.TAG, (error, record) => {
         if (error) return reject(error);
-        resolve(new Location({ ...record.data, id: record.id }).toJSON());
+        const location = new Location({ ...record.data, id: record.id }).toJSON();
+        if (buildfire.services && buildfire.services.contract) {
+          buildfire.services.contract.events.send('locationCreated', {
+            locationId: location.id,
+            title: location.title,
+            subtitle: location.subtitle || null,
+            address: location.address,
+            listImage: location.listImage,
+            latitude: location.coordinates.lat,
+            longitude: location.coordinates.lng,
+            pinned: !!location.pinIndex,
+            createdAt: location.createdOn,
+            createdBy: location.createdBy ? { userId: location.createdBy._id || location.createdBy.userId || null, displayName: location.createdBy.displayName || null } : null
+          });
+        }
+        resolve(location);
       });
     });
   }

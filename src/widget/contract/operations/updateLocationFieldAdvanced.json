@@ -1,0 +1,131 @@
+{
+  "name": "updateLocationFieldAdvanced",
+  "displayName": "Update location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationField",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a location field, using the field's id.",
+  "parameters": {
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The location field's id, as shown in the settings.",
+      "sampleValue": "[field id]"
+    },
+    "newLabel": {
+      "type": "string",
+      "displayName": "New name",
+      "required": false,
+      "description": "The field's new name. Leave it out to keep the current one.",
+      "sampleValue": "Contact email"
+    },
+    "newType": {
+      "type": "select",
+      "displayName": "Field type",
+      "required": false,
+      "description": "What the field holds; quick actions take email, phone or URL only. Leave it out to keep the current one.",
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "EMAIL"
+    },
+    "required": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether every location must fill it in. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "enableCustomLabel": {
+      "type": "boolean",
+      "displayName": "Custom label",
+      "required": false,
+      "description": "Whether each location can give the field its own label. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not changed, such as no field having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The field as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "group": {
+              "type": "string",
+              "description": "Quick actions or content."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's name."
+            },
+            "type": {
+              "type": "string",
+              "description": "What it holds: email, phone, URL, text or rich text."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether every location must fill it in."
+            },
+            "enableCustomLabel": {
+              "type": "boolean",
+              "description": "Whether each location can give it its own label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

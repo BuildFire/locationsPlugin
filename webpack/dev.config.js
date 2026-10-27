@@ -248,6 +248,20 @@ const WebpackConfig = {
     }], {
       ignore: ['*.js', '*.html', '*.md']
     }),
+    // The plugin contract and its specs ship as written: the copy above skips their .js and .html files.
+    new CopyWebpackPlugin([{
+      from: path.join(__dirname, '../src/widget/contract'),
+      to: path.join(__dirname, '../widget/contract'),
+    }, {
+      from: path.join(__dirname, '../src/widget/contract.html'),
+      to: path.join(__dirname, '../widget/contract.html'),
+    }, {
+      from: path.join(__dirname, '../src/control/contract.html'),
+      to: path.join(__dirname, '../control/contract.html'),
+    }, {
+      from: path.join(__dirname, '../src/control/contract/tests'),
+      to: path.join(__dirname, '../control/contract/tests'),
+    }]),
     new CopyWebpackPlugin([{
       from: path.join(__dirname, '../../../styles'),
       to: path.join(__dirname, '../styles'),

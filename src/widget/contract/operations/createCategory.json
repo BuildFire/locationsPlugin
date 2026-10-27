@@ -1,0 +1,118 @@
+{
+  "name": "createCategory",
+  "displayName": "Create category",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a new category that locations can be put in.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The category's title.",
+      "sampleValue": "Parks"
+    },
+    "icon": {
+      "type": "image",
+      "displayName": "Category icon",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 1,
+      "description": "A picture for the category, as a list holding one picture. Leave it out for no icon, or give an icon name instead.",
+      "sampleValue": [
+        "https://example.com/icon.png"
+      ]
+    },
+    "iconClassName": {
+      "type": "string",
+      "displayName": "Library icon",
+      "required": false,
+      "description": "An icon from the icon library, by its name, instead of a picture. Leave it out for no icon.",
+      "sampleValue": "glyphicon glyphicon-tree-deciduous"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not added, such as a missing title."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new category.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The category's icon picture, if any."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The category's icon from the icon library, if any."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "The category's subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's title."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The subcategory's icon picture, if any."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "The subcategory's icon from the icon library, if any."
+                  }
+                }
+              }
+            },
+            "createdOn": {
+              "type": "datetime",
+              "description": "When it was added."
+            },
+            "lastUpdatedOn": {
+              "type": "datetime",
+              "description": "When it was last changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

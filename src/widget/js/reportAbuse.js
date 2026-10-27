@@ -23,8 +23,18 @@ export default {
     }
   },
   _handleLocationDeletion(locationId) {
+    const location = state.listLocations.find((l) => l.id === locationId) || state.pinnedLocations.find((l) => l.id === locationId);
     return widgetController.deleteLocation(locationId)
-      .then(() => {
+      .then(([deletion]) => {
+        if (deletion.status === 'fulfilled' && buildfire.services && buildfire.services.contract) {
+          // Removed by the app owner's answer to an abuse report: nobody in this app session did it.
+          buildfire.services.contract.events.send('locationDeleted', {
+            locationId,
+            title: location ? location.title : null,
+            address: location ? location.address : null,
+            deletedBy: null
+          });
+        }
         this._removeLocationFromUI(locationId);
         buildfire.bookmarks.getAll((err, bookmarks) => {
           if (err) return console.error(err);

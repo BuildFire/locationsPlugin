@@ -1,0 +1,112 @@
+{
+  "name": "updateSubcategoryAdvanced",
+  "displayName": "Update subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Renames a subcategory or changes its icon, using its id and its category's id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in the category list.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryId": {
+      "type": "string",
+      "displayName": "Subcategory id",
+      "required": true,
+      "description": "The subcategory's id, as shown in its category's details.",
+      "sampleValue": "[subcategory id]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New name",
+      "required": false,
+      "description": "The subcategory's new title. Leave it out to keep the current one.",
+      "sampleValue": "Botanical gardens"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "Subcategory icon",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 1,
+      "description": "A new picture for its icon, as a list holding one picture. Leave it out to keep the current icon.",
+      "sampleValue": [
+        "https://example.com/icon.png"
+      ]
+    },
+    "newIconClassName": {
+      "type": "string",
+      "displayName": "Library icon",
+      "required": false,
+      "description": "A new icon from the icon library, by its name, instead of a picture. Leave it out to keep the current icon.",
+      "sampleValue": "glyphicon glyphicon-leaf"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not changed, such as no subcategory having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The subcategory's icon picture, if any."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The subcategory's icon from the icon library, if any."
+            },
+            "categoryId": {
+              "type": "string",
+              "description": "Its category's id."
+            },
+            "categoryTitle": {
+              "type": "string",
+              "description": "Its category's title."
+            }
+          }
+        }
+      }
+    }
+  }
+}

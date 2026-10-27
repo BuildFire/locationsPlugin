@@ -1,0 +1,97 @@
+{
+  "name": "updateSubcategoryOrderAdvanced",
+  "displayName": "Reorder subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategoryOrder",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategoryOrderAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a subcategory to another place in its category, using its id and its category's id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in the category list.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryId": {
+      "type": "string",
+      "displayName": "Subcategory id",
+      "required": true,
+      "description": "The subcategory's id, as shown in its category's details.",
+      "sampleValue": "[subcategory id]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "description": "Where to move it in the category's list, counting from 1.",
+      "minValue": 1,
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategories are reordered.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why they were not reordered, such as no subcategory having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The category with its subcategories in their new order.",
+          "properties": {
+            "categoryId": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "categoryTitle": {
+              "type": "string",
+              "description": "The category's title."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, first to last.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's title."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

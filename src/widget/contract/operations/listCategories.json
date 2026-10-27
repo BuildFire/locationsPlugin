@@ -1,0 +1,137 @@
+{
+  "name": "listCategories",
+  "displayName": "List categories",
+  "type": "publicData",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ],
+    "collection": "categories",
+    "operationType": "search",
+    "scope": "app",
+    "query": {
+      "filter": {
+        "_buildfire.index.date1": {
+          "$type": 10
+        },
+        "$json.title": "$params.title"
+      },
+      "sort": {
+        "_buildfire.index.string1": 1
+      },
+      "page": "$params.page",
+      "pageSize": 50,
+      "recordCount": true
+    }
+  },
+  "description": "Shows the location categories with their subcategories, A to Z, up to 50 a page.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category title",
+      "required": false,
+      "description": "Only the category with exactly this title. Leave it out to show every category.",
+      "sampleValue": "Parks"
+    },
+    "page": {
+      "type": "number",
+      "displayName": "Page",
+      "required": false,
+      "description": "Which page of 50 to show, counting from 0. Leave it out for the first page.",
+      "minValue": 0,
+      "sampleValue": 0
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the categories are found.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it did not work, if it did not."
+        },
+        "result": {
+          "type": "object",
+          "description": "The categories that were found.",
+          "properties": {
+            "result": {
+              "type": "array",
+              "description": "The categories on this page.",
+              "items": {
+                "type": "object",
+                "description": "One category.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The category's id."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "The category's details.",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "description": "The category's title."
+                      },
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The category's icon picture, if any."
+                      },
+                      "iconClassName": {
+                        "type": "string",
+                        "description": "The category's icon from the icon library, if any."
+                      },
+                      "subcategories": {
+                        "type": "array",
+                        "description": "The category's subcategories, in order.",
+                        "items": {
+                          "type": "object",
+                          "description": "One subcategory.",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "The subcategory's id."
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "The subcategory's title."
+                            },
+                            "iconUrl": {
+                              "type": "string",
+                              "description": "The subcategory's icon picture, if any."
+                            },
+                            "iconClassName": {
+                              "type": "string",
+                              "description": "The subcategory's icon from the icon library, if any."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "totalRecord": {
+              "type": "number",
+              "description": "How many categories there are in all."
+            }
+          }
+        }
+      }
+    }
+  }
+}

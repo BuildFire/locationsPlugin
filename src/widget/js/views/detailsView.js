@@ -71,7 +71,22 @@ export default {
       SearchEngine.update(Locations.TAG, location.id, location.toJSON())
     ];
     return Promise.all(promiseChain)
-      .then(() => {
+      .then(([record]) => {
+        const saved = record.data;
+        if (buildfire.services && buildfire.services.contract) {
+          buildfire.services.contract.events.send('locationUpdated', {
+            locationId: record.id,
+            title: saved.title,
+            subtitle: saved.subtitle || null,
+            address: saved.address,
+            listImage: saved.listImage,
+            latitude: saved.coordinates.lat,
+            longitude: saved.coordinates.lng,
+            pinned: !!saved.pinIndex,
+            updatedAt: saved.lastUpdatedOn,
+            updatedBy: location.lastUpdatedBy ? { userId: location.lastUpdatedBy._id || location.lastUpdatedBy.userId || null, displayName: location.lastUpdatedBy.displayName || null } : null
+          });
+        }
         state.selectedLocation = location;
         this._reflectUpdatedLocationOnUI();
       })

@@ -1,0 +1,86 @@
+{
+  "name": "updateLocationFieldOrderAdvanced",
+  "displayName": "Reorder location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldOrder",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldOrderAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a location field to another place in its group, using the field's id.",
+  "parameters": {
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The location field's id, as shown in the settings.",
+      "sampleValue": "[field id]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "description": "Where to move it in the field's group, counting from 1.",
+      "minValue": 1,
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the fields are reordered.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why they were not reordered, such as no field having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The group with its fields in their new order.",
+          "properties": {
+            "group": {
+              "type": "string",
+              "description": "Quick actions or content."
+            },
+            "fields": {
+              "type": "array",
+              "description": "Its fields, first to last.",
+              "items": {
+                "type": "object",
+                "description": "One field.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The field's name."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

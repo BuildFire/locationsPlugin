@@ -1,0 +1,380 @@
+{
+  "name": "getSettings",
+  "displayName": "Get settings",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getSettings",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows the plugin's settings, design and location fields.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the settings are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it did not work, if it did not."
+        },
+        "result": {
+          "type": "object",
+          "description": "The settings.",
+          "properties": {
+            "subscription": {
+              "type": "object",
+              "description": "Following locations.",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether people can follow locations."
+                }
+              }
+            },
+            "measurementUnit": {
+              "type": "string",
+              "description": "Metric or imperial distances."
+            },
+            "introductoryListView": {
+              "type": "object",
+              "description": "The list view.",
+              "properties": {
+                "images": {
+                  "type": "array",
+                  "description": "The pictures at the top of the list view.",
+                  "items": {
+                    "type": "object",
+                    "description": "One picture.",
+                    "properties": {
+                      "iconUrl": {
+                        "type": "string",
+                        "description": "The picture's address."
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The text above the list, as formatted text."
+                },
+                "sorting": {
+                  "type": "string",
+                  "description": "How the list is sorted."
+                },
+                "searchOptions": {
+                  "type": "object",
+                  "description": "Which locations the list shows.",
+                  "properties": {
+                    "mode": {
+                      "type": "string",
+                      "description": "All, the user's position, a local area or the user's own locations."
+                    },
+                    "areaRadiusOptions": {
+                      "type": "object",
+                      "description": "The local area.",
+                      "properties": {
+                        "lat": {
+                          "type": "number",
+                          "description": "Its center latitude."
+                        },
+                        "lng": {
+                          "type": "number",
+                          "description": "Its center longitude."
+                        },
+                        "radius": {
+                          "type": "number",
+                          "description": "Its radius in miles."
+                        },
+                        "formattedLocation": {
+                          "type": "string",
+                          "description": "Its center address."
+                        }
+                      }
+                    }
+                  }
+                },
+                "visibilityOptions": {
+                  "type": "object",
+                  "description": "Who sees the list view.",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "Everyone, users with tags, or no one."
+                    }
+                  }
+                }
+              }
+            },
+            "sorting": {
+              "type": "object",
+              "description": "Sorting options.",
+              "properties": {
+                "defaultSorting": {
+                  "type": "string",
+                  "description": "The first sort people see."
+                },
+                "hideSorting": {
+                  "type": "boolean",
+                  "description": "Whether people cannot change the sort."
+                },
+                "allowSortByNearest": {
+                  "type": "boolean",
+                  "description": "Whether people can sort by distance."
+                }
+              }
+            },
+            "filter": {
+              "type": "object",
+              "description": "Ways to narrow the results.",
+              "properties": {
+                "allowFilterByArea": {
+                  "type": "boolean",
+                  "description": "Whether people can narrow the results to an area."
+                },
+                "allowFilterByBookmarks": {
+                  "type": "boolean",
+                  "description": "Whether people can narrow the results to their bookmarks."
+                },
+                "hideOpeningHoursFilter": {
+                  "type": "boolean",
+                  "description": "Whether the opening hours choice is hidden."
+                },
+                "hidePriceFilter": {
+                  "type": "boolean",
+                  "description": "Whether the price choice is hidden."
+                }
+              }
+            },
+            "map": {
+              "type": "object",
+              "description": "Map options.",
+              "properties": {
+                "initialArea": {
+                  "type": "boolean",
+                  "description": "Whether the map starts on a set area."
+                },
+                "initialAreaCoordinates": {
+                  "type": "object",
+                  "description": "Where the map starts.",
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "description": "Latitude."
+                    },
+                    "lng": {
+                      "type": "number",
+                      "description": "Longitude."
+                    }
+                  }
+                },
+                "initialAreaDisplayAddress": {
+                  "type": "string",
+                  "description": "The address the map starts on."
+                }
+              }
+            },
+            "bookmarks": {
+              "type": "object",
+              "description": "Bookmark options.",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether bookmarks are on."
+                },
+                "allowForLocations": {
+                  "type": "boolean",
+                  "description": "Whether people can bookmark locations."
+                },
+                "allowForFilters": {
+                  "type": "boolean",
+                  "description": "Whether people can bookmark searches."
+                }
+              }
+            },
+            "customFields": {
+              "type": "object",
+              "description": "The location fields.",
+              "properties": {
+                "quickActions": {
+                  "type": "array",
+                  "description": "Quick action fields, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "group": {
+                        "type": "string",
+                        "description": "Quick actions or content."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "The field's name."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "What it holds: email, phone, URL, text or rich text."
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether every location must fill it in."
+                      },
+                      "enableCustomLabel": {
+                        "type": "boolean",
+                        "description": "Whether each location can give it its own label."
+                      }
+                    }
+                  }
+                },
+                "content": {
+                  "type": "array",
+                  "description": "Content fields, in order.",
+                  "items": {
+                    "type": "object",
+                    "description": "One field.",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The field's id."
+                      },
+                      "group": {
+                        "type": "string",
+                        "description": "Quick actions or content."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "The field's name."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "What it holds: email, phone, URL, text or rich text."
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "Whether every location must fill it in."
+                      },
+                      "enableCustomLabel": {
+                        "type": "boolean",
+                        "description": "Whether each location can give it its own label."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "design": {
+              "type": "object",
+              "description": "The design.",
+              "properties": {
+                "listViewPosition": {
+                  "type": "string",
+                  "description": "How far the list view opens."
+                },
+                "listViewStyle": {
+                  "type": "string",
+                  "description": "How list items look."
+                },
+                "defaultMapType": {
+                  "type": "string",
+                  "description": "Streets or satellite."
+                },
+                "detailsMapPosition": {
+                  "type": "string",
+                  "description": "Where the map sits on the location screen."
+                },
+                "enableMapTerrainView": {
+                  "type": "boolean",
+                  "description": "Whether terrain view is on."
+                },
+                "hideQuickFilter": {
+                  "type": "boolean",
+                  "description": "Whether the quick category choices are hidden."
+                },
+                "allowStyleSelection": {
+                  "type": "boolean",
+                  "description": "Whether people can choose the map style."
+                },
+                "showDetailsCategory": {
+                  "type": "boolean",
+                  "description": "Whether the location screen shows categories."
+                },
+                "showContributorName": {
+                  "type": "boolean",
+                  "description": "Whether the location screen shows who added it."
+                }
+              }
+            },
+            "globalEntries": {
+              "type": "object",
+              "description": "Location adding options.",
+              "properties": {
+                "openHours": {
+                  "type": "object",
+                  "description": "Opening hours.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether locations have opening hours."
+                    }
+                  }
+                },
+                "priceRange": {
+                  "type": "object",
+                  "description": "Price range.",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether locations have a price range."
+                    }
+                  }
+                },
+                "charging": {
+                  "type": "object",
+                  "description": "Charging for new locations.",
+                  "properties": {
+                    "enabled": {
+                      "type": "string",
+                      "description": "No one, users with tags, or everyone."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The payment details, as formatted text."
+                    }
+                  }
+                }
+              }
+            },
+            "locationEditors": {
+              "type": "object",
+              "description": "Time options.",
+              "properties": {
+                "time": {
+                  "type": "string",
+                  "description": "12 or 24 hour times."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

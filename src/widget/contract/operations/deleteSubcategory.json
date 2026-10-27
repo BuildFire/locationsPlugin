@@ -1,0 +1,75 @@
+{
+  "name": "deleteSubcategory",
+  "displayName": "Delete subcategory",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "deleteSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a subcategory, found by its title and its category.",
+  "parameters": {
+    "categoryTitle": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The exact title of the category the subcategory is in.",
+      "sampleValue": "Parks"
+    },
+    "title": {
+      "type": "string",
+      "displayName": "Subcategory name",
+      "required": true,
+      "description": "The exact title of the subcategory.",
+      "sampleValue": "Gardens"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is removed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it was not removed, such as no subcategory having that title."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory that was removed.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's title."
+            },
+            "categoryId": {
+              "type": "string",
+              "description": "Its category's id."
+            }
+          }
+        }
+      }
+    }
+  }
+}
