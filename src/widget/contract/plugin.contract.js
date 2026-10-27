@@ -388,20 +388,23 @@ const categoryResult = (id, data) => ({
 const ACTIVE_CATEGORY_FILTER = { '_buildfire.index.date1': { $type: 10 } };
 
 /**
- * Every category the app shows, the way the control panel's getAllCategories pages through them.
+ * Every category the app shows, the way the control panel's getAllCategories pages through them, 50 at a time (the most a search returns). Whether another page exists is told by the search's own totalRecord, never by a full page.
  * @param {function(Error=, Array=)} callback - (error, [{ id, data }])
  */
 const fetchAllCategories = (callback) => {
   const all = [];
-  const fetchPage = (skip) => {
+  let seen = 0;
+  const fetchPage = (page) => {
     buildfire.publicData.search({
-      filter: { ...ACTIVE_CATEGORY_FILTER }, sort: { '_buildfire.index.string1': 1 }, skip, limit: 50
-    }, CATEGORIES_TAG, (err, records) => {
+      filter: { ...ACTIVE_CATEGORY_FILTER }, sort: { '_buildfire.index.string1': 1 }, page, pageSize: 50, recordCount: true
+    }, CATEGORIES_TAG, (err, response) => {
       if (err) return callback(err, undefined);
-      const page = (records || []).filter((record) => record && record.data);
-      all.push(...page);
-      if ((records || []).length < 50) return callback(null, all);
-      fetchPage(skip + 50);
+      const records = (response && response.result) || [];
+      all.push(...records.filter((record) => record && record.data));
+      seen += records.length;
+      const total = (response && response.totalRecord) || 0;
+      if (!records.length || seen >= total) return callback(null, all);
+      fetchPage(page + 1);
     });
   };
   fetchPage(0);
