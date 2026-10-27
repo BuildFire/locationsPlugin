@@ -14,6 +14,19 @@ export default {
     location.createdOn = new Date();
     location.createdBy = authManager.sanitizedCurrentUser;
     return Location.add(location.toJSON()).then((result) => {
+      if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationCreated', {
+          locationId: result.id,
+          title: result.title,
+          subtitle: result.subtitle || null,
+          address: result.address,
+          latitude: result.coordinates.lat,
+          longitude: result.coordinates.lng,
+          listImage: result.listImage,
+          createdOn: result.createdOn ? new Date(result.createdOn).toISOString() : null,
+          createdBy: result.createdBy ? { userId: result.createdBy._id || null, displayName: result.createdBy.displayName || null } : null
+        });
+      }
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
       return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
@@ -46,7 +59,22 @@ export default {
       DeepLink.registerDeeplink(location),
       SearchEngine.update(Location.TAG, locationId, location.toJSON())
     ];
-    return Promise.all(promiseChain);
+    return Promise.all(promiseChain).then((results) => {
+      if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationUpdated', {
+          locationId,
+          title: location.title,
+          subtitle: location.subtitle || null,
+          address: location.address,
+          latitude: location.coordinates.lat,
+          longitude: location.coordinates.lng,
+          listImage: location.listImage,
+          lastUpdatedOn: location.lastUpdatedOn.toISOString(),
+          lastUpdatedBy: location.lastUpdatedBy ? { userId: location.lastUpdatedBy._id || null, displayName: location.lastUpdatedBy.displayName || null } : null
+        });
+      }
+      return results;
+    });
   },
   getPinnedLocation() {
     const options = {};
@@ -63,7 +91,12 @@ export default {
       DeepLink.unregisterDeeplink(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
-    return Promise.allSettled(promiseChain);
+    return Promise.allSettled(promiseChain).then((results) => {
+      if (results[0].status === 'fulfilled' && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationDeleted', { locationId });
+      }
+      return results;
+    });
   },
   saveSettings(settings) {
     settings.lastUpdatedOn = new Date();

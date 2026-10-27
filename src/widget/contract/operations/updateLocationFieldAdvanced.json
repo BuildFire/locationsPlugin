@@ -1,0 +1,131 @@
+{
+  "name": "updateLocationFieldAdvanced",
+  "displayName": "Update location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationField",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a location field, using the field's id.",
+  "parameters": {
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The field's id, as shown in the settings.",
+      "sampleValue": "[field id]"
+    },
+    "newLabel": {
+      "type": "string",
+      "displayName": "New label",
+      "required": false,
+      "description": "The field's new label. Leave it out to keep the current one.",
+      "sampleValue": "[new field label]"
+    },
+    "newType": {
+      "type": "select",
+      "displayName": "New type",
+      "required": false,
+      "description": "The kind of value the field takes; quick actions take only email, phone or URL. Leave it out to keep the current one.",
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich Text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "PHONE"
+    },
+    "newRequired": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether every location must give a value. Leave it out to keep the current choice.",
+      "sampleValue": true
+    },
+    "newAllowCustomLabel": {
+      "type": "boolean",
+      "displayName": "Allow custom label",
+      "required": false,
+      "description": "Whether each location may give the field its own label. Leave it out to keep the current choice.",
+      "sampleValue": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no field having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The changed field.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "group": {
+              "type": "string",
+              "description": "Where the field is shown: quickActions or content."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's label."
+            },
+            "type": {
+              "type": "string",
+              "description": "The kind of value the field takes."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether a value is required."
+            },
+            "allowCustomLabel": {
+              "type": "boolean",
+              "description": "Whether each location may give its own label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

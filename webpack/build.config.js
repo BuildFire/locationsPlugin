@@ -237,6 +237,20 @@ const WebpackConfig = {
     ], {
       ignore: ['*.js', '*.html', '*.md']
     }),
+    // The contract's runtime, its frame pages and its specs ship as they are; the copy above skips .js and .html.
+    new CopyWebpackPlugin([{
+      from: path.join(__dirname, '../src/widget/contract/plugin.contract.js'),
+      to: path.join(__dirname, '../dist/widget/contract/plugin.contract.js'),
+    }, {
+      from: path.join(__dirname, '../src/widget/contract.html'),
+      to: path.join(__dirname, '../dist/widget/contract.html'),
+    }, {
+      from: path.join(__dirname, '../src/control/contract.html'),
+      to: path.join(__dirname, '../dist/control/contract.html'),
+    }, {
+      from: path.join(__dirname, '../src/control/contract/tests'),
+      to: path.join(__dirname, '../dist/control/contract/tests'),
+    }]),
     new ExtractTextPlugin('[name].css'),
     new ZipWebpackPlugin({
       path: path.join(__dirname, '../'),

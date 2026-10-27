@@ -1,0 +1,125 @@
+{
+  "name": "createCategory",
+  "displayName": "Create category",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a new location category, with any subcategories.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category title",
+      "required": true,
+      "description": "The category's title.",
+      "sampleValue": "[category title]"
+    },
+    "icon": {
+      "type": "image",
+      "displayName": "Icon",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The category's icon picture, as a list holding one image. Leave it out for none.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "iconClassName": {
+      "type": "string",
+      "displayName": "Library icon",
+      "required": false,
+      "description": "The name of a library icon to show instead of a picture, such as glyphicon glyphicon-cutlery. Leave it out for none.",
+      "sampleValue": "glyphicon glyphicon-cutlery"
+    },
+    "subcategories": {
+      "type": "string",
+      "displayName": "Subcategories",
+      "required": false,
+      "description": "Subcategory titles, separated by commas, such as Pizza, Burgers. Leave it out for none.",
+      "sampleValue": "[subcategory title], [subcategory title]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't added, such as a missing title."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new category.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The category's icon picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The category's library icon, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's title."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The subcategory's icon picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "The subcategory's library icon, if it has one."
+                  }
+                }
+              }
+            },
+            "createdOn": {
+              "type": "datetime",
+              "description": "When it was added."
+            },
+            "lastUpdatedOn": {
+              "type": "datetime",
+              "description": "When it was last changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

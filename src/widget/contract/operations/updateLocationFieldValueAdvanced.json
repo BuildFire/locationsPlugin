@@ -1,0 +1,100 @@
+{
+  "name": "updateLocationFieldValueAdvanced",
+  "displayName": "Update location field value",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldValue",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldValueAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Sets a location's value for one location field, using the location's and the field's ids.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The field's id, as shown in the settings.",
+      "sampleValue": "[field id]"
+    },
+    "value": {
+      "type": "string",
+      "displayName": "Value",
+      "required": false,
+      "nullable": true,
+      "description": "The field's value, such as an email address, phone number, website or text. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "info@example.com"
+    },
+    "customLabel": {
+      "type": "string",
+      "displayName": "Custom label",
+      "required": false,
+      "nullable": true,
+      "description": "The location's own label for the field, where the field allows one. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "Bookings"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the value is set.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't set, such as no field having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The location's field value.",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "The location's id."
+            },
+            "fieldId": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's label."
+            },
+            "value": {
+              "type": "string",
+              "description": "The value now set, if any."
+            },
+            "customLabel": {
+              "type": "string",
+              "description": "The custom label now set, if any."
+            }
+          }
+        }
+      }
+    }
+  }
+}

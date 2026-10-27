@@ -1,0 +1,312 @@
+{
+  "name": "createLocationsAdvanced",
+  "displayName": "Create locations",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createLocationsAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several locations at once, up to 50.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The locations to add, up to 50 at a time.",
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Location title",
+          "required": true,
+          "description": "The location's title."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "required": false,
+          "description": "The location's subtitle. Leave it out for none."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "required": true,
+          "description": "The location's address."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "required": true,
+          "minValue": -90,
+          "maxValue": 90,
+          "description": "The address's latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "required": true,
+          "minValue": -180,
+          "maxValue": 180,
+          "description": "The address's longitude."
+        },
+        "customName": {
+          "type": "string",
+          "displayName": "Custom location name",
+          "required": false,
+          "description": "A name shown for the address on the map. Leave it out for none."
+        },
+        "description": {
+          "type": "wysiwyg",
+          "displayName": "Description",
+          "required": true,
+          "description": "The location's description, as formatted text."
+        },
+        "listImage": {
+          "type": "image",
+          "displayName": "List image",
+          "required": true,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "The picture shown for the location in lists, as a list holding one image."
+        },
+        "images": {
+          "type": "image",
+          "displayName": "Images",
+          "required": false,
+          "minValue": 0,
+          "description": "The location's pictures, in order. Leave it out for none."
+        },
+        "categories": {
+          "type": "string",
+          "displayName": "Categories",
+          "required": false,
+          "description": "Its categories, separated by commas, with a subcategory after an arrow, such as Food -> Pizza, Shops. Leave it out for none."
+        },
+        "markerType": {
+          "type": "select",
+          "displayName": "Marker type",
+          "required": false,
+          "description": "How the location is marked on the map. Leave it out for a pin.",
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "markerImage": {
+          "type": "image",
+          "displayName": "Marker image",
+          "required": false,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "The picture used as the map marker, as a list holding one image. Needed when the marker type is image."
+        },
+        "markerColor": {
+          "type": "string",
+          "displayName": "Marker color",
+          "required": false,
+          "description": "The color of the circle marker, such as rgba(253,35,5,1). Leave it out for red."
+        },
+        "showCategory": {
+          "type": "boolean",
+          "displayName": "Show category",
+          "required": false,
+          "description": "Whether its categories are shown. Leave it out to show them."
+        },
+        "showOpeningHours": {
+          "type": "boolean",
+          "displayName": "Show opening hours",
+          "required": false,
+          "description": "Whether its opening hours are shown. Leave it out to hide them."
+        },
+        "showPriceRange": {
+          "type": "boolean",
+          "displayName": "Show price range",
+          "required": false,
+          "description": "Whether its price range is shown. Leave it out to hide it."
+        },
+        "showStarRating": {
+          "type": "boolean",
+          "displayName": "Show star rating",
+          "required": false,
+          "description": "Whether its star rating is shown. Leave it out to hide it."
+        },
+        "priceRange": {
+          "type": "select",
+          "displayName": "Price range",
+          "required": false,
+          "description": "How pricey it is. Leave it out for the lowest.",
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "priceCurrency": {
+          "type": "select",
+          "displayName": "Currency",
+          "required": false,
+          "description": "The currency sign shown with the price range. Leave it out for $.",
+          "enums": [
+            {
+              "label": "€",
+              "value": "€"
+            },
+            {
+              "label": "$",
+              "value": "$"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "mondayHours": {
+          "type": "string",
+          "displayName": "Monday hours",
+          "required": false,
+          "description": "Monday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "tuesdayHours": {
+          "type": "string",
+          "displayName": "Tuesday hours",
+          "required": false,
+          "description": "Tuesday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "wednesdayHours": {
+          "type": "string",
+          "displayName": "Wednesday hours",
+          "required": false,
+          "description": "Wednesday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "thursdayHours": {
+          "type": "string",
+          "displayName": "Thursday hours",
+          "required": false,
+          "description": "Thursday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "fridayHours": {
+          "type": "string",
+          "displayName": "Friday hours",
+          "required": false,
+          "description": "Friday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "saturdayHours": {
+          "type": "string",
+          "displayName": "Saturday hours",
+          "required": false,
+          "description": "Saturday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "sundayHours": {
+          "type": "string",
+          "displayName": "Sunday hours",
+          "required": false,
+          "description": "Sunday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out for 08:00-20:00."
+        },
+        "actionItems": {
+          "type": "action",
+          "displayName": "Actions",
+          "required": false,
+          "minValue": 0,
+          "description": "The location's actions, such as calling or opening a website, in order. Leave it out for none."
+        }
+      },
+      "sampleValue": [
+        {
+          "title": "[location title]",
+          "address": "1313 Disneyland Dr, Anaheim, CA 92802",
+          "latitude": 33.809,
+          "longitude": -117.919,
+          "description": "<p>[location description]</p>",
+          "listImage": [
+            "[image url]"
+          ]
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the locations are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as a location missing its title."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each location went.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One result per location, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one location went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which location this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it was added."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

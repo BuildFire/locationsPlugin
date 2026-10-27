@@ -1,0 +1,116 @@
+{
+  "name": "updateLocationsFieldValueAdvanced",
+  "displayName": "Update locations' field values",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationsFieldValueAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Sets location field values on several locations at once, up to 50.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The locations and the field value to set on each, up to 50 at a time.",
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results."
+        },
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The field's id, as shown in the settings."
+        },
+        "value": {
+          "type": "string",
+          "displayName": "Value",
+          "required": false,
+          "nullable": true,
+          "description": "The field's value, such as an email address, phone number, website or text. Leave it out to keep the current one, or leave it empty to remove it."
+        },
+        "customLabel": {
+          "type": "string",
+          "displayName": "Custom label",
+          "required": false,
+          "nullable": true,
+          "description": "The location's own label for the field, where the field allows one. Leave it out to keep the current one, or leave it empty to remove it."
+        }
+      },
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "fieldId": "[field id]",
+          "value": "info@example.com"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the locations are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was set, such as an unknown location id."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each location went.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One result per location, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one location went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which location this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it was changed."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't changed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were changed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

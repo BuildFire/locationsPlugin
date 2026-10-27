@@ -1,0 +1,85 @@
+{
+  "name": "resetLanguageTexts",
+  "displayName": "Reset app texts",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "resetLanguageTexts",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Removes every change made to the texts the plugin shows people, going back to the original texts.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the texts are reset.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why they weren't reset, if they weren't."
+        },
+        "result": {
+          "type": "object",
+          "description": "The texts, as now shown.",
+          "properties": {
+            "texts": {
+              "type": "array",
+              "description": "The texts, section by section.",
+              "items": {
+                "type": "object",
+                "description": "One text.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "The text's key."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "The section the text belongs to."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "What the text is for."
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The text shown in the app."
+                  },
+                  "defaultValue": {
+                    "type": "string",
+                    "description": "The text shown when no other text is set."
+                  },
+                  "customized": {
+                    "type": "boolean",
+                    "description": "Whether the app owner changed it."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether the text may be left empty."
+                  },
+                  "maxLength": {
+                    "type": "number",
+                    "description": "The longest the text may be."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

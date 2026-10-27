@@ -1,0 +1,120 @@
+{
+  "name": "listLanguageTexts",
+  "displayName": "List app texts",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "listLanguageTexts",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows every text the plugin shows people, with any changes the app owner made.",
+  "parameters": {
+    "section": {
+      "type": "select",
+      "displayName": "Section",
+      "required": false,
+      "description": "Only show the texts of this section. Leave it out to show all.",
+      "enums": [
+        {
+          "label": "General",
+          "value": "general"
+        },
+        {
+          "label": "Sorting Options",
+          "value": "sortingOptions"
+        },
+        {
+          "label": "Location Creating/Editing",
+          "value": "locationEditing"
+        },
+        {
+          "label": "Toast Messages",
+          "value": "toast"
+        },
+        {
+          "label": "Details Page",
+          "value": "details"
+        },
+        {
+          "label": "Empty State",
+          "value": "emptyState"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "general"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the texts are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, if it didn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "The texts.",
+          "properties": {
+            "texts": {
+              "type": "array",
+              "description": "The texts, section by section.",
+              "items": {
+                "type": "object",
+                "description": "One text.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "The text's key."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "The section the text belongs to."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "What the text is for."
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The text shown in the app."
+                  },
+                  "defaultValue": {
+                    "type": "string",
+                    "description": "The text shown when no other text is set."
+                  },
+                  "customized": {
+                    "type": "boolean",
+                    "description": "Whether the app owner changed it."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether the text may be left empty."
+                  },
+                  "maxLength": {
+                    "type": "number",
+                    "description": "The longest the text may be."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "name": "createLocationFieldsAdvanced",
+  "displayName": "Create location fields",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createLocationFieldsAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several location fields at once, up to 10 fields in all.",
+  "parameters": {
+    "fields": {
+      "type": "list",
+      "displayName": "Fields",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 10,
+      "description": "The fields to add, up to 10 fields in all.",
+      "items": {
+        "group": {
+          "type": "select",
+          "displayName": "Section",
+          "required": true,
+          "description": "Where the field is shown: with the quick actions, or with the text content.",
+          "enums": [
+            {
+              "label": "Quick actions",
+              "value": "quickActions"
+            },
+            {
+              "label": "Text content",
+              "value": "content"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "label": {
+          "type": "string",
+          "displayName": "Label",
+          "required": true,
+          "description": "The field's label."
+        },
+        "type": {
+          "type": "select",
+          "displayName": "Type",
+          "required": false,
+          "description": "The kind of value the field takes; quick actions take only email, phone or URL. Leave it out for email.",
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich Text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "required": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether every location must give a value. Leave it out for no."
+        },
+        "allowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Allow custom label",
+          "required": false,
+          "description": "Whether each location may give the field its own label. Leave it out for no."
+        }
+      },
+      "sampleValue": [
+        {
+          "group": "content",
+          "label": "[field label]",
+          "type": "TEXT"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the fields are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as a field missing its label."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each field went.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "One result per field, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one field went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which field this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id, if it was added."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

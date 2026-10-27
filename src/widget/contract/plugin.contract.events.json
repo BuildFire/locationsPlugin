@@ -1,0 +1,193 @@
+{
+  "events": [
+    {
+      "name": "locationCreated",
+      "displayName": "Location Created",
+      "description": "A new location was added.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The new location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The location's subtitle, if it has one."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "description": "The location's latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "description": "The location's longitude."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "List Image",
+          "description": "The picture shown for the location in lists."
+        },
+        "createdOn": {
+          "type": "datetime",
+          "displayName": "Added On",
+          "description": "When it was added."
+        },
+        "createdBy": {
+          "type": "object",
+          "displayName": "Added By",
+          "description": "Who added it, if known.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationUpdated",
+      "displayName": "Location Updated",
+      "description": "A location's details were changed.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's title."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The location's subtitle, if it has one."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "latitude": {
+          "type": "number",
+          "displayName": "Latitude",
+          "description": "The location's latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "displayName": "Longitude",
+          "description": "The location's longitude."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "List Image",
+          "description": "The picture shown for the location in lists."
+        },
+        "lastUpdatedOn": {
+          "type": "datetime",
+          "displayName": "Changed On",
+          "description": "When it was changed."
+        },
+        "lastUpdatedBy": {
+          "type": "object",
+          "displayName": "Changed By",
+          "description": "Who changed it, if known.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationDeleted",
+      "displayName": "Location Deleted",
+      "description": "A location was removed.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The removed location's id."
+        }
+      }
+    },
+    {
+      "name": "categoryCreated",
+      "displayName": "Category Created",
+      "description": "A new location category was added.",
+      "data": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category ID",
+          "description": "The new category's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The category's title."
+        },
+        "iconUrl": {
+          "type": "string",
+          "displayName": "Icon",
+          "description": "The category's icon picture, if it has one."
+        },
+        "subcategories": {
+          "type": "array",
+          "displayName": "Subcategories",
+          "description": "The titles of the category's subcategories."
+        },
+        "createdOn": {
+          "type": "datetime",
+          "displayName": "Added On",
+          "description": "When it was added."
+        },
+        "createdBy": {
+          "type": "object",
+          "displayName": "Added By",
+          "description": "Who added it, if known.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

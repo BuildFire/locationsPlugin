@@ -1,0 +1,101 @@
+{
+  "name": "createSubcategoryAdvanced",
+  "displayName": "Create subcategory",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "createSubcategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "createSubcategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a subcategory at the end of a category, using the category's id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in search results.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryTitle": {
+      "type": "string",
+      "displayName": "Subcategory title",
+      "required": true,
+      "description": "The subcategory's title.",
+      "sampleValue": "[subcategory title]"
+    },
+    "icon": {
+      "type": "image",
+      "displayName": "Icon",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The subcategory's icon picture, as a list holding one image. Leave it out for none.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "iconClassName": {
+      "type": "string",
+      "displayName": "Library icon",
+      "required": false,
+      "description": "The name of a library icon to show instead of a picture. Leave it out for none.",
+      "sampleValue": "glyphicon glyphicon-cutlery"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't added, such as no category having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new subcategory.",
+          "properties": {
+            "categoryId": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The subcategory's icon picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The subcategory's library icon, if it has one."
+            }
+          }
+        }
+      }
+    }
+  }
+}

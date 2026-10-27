@@ -1,0 +1,71 @@
+{
+  "name": "deleteSubcategoryAdvanced",
+  "displayName": "Delete subcategory",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteSubcategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "deleteSubcategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a subcategory from its category, using the category's and its own id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in search results.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryId": {
+      "type": "string",
+      "displayName": "Subcategory id",
+      "required": true,
+      "description": "The subcategory's id, as shown in search results.",
+      "sampleValue": "[subcategory id]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is removed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't removed, such as no subcategory having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory removed.",
+          "properties": {
+            "categoryId": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "id": {
+              "type": "string",
+              "description": "The removed subcategory's id."
+            }
+          }
+        }
+      }
+    }
+  }
+}

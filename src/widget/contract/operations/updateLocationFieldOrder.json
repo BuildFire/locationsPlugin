@@ -1,0 +1,98 @@
+{
+  "name": "updateLocationFieldOrder",
+  "displayName": "Move location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldOrderAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldOrder",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a location field to a new place within its section, found by its label.",
+  "parameters": {
+    "label": {
+      "type": "string",
+      "displayName": "Field label",
+      "required": true,
+      "description": "The exact label of the field to move.",
+      "sampleValue": "[field label]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "minValue": 1,
+      "description": "Its new place among the fields of its section, counting from 1.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is moved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't moved, such as a place past the last one."
+        },
+        "result": {
+          "type": "object",
+          "description": "The fields of its section, in their new order.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "The fields, in order.",
+              "items": {
+                "type": "object",
+                "description": "One field.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id."
+                  },
+                  "group": {
+                    "type": "string",
+                    "description": "Where the field is shown: quickActions or content."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The field's label."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The kind of value the field takes."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether a value is required."
+                  },
+                  "allowCustomLabel": {
+                    "type": "boolean",
+                    "description": "Whether each location may give its own label."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

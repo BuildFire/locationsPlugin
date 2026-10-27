@@ -72,6 +72,19 @@ export default {
     ];
     return Promise.all(promiseChain)
       .then(() => {
+        if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+          buildfire.services.contract.events.send('locationUpdated', {
+            locationId: location.id,
+            title: location.title,
+            subtitle: location.subtitle || null,
+            address: location.address,
+            latitude: location.coordinates.lat,
+            longitude: location.coordinates.lng,
+            listImage: location.listImage,
+            lastUpdatedOn: location.lastUpdatedOn.toISOString(),
+            lastUpdatedBy: location.lastUpdatedBy ? { userId: location.lastUpdatedBy._id || null, displayName: location.lastUpdatedBy.displayName || null } : null
+          });
+        }
         state.selectedLocation = location;
         this._reflectUpdatedLocationOnUI();
       })

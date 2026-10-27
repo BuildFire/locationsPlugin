@@ -1,0 +1,116 @@
+{
+  "name": "updateCategoriesAdvanced",
+  "displayName": "Update categories",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateCategoriesAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes several categories at once, up to 50.",
+  "parameters": {
+    "categories": {
+      "type": "list",
+      "displayName": "Categories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The categories to change and what changes for each, up to 50 at a time.",
+      "items": {
+        "categoryId": {
+          "type": "string",
+          "displayName": "Category id",
+          "required": true,
+          "description": "The category's id, as shown in search results."
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New title",
+          "required": false,
+          "description": "The category's new title. Leave it out to keep the current one."
+        },
+        "newIcon": {
+          "type": "image",
+          "displayName": "New icon",
+          "required": false,
+          "nullable": true,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "The new icon picture, as a list holding one image; it replaces any library icon. Leave it out to keep the current one, or pass an empty list to remove it."
+        },
+        "newIconClassName": {
+          "type": "string",
+          "displayName": "New library icon",
+          "required": false,
+          "nullable": true,
+          "description": "The name of a library icon to show instead of a picture. Leave it out to keep the current one, or leave it empty to remove it."
+        }
+      },
+      "sampleValue": [
+        {
+          "categoryId": "[category id]",
+          "newTitle": "[new category title]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the categories are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was changed, such as an unknown category id."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each category went.",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "description": "One result per category, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one category went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which category this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The category's id, if it was changed."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't changed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were changed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

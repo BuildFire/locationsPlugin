@@ -1,0 +1,110 @@
+{
+  "name": "updateSubcategory",
+  "displayName": "Update subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a subcategory's title or icon, found by its category's and its own title.",
+  "parameters": {
+    "categoryTitle": {
+      "type": "string",
+      "displayName": "Category title",
+      "required": true,
+      "description": "The exact title of the category it belongs to.",
+      "sampleValue": "[category title]"
+    },
+    "subcategoryTitle": {
+      "type": "string",
+      "displayName": "Subcategory title",
+      "required": true,
+      "description": "The current title of the subcategory to change.",
+      "sampleValue": "[subcategory title]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New title",
+      "required": false,
+      "description": "The subcategory's new title. Leave it out to keep the current one.",
+      "sampleValue": "[new subcategory title]"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "New icon",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The new icon picture, as a list holding one image; it replaces any library icon. Leave it out to keep the current one, or pass an empty list to remove it.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "newIconClassName": {
+      "type": "string",
+      "displayName": "New library icon",
+      "required": false,
+      "nullable": true,
+      "description": "The name of a library icon to show instead of a picture. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "glyphicon glyphicon-cutlery"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no subcategory having that title."
+        },
+        "result": {
+          "type": "object",
+          "description": "The changed subcategory.",
+          "properties": {
+            "categoryId": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The subcategory's icon picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The subcategory's library icon, if it has one."
+            }
+          }
+        }
+      }
+    }
+  }
+}

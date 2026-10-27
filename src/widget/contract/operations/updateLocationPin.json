@@ -1,0 +1,298 @@
+{
+  "name": "updateLocationPin",
+  "displayName": "Pin location",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationPinAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationPin",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Pins a location to the top of the list, moves it among the pinned ones, or unpins it; up to 3 can be pinned.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": true,
+      "description": "The exact title of the location to pin or unpin.",
+      "sampleValue": "[location title]"
+    },
+    "pinned": {
+      "type": "boolean",
+      "displayName": "Pinned",
+      "required": true,
+      "description": "Whether the location is pinned to the top of the list.",
+      "sampleValue": true
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 3,
+      "description": "Its place among the pinned locations, from 1 to 3. Leave it out to keep its place, or to pin it last.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the pins are changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as 3 locations being pinned already."
+        },
+        "result": {
+          "type": "object",
+          "description": "The pinned locations.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "The pinned locations, in pinned order.",
+              "items": {
+                "type": "object",
+                "description": "One pinned location.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The location's title."
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "description": "The location's subtitle, if it has one."
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "The location's address."
+                  },
+                  "formattedAddress": {
+                    "type": "string",
+                    "description": "The full address shown on the map."
+                  },
+                  "customName": {
+                    "type": "string",
+                    "description": "The custom name shown for the address, if it has one."
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "description": "The location's latitude."
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "description": "The location's longitude."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "The location's description, as formatted text."
+                  },
+                  "listImage": {
+                    "type": "string",
+                    "description": "The picture shown for the location in lists."
+                  },
+                  "images": {
+                    "type": "array",
+                    "description": "The location's pictures, in order.",
+                    "items": {
+                      "type": "string",
+                      "description": "The address of one picture."
+                    }
+                  },
+                  "categories": {
+                    "type": "string",
+                    "description": "Its categories, such as Food -> Pizza, Shops."
+                  },
+                  "categoryIds": {
+                    "type": "array",
+                    "description": "The ids of the location's categories.",
+                    "items": {
+                      "type": "string",
+                      "description": "A category's id."
+                    }
+                  },
+                  "subcategoryIds": {
+                    "type": "array",
+                    "description": "The ids of the location's subcategories.",
+                    "items": {
+                      "type": "string",
+                      "description": "A subcategory's id."
+                    }
+                  },
+                  "markerType": {
+                    "type": "string",
+                    "description": "How the location is marked on the map: pin, circle or image."
+                  },
+                  "markerImage": {
+                    "type": "string",
+                    "description": "The picture used as its map marker, if it has one."
+                  },
+                  "markerColor": {
+                    "type": "string",
+                    "description": "The color of its circle marker, if it has one."
+                  },
+                  "showCategory": {
+                    "type": "boolean",
+                    "description": "Whether its categories are shown."
+                  },
+                  "showOpeningHours": {
+                    "type": "boolean",
+                    "description": "Whether its opening hours are shown."
+                  },
+                  "showPriceRange": {
+                    "type": "boolean",
+                    "description": "Whether its price range is shown."
+                  },
+                  "showStarRating": {
+                    "type": "boolean",
+                    "description": "Whether its star rating is shown."
+                  },
+                  "priceRange": {
+                    "type": "number",
+                    "description": "Its price range, from 1 to 4."
+                  },
+                  "priceCurrency": {
+                    "type": "string",
+                    "description": "The currency sign shown with its price range."
+                  },
+                  "openingHours": {
+                    "type": "object",
+                    "description": "Its opening hours, day by day.",
+                    "properties": {
+                      "monday": {
+                        "type": "string",
+                        "description": "Monday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "tuesday": {
+                        "type": "string",
+                        "description": "Tuesday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "wednesday": {
+                        "type": "string",
+                        "description": "Wednesday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "thursday": {
+                        "type": "string",
+                        "description": "Thursday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "friday": {
+                        "type": "string",
+                        "description": "Friday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "saturday": {
+                        "type": "string",
+                        "description": "Saturday's hours, such as 08:00-20:00, or closed."
+                      },
+                      "sunday": {
+                        "type": "string",
+                        "description": "Sunday's hours, such as 08:00-20:00, or closed."
+                      }
+                    }
+                  },
+                  "actionItems": {
+                    "type": "array",
+                    "description": "The location's actions, such as calling or opening a website.",
+                    "items": {
+                      "type": "object",
+                      "description": "One action.",
+                      "properties": {
+                        "title": {
+                          "type": "string",
+                          "description": "The action's title."
+                        },
+                        "action": {
+                          "type": "string",
+                          "description": "What the action does."
+                        }
+                      }
+                    }
+                  },
+                  "pinPosition": {
+                    "type": "number",
+                    "description": "Its place among the locations pinned to the top, from 1 to 3, if it is pinned."
+                  },
+                  "rating": {
+                    "type": "object",
+                    "description": "Its star rating.",
+                    "properties": {
+                      "average": {
+                        "type": "number",
+                        "description": "The average rating."
+                      },
+                      "count": {
+                        "type": "number",
+                        "description": "How many people rated it."
+                      }
+                    }
+                  },
+                  "views": {
+                    "type": "number",
+                    "description": "How many times it was viewed."
+                  },
+                  "bookmarksCount": {
+                    "type": "number",
+                    "description": "How many people bookmarked it."
+                  },
+                  "fields": {
+                    "type": "array",
+                    "description": "Its values for the plugin's own location fields.",
+                    "items": {
+                      "type": "object",
+                      "description": "One field value.",
+                      "properties": {
+                        "fieldId": {
+                          "type": "string",
+                          "description": "The field's id."
+                        },
+                        "label": {
+                          "type": "string",
+                          "description": "The field's label."
+                        },
+                        "value": {
+                          "type": "string",
+                          "description": "The value given, if any."
+                        },
+                        "customLabel": {
+                          "type": "string",
+                          "description": "The custom label given, if any."
+                        }
+                      }
+                    }
+                  },
+                  "createdOn": {
+                    "type": "datetime",
+                    "description": "When it was added."
+                  },
+                  "lastUpdatedOn": {
+                    "type": "datetime",
+                    "description": "When it was last changed."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

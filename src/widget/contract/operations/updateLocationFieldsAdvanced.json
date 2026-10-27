@@ -1,0 +1,141 @@
+{
+  "name": "updateLocationFieldsAdvanced",
+  "displayName": "Update location fields",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationFieldsAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes several location fields at once, up to 10.",
+  "parameters": {
+    "fields": {
+      "type": "list",
+      "displayName": "Fields",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 10,
+      "description": "The fields to change and what changes for each, up to 10.",
+      "items": {
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The field's id, as shown in the settings."
+        },
+        "newLabel": {
+          "type": "string",
+          "displayName": "New label",
+          "required": false,
+          "description": "The field's new label. Leave it out to keep the current one."
+        },
+        "newType": {
+          "type": "select",
+          "displayName": "New type",
+          "required": false,
+          "description": "The kind of value the field takes; quick actions take only email, phone or URL. Leave it out to keep the current one.",
+          "enums": [
+            {
+              "label": "Email",
+              "value": "EMAIL"
+            },
+            {
+              "label": "Phone",
+              "value": "PHONE"
+            },
+            {
+              "label": "URL",
+              "value": "URL"
+            },
+            {
+              "label": "Text",
+              "value": "TEXT"
+            },
+            {
+              "label": "Rich Text",
+              "value": "RICH_TEXT"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "newRequired": {
+          "type": "boolean",
+          "displayName": "Required",
+          "required": false,
+          "description": "Whether every location must give a value. Leave it out to keep the current choice."
+        },
+        "newAllowCustomLabel": {
+          "type": "boolean",
+          "displayName": "Allow custom label",
+          "required": false,
+          "description": "Whether each location may give the field its own label. Leave it out to keep the current choice."
+        }
+      },
+      "sampleValue": [
+        {
+          "fieldId": "[field id]",
+          "newRequired": true
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the fields are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was changed, such as an unknown field id."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each field went.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "One result per field, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one field went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which field this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id, if it was changed."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't changed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were changed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

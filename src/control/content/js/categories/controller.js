@@ -9,6 +9,16 @@ export default {
     category.createdOn = new Date();
     category.createdBy = authManager.sanitizedCurrentUser;
     return Categories.create(category.toJSON()).then((result) => {
+      if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('categoryCreated', {
+          categoryId: result.id,
+          title: result.title,
+          iconUrl: result.iconUrl || null,
+          subcategories: result.subcategories.map((sub) => sub.title),
+          createdOn: result.createdOn ? new Date(result.createdOn).toISOString() : null,
+          createdBy: result.createdBy ? { userId: result.createdBy._id || null, displayName: result.createdBy.displayName || null } : null
+        });
+      }
       Analytics.registerCategoryEvent(result.id, result.title);
       for (const sub of result.subcategories) {
         Analytics.registerSubcategoryEvent(sub.id, sub.title);

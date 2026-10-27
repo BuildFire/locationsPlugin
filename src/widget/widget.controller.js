@@ -72,6 +72,19 @@ export default {
     location.createdOn = new Date();
     location.createdBy = state.sanitizedCurrentUser;
     return Location.add(location.toJSON()).then((result) => {
+      if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationCreated', {
+          locationId: result.id,
+          title: result.title,
+          subtitle: result.subtitle || null,
+          address: result.address,
+          latitude: result.coordinates.lat,
+          longitude: result.coordinates.lng,
+          listImage: result.listImage,
+          createdOn: result.createdOn ? new Date(result.createdOn).toISOString() : null,
+          createdBy: result.createdBy ? { userId: result.createdBy._id || null, displayName: result.createdBy.displayName || null } : null
+        });
+      }
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
       return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
@@ -83,7 +96,12 @@ export default {
       DeepLink.unregisterDeeplink(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
-    return Promise.allSettled(promiseChain);
+    return Promise.allSettled(promiseChain).then((results) => {
+      if (results[0].status === 'fulfilled' && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationDeleted', { locationId });
+      }
+      return results;
+    });
   },
   subscribeToLocationUpdates(locationId, userId) {
     return Location.subscribeToLocationUpdates(locationId, userId);

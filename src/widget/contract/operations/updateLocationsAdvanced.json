@@ -1,0 +1,326 @@
+{
+  "name": "updateLocationsAdvanced",
+  "displayName": "Update locations",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationsAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes several locations at once, up to 50.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The locations to change and what changes for each, up to 50 at a time.",
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results."
+        },
+        "newTitle": {
+          "type": "string",
+          "displayName": "New title",
+          "required": false,
+          "description": "The location's new title. Leave it out to keep the current one."
+        },
+        "newSubtitle": {
+          "type": "string",
+          "displayName": "New subtitle",
+          "required": false,
+          "nullable": true,
+          "description": "The new subtitle. Leave it out to keep the current one, or leave it empty to remove it."
+        },
+        "newAddress": {
+          "type": "string",
+          "displayName": "New address",
+          "required": false,
+          "description": "The new address, given with its latitude and longitude. Leave it out to keep the current one."
+        },
+        "newLatitude": {
+          "type": "number",
+          "displayName": "New latitude",
+          "required": false,
+          "minValue": -90,
+          "maxValue": 90,
+          "description": "The new address's latitude. Leave it out to keep the current one."
+        },
+        "newLongitude": {
+          "type": "number",
+          "displayName": "New longitude",
+          "required": false,
+          "minValue": -180,
+          "maxValue": 180,
+          "description": "The new address's longitude. Leave it out to keep the current one."
+        },
+        "newCustomName": {
+          "type": "string",
+          "displayName": "New custom location name",
+          "required": false,
+          "nullable": true,
+          "description": "The new name shown for the address on the map. Leave it out to keep the current one, or leave it empty to remove it."
+        },
+        "newDescription": {
+          "type": "wysiwyg",
+          "displayName": "New description",
+          "required": false,
+          "description": "The new description, as formatted text. Leave it out to keep the current one."
+        },
+        "newListImage": {
+          "type": "image",
+          "displayName": "New list image",
+          "required": false,
+          "minValue": 1,
+          "maxValue": 1,
+          "description": "The new picture shown in lists, as a list holding one image. Leave it out to keep the current one."
+        },
+        "newImages": {
+          "type": "image",
+          "displayName": "New images",
+          "required": false,
+          "nullable": true,
+          "minValue": 0,
+          "description": "The location's pictures, in order; they replace the current ones. Leave it out to keep them, or pass an empty list to remove them."
+        },
+        "newCategories": {
+          "type": "string",
+          "displayName": "New categories",
+          "required": false,
+          "nullable": true,
+          "description": "Its categories, separated by commas, with a subcategory after an arrow, such as Food -> Pizza; they replace the current ones. Leave it out to keep them, or leave it empty to remove them."
+        },
+        "newMarkerType": {
+          "type": "select",
+          "displayName": "New marker type",
+          "required": false,
+          "description": "How the location is marked on the map. Leave it out to keep the current one.",
+          "enums": [
+            {
+              "label": "Pin",
+              "value": "pin"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            },
+            {
+              "label": "Image",
+              "value": "image"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "newMarkerImage": {
+          "type": "image",
+          "displayName": "New marker image",
+          "required": false,
+          "nullable": true,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "The picture used as the map marker, as a list holding one image. Leave it out to keep the current one, or pass an empty list to remove it."
+        },
+        "newMarkerColor": {
+          "type": "string",
+          "displayName": "New marker color",
+          "required": false,
+          "nullable": true,
+          "description": "The color of the circle marker, such as rgba(253,35,5,1). Leave it out to keep the current one, or leave it empty to remove it."
+        },
+        "newShowCategory": {
+          "type": "boolean",
+          "displayName": "Show category",
+          "required": false,
+          "description": "Whether its categories are shown. Leave it out to keep the current choice."
+        },
+        "newShowOpeningHours": {
+          "type": "boolean",
+          "displayName": "Show opening hours",
+          "required": false,
+          "description": "Whether its opening hours are shown. Leave it out to keep the current choice."
+        },
+        "newShowPriceRange": {
+          "type": "boolean",
+          "displayName": "Show price range",
+          "required": false,
+          "description": "Whether its price range is shown. Leave it out to keep the current choice."
+        },
+        "newShowStarRating": {
+          "type": "boolean",
+          "displayName": "Show star rating",
+          "required": false,
+          "description": "Whether its star rating is shown. Leave it out to keep the current choice."
+        },
+        "newPriceRange": {
+          "type": "select",
+          "displayName": "New price range",
+          "required": false,
+          "description": "How pricey it is. Leave it out to keep the current one.",
+          "enums": [
+            {
+              "label": "$",
+              "value": 1
+            },
+            {
+              "label": "$$",
+              "value": 2
+            },
+            {
+              "label": "$$$",
+              "value": 3
+            },
+            {
+              "label": "$$$$",
+              "value": 4
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "newPriceCurrency": {
+          "type": "select",
+          "displayName": "New currency",
+          "required": false,
+          "description": "The currency sign shown with the price range. Leave it out to keep the current one.",
+          "enums": [
+            {
+              "label": "€",
+              "value": "€"
+            },
+            {
+              "label": "$",
+              "value": "$"
+            }
+          ],
+          "allowEnumCustomOption": false
+        },
+        "newMondayHours": {
+          "type": "string",
+          "displayName": "New monday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Monday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newTuesdayHours": {
+          "type": "string",
+          "displayName": "New tuesday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Tuesday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newWednesdayHours": {
+          "type": "string",
+          "displayName": "New wednesday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Wednesday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newThursdayHours": {
+          "type": "string",
+          "displayName": "New thursday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Thursday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newFridayHours": {
+          "type": "string",
+          "displayName": "New friday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Friday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newSaturdayHours": {
+          "type": "string",
+          "displayName": "New saturday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Saturday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newSundayHours": {
+          "type": "string",
+          "displayName": "New sunday hours",
+          "required": false,
+          "nullable": true,
+          "description": "Sunday's opening hours, such as 08:00-20:00, several separated by commas, or closed. Leave it out to keep them, or leave it empty for closed."
+        },
+        "newActionItems": {
+          "type": "action",
+          "displayName": "New actions",
+          "required": false,
+          "nullable": true,
+          "minValue": 0,
+          "description": "The location's actions, in order; they replace the current ones. Leave it out to keep them, or pass an empty list to remove them."
+        }
+      },
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "newSubtitle": "[new location subtitle]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the locations are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was changed, such as an unknown location id."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each location went.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One result per location, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one location went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which location this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id, if it was changed."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't changed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were changed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

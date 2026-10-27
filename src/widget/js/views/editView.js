@@ -218,7 +218,22 @@ const updateLocation = (locationId, location) => {
     DeepLink.registerDeeplink(location),
     SearchEngine.update(Locations.TAG, locationId, location.toJSON())
   ];
-  return Promise.all(promiseChain);
+  return Promise.all(promiseChain).then((results) => {
+    if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+      buildfire.services.contract.events.send('locationUpdated', {
+        locationId,
+        title: location.title,
+        subtitle: location.subtitle || null,
+        address: location.address,
+        latitude: location.coordinates.lat,
+        longitude: location.coordinates.lng,
+        listImage: location.listImage,
+        lastUpdatedOn: location.lastUpdatedOn.toISOString(),
+        lastUpdatedBy: location.lastUpdatedBy ? { userId: location.lastUpdatedBy._id || null, displayName: location.lastUpdatedBy.displayName || null } : null
+      });
+    }
+    return results;
+  });
 };
 
 const _reflectChanges = () => {

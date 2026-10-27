@@ -1,0 +1,133 @@
+{
+  "name": "updateCategoryAdvanced",
+  "displayName": "Update category",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateCategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateCategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a category's title or icon, using the category's id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in search results.",
+      "sampleValue": "[category id]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New title",
+      "required": false,
+      "description": "The category's new title. Leave it out to keep the current one.",
+      "sampleValue": "[new category title]"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "New icon",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The new icon picture, as a list holding one image; it replaces any library icon. Leave it out to keep the current one, or pass an empty list to remove it.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "newIconClassName": {
+      "type": "string",
+      "displayName": "New library icon",
+      "required": false,
+      "nullable": true,
+      "description": "The name of a library icon to show instead of a picture. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "glyphicon glyphicon-cutlery"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no category having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The changed category.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's title."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The category's icon picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The category's library icon, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's title."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The subcategory's icon picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "The subcategory's library icon, if it has one."
+                  }
+                }
+              }
+            },
+            "createdOn": {
+              "type": "datetime",
+              "description": "When it was added."
+            },
+            "lastUpdatedOn": {
+              "type": "datetime",
+              "description": "When it was last changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}
