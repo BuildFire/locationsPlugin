@@ -11,6 +11,8 @@ import state from './state';
 
 const templates = {};
 
+const myNameIsss = 'abdalla';
+
 const createLoadingState = () => {
   const div = document.createElement("div");
   div.className = 'empty-state';
