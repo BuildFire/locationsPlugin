@@ -1,0 +1,109 @@
+{
+  "name": "createCategory",
+  "displayName": "Create category",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "createCategory",
+    "hosts": [
+      "controlBackground"
+    ]
+  },
+  "description": "Adds a category that locations can be grouped in.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The new category's name.",
+      "sampleValue": "[category name]"
+    },
+    "icon": {
+      "type": "image",
+      "displayName": "Picture",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "A picture for the category, as a list holding one image. Leave it out for no picture.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "iconName": {
+      "type": "string",
+      "displayName": "Font icon",
+      "required": false,
+      "description": "A font icon for the category instead of a picture, by its name. Leave it out for no font icon.",
+      "sampleValue": "[icon name]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't added, such as a missing name or both a picture and a font icon."
+        },
+        "result": {
+          "type": "object",
+          "description": "The new category.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "The category's picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "The category's font icon, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's name."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The subcategory's picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "The subcategory's font icon, if it has one."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

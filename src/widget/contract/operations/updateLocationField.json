@@ -1,0 +1,131 @@
+{
+  "name": "updateLocationField",
+  "displayName": "Update location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "updateLocationField",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes an extra location field's name, type, or whether it must be filled in.",
+  "parameters": {
+    "label": {
+      "type": "string",
+      "displayName": "Field name",
+      "required": true,
+      "description": "The current name of the field to change.",
+      "sampleValue": "[field name]"
+    },
+    "newLabel": {
+      "type": "string",
+      "displayName": "New field name",
+      "required": false,
+      "description": "The field's new name. Leave it out to keep the current one.",
+      "sampleValue": "[new field name]"
+    },
+    "newType": {
+      "type": "select",
+      "displayName": "New field type",
+      "required": false,
+      "description": "What the field holds from now on. Text and rich text are for text content fields only. Leave it out to keep the current type.",
+      "enums": [
+        {
+          "label": "Email",
+          "value": "EMAIL"
+        },
+        {
+          "label": "Phone",
+          "value": "PHONE"
+        },
+        {
+          "label": "URL",
+          "value": "URL"
+        },
+        {
+          "label": "Text",
+          "value": "TEXT"
+        },
+        {
+          "label": "Rich text",
+          "value": "RICH_TEXT"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "PHONE"
+    },
+    "required": {
+      "type": "boolean",
+      "displayName": "Required",
+      "required": false,
+      "description": "Whether people must fill the field in. Leave it out to keep the current choice.",
+      "sampleValue": true
+    },
+    "allowCustomLabel": {
+      "type": "boolean",
+      "displayName": "Allow custom label",
+      "required": false,
+      "description": "Whether people can give the field their own label. Leave it out to keep the current choice.",
+      "sampleValue": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no field having that name."
+        },
+        "result": {
+          "type": "object",
+          "description": "The field as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The field's id."
+            },
+            "label": {
+              "type": "string",
+              "description": "The field's name."
+            },
+            "section": {
+              "type": "string",
+              "description": "Where the field shows: quick actions or text content."
+            },
+            "type": {
+              "type": "string",
+              "description": "What the field holds, such as an email, a phone number or text."
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether people must fill it in."
+            },
+            "allowCustomLabel": {
+              "type": "boolean",
+              "description": "Whether people can give it their own label."
+            }
+          }
+        }
+      }
+    }
+  }
+}

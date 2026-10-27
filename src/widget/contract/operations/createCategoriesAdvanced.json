@@ -1,0 +1,117 @@
+{
+  "name": "createCategoriesAdvanced",
+  "displayName": "Create categories",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createCategoriesAdvanced",
+    "hosts": [
+      "controlBackground"
+    ]
+  },
+  "description": "Adds several categories at once, up to 50.",
+  "parameters": {
+    "categories": {
+      "type": "list",
+      "displayName": "Categories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The categories to add, up to 50 at a time.",
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The new category's name.",
+          "sampleValue": "[category name]"
+        },
+        "icon": {
+          "type": "image",
+          "displayName": "Picture",
+          "required": false,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "A picture for the category, as a list holding one image. Leave it out for no picture.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "iconName": {
+          "type": "string",
+          "displayName": "Font icon",
+          "required": false,
+          "description": "A font icon for the category instead of a picture, by its name. Leave it out for no font icon.",
+          "sampleValue": "[icon name]"
+        }
+      },
+      "sampleValue": [
+        {
+          "title": "[category name]"
+        },
+        {
+          "title": "[category name]",
+          "icon": [
+            "[image url]"
+          ]
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the categories are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as a category missing its name."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each category went.",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "description": "One result per category, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one category went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which category this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The category's id, if it was added."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many categories were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many categories weren't added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

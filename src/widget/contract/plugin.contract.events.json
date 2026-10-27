@@ -1,0 +1,92 @@
+{
+  "events": [
+    {
+      "name": "locationSubscribed",
+      "displayName": "Location Followed",
+      "description": "An app user started following a location to hear about its updates.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Location Name",
+          "description": "The location's name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "Who did it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationUnsubscribed",
+      "displayName": "Location Unfollowed",
+      "description": "An app user stopped following a location.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Location Name",
+          "description": "The location's name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "user": {
+          "type": "object",
+          "displayName": "User",
+          "description": "Who did it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

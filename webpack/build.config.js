@@ -237,6 +237,17 @@ const WebpackConfig = {
     ], {
       ignore: ['*.js', '*.html', '*.md']
     }),
+    // Contract files the copy above skips (its .json files already ship from src/widget/contract).
+    new CopyWebpackPlugin([{
+      from: path.join(__dirname, '../src/widget/contract/plugin.contract.js'),
+      to: path.join(__dirname, '../dist/widget/contract/plugin.contract.js'),
+    }, {
+      from: path.join(__dirname, '../src/widget/contract.html'),
+      to: path.join(__dirname, '../dist/widget/contract.html'),
+    }, {
+      from: path.join(__dirname, '../src/control/contract.html'),
+      to: path.join(__dirname, '../dist/control/contract.html'),
+    }]),
     new ExtractTextPlugin('[name].css'),
     new ZipWebpackPlugin({
       path: path.join(__dirname, '../'),

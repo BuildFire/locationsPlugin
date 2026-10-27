@@ -1,0 +1,1023 @@
+{
+  "operations": [
+    {
+      "name": "searchLocations",
+      "displayName": "Search locations",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "searchLocations",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows the locations in this plugin with their details, in alphabetical order or in pinned order.",
+      "parameters": [
+        "title",
+        "search",
+        "category",
+        "pinnedOnly",
+        "page",
+        "pageSize"
+      ],
+      "definitionPath": "operations/searchLocations.json"
+    },
+    {
+      "name": "searchCategories",
+      "displayName": "Search categories",
+      "type": "publicData",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ],
+        "collection": "categories",
+        "operationType": "search",
+        "scope": "app",
+        "query": {
+          "filter": {
+            "_buildfire.index.date1": {
+              "$type": 10
+            },
+            "$json.title": "$params.title"
+          },
+          "sort": {
+            "_buildfire.index.string1": 1
+          },
+          "page": "$params.page",
+          "pageSize": 50,
+          "recordCount": true
+        }
+      },
+      "description": "Shows the categories locations can be grouped in, with their subcategories, in alphabetical order, up to 50 at a time.",
+      "parameters": [
+        "title",
+        "page"
+      ],
+      "definitionPath": "operations/searchCategories.json"
+    },
+    {
+      "name": "createCategory",
+      "displayName": "Create category",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createCategory",
+        "hosts": [
+          "controlBackground"
+        ]
+      },
+      "description": "Adds a category that locations can be grouped in.",
+      "parameters": [
+        "title",
+        "icon",
+        "iconName"
+      ],
+      "definitionPath": "operations/createCategory.json"
+    },
+    {
+      "name": "createCategoriesAdvanced",
+      "displayName": "Create categories",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "createCategoriesAdvanced",
+        "hosts": [
+          "controlBackground"
+        ]
+      },
+      "description": "Adds several categories at once, up to 50.",
+      "parameters": [
+        "categories"
+      ],
+      "definitionPath": "operations/createCategoriesAdvanced.json"
+    },
+    {
+      "name": "updateCategory",
+      "displayName": "Update category",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a category or changes its icon.",
+      "parameters": [
+        "title",
+        "newTitle",
+        "newIcon",
+        "newIconName"
+      ],
+      "definitionPath": "operations/updateCategory.json"
+    },
+    {
+      "name": "updateCategoryAdvanced",
+      "displayName": "Update category",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateCategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateCategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a category or changes its icon, using the category's id.",
+      "parameters": [
+        "categoryId",
+        "newTitle",
+        "newIcon",
+        "newIconName"
+      ],
+      "definitionPath": "operations/updateCategoryAdvanced.json"
+    },
+    {
+      "name": "updateCategoriesAdvanced",
+      "displayName": "Update categories",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateCategoriesAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes several categories at once, up to 50.",
+      "parameters": [
+        "categories"
+      ],
+      "definitionPath": "operations/updateCategoriesAdvanced.json"
+    },
+    {
+      "name": "deleteCategory",
+      "displayName": "Delete category",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteCategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteCategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes a category so it no longer shows anywhere in the app.",
+      "parameters": [
+        "title"
+      ],
+      "definitionPath": "operations/deleteCategory.json"
+    },
+    {
+      "name": "deleteCategoryAdvanced",
+      "displayName": "Delete category",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteCategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteCategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes a category so it no longer shows anywhere in the app, using the category's id.",
+      "parameters": [
+        "categoryId"
+      ],
+      "definitionPath": "operations/deleteCategoryAdvanced.json"
+    },
+    {
+      "name": "deleteCategoriesAdvanced",
+      "displayName": "Delete categories",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "throttable"
+      ],
+      "usage": "advanced",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "deleteCategoriesAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Removes several categories at once, up to 50.",
+      "parameters": [
+        "categories"
+      ],
+      "definitionPath": "operations/deleteCategoriesAdvanced.json"
+    },
+    {
+      "name": "createSubcategory",
+      "displayName": "Create subcategory",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "createSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a subcategory to the end of a category.",
+      "parameters": [
+        "categoryTitle",
+        "title"
+      ],
+      "definitionPath": "operations/createSubcategory.json"
+    },
+    {
+      "name": "createSubcategoryAdvanced",
+      "displayName": "Create subcategory",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "createSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds a subcategory to the end of a category, using the category's id.",
+      "parameters": [
+        "categoryId",
+        "title"
+      ],
+      "definitionPath": "operations/createSubcategoryAdvanced.json"
+    },
+    {
+      "name": "updateSubcategory",
+      "displayName": "Update subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a subcategory or changes its icon.",
+      "parameters": [
+        "categoryTitle",
+        "title",
+        "newTitle",
+        "newIcon",
+        "newIconName"
+      ],
+      "definitionPath": "operations/updateSubcategory.json"
+    },
+    {
+      "name": "updateSubcategoryAdvanced",
+      "displayName": "Update subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Renames a subcategory or changes its icon, using the category's and the subcategory's ids.",
+      "parameters": [
+        "categoryId",
+        "subcategoryId",
+        "newTitle",
+        "newIcon",
+        "newIconName"
+      ],
+      "definitionPath": "operations/updateSubcategoryAdvanced.json"
+    },
+    {
+      "name": "deleteSubcategory",
+      "displayName": "Delete subcategory",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategoryAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteSubcategory",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes a subcategory from its category.",
+      "parameters": [
+        "categoryTitle",
+        "title"
+      ],
+      "definitionPath": "operations/deleteSubcategory.json"
+    },
+    {
+      "name": "deleteSubcategoryAdvanced",
+      "displayName": "Delete subcategory",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteSubcategory",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteSubcategoryAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes a subcategory from its category, using the category's and the subcategory's ids.",
+      "parameters": [
+        "categoryId",
+        "subcategoryId"
+      ],
+      "definitionPath": "operations/deleteSubcategoryAdvanced.json"
+    },
+    {
+      "name": "updateSubcategoryOrder",
+      "displayName": "Reorder subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryOrderAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryOrder",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves a subcategory to a new place in its category.",
+      "parameters": [
+        "categoryTitle",
+        "title",
+        "position"
+      ],
+      "definitionPath": "operations/updateSubcategoryOrder.json"
+    },
+    {
+      "name": "updateSubcategoryOrderAdvanced",
+      "displayName": "Reorder subcategory",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateSubcategoryOrder",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateSubcategoryOrderAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves a subcategory to a new place in its category, using the category's and the subcategory's ids.",
+      "parameters": [
+        "categoryId",
+        "subcategoryId",
+        "position"
+      ],
+      "definitionPath": "operations/updateSubcategoryOrderAdvanced.json"
+    },
+    {
+      "name": "createLocationField",
+      "displayName": "Create location field",
+      "type": "function",
+      "crudMode": "create",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "createLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Adds an extra field that people fill in when adding or editing a location, up to 10 fields in all.",
+      "parameters": [
+        "label",
+        "section",
+        "type",
+        "required",
+        "allowCustomLabel"
+      ],
+      "definitionPath": "operations/createLocationField.json"
+    },
+    {
+      "name": "updateLocationField",
+      "displayName": "Update location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes an extra location field's name, type, or whether it must be filled in.",
+      "parameters": [
+        "label",
+        "newLabel",
+        "newType",
+        "required",
+        "allowCustomLabel"
+      ],
+      "definitionPath": "operations/updateLocationField.json"
+    },
+    {
+      "name": "updateLocationFieldAdvanced",
+      "displayName": "Update location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateLocationField",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes an extra location field's name, type, or whether it must be filled in, using the field's id.",
+      "parameters": [
+        "fieldId",
+        "newLabel",
+        "newType",
+        "required",
+        "allowCustomLabel"
+      ],
+      "definitionPath": "operations/updateLocationFieldAdvanced.json"
+    },
+    {
+      "name": "deleteLocationField",
+      "displayName": "Delete location field",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "deleteLocationFieldAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteLocationField",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes an extra location field, so what was filled in for it no longer shows.",
+      "parameters": [
+        "label"
+      ],
+      "definitionPath": "operations/deleteLocationField.json"
+    },
+    {
+      "name": "deleteLocationFieldAdvanced",
+      "displayName": "Delete location field",
+      "type": "function",
+      "crudMode": "delete",
+      "flags": [
+        "mutable",
+        "dangerous",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "deleteLocationField",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "deleteLocationFieldAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Permanently removes an extra location field, so what was filled in for it no longer shows, using the field's id.",
+      "parameters": [
+        "fieldId"
+      ],
+      "definitionPath": "operations/deleteLocationFieldAdvanced.json"
+    },
+    {
+      "name": "updateLocationFieldOrder",
+      "displayName": "Reorder location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldOrderAdvanced",
+          "label": "Advanced"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldOrder",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves an extra location field to a new place within its section.",
+      "parameters": [
+        "label",
+        "position"
+      ],
+      "definitionPath": "operations/updateLocationFieldOrder.json"
+    },
+    {
+      "name": "updateLocationFieldOrderAdvanced",
+      "displayName": "Reorder location field",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "advanced",
+      "alternatives": [
+        {
+          "operationName": "updateLocationFieldOrder",
+          "label": "Basic"
+        }
+      ],
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLocationFieldOrderAdvanced",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Moves an extra location field to a new place within its section, using the field's id.",
+      "parameters": [
+        "fieldId",
+        "position"
+      ],
+      "definitionPath": "operations/updateLocationFieldOrderAdvanced.json"
+    },
+    {
+      "name": "getSettings",
+      "displayName": "Get settings",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getSettings",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows this plugin's settings, including the extra location fields.",
+      "parameters": [],
+      "definitionPath": "operations/getSettings.json"
+    },
+    {
+      "name": "updateSettings",
+      "displayName": "Update settings",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API"
+      ],
+      "context": {
+        "functionName": "updateSettings",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes this plugin's settings, design and introduction screen, keeping every setting not given.",
+      "parameters": [
+        "allowSubscriptions",
+        "timeFormat",
+        "defaultSorting",
+        "hideSorting",
+        "allowSortByReverseAlphabetical",
+        "allowSortByNearest",
+        "allowSortByPriceHighToLow",
+        "allowSortByPriceLowToHigh",
+        "allowSortByViews",
+        "allowSortByDate",
+        "allowSortByRating",
+        "allowFilterByArea",
+        "hideOpeningHoursFilter",
+        "hidePriceFilter",
+        "allowFilterByBookmarks",
+        "distanceUnit",
+        "enableInitialArea",
+        "initialAreaLatitude",
+        "initialAreaLongitude",
+        "initialAreaAddress",
+        "enableBookmarks",
+        "allowBookmarkLocations",
+        "allowBookmarkSearch",
+        "enableOpenHours",
+        "enablePriceRange",
+        "chargeForNewLocations",
+        "paymentDetails",
+        "listViewPosition",
+        "listViewStyle",
+        "defaultMapType",
+        "enableMapTerrainView",
+        "hideQuickFilter",
+        "allowMapStyleSelection",
+        "showDetailsCategory",
+        "showContributorName",
+        "detailsMapPosition",
+        "introVisibility",
+        "introDescription",
+        "introImages",
+        "introSorting",
+        "introLocationSource",
+        "introAreaLatitude",
+        "introAreaLongitude",
+        "introAreaAddress",
+        "introAreaRadius"
+      ],
+      "definitionPath": "operations/updateSettings.json"
+    },
+    {
+      "name": "getLanguageStrings",
+      "displayName": "Get language texts",
+      "type": "function",
+      "crudMode": "read",
+      "flags": [
+        "immutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "getLanguageStrings",
+        "hosts": [
+          "widgetBackground",
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Shows every text label of the app that can be changed, with what the app shows now.",
+      "parameters": [],
+      "definitionPath": "operations/getLanguageStrings.json"
+    },
+    {
+      "name": "updateLanguageString",
+      "displayName": "Update language text",
+      "type": "function",
+      "crudMode": "update",
+      "flags": [
+        "mutable",
+        "safe",
+        "unthrottable"
+      ],
+      "usage": "basic",
+      "availableFor": [
+        "API",
+        "form"
+      ],
+      "context": {
+        "functionName": "updateLanguageString",
+        "hosts": [
+          "controlBackground",
+          "headlessSdk"
+        ]
+      },
+      "description": "Changes one text label the app shows, or puts it back to its original text.",
+      "parameters": [
+        "key",
+        "value"
+      ],
+      "definitionPath": "operations/updateLanguageString.json"
+    }
+  ]
+}
