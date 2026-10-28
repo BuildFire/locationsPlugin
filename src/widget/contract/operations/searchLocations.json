@@ -1,0 +1,364 @@
+{
+  "name": "searchLocations",
+  "displayName": "Search locations",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "searchLocations",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Finds locations by name, text, category or pin, a page at a time.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Location title",
+      "required": false,
+      "description": "Only show the location with exactly this title. Leave it out to show every location.",
+      "sampleValue": "[location title]"
+    },
+    "searchText": {
+      "type": "string",
+      "displayName": "Search text",
+      "required": false,
+      "description": "Only show locations whose name, subtitle or address contains this text. Leave it out to show every location.",
+      "sampleValue": "[search text]"
+    },
+    "category": {
+      "type": "string",
+      "displayName": "Category",
+      "required": false,
+      "description": "Only show locations in the category with this name. Leave it out to show every category.",
+      "sampleValue": "[category name]"
+    },
+    "subcategory": {
+      "type": "string",
+      "displayName": "Subcategory",
+      "required": false,
+      "description": "Only show locations in the subcategory with this name, within the category given. Leave it out to show the whole category.",
+      "sampleValue": "[subcategory name]"
+    },
+    "pinnedOnly": {
+      "type": "boolean",
+      "displayName": "Pinned only",
+      "required": false,
+      "description": "Only show the locations pinned to the top of the introduction screen, in their pinned order. Leave it out to show every location.",
+      "sampleValue": true
+    },
+    "sortBy": {
+      "type": "select",
+      "displayName": "Sort by",
+      "required": false,
+      "description": "How to order them. Leave it out to sort by name.",
+      "enums": [
+        {
+          "label": "Alphabetical",
+          "value": "alphabetical"
+        },
+        {
+          "label": "Newest",
+          "value": "newest"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "alphabetical"
+    },
+    "page": {
+      "type": "number",
+      "displayName": "Page",
+      "required": false,
+      "minValue": 0,
+      "description": "Which page to show, counting from 0. Leave it out for the first page.",
+      "sampleValue": 0
+    },
+    "pageSize": {
+      "type": "number",
+      "displayName": "Page size",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "How many locations a page holds, up to 50. Leave it out for 50.",
+      "sampleValue": 20
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the search is done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it didn't work, such as no category having that name."
+        },
+        "result": {
+          "type": "object",
+          "description": "The locations that were found.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "The locations on this page.",
+              "items": {
+                "type": "object",
+                "description": "One location.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The location's name."
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "description": "The short line shown under its name, if any."
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "The location's address."
+                  },
+                  "formattedAddress": {
+                    "type": "string",
+                    "description": "The full address as the map shows it."
+                  },
+                  "addressAlias": {
+                    "type": "string",
+                    "description": "The custom name shown for the address, if any."
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "description": "Where it is on the map, north to south."
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "description": "Where it is on the map, east to west."
+                  },
+                  "listImage": {
+                    "type": "string",
+                    "description": "The picture shown for it in lists."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Its formatted description."
+                  },
+                  "images": {
+                    "type": "array",
+                    "description": "The pictures on its page, in order.",
+                    "items": {
+                      "type": "string",
+                      "description": "One picture."
+                    }
+                  },
+                  "categories": {
+                    "type": "string",
+                    "description": "Its categories and subcategories, written the way they are given when adding a location."
+                  },
+                  "categoryTitles": {
+                    "type": "array",
+                    "description": "The names of its categories.",
+                    "items": {
+                      "type": "string",
+                      "description": "One category name."
+                    }
+                  },
+                  "subcategoryTitles": {
+                    "type": "array",
+                    "description": "The names of its subcategories.",
+                    "items": {
+                      "type": "string",
+                      "description": "One subcategory name."
+                    }
+                  },
+                  "categoryIds": {
+                    "type": "array",
+                    "description": "The ids of its categories.",
+                    "items": {
+                      "type": "string",
+                      "description": "A category's id."
+                    }
+                  },
+                  "subcategoryIds": {
+                    "type": "array",
+                    "description": "The ids of its subcategories.",
+                    "items": {
+                      "type": "string",
+                      "description": "A subcategory's id."
+                    }
+                  },
+                  "markerType": {
+                    "type": "string",
+                    "description": "How it is marked on the map: pin, circle or image."
+                  },
+                  "markerImage": {
+                    "type": "string",
+                    "description": "The picture used as its marker, if it has one."
+                  },
+                  "markerColor": {
+                    "type": "string",
+                    "description": "The color of its circle marker, if it has one."
+                  },
+                  "showCategory": {
+                    "type": "boolean",
+                    "description": "Whether its categories show on its page."
+                  },
+                  "showOpeningHours": {
+                    "type": "boolean",
+                    "description": "Whether its opening hours show."
+                  },
+                  "showPriceRange": {
+                    "type": "boolean",
+                    "description": "Whether its price range shows."
+                  },
+                  "showStarRating": {
+                    "type": "boolean",
+                    "description": "Whether its star rating shows."
+                  },
+                  "priceRange": {
+                    "type": "number",
+                    "description": "How pricey it is, from 1 ($) to 4 ($$$$)."
+                  },
+                  "priceCurrency": {
+                    "type": "string",
+                    "description": "The currency sign of its price range."
+                  },
+                  "pinned": {
+                    "type": "boolean",
+                    "description": "Whether it is pinned to the top of the introduction screen."
+                  },
+                  "pinPosition": {
+                    "type": "number",
+                    "description": "Its place among the pinned locations, if it is pinned."
+                  },
+                  "openingHours": {
+                    "type": "object",
+                    "description": "When it is open, day by day.",
+                    "properties": {
+                      "monday": {
+                        "type": "string",
+                        "description": "Its hours on Mondays, such as 08:00-20:00, or closed."
+                      },
+                      "tuesday": {
+                        "type": "string",
+                        "description": "Its hours on Tuesdays, such as 08:00-20:00, or closed."
+                      },
+                      "wednesday": {
+                        "type": "string",
+                        "description": "Its hours on Wednesdays, such as 08:00-20:00, or closed."
+                      },
+                      "thursday": {
+                        "type": "string",
+                        "description": "Its hours on Thursdays, such as 08:00-20:00, or closed."
+                      },
+                      "friday": {
+                        "type": "string",
+                        "description": "Its hours on Fridays, such as 08:00-20:00, or closed."
+                      },
+                      "saturday": {
+                        "type": "string",
+                        "description": "Its hours on Saturdays, such as 08:00-20:00, or closed."
+                      },
+                      "sunday": {
+                        "type": "string",
+                        "description": "Its hours on Sundays, such as 08:00-20:00, or closed."
+                      }
+                    }
+                  },
+                  "actionItems": {
+                    "type": "array",
+                    "description": "The buttons on its page, in order.",
+                    "items": {
+                      "type": "object",
+                      "description": "One button.",
+                      "properties": {
+                        "title": {
+                          "type": "string",
+                          "description": "The button's label."
+                        },
+                        "action": {
+                          "type": "string",
+                          "description": "What the button does, such as callNumber or linkToWeb."
+                        }
+                      }
+                    }
+                  },
+                  "fieldValues": {
+                    "type": "array",
+                    "description": "What it holds for each location field.",
+                    "items": {
+                      "type": "object",
+                      "description": "One field value.",
+                      "properties": {
+                        "fieldId": {
+                          "type": "string",
+                          "description": "The location field's id."
+                        },
+                        "value": {
+                          "type": "string",
+                          "description": "What the location holds for the field."
+                        },
+                        "customLabel": {
+                          "type": "string",
+                          "description": "The location's own label for the field, if it has one."
+                        }
+                      }
+                    }
+                  },
+                  "rating": {
+                    "type": "object",
+                    "description": "How app users rated it.",
+                    "properties": {
+                      "average": {
+                        "type": "number",
+                        "description": "Its average rating."
+                      },
+                      "count": {
+                        "type": "number",
+                        "description": "How many ratings it has."
+                      }
+                    }
+                  },
+                  "views": {
+                    "type": "number",
+                    "description": "How many times it was viewed."
+                  },
+                  "createdOn": {
+                    "type": "datetime",
+                    "description": "When it was added."
+                  },
+                  "lastUpdatedOn": {
+                    "type": "datetime",
+                    "description": "When it was last changed."
+                  }
+                }
+              }
+            },
+            "total": {
+              "type": "number",
+              "description": "How many locations match in all."
+            },
+            "page": {
+              "type": "number",
+              "description": "Which page this is, counting from 0."
+            },
+            "hasMore": {
+              "type": "boolean",
+              "description": "Whether there are more pages after this one."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "name": "createCategoriesAdvanced",
+  "displayName": "Create categories",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "createCategoriesAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds several categories at once, up to 50.",
+  "parameters": {
+    "categories": {
+      "type": "list",
+      "displayName": "Categories",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The categories to add, up to 50 at a time.",
+      "items": {
+        "title": {
+          "type": "string",
+          "displayName": "Category name",
+          "required": true,
+          "description": "The category's name.",
+          "sampleValue": "[category name]"
+        },
+        "icon": {
+          "type": "image",
+          "displayName": "Icon",
+          "required": false,
+          "minValue": 0,
+          "maxValue": 1,
+          "description": "The picture shown for it, as a list holding one image. Leave it out for none.",
+          "sampleValue": [
+            "[image url]"
+          ]
+        },
+        "iconName": {
+          "type": "string",
+          "displayName": "Library icon",
+          "required": false,
+          "description": "An icon from the icon library, by its name, shown instead of a picture. Leave it out for none.",
+          "sampleValue": "glyphicon glyphicon-cutlery"
+        },
+        "subcategories": {
+          "type": "string",
+          "displayName": "Subcategories",
+          "required": false,
+          "description": "The names of its subcategories, separated by commas. Leave it out for none.",
+          "sampleValue": "[subcategory name], [subcategory name]"
+        }
+      },
+      "sampleValue": [
+        {
+          "title": "[category name]"
+        },
+        {
+          "title": "[category name]",
+          "subcategories": "[subcategory name]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the categories are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was added, such as an entry missing what it needs or naming something that doesn't exist."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each of the categories went.",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "description": "One result per entry, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one entry went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which entry this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The id of what was added, if it was."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't added, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were added."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't added."
+            }
+          }
+        }
+      }
+    }
+  }
+}

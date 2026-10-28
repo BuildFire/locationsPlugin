@@ -1,0 +1,113 @@
+{
+  "name": "updateSubcategoryOrderAdvanced",
+  "displayName": "Reorder subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategoryOrder",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategoryOrderAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a subcategory to another place in its category's list, using their ids.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in search results.",
+      "sampleValue": "[category id]"
+    },
+    "subcategoryId": {
+      "type": "string",
+      "displayName": "Subcategory id",
+      "required": true,
+      "description": "The subcategory's id, as shown in the category's search results.",
+      "sampleValue": "[subcategory id]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "minValue": 1,
+      "description": "Its new place in its category's list, counting from 1.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is moved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't moved, such as no subcategory having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The category, as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "Its picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "Its icon from the icon library, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's name."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "Its picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "Its icon from the icon library, if it has one."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -74,7 +74,22 @@ export default {
     return Location.add(location.toJSON()).then((result) => {
       Analytics.registerLocationViewedEvent(result.id, result.title);
       DeepLink.registerDeeplink(result);
-      return SearchEngine.add(Location.TAG, result.id, result).then(() => result);
+      return SearchEngine.add(Location.TAG, result.id, result).then(() => {
+        if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+          const by = result.createdBy;
+          buildfire.services.contract.events.send('locationCreated', {
+            locationId: result.id,
+            title: result.title,
+            subtitle: result.subtitle || null,
+            address: result.address || null,
+            categoryNames: (result.categories.main || []).map((id) => ((state.categories || []).find((c) => c.id === id) || {}).title).filter(Boolean),
+            listImage: result.listImage || null,
+            createdAt: result.createdOn,
+            createdBy: by ? { userId: by._id, displayName: by.displayName || null, email: by.email || null } : null
+          });
+        }
+        return result;
+      });
     });
   },
   deleteLocation(locationId) {
@@ -83,7 +98,15 @@ export default {
       DeepLink.unregisterDeeplink(locationId),
       SearchEngine.delete(Location.TAG, locationId)
     ];
-    return Promise.allSettled(promiseChain);
+    const removed = (state.listLocations || []).find((l) => l.id === locationId);
+    return Promise.allSettled(promiseChain).then((results) => {
+      if (results[0].status === 'fulfilled' && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        buildfire.services.contract.events.send('locationDeleted', {
+          locationId, title: removed ? removed.title : null, deletedAt: new Date().toISOString()
+        });
+      }
+      return results;
+    });
   },
   subscribeToLocationUpdates(locationId, userId) {
     return Location.subscribeToLocationUpdates(locationId, userId);
