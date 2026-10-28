@@ -38,7 +38,7 @@ jobs:
       # needs pull-requests: read, and a failed one falls through to a normal run.
       # uat-contract-* branches call UAT with its key, every other branch prod with its own.
       # The body comes from the runner's own env through jq, never pasted into the script.
-      # The second call only happens when the first stream ended with no verdict.
+      # A second call only happens when the first ended before the run started; a started run holds the lock.
       - shell: bash
         run: |
           if [ "$GITHUB_EVENT_NAME" = push ] \
@@ -60,8 +60,11 @@ jobs:
               -H "apikey: $key" \
               -H 'content-type: application/json' \
               -d "$body" | tee contract.log || true
-            grep -q -E '^(✅ DONE|❌ ERROR) ' contract.log && break
+            grep -q -E '^(✅ DONE|❌ ERROR|🚀) ' contract.log && break
           done
+          if grep -q '^🚀 ' contract.log && ! grep -q -E '^(✅ DONE|❌ ERROR) ' contract.log; then
+            echo '::error title=Plugin contract::Lost the connection after the run started. It may still be running in Plugin Studio and push its result when it ends; a re-run before then is refused.'
+          fi
           grep -q '^✅ DONE ' contract.log
         env:
           GH_TOKEN: ${{ github.token }}

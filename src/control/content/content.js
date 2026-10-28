@@ -11,7 +11,7 @@ import state from './state';
 
 const templates = {};
 
-const myNameIsss = 'abdalla';
+const myNameIssss = 'abdalla';
 
 const createLoadingState = () => {
   const div = document.createElement("div");
