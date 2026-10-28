@@ -171,6 +171,18 @@ contract.describe('updateLocationField', () => {
       expect(await refusal(call('updateLocationField', { required: true }))).toContain('fieldName');
     });
   });
+
+  describe("the previous contract's data", () => {
+    // The app's run fills in this field after the control run, so it is changed and then put back as it was.
+    it('changes the location field the previous pre specs added', async () => {
+      const fieldName = 'Pre locations email for the app';
+      expect(await named(fieldName)).toEqual([jasmine.objectContaining({ group: 'content', type: 'EMAIL', required: false, enableCustomLabel: true })]);
+      expect(await call('updateLocationField', { fieldName, required: true })).toEqual(jasmine.objectContaining({ label: fieldName, required: true }));
+      expect(await named(fieldName)).toEqual([jasmine.objectContaining({ type: 'EMAIL', required: true, enableCustomLabel: true })]);
+      await call('updateLocationField', { fieldName, required: false });
+      expect(await named(fieldName)).toEqual([jasmine.objectContaining({ required: false })]);
+    });
+  });
 });
 
 contract.describe('updateLocationFieldAdvanced', () => {

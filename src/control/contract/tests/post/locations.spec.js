@@ -130,6 +130,17 @@ contract.describe('searchLocations', () => {
       expect(await refusal(call('searchLocations', { pinnedOnly: 'yes' }))).toContain('pinnedOnly');
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('still finds the locations the previous pre specs added, by title and by a word with their category and price', async () => {
+      const title = `Pre listed location (${contract.host})`;
+      expect(await found(title)).toEqual([jasmine.objectContaining({ id: jasmine.any(String), title, listImage: 'https://example.com/pre-location.png' })]);
+      const narrowed = await call('searchLocations', {
+        search: `prelocationsword${contract.host}`, categoryName: 'Pre locations category for the app', subcategoryName: 'Pre gardens', priceRange: 2
+      });
+      expect(narrowed.locations.map((location) => location.title)).toEqual([`Pre narrowed prelocationsword${contract.host}`]);
+    });
+  });
 });
 
 contract.describe('getLocation', () => {
@@ -159,6 +170,25 @@ contract.describe('getLocation', () => {
     expect(await refusal(call('getLocation', { title: '' }))).toContain('title');
     expect(await refusal(call('getLocation', { title: null }))).toContain('title');
   });
+
+  describe("the previous contract's data", () => {
+    it('shows a location the previous pre specs added with every detail, as they stored it', async () => {
+      const title = `Pre detailed location (${contract.host})`;
+      const location = await call('getLocation', { title });
+      expect(location).toEqual(jasmine.objectContaining({
+        id: jasmine.any(String), title, subtitle: 'Gardens and museums', addressAlias: 'The park', address: '1549 El Prado, San Diego, CA 92101',
+        coordinates: { lat: 32.7341, lng: -117.1446 }, listImage: 'https://example.com/pre-location.png', price: jasmine.objectContaining({ range: 3, currency: '€' })
+      }));
+      expect(location.images.map((image) => image.imageUrl)).toEqual(['https://example.com/pre-photo-1.png', 'https://example.com/pre-photo-2.png']);
+      expect(location.marker).toEqual(jasmine.objectContaining({ type: 'circle', image: 'https://example.com/pre-marker.png' }));
+      expect(location.categories.main.length).toBe(1);
+      expect(location.categories.subcategories.length).toBe(1);
+      expect(location.settings).toEqual(jasmine.objectContaining({ showOpeningHours: true, showStarRating: true }));
+      expect(location.openingHours.days.sunday.active).toBe(false);
+      expect(location.openingHours.days.monday.intervals.length).toBe(2);
+      expect(location.actionItems).toEqual([jasmine.objectContaining({ title: 'Website', action: 'linkToWeb' })]);
+    });
+  });
 });
 
 contract.describe('getLocationAdvanced', () => {
@@ -177,6 +207,14 @@ contract.describe('getLocationAdvanced', () => {
 
   it('refuses without an id', async () => {
     expect(await refusal(call('getLocationAdvanced', {}))).toContain('locationId');
+  });
+
+  describe("the previous contract's data", () => {
+    it('shows a location the previous pre specs added, by its id', async () => {
+      const title = `Pre location to get by id (${contract.host})`;
+      const [{ id }] = await found(title);
+      expect(await call('getLocationAdvanced', { locationId: id })).toEqual(jasmine.objectContaining({ id, title, listImage: 'https://example.com/pre-location.png' }));
+    });
   });
 });
 
@@ -462,6 +500,27 @@ contract.describe('updateLocation', () => {
       await removeAll([created.id]);
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes a location the previous pre specs added, keeping what it is not given', async () => {
+      const title = `Pre location to update (${contract.host})`;
+      expect((await call('getLocation', { title })).subtitle).toBe('Updated before the next contract');
+      expect(await call('updateLocation', { title, subtitle: 'Updated by the new contract', priceRange: 2 })).toEqual(jasmine.objectContaining({
+        title, subtitle: 'Updated by the new contract', address: '1549 El Prado, San Diego, CA 92101', price: jasmine.objectContaining({ range: 2 })
+      }));
+      expect(await call('getLocation', { title })).toEqual(jasmine.objectContaining({
+        subtitle: 'Updated by the new contract', listImage: 'https://example.com/pre-location.png', price: jasmine.objectContaining({ range: 2 })
+      }));
+    });
+
+    it('renames the location the previous pre specs renamed', async () => {
+      const title = `Pre location changed (${contract.host})`;
+      const newTitle = unique('pre renamed');
+      await call('updateLocation', { title, newTitle });
+      expect(await found(title)).toEqual([]);
+      expect(await found(newTitle)).toEqual([jasmine.objectContaining({ title: newTitle, subtitle: 'Gardens and museums', address: '2 Harbor Dr, San Diego, CA' })]);
+    });
+  });
 });
 
 contract.describe('updateLocationAdvanced', () => {
@@ -482,6 +541,18 @@ contract.describe('updateLocationAdvanced', () => {
 
   it('refuses without an id', async () => {
     expect(await refusal(call('updateLocationAdvanced', { subtitle: 'x' }))).toContain('locationId');
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes a location the previous pre specs added, by its id', async () => {
+      const title = `Pre location to update by id (${contract.host})`;
+      const [{ id, subtitle }] = await found(title);
+      expect(subtitle).toBe('By id');
+      expect(await call('updateLocationAdvanced', { locationId: id, subtitle: null })).toEqual(jasmine.objectContaining({
+        id, title, subtitle: null, price: jasmine.objectContaining({ range: 4 })
+      }));
+      expect((await found(title))[0].subtitle).toBeNull();
+    });
   });
 });
 
@@ -523,6 +594,21 @@ contract.describe('updateLocationsAdvanced', () => {
       await removeAll([created.id]);
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes several locations the previous pre specs added', async () => {
+      const one = `Pre locations to change one (${contract.host})`;
+      const two = `Pre locations to change two (${contract.host})`;
+      const [first] = await found(one);
+      const [second] = await found(two);
+      expect(first.subtitle).toBe('Changed together');
+      expect(second.settings.showStarRating).toBe(true);
+      expect(await call('updateLocationsAdvanced', { locations: [{ locationId: first.id, subtitle: 'Changed again' }, { locationId: second.id, showStarRating: false }] }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect((await found(one))[0].subtitle).toBe('Changed again');
+      expect((await found(two))[0].settings.showStarRating).toBe(false);
+    });
+  });
 });
 
 contract.describe('deleteLocation', () => {
@@ -554,6 +640,15 @@ contract.describe('deleteLocation', () => {
   it('refuses without a title', async () => {
     expect(await refusal(call('deleteLocation', {}))).toContain('title');
   });
+
+  describe("the previous contract's data", () => {
+    it('deletes a location the previous pre specs added', async () => {
+      const title = `Pre location (${contract.host})`;
+      expect(await found(title)).toEqual([jasmine.objectContaining({ title })]);
+      expect(await call('deleteLocation', { title })).toEqual(jasmine.objectContaining({ id: jasmine.any(String), title }));
+      expect(await found(title)).toEqual([]);
+    });
+  });
 });
 
 contract.describe('deleteLocationAdvanced', () => {
@@ -573,6 +668,15 @@ contract.describe('deleteLocationAdvanced', () => {
   it('refuses an id that matches nothing', async () => {
     expect(await refusal(call('deleteLocationAdvanced', { locationId: '000000000000000000000000' }))).toContain('000000000000000000000000');
     expect(events()).not.toHaveBeenCalled();
+  });
+
+  describe("the previous contract's data", () => {
+    it('deletes a location the previous pre specs added, by its id', async () => {
+      const title = `Pre batch location one (${contract.host})`;
+      const [{ id }] = await found(title);
+      expect(await call('deleteLocationAdvanced', { locationId: id })).toEqual(jasmine.objectContaining({ id, title }));
+      expect(await found(title)).toEqual([]);
+    });
   });
 });
 
@@ -598,6 +702,16 @@ contract.describe('deleteLocationsAdvanced', () => {
 
   it('refuses an empty list', async () => {
     await expectAsync(call('deleteLocationsAdvanced', { locations: [] })).toBeRejected();
+  });
+
+  describe("the previous contract's data", () => {
+    it('deletes several locations the previous pre specs added', async () => {
+      const titles = [`Pre batch location two (${contract.host})`, `Pre location to get (${contract.host})`];
+      const ids = [];
+      for (const title of titles) ids.push((await found(title))[0].id);
+      expect(await call('deleteLocationsAdvanced', { locations: ids.map((locationId) => ({ locationId })) })).toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      for (const title of titles) expect(await found(title)).toEqual([]);
+    });
   });
 });
 
@@ -659,6 +773,18 @@ contract.describe('updateLocationFieldValue', () => {
       expect(await refusal(call('updateLocationFieldValue', { locationTitle: 'x', fieldName: fieldForTheApp }))).toContain('value');
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes a value the previous pre specs filled in', async () => {
+      const title = `Pre location with a field value (${contract.host})`;
+      const fieldName = 'Pre locations email for the app';
+      const field = (await call('getSettings', {})).customFields.content.find((entry) => entry.label === fieldName);
+      const valueOf = async () => (await call('getLocation', { title })).additionalFields.content.find((entry) => entry.id === field.id);
+      expect(await valueOf()).toEqual(jasmine.objectContaining({ value: 'pre@example.com' }));
+      await call('updateLocationFieldValue', { locationTitle: title, fieldName, value: `post.${contract.host}@example.com` });
+      expect(await valueOf()).toEqual(jasmine.objectContaining({ value: `post.${contract.host}@example.com` }));
+    });
+  });
 });
 
 contract.describe('updateLocationFieldValueAdvanced', () => {
@@ -681,6 +807,17 @@ contract.describe('updateLocationFieldValueAdvanced', () => {
     const created = await call('createLocation', place(title));
     expect(await refusal(call('updateLocationFieldValueAdvanced', { locationId: created.id, fieldId: 'no-such-field', value: 'a@example.com' }))).toContain('no-such-field');
     await removeAll([created.id]);
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes a value the previous pre specs filled in, by the ids', async () => {
+      const title = `Pre location with a field value by id (${contract.host})`;
+      const field = (await call('getSettings', {})).customFields.content.find((entry) => entry.label === 'Pre locations email for the app');
+      const [{ id, additionalFields }] = await found(title);
+      expect(additionalFields.content.find((entry) => entry.id === field.id)).toEqual(jasmine.objectContaining({ value: 'pre@example.com', customLabel: 'Mail' }));
+      await call('updateLocationFieldValueAdvanced', { locationId: id, fieldId: field.id, value: 'pre@example.com', customLabel: null });
+      expect((await found(title))[0].additionalFields.content.find((entry) => entry.id === field.id)).toEqual(jasmine.objectContaining({ value: 'pre@example.com', customLabel: null }));
+    });
   });
 });
 
@@ -706,6 +843,22 @@ contract.describe('updateLocationFieldValuesAdvanced', () => {
     expect((await found(title))[0].additionalFields.content).not.toContain(jasmine.objectContaining({ value: 'ok@example.com' }));
     await expectAsync(call('updateLocationFieldValuesAdvanced', { values: [] })).toBeRejected();
     await removeAll([created.id]);
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes values the previous pre specs filled in on several locations', async () => {
+      const field = (await call('getSettings', {})).customFields.content.find((entry) => entry.label === 'Pre locations email for the app');
+      const titles = [`Pre locations with values one (${contract.host})`, `Pre locations with values two (${contract.host})`];
+      const valueOf = async (title) => (await found(title))[0].additionalFields.content.find((entry) => entry.id === field.id);
+      expect(await valueOf(titles[0])).toEqual(jasmine.objectContaining({ value: 'one@example.com' }));
+      expect(await valueOf(titles[1])).toEqual(jasmine.objectContaining({ value: 'two@example.com', customLabel: 'Two' }));
+      const ids = [];
+      for (const title of titles) ids.push((await found(title))[0].id);
+      expect(await call('updateLocationFieldValuesAdvanced', { values: ids.map((locationId) => ({ locationId, fieldId: field.id, value: 'both@example.com' })) }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect(await valueOf(titles[0])).toEqual(jasmine.objectContaining({ value: 'both@example.com' }));
+      expect(await valueOf(titles[1])).toEqual(jasmine.objectContaining({ value: 'both@example.com', customLabel: 'Two' }));
+    });
   });
 });
 

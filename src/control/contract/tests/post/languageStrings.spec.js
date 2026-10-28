@@ -31,6 +31,18 @@ contract.describe('getLanguageStrings', () => {
 contract.describe('updateLanguageString', () => {
   beforeEach(quiet);
 
+  // First in the block: the specs after it change the one language record the previous pre specs saved.
+  describe("the previous contract's data", () => {
+    it('shows and changes the labels the previous pre specs saved', async () => {
+      expect(await labelOf('general.search')).toEqual(jasmine.objectContaining({ value: 'Find a place', defaultValue: 'Search' }));
+      expect(await labelOf('general.notAvailable')).toEqual(jasmine.objectContaining({ value: '', defaultValue: 'N/A' }));
+      const value = shortText('NA');
+      expect(await call('updateLanguageString', { key: 'general.notAvailable', value })).toEqual({ key: 'general.notAvailable', value });
+      expect((await labelOf('general.notAvailable')).value).toBe(value);
+      expect((await labelOf('general.search')).value).toBe('Find a place');
+    });
+  });
+
   it("changes a label's text, and the app shows it", async () => {
     const value = shortText('Find');
     expect(await call('updateLanguageString', { key: 'general.search', value })).toEqual({ key: 'general.search', value });

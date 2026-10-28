@@ -38,11 +38,39 @@ contract.describe('getSettings', () => {
     expect(after.design).toEqual(before.design);
     expect(after.sorting).toEqual(before.sorting);
   });
+
+  describe("the previous contract's data", () => {
+    it('still shows the location field the previous pre specs added', async () => {
+      const { content } = (await call('getSettings', {})).customFields;
+      expect(content).toContain(jasmine.objectContaining({ id: jasmine.any(String), label: 'Pre locations email for the app', type: 'EMAIL', enableCustomLabel: true }));
+    });
+  });
 });
 
 // controlBackground only: the datastore is written from the control panel.
 contract.describe('updateSettings', () => {
   beforeEach(quiet);
+
+  // First in the block: the specs after it change the one settings record the previous pre specs saved.
+  describe("the previous contract's data", () => {
+    it('changes the settings the previous pre specs saved, keeping the rest', async () => {
+      const result = await call('updateSettings', { hideQuickFilter: true });
+      expect(result.design).toEqual(jasmine.objectContaining({
+        hideQuickFilter: true, listViewPosition: 'halfExpanded', listViewStyle: 'backgroundImage', defaultMapType: 'satellite',
+        detailsMapPosition: 'bottom', enableMapTerrainView: true, showContributorName: true
+      }));
+      expect(result.measurementUnit).toBe('imperial');
+      expect(result.locationEditors.time).toBe('24H');
+      expect(result.sorting).toEqual(jasmine.objectContaining({ allowSortByPriceHighToLow: false, allowSortByRating: false }));
+      expect(result.filter).toEqual(jasmine.objectContaining({ allowFilterByBookmarks: true, hidePriceFilter: true }));
+      expect(result.map).toEqual(jasmine.objectContaining({ initialArea: true, initialAreaDisplayAddress: 'San Diego, CA, USA', initialAreaCoordinates: { lat: 32.7157, lng: -117.1611 } }));
+      expect(result.introductoryListView).toEqual(jasmine.objectContaining({ description: '<p>Places to visit.</p>', sorting: 'alphabetical' }));
+      expect(result.introductoryListView.images.map((image) => image.iconUrl)).toEqual(['https://example.com/pre-banner.png']);
+      expect(result.introductoryListView.searchOptions.areaRadiusOptions).toEqual(jasmine.objectContaining({ formattedLocation: 'Balboa Park, San Diego', lat: 32.7341, lng: -117.1446, radius: 15 }));
+      expect(result.globalEntries.charging.description).toBe('<p>Pay once to add a location.</p>');
+      expect((await call('getSettings', {})).design.hideQuickFilter).toBe(true);
+    });
+  });
 
   it('changes only the settings it is given, and keeps the rest', async () => {
     await call('updateSettings', { listViewStyle: 'smallImage', defaultMapType: 'satellite', distanceUnit: 'imperial' });

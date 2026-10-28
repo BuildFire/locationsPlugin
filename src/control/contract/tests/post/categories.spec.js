@@ -65,6 +65,23 @@ contract.describe('listCategories', () => {
     expect(second.result.length).toBe(Math.min(50, first.totalRecord - 50));
     expect(second.result.map((record) => record.id)).not.toContain(first.result[0].id);
   }, 300000);
+
+  describe("the previous contract's data", () => {
+    // Only the control panel makes categories, so the previous pre specs made these on the control, and both sides read them.
+    it('still finds the categories the previous pre specs added, with their subcategories and icons', async () => {
+      expect(await listed('Pre category for the app')).toEqual([jasmine.objectContaining({
+        id: jasmine.any(String), title: 'Pre category for the app', subcategories: [jasmine.objectContaining({ id: jasmine.any(String), title: 'Pre gardens' })]
+      })]);
+      expect(await listed('Pre category (control)')).toEqual([jasmine.objectContaining({ title: 'Pre category (control)', subcategories: [] })]);
+      expect(await subTitles('Pre category with subcategories (control)')).toEqual(['Pre gardens']);
+      expect(await listed('Pre category to re-icon (control)')).toEqual([jasmine.objectContaining({ iconUrl: null, iconClassName: 'glyphicon glyphicon-leaf' })]);
+    });
+
+    it('no longer shows the categories the previous pre specs deleted', async () => {
+      expect(await listed('Pre category to delete (control)')).toEqual([]);
+      expect(await listed('Pre categories to delete one (control)')).toEqual([]);
+    });
+  });
 });
 
 // controlBackground only, like every category write below: only the control panel manages categories.
@@ -180,6 +197,14 @@ contract.describe('updateCategory', () => {
       expect(await refusal(call('updateCategory', { newTitle: 'x' }))).toContain('title');
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes a category the previous pre specs added', async () => {
+      const title = `Pre category renamed (${contract.host})`;
+      expect(await call('updateCategory', { title, newIconClassName: 'glyphicon glyphicon-star' })).toEqual(jasmine.objectContaining({ title, iconClassName: 'glyphicon glyphicon-star' }));
+      expect(await listed(title)).toEqual([jasmine.objectContaining({ title, iconUrl: null, iconClassName: 'glyphicon glyphicon-star' })]);
+    });
+  });
 });
 
 contract.describe('updateCategoryAdvanced', () => {
@@ -195,6 +220,16 @@ contract.describe('updateCategoryAdvanced', () => {
   it('refuses an id that matches nothing, or none', async () => {
     expect(await refusal(call('updateCategoryAdvanced', { categoryId: '000000000000000000000000', newTitle: 'x' }))).toContain('000000000000000000000000');
     expect(await refusal(call('updateCategoryAdvanced', { newTitle: 'x' }))).toContain('categoryId');
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes a category the previous pre specs added, by its id', async () => {
+      const title = `Pre batch category two (${contract.host})`;
+      const [{ id, iconClassName }] = await listed(title);
+      expect(iconClassName).toBe('glyphicon glyphicon-star');
+      await call('updateCategoryAdvanced', { categoryId: id, newIcon: ['https://example.com/post-icon.png'] });
+      expect(await listed(title)).toEqual([jasmine.objectContaining({ id, iconUrl: 'https://example.com/post-icon.png', iconClassName: null })]);
+    });
   });
 });
 
@@ -215,6 +250,19 @@ contract.describe('updateCategoriesAdvanced', () => {
     await expectAsync(call('updateCategoriesAdvanced', { categories: [{ categoryId: id, newTitle: 'x' }, { categoryId: '000000000000000000000000', newTitle: 'y' }] })).toBeRejected();
     await expectAsync(call('updateCategoriesAdvanced', { categories: [{ categoryId: id, newTitle: 'x' }, { categoryId: id, newTitle: 'y' }] })).toBeRejected();
     expect(await listed(title)).toEqual([jasmine.objectContaining({ id })]);
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes several categories the previous pre specs added', async () => {
+      const [one] = await listed(`Pre categories changed one (${contract.host})`);
+      const [two] = await listed(`Pre categories to change two (${contract.host})`);
+      expect(two.iconUrl).toBe('https://example.com/pre-icon.png');
+      const newTitle = unique('pre changed again');
+      expect(await call('updateCategoriesAdvanced', { categories: [{ categoryId: one.id, newTitle }, { categoryId: two.id, newIconClassName: 'glyphicon glyphicon-leaf' }] }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect(await listed(newTitle)).toEqual([jasmine.objectContaining({ id: one.id })]);
+      expect(await listed(`Pre categories to change two (${contract.host})`)).toEqual([jasmine.objectContaining({ iconUrl: null, iconClassName: 'glyphicon glyphicon-leaf' })]);
+    });
   });
 });
 
@@ -240,6 +288,14 @@ contract.describe('deleteCategory', () => {
   it('refuses without a title', async () => {
     expect(await refusal(call('deleteCategory', {}))).toContain('title');
   });
+
+  describe("the previous contract's data", () => {
+    it('removes a category the previous pre specs added', async () => {
+      const title = `Pre category with a library icon (${contract.host})`;
+      expect(await call('deleteCategory', { title })).toEqual(jasmine.objectContaining({ id: jasmine.any(String), title }));
+      expect(await listed(title)).toEqual([]);
+    });
+  });
 });
 
 contract.describe('deleteCategoryAdvanced', () => {
@@ -255,6 +311,15 @@ contract.describe('deleteCategoryAdvanced', () => {
 
   it('refuses an id that matches nothing', async () => {
     expect(await refusal(call('deleteCategoryAdvanced', { categoryId: '000000000000000000000000' }))).toContain('000000000000000000000000');
+  });
+
+  describe("the previous contract's data", () => {
+    it('removes a category the previous pre specs added, by its id', async () => {
+      const title = `Pre batch category one (${contract.host})`;
+      const [{ id }] = await listed(title);
+      expect(await call('deleteCategoryAdvanced', { categoryId: id })).toEqual(jasmine.objectContaining({ id }));
+      expect(await listed(title)).toEqual([]);
+    });
   });
 });
 
@@ -274,6 +339,16 @@ contract.describe('deleteCategoriesAdvanced', () => {
     await expectAsync(call('deleteCategoriesAdvanced', { categories: [{ categoryId: id }, { categoryId: '000000000000000000000000' }] })).toBeRejected();
     await expectAsync(call('deleteCategoriesAdvanced', { categories: [] })).toBeRejected();
     expect(await listed(title)).toEqual([jasmine.objectContaining({ id })]);
+  });
+
+  describe("the previous contract's data", () => {
+    it('removes several categories the previous pre specs added', async () => {
+      const titles = [`Pre category with an icon (${contract.host})`, `Pre category renamed by id (${contract.host})`];
+      const ids = [];
+      for (const title of titles) ids.push((await listed(title))[0].id);
+      expect(await call('deleteCategoriesAdvanced', { categories: ids.map((categoryId) => ({ categoryId })) })).toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      for (const title of titles) expect(await listed(title)).toEqual([]);
+    });
   });
 });
 
@@ -303,6 +378,15 @@ contract.describe('createSubcategory', () => {
       expect(await subTitles(title)).toEqual([]);
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('adds a subcategory to a category the previous pre specs added', async () => {
+      const categoryTitle = `Pre category with a subcategory to delete (${contract.host})`;
+      expect(await subTitles(categoryTitle)).toEqual([]);
+      await call('createSubcategory', { categoryTitle, title: 'Post added' });
+      expect(await subTitles(categoryTitle)).toEqual(['Post added']);
+    });
+  });
 });
 
 contract.describe('createSubcategoryAdvanced', () => {
@@ -317,6 +401,15 @@ contract.describe('createSubcategoryAdvanced', () => {
 
   it('refuses a category id that matches nothing', async () => {
     expect(await refusal(call('createSubcategoryAdvanced', { categoryId: '000000000000000000000000', title: 'Gardens' }))).toContain('000000000000000000000000');
+  });
+
+  describe("the previous contract's data", () => {
+    it('adds a subcategory to a category the previous pre specs added, by its id', async () => {
+      const title = `Pre category with a subcategory to delete by id (${contract.host})`;
+      const [{ id }] = await listed(title);
+      await call('createSubcategoryAdvanced', { categoryId: id, title: 'Post added' });
+      expect(await subTitles(title)).toEqual(['Post added']);
+    });
   });
 });
 
@@ -337,6 +430,16 @@ contract.describe('createSubcategoriesAdvanced', () => {
     await expectAsync(call('createSubcategoriesAdvanced', { subcategories: [{ categoryId: id, title: 'One' }, { categoryId: '000000000000000000000000', title: 'Two' }] })).toBeRejected();
     await expectAsync(call('createSubcategoriesAdvanced', { subcategories: [] })).toBeRejected();
     expect(await subTitles(title)).toEqual([]);
+  });
+
+  describe("the previous contract's data", () => {
+    it('adds several subcategories to a category the previous pre specs added', async () => {
+      const title = `Pre category with batch deletes (${contract.host})`;
+      const [{ id }] = await listed(title);
+      expect(await call('createSubcategoriesAdvanced', { subcategories: [{ categoryId: id, title: 'Post one' }, { categoryId: id, title: 'Post two' }] }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect(await subTitles(title)).toEqual(['Post one', 'Post two']);
+    });
   });
 });
 
@@ -373,6 +476,15 @@ contract.describe('updateSubcategory', () => {
       expect(await subTitles(title)).toEqual(['First']);
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('renames a subcategory the previous pre specs renamed', async () => {
+      const categoryTitle = `Pre category with a subcategory to rename (${contract.host})`;
+      expect(await subTitles(categoryTitle)).toEqual(['Pre new name']);
+      expect(await call('updateSubcategory', { categoryTitle, title: 'Pre new name', newTitle: 'Post new name' })).toEqual(jasmine.objectContaining({ title: 'Post new name' }));
+      expect(await subTitles(categoryTitle)).toEqual(['Post new name']);
+    });
+  });
 });
 
 contract.describe('updateSubcategoryAdvanced', () => {
@@ -390,6 +502,16 @@ contract.describe('updateSubcategoryAdvanced', () => {
     const title = unique('sub unknown');
     const { id } = await call('createCategory', { title });
     expect(await refusal(call('updateSubcategoryAdvanced', { categoryId: id, subcategoryId: 'no-such-subcategory', newTitle: 'x' }))).toContain('no-such-subcategory');
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes a subcategory the previous pre specs added, by its ids', async () => {
+      const title = `Pre category with a subcategory to rename by id (${contract.host})`;
+      const [{ id, subcategories: [sub] }] = await listed(title);
+      expect(sub).toEqual(jasmine.objectContaining({ title: 'Pre new name', iconClassName: 'glyphicon glyphicon-leaf' }));
+      await call('updateSubcategoryAdvanced', { categoryId: id, subcategoryId: sub.id, newIcon: ['https://example.com/post-sub.png'] });
+      expect((await listed(title))[0].subcategories).toEqual([jasmine.objectContaining({ id: sub.id, title: 'Pre new name', iconUrl: 'https://example.com/post-sub.png', iconClassName: null })]);
+    });
   });
 });
 
@@ -413,6 +535,17 @@ contract.describe('updateSubcategoriesAdvanced', () => {
     await expectAsync(call('updateSubcategoriesAdvanced', { subcategories: [{ categoryId: id, subcategoryId: one.id, newTitle: 'Uno' }, { categoryId: id, subcategoryId: 'no-such-subcategory', newTitle: 'x' }] })).toBeRejected();
     expect(await subTitles(title)).toEqual(['One']);
   });
+
+  describe("the previous contract's data", () => {
+    it('changes several subcategories the previous pre specs added', async () => {
+      const title = `Pre category with batch changes (${contract.host})`;
+      const [{ id, subcategories }] = await listed(title);
+      expect(subcategories.map((sub) => sub.title)).toEqual(['Pre uno', 'Pre two']);
+      expect(await call('updateSubcategoriesAdvanced', { subcategories: subcategories.map((sub, index) => ({ categoryId: id, subcategoryId: sub.id, newTitle: `Post ${index}` })) }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect(await subTitles(title)).toEqual(['Post 0', 'Post 1']);
+    });
+  });
 });
 
 contract.describe('deleteSubcategory', () => {
@@ -431,6 +564,15 @@ contract.describe('deleteSubcategory', () => {
     expect(await refusal(call('deleteSubcategory', { categoryTitle: title, title: 'Nope' }))).toContain('Nope');
     expect(await subTitles(title)).toEqual(['Keep']);
   });
+
+  describe("the previous contract's data", () => {
+    it('removes a subcategory the previous pre specs added', async () => {
+      const categoryTitle = `Pre category with a subcategory to re-icon (${contract.host})`;
+      expect(await subTitles(categoryTitle)).toEqual(['Pre iconed']);
+      await call('deleteSubcategory', { categoryTitle, title: 'Pre iconed' });
+      expect(await subTitles(categoryTitle)).toEqual([]);
+    });
+  });
 });
 
 contract.describe('deleteSubcategoryAdvanced', () => {
@@ -446,6 +588,16 @@ contract.describe('deleteSubcategoryAdvanced', () => {
 
   it('refuses ids that match nothing', async () => {
     expect(await refusal(call('deleteSubcategoryAdvanced', { categoryId: '000000000000000000000000', subcategoryId: 'x' }))).toContain('000000000000000000000000');
+  });
+
+  describe("the previous contract's data", () => {
+    it('removes a subcategory the previous pre specs added, by its ids', async () => {
+      const title = `Pre category with a subcategory by id (${contract.host})`;
+      const [{ id, subcategories: [sub] }] = await listed(title);
+      expect(sub.title).toBe('Pre museums');
+      await call('deleteSubcategoryAdvanced', { categoryId: id, subcategoryId: sub.id });
+      expect(await subTitles(title)).toEqual([]);
+    });
   });
 });
 
@@ -470,6 +622,17 @@ contract.describe('deleteSubcategoriesAdvanced', () => {
     await expectAsync(call('deleteSubcategoriesAdvanced', { subcategories: [{ categoryId: id, subcategoryId: one.id }, { categoryId: id, subcategoryId: one.id }] })).toBeRejected();
     expect(await subTitles(title)).toEqual(['One']);
   });
+
+  describe("the previous contract's data", () => {
+    it('removes several subcategories the previous pre specs added', async () => {
+      const title = `Pre category with batch subcategories (${contract.host})`;
+      const [{ id, subcategories }] = await listed(title);
+      expect(subcategories.map((sub) => sub.title)).toEqual(['Pre one', 'Pre two']);
+      expect(await call('deleteSubcategoriesAdvanced', { subcategories: subcategories.map((sub) => ({ categoryId: id, subcategoryId: sub.id })) }))
+        .toEqual(jasmine.objectContaining({ succeeded: 2, failed: 0 }));
+      expect(await subTitles(title)).toEqual([]);
+    });
+  });
 });
 
 contract.describe('updateSubcategoryOrder', () => {
@@ -490,6 +653,15 @@ contract.describe('updateSubcategoryOrder', () => {
     expect(await refusal(call('updateSubcategoryOrder', { categoryTitle: title, title: 'A' }))).toContain('position');
     expect(await subTitles(title)).toEqual(['A', 'B']);
   });
+
+  describe("the previous contract's data", () => {
+    it('moves a subcategory the previous pre specs moved', async () => {
+      const categoryTitle = `Pre category to reorder (${contract.host})`;
+      expect(await subTitles(categoryTitle)).toEqual(['Pre second', 'Pre first']);
+      await call('updateSubcategoryOrder', { categoryTitle, title: 'Pre first', position: 1 });
+      expect(await subTitles(categoryTitle)).toEqual(['Pre first', 'Pre second']);
+    });
+  });
 });
 
 contract.describe('updateSubcategoryOrderAdvanced', () => {
@@ -506,5 +678,15 @@ contract.describe('updateSubcategoryOrderAdvanced', () => {
 
   it('refuses ids that match nothing', async () => {
     expect(await refusal(call('updateSubcategoryOrderAdvanced', { categoryId: '000000000000000000000000', subcategoryId: 'x', position: 1 }))).toContain('000000000000000000000000');
+  });
+
+  describe("the previous contract's data", () => {
+    it('moves a subcategory the previous pre specs moved, by its ids', async () => {
+      const title = `Pre category to reorder by id (${contract.host})`;
+      const [{ id, subcategories }] = await listed(title);
+      expect(subcategories.map((sub) => sub.title)).toEqual(['Pre second', 'Pre first']);
+      await call('updateSubcategoryOrderAdvanced', { categoryId: id, subcategoryId: subcategories[1].id, position: 1 });
+      expect(await subTitles(title)).toEqual(['Pre first', 'Pre second']);
+    });
   });
 });
