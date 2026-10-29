@@ -1,0 +1,87 @@
+{
+  "name": "updatePinnedLocationOrderAdvanced",
+  "displayName": "Reorder pinned location",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updatePinnedLocationOrder",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updatePinnedLocationOrderAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a pinned location to another place at the top of the introduction screen, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 3,
+      "description": "Its new place among the pinned locations, from 1 (top) to 3.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the pinned locations are reordered.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't moved, such as no location having that id or it not being pinned."
+        },
+        "result": {
+          "type": "object",
+          "description": "The pinned locations, in their new order.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "The pinned locations, top first.",
+              "items": {
+                "type": "object",
+                "description": "One pinned location.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The location's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The location's name."
+                  },
+                  "pinPosition": {
+                    "type": "number",
+                    "description": "Its place among the pinned locations."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

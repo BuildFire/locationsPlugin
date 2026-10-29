@@ -1,0 +1,120 @@
+{
+  "name": "updateLocationsFieldValueAdvanced",
+  "displayName": "Update locations' field values",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "updateLocationsFieldValueAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Fills in extra fields on several locations at once, up to 50.",
+  "parameters": {
+    "values": {
+      "type": "list",
+      "displayName": "Field values",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The location, field and value of each change, up to 50 at a time.",
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results.",
+          "sampleValue": "[location id]"
+        },
+        "fieldId": {
+          "type": "string",
+          "displayName": "Field id",
+          "required": true,
+          "description": "The location field's id, as shown in the settings.",
+          "sampleValue": "[field id]"
+        },
+        "newValue": {
+          "type": "string",
+          "displayName": "Value",
+          "required": false,
+          "description": "What the location holds for the field, such as an email address, phone number, website or text. Leave it out to keep the current one, or leave it empty to remove it.",
+          "sampleValue": "[field value]",
+          "nullable": true
+        },
+        "newCustomLabel": {
+          "type": "string",
+          "displayName": "Custom label",
+          "required": false,
+          "description": "The location's own label for the field, where the field allows one. Leave it out to keep the current one, or leave it empty to remove it.",
+          "sampleValue": "[field label]",
+          "nullable": true
+        }
+      },
+      "sampleValue": [
+        {
+          "locationId": "[location id]",
+          "fieldId": "[field id]",
+          "newValue": "[field value]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the values are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was saved, such as an entry missing what it needs or naming something that doesn't exist."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each of the values went.",
+          "properties": {
+            "values": {
+              "type": "array",
+              "description": "One result per entry, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one entry went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which entry this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The id of what was saved, if it was."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't saved, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were saved."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't saved."
+            }
+          }
+        }
+      }
+    }
+  }
+}

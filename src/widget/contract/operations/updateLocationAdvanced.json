@@ -1,0 +1,563 @@
+{
+  "name": "updateLocationAdvanced",
+  "displayName": "Update location",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocation",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a location's details, using the location's id.",
+  "parameters": {
+    "locationId": {
+      "type": "string",
+      "displayName": "Location id",
+      "required": true,
+      "description": "The location's id, as shown in search results.",
+      "sampleValue": "[location id]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New location title",
+      "required": false,
+      "description": "The location's new name. Leave it out to keep the current one.",
+      "sampleValue": "[new location title]"
+    },
+    "newSubtitle": {
+      "type": "string",
+      "displayName": "New subtitle",
+      "required": false,
+      "nullable": true,
+      "description": "The short line shown under its name. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "[new location subtitle]"
+    },
+    "newAddress": {
+      "type": "string",
+      "displayName": "New address",
+      "required": false,
+      "description": "The location's new street address. Leave it out to keep the current one.",
+      "sampleValue": "[new street address]"
+    },
+    "newLatitude": {
+      "type": "number",
+      "displayName": "New latitude",
+      "required": false,
+      "minValue": -90,
+      "maxValue": 90,
+      "description": "Where it is on the map from now on, north to south, from -90 to 90. Leave it out to keep the current one.",
+      "sampleValue": 32.7157
+    },
+    "newLongitude": {
+      "type": "number",
+      "displayName": "New longitude",
+      "required": false,
+      "minValue": -180,
+      "maxValue": 180,
+      "description": "Where it is on the map from now on, east to west, from -180 to 180. Leave it out to keep the current one.",
+      "sampleValue": -117.1611
+    },
+    "newFormattedAddress": {
+      "type": "string",
+      "displayName": "New map address",
+      "required": false,
+      "nullable": true,
+      "description": "The full address as the map shows it. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "[new full address]"
+    },
+    "newAddressAlias": {
+      "type": "string",
+      "displayName": "New custom location name",
+      "required": false,
+      "nullable": true,
+      "description": "The custom name shown for the address on the map. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "[new custom name]"
+    },
+    "newListImage": {
+      "type": "image",
+      "displayName": "New list image",
+      "required": false,
+      "minValue": 1,
+      "maxValue": 1,
+      "description": "The picture shown for it in lists, as a list holding one image. Leave it out to keep the current one.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "newDescription": {
+      "type": "wysiwyg",
+      "displayName": "New description",
+      "required": false,
+      "description": "The location's new formatted description, as HTML. Leave it out to keep the current one.",
+      "sampleValue": "<p>[location description]</p>"
+    },
+    "newImages": {
+      "type": "image",
+      "displayName": "New images",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "description": "The pictures shown on its page, in order; they replace the current ones. Leave it out to keep the current ones, or pass an empty list to remove them.",
+      "sampleValue": [
+        "[image url]",
+        "[image url]"
+      ]
+    },
+    "newCategories": {
+      "type": "string",
+      "displayName": "New categories",
+      "required": false,
+      "nullable": true,
+      "description": "The categories it belongs to from now on, each by name with a subcategory after an arrow, such as \"Food -> Pizza, Drinks\". Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "[new category name] -> [subcategory name]"
+    },
+    "newMarkerType": {
+      "type": "select",
+      "displayName": "New marker type",
+      "required": false,
+      "description": "How it is marked on the map from now on. Leave it out to keep it as it is.",
+      "enums": [
+        {
+          "label": "Pin",
+          "value": "pin"
+        },
+        {
+          "label": "Circle",
+          "value": "circle"
+        },
+        {
+          "label": "Image",
+          "value": "image"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "pin"
+    },
+    "newMarkerImage": {
+      "type": "image",
+      "displayName": "New marker image",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The picture used as its map marker when the marker type is image, as a list holding one image. Leave it out to keep the current one, or pass an empty list to remove it.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "newMarkerColor": {
+      "type": "string",
+      "displayName": "New marker color",
+      "required": false,
+      "nullable": true,
+      "description": "The color of its circle marker, such as rgba(253,35,5,1). Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "rgba(253,35,5,1)"
+    },
+    "newShowCategory": {
+      "type": "boolean",
+      "displayName": "Show category",
+      "required": false,
+      "description": "Whether its categories show on its page. Leave it out to keep it as it is.",
+      "sampleValue": true
+    },
+    "newShowOpeningHours": {
+      "type": "boolean",
+      "displayName": "Show opening hours",
+      "required": false,
+      "description": "Whether its opening hours show. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "newShowPriceRange": {
+      "type": "boolean",
+      "displayName": "Show price range",
+      "required": false,
+      "description": "Whether its price range shows. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "newShowStarRating": {
+      "type": "boolean",
+      "displayName": "Show star rating",
+      "required": false,
+      "description": "Whether its star rating shows. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "newPriceRange": {
+      "type": "select",
+      "displayName": "New price range",
+      "required": false,
+      "description": "How pricey it is. Leave it out to keep it as it is.",
+      "enums": [
+        {
+          "label": "$",
+          "value": 1
+        },
+        {
+          "label": "$$",
+          "value": 2
+        },
+        {
+          "label": "$$$",
+          "value": 3
+        },
+        {
+          "label": "$$$$",
+          "value": 4
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": 2
+    },
+    "newPriceCurrency": {
+      "type": "select",
+      "displayName": "New currency",
+      "required": false,
+      "description": "The currency sign shown with its price range. Leave it out to keep it as it is.",
+      "enums": [
+        {
+          "label": "€",
+          "value": "€"
+        },
+        {
+          "label": "$",
+          "value": "$"
+        }
+      ],
+      "allowEnumCustomOption": false,
+      "sampleValue": "$"
+    },
+    "newActionItems": {
+      "type": "action",
+      "displayName": "New action items",
+      "required": false,
+      "nullable": true,
+      "minValue": 0,
+      "description": "The buttons on its page, in order; they replace the current ones. Leave it out to keep the current ones, or pass an empty list to remove them.",
+      "sampleValue": [
+        {
+          "title": "Call us",
+          "action": "callNumber",
+          "phoneNumber": "+15550100"
+        }
+      ]
+    },
+    "newPinned": {
+      "type": "boolean",
+      "displayName": "Pin to top",
+      "required": false,
+      "description": "Pin it to the top of the introduction screen, or unpin it; up to three locations can be pinned. Leave it out to keep it as it is.",
+      "sampleValue": false
+    },
+    "newMondayHours": {
+      "type": "string",
+      "displayName": "Monday hours",
+      "required": false,
+      "description": "When it is open on Mondays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newTuesdayHours": {
+      "type": "string",
+      "displayName": "Tuesday hours",
+      "required": false,
+      "description": "When it is open on Tuesdays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newWednesdayHours": {
+      "type": "string",
+      "displayName": "Wednesday hours",
+      "required": false,
+      "description": "When it is open on Wednesdays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newThursdayHours": {
+      "type": "string",
+      "displayName": "Thursday hours",
+      "required": false,
+      "description": "When it is open on Thursdays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newFridayHours": {
+      "type": "string",
+      "displayName": "Friday hours",
+      "required": false,
+      "description": "When it is open on Fridays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newSaturdayHours": {
+      "type": "string",
+      "displayName": "Saturday hours",
+      "required": false,
+      "description": "When it is open on Saturdays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "newSundayHours": {
+      "type": "string",
+      "displayName": "Sunday hours",
+      "required": false,
+      "description": "When it is open on Sundays, such as \"08:00-12:00, 13:00-20:00\", or \"closed\". Leave it out to keep it as it is.",
+      "sampleValue": "08:00-20:00"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the location is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no location having that id or nothing to change."
+        },
+        "result": {
+          "type": "object",
+          "description": "The location, as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The location's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The location's name."
+            },
+            "subtitle": {
+              "type": "string",
+              "description": "The short line shown under its name, if any."
+            },
+            "address": {
+              "type": "string",
+              "description": "The location's address."
+            },
+            "formattedAddress": {
+              "type": "string",
+              "description": "The full address as the map shows it."
+            },
+            "addressAlias": {
+              "type": "string",
+              "description": "The custom name shown for the address, if any."
+            },
+            "latitude": {
+              "type": "number",
+              "description": "Where it is on the map, north to south."
+            },
+            "longitude": {
+              "type": "number",
+              "description": "Where it is on the map, east to west."
+            },
+            "listImage": {
+              "type": "string",
+              "description": "The picture shown for it in lists."
+            },
+            "description": {
+              "type": "string",
+              "description": "Its formatted description."
+            },
+            "images": {
+              "type": "array",
+              "description": "The pictures on its page, in order.",
+              "items": {
+                "type": "string",
+                "description": "One picture."
+              }
+            },
+            "categories": {
+              "type": "string",
+              "description": "Its categories and subcategories, written the way they are given when adding a location."
+            },
+            "categoryTitles": {
+              "type": "array",
+              "description": "The names of its categories.",
+              "items": {
+                "type": "string",
+                "description": "One category name."
+              }
+            },
+            "subcategoryTitles": {
+              "type": "array",
+              "description": "The names of its subcategories.",
+              "items": {
+                "type": "string",
+                "description": "One subcategory name."
+              }
+            },
+            "categoryIds": {
+              "type": "array",
+              "description": "The ids of its categories.",
+              "items": {
+                "type": "string",
+                "description": "A category's id."
+              }
+            },
+            "subcategoryIds": {
+              "type": "array",
+              "description": "The ids of its subcategories.",
+              "items": {
+                "type": "string",
+                "description": "A subcategory's id."
+              }
+            },
+            "markerType": {
+              "type": "string",
+              "description": "How it is marked on the map: pin, circle or image."
+            },
+            "markerImage": {
+              "type": "string",
+              "description": "The picture used as its marker, if it has one."
+            },
+            "markerColor": {
+              "type": "string",
+              "description": "The color of its circle marker, if it has one."
+            },
+            "showCategory": {
+              "type": "boolean",
+              "description": "Whether its categories show on its page."
+            },
+            "showOpeningHours": {
+              "type": "boolean",
+              "description": "Whether its opening hours show."
+            },
+            "showPriceRange": {
+              "type": "boolean",
+              "description": "Whether its price range shows."
+            },
+            "showStarRating": {
+              "type": "boolean",
+              "description": "Whether its star rating shows."
+            },
+            "priceRange": {
+              "type": "number",
+              "description": "How pricey it is, from 1 ($) to 4 ($$$$)."
+            },
+            "priceCurrency": {
+              "type": "string",
+              "description": "The currency sign of its price range."
+            },
+            "pinned": {
+              "type": "boolean",
+              "description": "Whether it is pinned to the top of the introduction screen."
+            },
+            "pinPosition": {
+              "type": "number",
+              "description": "Its place among the pinned locations, if it is pinned."
+            },
+            "openingHours": {
+              "type": "object",
+              "description": "When it is open, day by day.",
+              "properties": {
+                "monday": {
+                  "type": "string",
+                  "description": "Its hours on Mondays, such as 08:00-20:00, or closed."
+                },
+                "tuesday": {
+                  "type": "string",
+                  "description": "Its hours on Tuesdays, such as 08:00-20:00, or closed."
+                },
+                "wednesday": {
+                  "type": "string",
+                  "description": "Its hours on Wednesdays, such as 08:00-20:00, or closed."
+                },
+                "thursday": {
+                  "type": "string",
+                  "description": "Its hours on Thursdays, such as 08:00-20:00, or closed."
+                },
+                "friday": {
+                  "type": "string",
+                  "description": "Its hours on Fridays, such as 08:00-20:00, or closed."
+                },
+                "saturday": {
+                  "type": "string",
+                  "description": "Its hours on Saturdays, such as 08:00-20:00, or closed."
+                },
+                "sunday": {
+                  "type": "string",
+                  "description": "Its hours on Sundays, such as 08:00-20:00, or closed."
+                }
+              }
+            },
+            "actionItems": {
+              "type": "array",
+              "description": "The buttons on its page, in order.",
+              "items": {
+                "type": "object",
+                "description": "One button.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "The button's label."
+                  },
+                  "action": {
+                    "type": "string",
+                    "description": "What the button does, such as callNumber or linkToWeb."
+                  }
+                }
+              }
+            },
+            "fieldValues": {
+              "type": "array",
+              "description": "What it holds for each location field.",
+              "items": {
+                "type": "object",
+                "description": "One field value.",
+                "properties": {
+                  "fieldId": {
+                    "type": "string",
+                    "description": "The location field's id."
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "What the location holds for the field."
+                  },
+                  "customLabel": {
+                    "type": "string",
+                    "description": "The location's own label for the field, if it has one."
+                  }
+                }
+              }
+            },
+            "rating": {
+              "type": "object",
+              "description": "How app users rated it.",
+              "properties": {
+                "average": {
+                  "type": "number",
+                  "description": "Its average rating."
+                },
+                "count": {
+                  "type": "number",
+                  "description": "How many ratings it has."
+                }
+              }
+            },
+            "views": {
+              "type": "number",
+              "description": "How many times it was viewed."
+            },
+            "createdOn": {
+              "type": "datetime",
+              "description": "When it was added."
+            },
+            "lastUpdatedOn": {
+              "type": "datetime",
+              "description": "When it was last changed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

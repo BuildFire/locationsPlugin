@@ -1,0 +1,247 @@
+{
+  "events": [
+    {
+      "name": "locationCreated",
+      "displayName": "Location Created",
+      "description": "A new location was added.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's name."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The short line under its name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "categoryNames": {
+          "type": "array",
+          "displayName": "Categories",
+          "description": "The names of its categories."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "Image",
+          "description": "The picture shown for it in lists."
+        },
+        "createdAt": {
+          "type": "datetime",
+          "displayName": "Added On",
+          "description": "When it was added."
+        },
+        "createdBy": {
+          "type": "object",
+          "displayName": "Added By",
+          "description": "Who added it, when a person did.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationUpdated",
+      "displayName": "Location Updated",
+      "description": "A location's details were changed.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's name."
+        },
+        "subtitle": {
+          "type": "string",
+          "displayName": "Subtitle",
+          "description": "The short line under its name."
+        },
+        "address": {
+          "type": "string",
+          "displayName": "Address",
+          "description": "The location's address."
+        },
+        "categoryNames": {
+          "type": "array",
+          "displayName": "Categories",
+          "description": "The names of its categories."
+        },
+        "listImage": {
+          "type": "string",
+          "displayName": "Image",
+          "description": "The picture shown for it in lists."
+        },
+        "previousTitle": {
+          "type": "string",
+          "displayName": "Previous Title",
+          "description": "Its name before the change, when known."
+        },
+        "updatedAt": {
+          "type": "datetime",
+          "displayName": "Changed On",
+          "description": "When it was changed."
+        },
+        "updatedBy": {
+          "type": "object",
+          "displayName": "Changed By",
+          "description": "Who changed it, when a person did.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationDeleted",
+      "displayName": "Location Deleted",
+      "description": "A location was removed.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's name."
+        },
+        "deletedAt": {
+          "type": "datetime",
+          "displayName": "Removed On",
+          "description": "When it was removed."
+        }
+      }
+    },
+    {
+      "name": "locationRated",
+      "displayName": "Location Rated",
+      "description": "Someone rated a location.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's name."
+        },
+        "averageRating": {
+          "type": "number",
+          "displayName": "Average Rating",
+          "description": "Its average rating now."
+        },
+        "ratingCount": {
+          "type": "number",
+          "displayName": "Number of Ratings",
+          "description": "How many ratings it has now."
+        },
+        "ratedBy": {
+          "type": "object",
+          "displayName": "Rated By",
+          "description": "Who rated it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "locationFollowed",
+      "displayName": "Location Followed",
+      "description": "Someone started following a location for its updates.",
+      "data": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location ID",
+          "description": "The location's id."
+        },
+        "title": {
+          "type": "string",
+          "displayName": "Title",
+          "description": "The location's name."
+        },
+        "followedBy": {
+          "type": "object",
+          "displayName": "Followed By",
+          "description": "Who followed it.",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "displayName": "User ID",
+              "description": "Their id."
+            },
+            "displayName": {
+              "type": "string",
+              "displayName": "Name",
+              "description": "Their name."
+            },
+            "email": {
+              "type": "string",
+              "displayName": "Email",
+              "description": "Their email."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

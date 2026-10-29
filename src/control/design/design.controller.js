@@ -11,5 +11,4 @@ export default {
     settings.lastUpdatedBy = authManager.sanitizedCurrentUser;
     return Settings.save(settings.toJSON());
   },
-
 };

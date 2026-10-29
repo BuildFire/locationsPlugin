@@ -1,0 +1,79 @@
+{
+  "name": "deleteSubcategory",
+  "displayName": "Delete subcategory",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "deleteSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "deleteSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes a subcategory, found by its category's name and its own.",
+  "parameters": {
+    "category": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The exact name of the category it belongs to.",
+      "sampleValue": "[category name]"
+    },
+    "title": {
+      "type": "string",
+      "displayName": "Subcategory name",
+      "required": true,
+      "description": "The exact name of the subcategory to remove.",
+      "sampleValue": "[subcategory name]"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is removed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't removed, such as no subcategory having that name."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory that was removed.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's name."
+            },
+            "categoryId": {
+              "type": "string",
+              "description": "Its category's id."
+            },
+            "categoryTitle": {
+              "type": "string",
+              "description": "Its category's name."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -72,6 +72,20 @@ export default {
     ];
     return Promise.all(promiseChain)
       .then(() => {
+        if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+          const by = location.lastUpdatedBy;
+          buildfire.services.contract.events.send('locationUpdated', {
+            locationId: location.id,
+            title: location.title,
+            subtitle: location.subtitle || null,
+            address: location.address || null,
+            categoryNames: (location.categories.main || []).map((id) => ((state.categories || []).find((c) => c.id === id) || {}).title).filter(Boolean),
+            listImage: location.listImage || null,
+            previousTitle: state.selectedLocation ? state.selectedLocation.title : null,
+            updatedAt: location.lastUpdatedOn,
+            updatedBy: by ? { userId: by._id, displayName: by.displayName || null, email: by.email || null } : null
+          });
+        }
         state.selectedLocation = location;
         this._reflectUpdatedLocationOnUI();
       })
@@ -343,6 +357,14 @@ export default {
       selectors.subscribeBtnLabel.textContent = window.strings.get('general.following').v;
       selectors.subscribeBtn.className = 'mdc-button mdc-button--unelevated bf-outlined-btn disabled-btn';
       widgetController.subscribeToLocationUpdates(selectedLocation.id, authManager.currentUser.userId).then(() => {
+        if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+          const user = authManager.currentUser;
+          buildfire.services.contract.events.send('locationFollowed', {
+            locationId: selectedLocation.id,
+            title: selectedLocation.title,
+            followedBy: { userId: user._id || user.userId, displayName: user.displayName || null, email: user.email || null }
+          });
+        }
         selectors.subscribeBtn.classList.remove('disabled-btn');
         showToastMessage('subscribeToLocationUpdates');
       }).catch((err) => {

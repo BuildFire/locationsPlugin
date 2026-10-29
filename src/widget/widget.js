@@ -1650,8 +1650,22 @@ const onReceivedMessageHandler = (message) => {
   }
 };
 const onRatingHandler = (e) => {
+  const ratedLocation = state.selectedLocation;
   WidgetController
-    .updateLocationRating(state.selectedLocation.id, e.summary)
+    .updateLocationRating(ratedLocation.id, e.summary)
+    .then((result) => {
+      const rating = result && result.data && result.data.rating;
+      if (rating && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+        const user = authManager.currentUser;
+        buildfire.services.contract.events.send('locationRated', {
+          locationId: ratedLocation.id,
+          title: ratedLocation.title,
+          averageRating: rating.average,
+          ratingCount: rating.count,
+          ratedBy: user ? { userId: user._id, displayName: user.displayName || null, email: user.email || null } : null
+        });
+      }
+    })
     .catch((err) => {
       console.error('err updating rating: ', err);
     });
