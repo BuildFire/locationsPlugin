@@ -1,0 +1,114 @@
+{
+  "name": "updateSubcategory",
+  "displayName": "Update subcategory",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateSubcategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateSubcategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a subcategory's name or icon, found by its category's name and its own.",
+  "parameters": {
+    "category": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The exact name of the category it belongs to.",
+      "sampleValue": "[category name]"
+    },
+    "title": {
+      "type": "string",
+      "displayName": "Subcategory name",
+      "required": true,
+      "description": "The current name of the subcategory to change.",
+      "sampleValue": "[subcategory name]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New name",
+      "required": false,
+      "description": "The subcategory's new name. Leave it out to keep the current one.",
+      "sampleValue": "[new subcategory name]"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "New icon",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "Its new picture, as a list holding one image; it replaces a library icon. Leave it out to keep the current one, or pass an empty list to remove it.",
+      "sampleValue": [
+        "[image url]"
+      ],
+      "nullable": true
+    },
+    "newIconName": {
+      "type": "string",
+      "displayName": "New library icon",
+      "required": false,
+      "description": "Its new icon from the icon library; it replaces a picture. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "glyphicon glyphicon-cutlery",
+      "nullable": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no subcategory having that name or nothing to change."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory, as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "Its picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "Its icon from the icon library, if it has one."
+            },
+            "categoryId": {
+              "type": "string",
+              "description": "Its category's id."
+            },
+            "categoryTitle": {
+              "type": "string",
+              "description": "Its category's name."
+            }
+          }
+        }
+      }
+    }
+  }
+}

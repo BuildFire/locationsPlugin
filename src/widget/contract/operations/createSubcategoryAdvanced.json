@@ -1,0 +1,105 @@
+{
+  "name": "createSubcategoryAdvanced",
+  "displayName": "Create subcategory",
+  "type": "function",
+  "crudMode": "create",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "createSubcategory",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "createSubcategoryAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Adds a subcategory to a category, using the category's id.",
+  "parameters": {
+    "categoryId": {
+      "type": "string",
+      "displayName": "Category id",
+      "required": true,
+      "description": "The category's id, as shown in search results.",
+      "sampleValue": "[category id]"
+    },
+    "title": {
+      "type": "string",
+      "displayName": "Subcategory name",
+      "required": true,
+      "description": "The subcategory's name.",
+      "sampleValue": "[subcategory name]"
+    },
+    "icon": {
+      "type": "image",
+      "displayName": "Icon",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "The picture shown for it, as a list holding one image. Leave it out for none.",
+      "sampleValue": [
+        "[image url]"
+      ]
+    },
+    "iconName": {
+      "type": "string",
+      "displayName": "Library icon",
+      "required": false,
+      "description": "An icon from the icon library, by its name, shown instead of a picture. Leave it out for none.",
+      "sampleValue": "glyphicon glyphicon-cutlery"
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the subcategory is added.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't added, such as no category having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The subcategory, as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The subcategory's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The subcategory's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "Its picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "Its icon from the icon library, if it has one."
+            },
+            "categoryId": {
+              "type": "string",
+              "description": "Its category's id."
+            },
+            "categoryTitle": {
+              "type": "string",
+              "description": "Its category's name."
+            }
+          }
+        }
+      }
+    }
+  }
+}

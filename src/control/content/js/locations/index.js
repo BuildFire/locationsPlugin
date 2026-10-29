@@ -1284,7 +1284,10 @@ const deleteLocation = (item, row, callback = () => { }) => {
     }, (e, data) => {
       if (e) console.error(e);
       if (data && data.selectedButton.key === "y") {
-        LocationsController.deleteLocation(item.id).then(() => {
+        LocationsController.deleteLocation(item.id).then((results) => {
+          if (results[0].status === 'fulfilled' && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+            buildfire.services.contract.events.send('locationDeleted', { locationId: item.id, title: item.title, deletedAt: new Date().toISOString() });
+          }
           state.locations = state.locations.filter((elem) => elem.id !== item.id);
           handleLocationEmptyState(false);
           triggerWidgetOnLocationsUpdate({});
@@ -2009,6 +2012,19 @@ const updateLocationImage = (obj, tr) => {
 };
 
 const createLocation = (location) => LocationsController.createLocation(location).then((res) => {
+  if (buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+    const by = res.createdBy;
+    buildfire.services.contract.events.send('locationCreated', {
+      locationId: res.id,
+      title: res.title,
+      subtitle: res.subtitle || null,
+      address: res.address || null,
+      categoryNames: (res.categories.main || []).map((id) => (state.categoriesLookup[id] || {}).title).filter(Boolean),
+      listImage: res.listImage || null,
+      createdAt: res.createdOn,
+      createdBy: by ? { userId: by._id, displayName: by.displayName || null, email: by.email || null } : null
+    });
+  }
   refreshLocations();
   cancelAddLocation();
   triggerWidgetOnLocationsUpdate({});
@@ -2019,6 +2035,21 @@ const createLocation = (location) => LocationsController.createLocation(location
 
 const updateLocation = (locationId, location) => {
   return LocationsController.updateLocation(locationId, location).then((res) => {
+    const saved = res[0] && res[0].data;
+    if (saved && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+      const by = saved.lastUpdatedBy;
+      buildfire.services.contract.events.send('locationUpdated', {
+        locationId,
+        title: saved.title,
+        subtitle: saved.subtitle || null,
+        address: saved.address || null,
+        categoryNames: ((saved.categories && saved.categories.main) || []).map((id) => (state.categoriesLookup[id] || {}).title).filter(Boolean),
+        listImage: saved.listImage || null,
+        previousTitle: null,
+        updatedAt: saved.lastUpdatedOn,
+        updatedBy: by ? { userId: by._id, displayName: by.displayName || null, email: by.email || null } : null
+      });
+    }
     refreshLocations();
     cancelAddLocation();
     triggerWidgetOnLocationsUpdate({});

@@ -1,0 +1,82 @@
+{
+  "name": "getLanguageTexts",
+  "displayName": "Get language texts",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getLanguageTexts",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows every text the app shows, such as button labels and messages, and what each says now.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the texts are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why they couldn't be read, if they couldn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "The texts.",
+          "properties": {
+            "texts": {
+              "type": "array",
+              "description": "Every text, by section.",
+              "items": {
+                "type": "object",
+                "description": "One text.",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Which text this is."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "The part of the app it belongs to."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The text's name on the Language tab."
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "What the app shows now."
+                  },
+                  "defaultText": {
+                    "type": "string",
+                    "description": "What the app shows when nothing is set."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether it must hold some text."
+                  },
+                  "maxLength": {
+                    "type": "number",
+                    "description": "How many characters it may hold."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "name": "updateCategory",
+  "displayName": "Update category",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateCategoryAdvanced",
+      "label": "Advanced"
+    }
+  ],
+  "context": {
+    "functionName": "updateCategory",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Changes a category's name or icon, found by its name.",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "displayName": "Category name",
+      "required": true,
+      "description": "The current name of the category to change.",
+      "sampleValue": "[category name]"
+    },
+    "newTitle": {
+      "type": "string",
+      "displayName": "New name",
+      "required": false,
+      "description": "The category's new name. Leave it out to keep the current one.",
+      "sampleValue": "[new category name]"
+    },
+    "newIcon": {
+      "type": "image",
+      "displayName": "New icon",
+      "required": false,
+      "minValue": 0,
+      "maxValue": 1,
+      "description": "Its new picture, as a list holding one image; it replaces a library icon. Leave it out to keep the current one, or pass an empty list to remove it.",
+      "sampleValue": [
+        "[image url]"
+      ],
+      "nullable": true
+    },
+    "newIconName": {
+      "type": "string",
+      "displayName": "New library icon",
+      "required": false,
+      "description": "Its new icon from the icon library; it replaces a picture. Leave it out to keep the current one, or leave it empty to remove it.",
+      "sampleValue": "glyphicon glyphicon-cutlery",
+      "nullable": true
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the category is changed.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't changed, such as no category having that name or nothing to change."
+        },
+        "result": {
+          "type": "object",
+          "description": "The category, as it is now.",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The category's id."
+            },
+            "title": {
+              "type": "string",
+              "description": "The category's name."
+            },
+            "iconUrl": {
+              "type": "string",
+              "description": "Its picture, if it has one."
+            },
+            "iconClassName": {
+              "type": "string",
+              "description": "Its icon from the icon library, if it has one."
+            },
+            "subcategories": {
+              "type": "array",
+              "description": "Its subcategories, in order.",
+              "items": {
+                "type": "object",
+                "description": "One subcategory.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The subcategory's id."
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The subcategory's name."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "Its picture, if it has one."
+                  },
+                  "iconClassName": {
+                    "type": "string",
+                    "description": "Its icon from the icon library, if it has one."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "name": "deleteLocationsAdvanced",
+  "displayName": "Delete locations",
+  "type": "function",
+  "crudMode": "delete",
+  "flags": [
+    "mutable",
+    "dangerous",
+    "throttable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API"
+  ],
+  "context": {
+    "functionName": "deleteLocationsAdvanced",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Permanently removes several locations at once, up to 50.",
+  "parameters": {
+    "locations": {
+      "type": "list",
+      "displayName": "Locations",
+      "required": true,
+      "minValue": 1,
+      "maxValue": 50,
+      "description": "The locations to remove, up to 50 at a time.",
+      "items": {
+        "locationId": {
+          "type": "string",
+          "displayName": "Location id",
+          "required": true,
+          "description": "The location's id, as shown in search results.",
+          "sampleValue": "[location id]"
+        }
+      },
+      "sampleValue": [
+        {
+          "locationId": "[location id]"
+        }
+      ]
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when all the locations are done.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why nothing was removed, such as an entry missing what it needs or naming something that doesn't exist."
+        },
+        "result": {
+          "type": "object",
+          "description": "How each of the locations went.",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "description": "One result per entry, in the order they were given.",
+              "items": {
+                "type": "object",
+                "description": "How one entry went.",
+                "properties": {
+                  "index": {
+                    "type": "number",
+                    "description": "Which entry this is, counting from 0."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The id of what was removed, if it was."
+                  },
+                  "error": {
+                    "type": "string",
+                    "description": "Why it wasn't removed, if it wasn't."
+                  }
+                }
+              }
+            },
+            "succeeded": {
+              "type": "number",
+              "description": "How many were removed."
+            },
+            "failed": {
+              "type": "number",
+              "description": "How many weren't removed."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "name": "getSettings",
+  "displayName": "Get settings",
+  "type": "function",
+  "crudMode": "read",
+  "flags": [
+    "immutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "basic",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "context": {
+    "functionName": "getSettings",
+    "hosts": [
+      "widgetBackground",
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Shows the plugin's settings, design and introduction screen options.",
+  "parameters": {
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the settings are read.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why they couldn't be read, if they couldn't."
+        },
+        "result": {
+          "type": "object",
+          "description": "The settings, as they are now.",
+          "properties": {
+            "followingEnabled": {
+              "type": "boolean",
+              "description": "Whether app users can follow locations to hear about updates."
+            },
+            "allowCustomNotifications": {
+              "type": "boolean",
+              "description": "Whether location editors can send notifications to a location's followers."
+            },
+            "defaultSorting": {
+              "type": "string",
+              "description": "How locations are sorted at first."
+            },
+            "hideSorting": {
+              "type": "boolean",
+              "description": "Whether app users are kept from changing the sorting."
+            },
+            "allowSortByReverseAlphabetical": {
+              "type": "boolean",
+              "description": "Whether app users can sort from Z to A."
+            },
+            "allowSortByNearest": {
+              "type": "boolean",
+              "description": "Whether app users can sort by distance; turning it off makes locations sort by name at first."
+            },
+            "allowSortByPriceLowToHigh": {
+              "type": "boolean",
+              "description": "Whether app users can sort from cheapest."
+            },
+            "allowSortByPriceHighToLow": {
+              "type": "boolean",
+              "description": "Whether app users can sort from priciest."
+            },
+            "allowSortByDate": {
+              "type": "boolean",
+              "description": "Whether app users can sort from newest."
+            },
+            "allowSortByRating": {
+              "type": "boolean",
+              "description": "Whether app users can sort by rating."
+            },
+            "allowSortByViews": {
+              "type": "boolean",
+              "description": "Whether app users can sort by views."
+            },
+            "allowFilterByArea": {
+              "type": "boolean",
+              "description": "Whether app users can show only the area on the map."
+            },
+            "allowFilterByBookmarks": {
+              "type": "boolean",
+              "description": "Whether app users can show only their bookmarked locations."
+            },
+            "hideOpeningHoursFilter": {
+              "type": "boolean",
+              "description": "Whether the open now choice is hidden."
+            },
+            "hidePriceFilter": {
+              "type": "boolean",
+              "description": "Whether the price choice is hidden."
+            },
+            "distanceUnit": {
+              "type": "string",
+              "description": "How distances are shown."
+            },
+            "showInitialArea": {
+              "type": "boolean",
+              "description": "Whether the map opens on a chosen area."
+            },
+            "initialAreaAddress": {
+              "type": "string",
+              "description": "The address of the area the map opens on."
+            },
+            "initialAreaLatitude": {
+              "type": "number",
+              "description": "Where the map opens, north to south, from -90 to 90."
+            },
+            "initialAreaLongitude": {
+              "type": "number",
+              "description": "Where the map opens, east to west, from -180 to 180."
+            },
+            "bookmarksEnabled": {
+              "type": "boolean",
+              "description": "Whether app users can bookmark at all."
+            },
+            "allowBookmarkLocations": {
+              "type": "boolean",
+              "description": "Whether app users can bookmark locations."
+            },
+            "allowBookmarkSearches": {
+              "type": "boolean",
+              "description": "Whether app users can bookmark their searches."
+            },
+            "allowOpeningHours": {
+              "type": "boolean",
+              "description": "Whether locations have opening hours; turning it off stops app users adding them."
+            },
+            "allowPriceRange": {
+              "type": "boolean",
+              "description": "Whether locations have a price range; turning it off stops app users adding one."
+            },
+            "timeFormat": {
+              "type": "string",
+              "description": "How opening hours are shown."
+            },
+            "listViewPosition": {
+              "type": "string",
+              "description": "How far the list of locations opens over the map."
+            },
+            "listViewStyle": {
+              "type": "string",
+              "description": "How locations look in the list."
+            },
+            "defaultMapType": {
+              "type": "string",
+              "description": "How the map looks at first."
+            },
+            "enableMapTerrainView": {
+              "type": "boolean",
+              "description": "Whether the map can show terrain."
+            },
+            "hideQuickFilter": {
+              "type": "boolean",
+              "description": "Whether the category chips above the map are hidden."
+            },
+            "allowMapStyleSelection": {
+              "type": "boolean",
+              "description": "Whether app users can switch the map style."
+            },
+            "showDetailsCategory": {
+              "type": "boolean",
+              "description": "Whether a location's page shows its category and subcategory."
+            },
+            "showContributorName": {
+              "type": "boolean",
+              "description": "Whether a location's page shows who added it."
+            },
+            "detailsMapPosition": {
+              "type": "string",
+              "description": "Where the map sits on a location's page."
+            },
+            "introDescription": {
+              "type": "string",
+              "description": "The formatted text on the introduction screen, as HTML."
+            },
+            "introSorting": {
+              "type": "string",
+              "description": "How the introduction screen sorts its locations."
+            },
+            "introLocationsSource": {
+              "type": "string",
+              "description": "Which locations the introduction screen shows."
+            },
+            "introAreaAddress": {
+              "type": "string",
+              "description": "The address at the center of the local area the introduction screen shows."
+            },
+            "introAreaLatitude": {
+              "type": "number",
+              "description": "The center of the local area, north to south, from -90 to 90."
+            },
+            "introAreaLongitude": {
+              "type": "number",
+              "description": "The center of the local area, east to west, from -180 to 180."
+            },
+            "introAreaRadius": {
+              "type": "number",
+              "description": "How far around its center the local area reaches, from 1 to 200 miles."
+            },
+            "introImages": {
+              "type": "array",
+              "description": "The pictures at the top of the introduction screen, in order, each with its picture and what tapping it does. Replaces the current pictures.",
+              "items": {
+                "type": "object",
+                "description": "One picture.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "The picture's title."
+                  },
+                  "iconUrl": {
+                    "type": "string",
+                    "description": "The picture."
+                  },
+                  "action": {
+                    "type": "string",
+                    "description": "What tapping it does."
+                  }
+                }
+              }
+            },
+            "locationFields": {
+              "type": "array",
+              "description": "The extra fields every location can fill in, in order.",
+              "items": {
+                "type": "object",
+                "description": "One location field.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The field's label."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "What the field holds: EMAIL, PHONE, URL, TEXT or RICH_TEXT."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "Where it shows: quickActions or content."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether every location must fill it in."
+                  },
+                  "allowCustomLabel": {
+                    "type": "boolean",
+                    "description": "Whether each location may give it its own label."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

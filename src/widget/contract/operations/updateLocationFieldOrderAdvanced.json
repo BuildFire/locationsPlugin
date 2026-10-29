@@ -1,0 +1,98 @@
+{
+  "name": "updateLocationFieldOrderAdvanced",
+  "displayName": "Reorder location field",
+  "type": "function",
+  "crudMode": "update",
+  "flags": [
+    "mutable",
+    "safe",
+    "unthrottable"
+  ],
+  "usage": "advanced",
+  "availableFor": [
+    "API",
+    "form"
+  ],
+  "alternatives": [
+    {
+      "operationName": "updateLocationFieldOrder",
+      "label": "Basic"
+    }
+  ],
+  "context": {
+    "functionName": "updateLocationFieldOrderAdvanced",
+    "hosts": [
+      "controlBackground",
+      "headlessSdk"
+    ]
+  },
+  "description": "Moves a location field to another place within its section, using the field's id.",
+  "parameters": {
+    "fieldId": {
+      "type": "string",
+      "displayName": "Field id",
+      "required": true,
+      "description": "The location field's id, as shown in the settings.",
+      "sampleValue": "[field id]"
+    },
+    "position": {
+      "type": "number",
+      "displayName": "Position",
+      "required": true,
+      "minValue": 1,
+      "description": "Its new place within its section, counting from 1.",
+      "sampleValue": 1
+    },
+    "callback": {
+      "type": "function",
+      "required": true,
+      "description": "Runs when the field is moved.",
+      "parameters": {
+        "error": {
+          "type": "object|string",
+          "description": "Why it wasn't moved, such as no field having that id."
+        },
+        "result": {
+          "type": "object",
+          "description": "The fields of its section, in their new order.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "description": "The fields of its section, in order.",
+              "items": {
+                "type": "object",
+                "description": "One location field.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The field's id."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "The field's label."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "What the field holds: EMAIL, PHONE, URL, TEXT or RICH_TEXT."
+                  },
+                  "section": {
+                    "type": "string",
+                    "description": "Where it shows: quickActions or content."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether every location must fill it in."
+                  },
+                  "allowCustomLabel": {
+                    "type": "boolean",
+                    "description": "Whether each location may give it its own label."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -218,7 +218,25 @@ const updateLocation = (locationId, location) => {
     DeepLink.registerDeeplink(location),
     SearchEngine.update(Locations.TAG, locationId, location.toJSON())
   ];
-  return Promise.all(promiseChain);
+  const previousTitle = state.selectedLocation ? state.selectedLocation.title : null;
+  return Promise.all(promiseChain).then((results) => {
+    const saved = results[0] && results[0].data;
+    if (saved && buildfire.services && buildfire.services.contract && buildfire.services.contract.events) {
+      const by = saved.lastUpdatedBy;
+      buildfire.services.contract.events.send('locationUpdated', {
+        locationId,
+        title: saved.title,
+        subtitle: saved.subtitle || null,
+        address: saved.address || null,
+        categoryNames: ((saved.categories && saved.categories.main) || []).map((id) => ((state.categories || []).find((c) => c.id === id) || {}).title).filter(Boolean),
+        listImage: saved.listImage || null,
+        previousTitle,
+        updatedAt: saved.lastUpdatedOn,
+        updatedBy: by ? { userId: by._id, displayName: by.displayName || null, email: by.email || null } : null
+      });
+    }
+    return results;
+  });
 };
 
 const _reflectChanges = () => {
