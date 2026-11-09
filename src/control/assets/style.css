@@ -13,13 +13,23 @@
 
 .sidenav-container {
 	display: flex;
+	flex-direction: column;
 	overflow: hidden;
 }
 
 .sidenav {
-	width: 170px;
-	flex-shrink: 0;
-	padding-right: 1rem;
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 0 1rem 0.75rem;
+	margin: 0;
+	border-bottom: 1px solid #d3d2d2;
+}
+
+.sidenav li {
+	list-style: none;
+	margin-bottom: 0;
 }
 
 .sidenav li a {
@@ -30,9 +40,9 @@
 	display: flex;
 	align-items: center;
 	font-size: 13px;
-	margin-bottom: 8px;
 	cursor: pointer;
-	justify-content: space-between;
+	justify-content: center;
+	white-space: nowrap;
 }
 
 .sidenav li a.active,
@@ -48,9 +58,9 @@
 .sidenav-content {
 	overflow-y: auto;
 	/* min-height:  calc(100vh - 70px); */
-	max-height: calc(100vh - 45px);
+	max-height: calc(100vh - 100px);
 	padding: 0 1rem;
-	flex: auto;
+	width: 100%;
 }
 
 /* End Sidenav Style */

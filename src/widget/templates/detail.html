@@ -1,6 +1,7 @@
 <template>
   <div class="location-detail">
-    <div class="location-detail__top-view">
+    <!-- begin: title + category/status block (top map layout) -->
+    <div class="location-detail__top-view detail-block">
       <div class="location-detail__top-header mdc-theme--text-body">
         <span class="text-ellipsis">
           <h5 class="text-ellipsis margin-top-zero hidden" id="locationContributor">by Someone</h5>
@@ -28,10 +29,14 @@
 		</div>
       </div>
     </div>
+    <!-- end: title + category/status block (top map layout) -->
 
-    <div class="location-detail__map--top-view" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 6px;"></div>
+    <!-- begin: media header (top map layout) -->
+    <div class="location-detail__map--top-view detail-block detail-block--media" style="height: 300px; margin-left: -16px; margin-right: -16px; margin-top: 6px;"></div>
+    <!-- end: media header (top map layout) -->
 
-    <div class="location-detail__cover">
+    <!-- begin: media header + title block (cover layout) -->
+    <div class="location-detail__cover detail-block detail-block--media">
       <p class="text-truncate">Category | Subcategory</p>
 	  <div class="location-user-actions">
 		  <button class="mdc-button mdc-button--unelevated bf-outlined-btn" id="coverWorkingHoursBtn">
@@ -50,22 +55,39 @@
       <h2 class="text-ellipsis">Location Title</h2>
       <h4 class="text-ellipsis" id="locationSubtitleCover">Subtitle</h4>
     </div>
-    <div class="location-detail__address mdc-theme--text-body">
+    <!-- end: media header + title block (cover layout) -->
+
+    <!-- begin: primary action row -->
+    <div class="location-detail__actions detail-block"></div>
+    <!-- end: primary action row -->
+
+    <!-- begin: info rows -->
+    <div class="location-detail__address detail-block mdc-theme--text-body">
       <p>Address or Coordinates</p>
       <p id="locationDirectionsBtn">
         -
         <i class="material-icons mdc-theme--text-icon-on-background" tabindex="0" role="button">near_me</i>
       </p>
     </div>
-    <div class="location-detail__carousel"></div>
-    <div class="location-detail__actions"></div>
-    <div class="location-detail__rating">
+    <!-- end: info rows -->
+
+    <!-- begin: photos -->
+    <div class="location-detail__carousel detail-block"></div>
+    <!-- end: photos -->
+
+    <!-- begin: reviews -->
+    <div class="location-detail__rating detail-block">
       <p bfString="general.rateThisLocation" class="mdc-theme--text-body">Rate This Location</p>
       <div data-rating-id="ratingComponentTest"></div>
     </div>
-    <div class="location-detail__bottom-cover"></div>
-    <div class="location-detail__description mdc-theme--text-body">
+    <!-- end: reviews -->
+
+    <div class="location-detail__bottom-cover detail-block detail-block--media"></div>
+
+    <!-- begin: description -->
+    <div class="location-detail__description detail-block mdc-theme--text-body">
     </div>
+    <!-- end: description -->
   </div>
-  <div class="location-detail__map" style="height: 300px; margin-left: -15px; margin-right: -15px; margin-top: 25px;"></div>
+  <div class="location-detail__map detail-block detail-block--media" style="height: 300px; margin-left: -16px; margin-right: -16px; margin-top: 24px;"></div>
 </template>

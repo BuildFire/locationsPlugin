@@ -12,23 +12,23 @@ const renderListingLocations = (list) => {
   const bookmarksSettings = state.settings.bookmarks;
   let content;
   if (state.settings.design.listViewStyle === 'backgroundImage') {
-    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
-            <div class="location-image-item__header">
-              <p>${n.distance ? n.distance : '--'}</p>
+    content = list.map((n) => (`<div data-id="${n.id}" class="mdc-ripple-surface pointer location-image-item loc-card" style="background-image: linear-gradient( rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6) ),url(${n.images.length ? cdnImage(n.images[0].imageUrl) : './images/default-location-cover.png'});">
+            <div class="location-image-item__header loc-card__topbar">
+              <p class="loc-card__meta-text">${n.distance ? n.distance : '--'}</p>
               <i class="material-icons-outlined mdc-text-field__icon pointer-all bookmark-location-btn" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             </div>
-            <div class="location-image-item__body">
-              <p class="location-title margin-bottom-five text-ellipsis">${n.title ?? ''}</p>
-              <p class="margin-top-zero text-ellipsis">${transformCategoriesToText(n.categories, state.categories)}</p>
+            <div class="location-image-item__body loc-card__body">
+              <p class="location-title loc-card__title margin-bottom-five text-ellipsis">${n.title ?? ''}</p>
+              <p class="margin-top-zero loc-card__support text-ellipsis">${transformCategoriesToText(n.categories, state.categories)}</p>
               <p>
-                <span class="location-subtitle text-ellipsis">${n.subtitle ?? ''}</span>
+                <span class="location-subtitle loc-card__meta-text text-ellipsis">${n.subtitle ?? ''}</span>
                 <span>
                   <span>${n.settings.showPriceRange ? n.price.currency?.repeat(n.price?.range) : ''}</span>
                   <span class="location-image__open-status">${n.settings.showOpeningHours ? (window.strings.get(isLocationOpen(n) ? 'general.open' : 'general.closed').v) : ''}</span>
                 </span>
               </p>
             </div>
-            <div class="mdc-chip-set" role="grid">
+            <div class="mdc-chip-set loc-card__chips" role="grid">
               ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
@@ -37,25 +37,25 @@ const renderListingLocations = (list) => {
                     </span>
                   </span>
               </div>`).join('\n')}
-              ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
+              ${n.actionItems.length > 3 ? '<span class="loc-card__chips-more">...</span>' : ''}
             </div>
           </div>
 `)).join('\n');
   } else {
-    content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id="${n.id}">
+    content = list.map((n) => (`<div class="mdc-ripple-surface pointer location-item loc-card" data-id="${n.id}">
         <div class="d-flex">
-          <img src="${cdnImage(n.listImage)}" alt="Location image">
-          <div class="location-item__description">
-            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title}</p>
-            <p class="location-subtitle mdc-theme--text-body text-ellipsis text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="location-address mdc-theme--text-body text-ellipsis text-truncate">${n.address ?? ''}</p>
+          <img class="loc-card__img" src="${cdnImage(n.listImage)}" alt="Location image">
+          <div class="location-item__description loc-card__body">
+            <p class="location-title loc-card__title mdc-theme--text-header text-ellipsis">${n.title}</p>
+            <p class="location-subtitle loc-card__support mdc-theme--text-body text-ellipsis text-truncate" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="location-address loc-card__meta-text mdc-theme--text-body text-ellipsis text-truncate">${n.address ?? ''}</p>
           </div>
-          <div class="location-item__actions">
+          <div class="location-item__actions loc-card__meta">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-all bookmark-location-btn align-self-center" tabindex="0" role="button" style="visibility: ${!bookmarksSettings.enabled || !bookmarksSettings.allowForLocations ? 'hidden' : 'visible'};">${state.bookmarks.find((l) => l.id === n.clientId) ? 'star' : 'star_outline'}</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
-        <div class="mdc-chip-set" role="grid">
+        <div class="mdc-chip-set loc-card__chips" role="grid">
 
           ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background" role="row" data-action-id="${a.id}">
             <div class="mdc-chip__ripple"></div>
@@ -65,7 +65,7 @@ const renderListingLocations = (list) => {
                 </span>
               </span>
             </div>`).join('\n')}
-          ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
+          ${n.actionItems.length > 3 ? '<span class="loc-card__chips-more">...</span>' : ''}
         </div>
       </div>`)).join('\n');
   }

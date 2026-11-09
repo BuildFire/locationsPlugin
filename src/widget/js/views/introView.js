@@ -15,20 +15,20 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
     }
     const index = state.pinnedLocations.findIndex((pinned) => pinned.id === n.id);
     if (index === -1) {
-      filtered.push(`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+      filtered.push(`<div class="mdc-ripple-surface pointer location-item loc-card" data-id="${n.id}">
         <div class="d-flex">
-          <img src=${n.listImage} alt="Location image">
-          <div class="location-item__description">
-            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title ?? ''}</p>
-            <p class="location-subtitle mdc-theme--text-body text-truncate text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
-            <p class="location-address mdc-theme--text-body text-ellipsis">${n.address ?? ''}</p>
+          <img class="loc-card__img" src="${n.listImage}" alt="Location image">
+          <div class="location-item__description loc-card__body">
+            <p class="location-title loc-card__title mdc-theme--text-header text-ellipsis">${n.title ?? ''}</p>
+            <p class="location-subtitle loc-card__support mdc-theme--text-body text-truncate text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ''}</p>
+            <p class="location-address loc-card__meta-text mdc-theme--text-body text-ellipsis">${n.address ?? ''}</p>
           </div>
-          <div class="location-item__actions">
+          <div class="location-item__actions loc-card__meta">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
-        <div class="mdc-chip-set" role="grid">
+        <div class="mdc-chip-set loc-card__chips" role="grid">
 
          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
@@ -38,7 +38,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
                   </span>
                 </span>
             </div>`).join('\n')}
-         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
+         ${n.actionItems.length > 3 ? '<span class="loc-card__chips-more">...</span>' : ''}
         </div>
       </div>`);
     }
@@ -46,20 +46,20 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
   }, []);
 
   if (includePinned) {
-    reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item" data-id=${n.id}>
+    reducedLocations = state.pinnedLocations.map((n) => (`<div class="mdc-ripple-surface pointer location-item loc-card" data-id="${n.id}">
         <div class="d-flex">
-          <img src=${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1" }) : "./images/empty_image.PNG"} alt="Location image">
-          <div class="location-item__description">
-            <p class="location-title mdc-theme--text-header text-ellipsis">${n.title ?? ""}</p>
-            <p class="location-subtitle mdc-theme--text-body text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ""}</p>
-            <p class="location-address mdc-theme--text-body text-ellipsis">${n.address ?? ""}</p>
+          <img class="loc-card__img" src="${n.listImage != null ? buildfire.imageLib.cropImage(n.listImage, { size: "full_width", aspect: "1:1" }) : "./images/empty_image.PNG"}" alt="Location image">
+          <div class="location-item__description loc-card__body">
+            <p class="location-title loc-card__title mdc-theme--text-header text-ellipsis">${n.title ?? ""}</p>
+            <p class="location-subtitle loc-card__support mdc-theme--text-body text-ellipsis" style="display: ${n.subtitle ? 'block' : 'none'};">${n.subtitle ?? ""}</p>
+            <p class="location-address loc-card__meta-text mdc-theme--text-body text-ellipsis">${n.address ?? ""}</p>
           </div>
-          <div class="location-item__actions">
+          <div class="location-item__actions loc-card__meta">
             <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" style="visibility: hidden;">star_outline</i>
             <p class="mdc-theme--text-body">${n.distance ? n.distance : '--'}</p>
           </div>
         </div>
-        <div class="mdc-chip-set" role="grid">
+        <div class="mdc-chip-set loc-card__chips" role="grid">
 
          ${n.actionItems.slice(0, 3).map((a) => `<div class="mdc-chip mdc-theme--text-primary-on-background list-action-item" role="row" data-action-id="${a.id}">
               <div class="mdc-chip__ripple"></div>
@@ -69,7 +69,7 @@ const renderIntroductoryLocations = (list, includePinned = false) => {
                   </span>
                 </span>
             </div>`).join('\n')}
-         ${n.actionItems.length > 3 ? '<span style="align-self: center; padding: 4px;">...</span>' : ''}
+         ${n.actionItems.length > 3 ? '<span class="loc-card__chips-more">...</span>' : ''}
         </div>
       </div>`)).concat(reducedLocations);
   }
@@ -106,8 +106,8 @@ const initCreateLocationButton = () => {
 
 const separateListItems = () => {
   const container = document.querySelector('#introLocationsList');
-  const nearLocationsMessage = `<div id="nearLocationsMessageContainer" class="location-item"><h4 class="separate-location-message mdc-theme--text-header">${window.strings.get('general.nearYou').v}</h4></div>`;
-  const otherLocationsMessage = `<div id="otherLocationsMessageContainer" class="location-item"><h4 class="separate-location-message mdc-theme--text-header">${window.strings.get('general.otherLocations').v}</h4></div>`;
+  const nearLocationsMessage = `<div id="nearLocationsMessageContainer" class="location-item loc-list-label"><h4 class="separate-location-message mdc-theme--text-header">${window.strings.get('general.nearYou').v}</h4></div>`;
+  const otherLocationsMessage = `<div id="otherLocationsMessageContainer" class="location-item loc-list-label"><h4 class="separate-location-message mdc-theme--text-header">${window.strings.get('general.otherLocations').v}</h4></div>`;
 
   container.insertAdjacentHTML('afterbegin', nearLocationsMessage);
   container.insertAdjacentHTML('beforeend', otherLocationsMessage);

@@ -1,16 +1,18 @@
 <template>
-  <header>
-    <label class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body">
-      <i class="material-icons mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="searchLocationsBtn">search</i>
-      <input aria-labelledby="searchTextField" autocomplete="off" bfString="general.search" class="mdc-text-field__input mdc-theme--primary" id="searchTextField" placeholder="Search" type="text">
-      <i id="filterIconBtn" class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">filter_alt</i>
-    </label>
+  <header class="home-header">
+    <div class="home-header__search">
+      <label class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body">
+        <i class="material-icons mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="searchLocationsBtn">search</i>
+        <input aria-labelledby="searchTextField" autocomplete="off" bfString="general.search" class="mdc-text-field__input mdc-theme--primary" id="searchTextField" placeholder="Search" type="text">
+        <i id="filterIconBtn" class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button">filter_alt</i>
+      </label>
 
-    <label id="areaSearchLabel" class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body margin-top-ten">
-      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="hideQFBtn">expand_less</i>
-      <input class="mdc-text-field__input mdc-theme--primary needsclick" spellcheck="false" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
-      <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="myCurrentLocationBtn">gps_fixed</i>
-    </label>
+      <label id="areaSearchLabel" class="mdc-text-field mdc-text-field--with-leading-icon mdc-text-field--with-trailing-icon mdc-text-field__icon--trailing search-field mdc-theme--text-body margin-top-ten">
+        <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="hideQFBtn">expand_less</i>
+        <input class="mdc-text-field__input mdc-theme--primary needsclick" spellcheck="false" placeholder="Current Area" type="text" aria-labelledby="areaSearchTextField" id="areaSearchTextField" autocomplete="off">
+        <i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background" tabindex="0" role="button" id="myCurrentLocationBtn">gps_fixed</i>
+      </label>
+    </div>
 
     <div class="mdc-chip-set mdc-chip-set--filter header-qf" role="grid">
     </div>
@@ -29,14 +31,19 @@
 		  </button>
 	  </div>
 
-    <div class="skeleton-carousel"></div>
-    <div class="carousel-wrapper">
-      <div class="carousel"></div>
+    <div class="home-section home-section--carousel">
+      <div class="skeleton-carousel"></div>
+      <div class="carousel-wrapper">
+        <div class="carousel"></div>
+      </div>
     </div>
 
-    <div class="intro-details margin-top-thirty margin-bottom-thirty mdc-theme--text-primary-on-background"></div>
+    <div class="home-section home-section--details">
+      <div class="intro-details margin-top-thirty margin-bottom-thirty mdc-theme--text-primary-on-background"></div>
+    </div>
 
-    <div id="introLocationsList">
+    <div class="home-section home-section--list">
+      <div id="introLocationsList">
 		<div class="skeleton-wrapper"></div>
 		<div class="skeleton-wrapper"></div>
 		<div class="skeleton-wrapper"></div>
@@ -44,15 +51,16 @@
 		<div class="skeleton-wrapper"></div>
 		<div class="skeleton-wrapper"></div>
 		<div class="skeleton-wrapper"></div>
-	</div>
+	  </div>
+    </div>
 
-    <div class="empty-page">
+    <div class="empty-page empty-state">
     </div>
   </section>
 
   <section id="listing">
     <div id="locationSummary"></div>
-    <div id="mainMapContainer" style="height: calc(100vh - 210px); margin-left: -15px; margin-right: -15px;"></div>
+    <div id="mainMapContainer" style="height: calc(100vh - 210px); margin-left: -16px; margin-right: -16px;"></div>
     <div class="map-center-btn" id="mapCenterBtn">
       <div class="button-container">
         <div style="display: inline-block;">
@@ -75,12 +83,12 @@
     <template id="filterOptionsTemplate">
       <div class="filter-options">
         <div class="mdc-menu-surface--anchor margin-right-ten price-filter-container">
-          <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="priceSortingBtn">
+          <button class="mdc-button mdc-button--unelevated mdc-button--triangle loc-pill-btn" id="priceSortingBtn">
             <span class="mdc-button__ripple"></span>
             <span class="mdc-button__focus-ring"></span>
             <span bfString="general.price" class="mdc-button__label">Price</span>
           </button>
-          <div class="mdc-menu mdc-menu-surface price-filter-menu">
+          <div class="mdc-menu mdc-menu-surface price-filter-menu loc-menu-surface">
             <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true"
               aria-orientation="vertical" tabindex="-1">
               <li class="mdc-list-item" role="menuitem" data-value="1">
@@ -106,18 +114,18 @@
             </ul>
           </div>
         </div>
-        <button class="mdc-button mdc-button--unelevated margin-right-ten" id="openNowSortingBtn">
+        <button class="mdc-button mdc-button--unelevated margin-right-ten loc-pill-btn" id="openNowSortingBtn">
           <span class="mdc-button__ripple"></span>
           <span class="mdc-button__focus-ring"></span>
           <span bfString="general.open" class="mdc-button__label">Open</span>
         </button>
         <div class="mdc-menu-surface--anchor margin-right-ten other-sorting-container">
-          <button class="mdc-button mdc-button--unelevated mdc-button--triangle" id="otherSortingBtn">
+          <button class="mdc-button mdc-button--unelevated mdc-button--triangle loc-pill-btn" id="otherSortingBtn">
             <span class="mdc-button__ripple"></span>
             <span class="mdc-button__focus-ring"></span>
             <span bfStrong="sortingOptions.distance" class="mdc-button__label">Distance</span>
           </button>
-          <div class="mdc-menu mdc-menu-surface other-sorting-menu">
+          <div class="mdc-menu mdc-menu-surface other-sorting-menu loc-menu-surface">
             <ul class="mdc-list mdc-theme--text-primary-on-background" role="menu" aria-hidden="true"
               aria-orientation="vertical" tabindex="-1">
             </ul>
@@ -129,7 +137,7 @@
       <div>
         <div id="listingLocationsList">
         </div>
-        <div class="drawer-empty-state mdc-theme--text-body margin-top-thirty"></div>
+        <div class="drawer-empty-state empty-state mdc-theme--text-body margin-top-thirty"></div>
       </div>
     </template>
   </section>

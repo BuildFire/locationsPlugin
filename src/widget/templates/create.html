@@ -17,7 +17,7 @@
 
 					<div class="fields-group">
 						<!-- begin: Location Title text field-->
-						<div class="text-field-container margin-bottom-five">
+						<div class="text-field-container field-block margin-bottom-five">
 							<div class="mdc-text-field" id="locationTitleTextField">
 								<input class="mdc-text-field__input mdc-theme--text-primary-on-background" maxlength="100" type="text">
 								<div class="mdc-line-ripple"></div>
@@ -30,7 +30,7 @@
 						<!-- end: Location Title text field-->
 
 						<!-- begin: Location Subtitle text field-->
-						<div class="text-field-container margin-bottom-twenty">
+						<div class="text-field-container field-block margin-bottom-twenty">
 							<div class="mdc-text-field" id="locationSubtitleTextField">
 								<input class="mdc-text-field__input mdc-theme--text-primary-on-background">
 								<div class="mdc-line-ripple"></div>
@@ -41,7 +41,7 @@
 					</div>
 
 					<!-- begin: Location Description text area-->
-					<div class="text-field-container">
+					<div class="text-field-container field-block">
 						<div id="locationDescriptionTextField">
 							<label bfString="locationEditing.locationDescription" class="mdc-floating-label"></label>
 						</div>
@@ -72,7 +72,7 @@
 				<div class="expansion-panel-body-content" role="grid">
 					<div class="fields-group">
 						<!-- begin: Location Address text field-->
-						<div class="text-field-container margin-bottom-twenty">
+						<div class="text-field-container field-block margin-bottom-twenty">
 							<div class="mdc-text-field" id="locationAddressTextField">
 								<input autocomplete="off" class="mdc-text-field__input mdc-theme--text-primary-on-background needsclick" spellcheck="false" type="text">
 								<div class="mdc-line-ripple"></div>
@@ -85,7 +85,7 @@
 						<!-- end: Location Address text field-->
 
 						<!-- begin: Location Custom Name text field-->
-						<div class="text-field-container margin-bottom-twenty">
+						<div class="text-field-container field-block margin-bottom-twenty">
 							<div class="mdc-text-field" id="locationCustomNameTextField">
 								<input class="mdc-text-field__input mdc-theme--text-primary-on-background">
 								<div class="mdc-line-ripple"></div>
@@ -96,7 +96,7 @@
 					</div>
 
 					<div id="locationMapContainer"></div>
-					<p bfString="locationEditing.mapNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">If you need adjustments, drag the map so the pin matches the exact location of your place.</p>
+					<p bfString="locationEditing.mapNote" class="mdc-theme--text-body margin-top-five text-field-helper-text field-block__helper">If you need adjustments, drag the map so the pin matches the exact location of your place.</p>
 				</div>
 			</div>
 		</div>
@@ -118,14 +118,14 @@
 				<div class="expansion-panel-body-content" role="grid">
 					<div class="categories-overview pointer" id="locationCategoriesOverview">
 						<div class="flex-grow-1 mdc-theme--text-primary-on-background categories-overview__text pointer-none">
-							<h4 bfString="locationEditing.chooseCategory" class="margin-top-zero margin-bottom-zero">Choose Category</h4>
+							<h4 bfString="locationEditing.chooseCategory" class="margin-top-zero margin-bottom-zero field-block__label">Choose Category</h4>
 							<h5 class="margin-bottom-zero margin-top-ten hidden"></h5>
 						</div>
 						<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background pointer-none" role="button" tabindex="0">arrow_forward_ios</i>
 					</div>
 
 					<div class="switch-button-container px-0">
-						<h4 bfString="locationEditing.showCategory" class="mdc-theme--text-primary-on-background margin-bottom-zero">Show Category on Location Screen</h4>
+						<h4 bfString="locationEditing.showCategory" class="mdc-theme--text-primary-on-background margin-bottom-zero field-block__label">Show Category on Location Screen</h4>
 						<div class="mdc-switch" id="locationShowCategoryCheckbox">
 							<div class="mdc-switch__track"></div>
 							<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
@@ -203,7 +203,7 @@
 
 		<!-- begin: Star Rating container-->
 		<div class="switch-button-container">
-			<h4 bfString="locationEditing.starRating" class="mdc-theme--text-primary-on-background">Star Rating</h4>
+			<h4 bfString="locationEditing.starRating" class="mdc-theme--text-primary-on-background field-block__label">Star Rating</h4>
 			<div class="mdc-switch" id="locationShowStarRatingCheckbox">
 				<div class="mdc-switch__track"></div>
 				<div class="mdc-switch__thumb-underlay mdc-ripple-upgraded mdc-ripple-upgraded--unbounded">
@@ -216,9 +216,9 @@
 		<!-- end: Star Rating expansion-->
 
 		<!-- begin: Location List Image container-->
-		<div class="text-field-container" id="locationListImageInput">
-			<h4 bfString="locationEditing.listImage" class="margin-bottom-zero mdc-theme--text-primary-on-background">List Image</h4>
-			<p bfString="locationEditing.listImageNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">This is the main location image displayed next to the location info in a list view.</p>
+		<div class="text-field-container field-block" id="locationListImageInput">
+			<h4 bfString="locationEditing.listImage" class="margin-bottom-zero mdc-theme--text-primary-on-background field-block__label">List Image</h4>
+			<p bfString="locationEditing.listImageNote" class="mdc-theme--text-body margin-top-five text-field-helper-text field-block__helper">This is the main location image displayed next to the location info in a list view.</p>
 			<div class="img-select-holder">
 				<button class="img-select">
 					<i class="material-icons-outlined mdc-text-field__icon mdc-theme--text-icon-on-background delete-img-btn" role="button" tabIndex="0">close</i>
@@ -234,8 +234,8 @@
 
 		<!-- begin: Location Images container-->
 		<div class="location-images">
-			<h4 bfString="locationEditing.locationImages" class="margin-bottom-zero mdc-theme--text-primary-on-background">Location Images</h4>
-			<p bfString="locationEditing.locationImagesNote" class="mdc-theme--text-body margin-top-five text-field-helper-text">These are the location details images. First image in the list will be displayed as location’s main image.</p>
+			<h4 bfString="locationEditing.locationImages" class="margin-bottom-zero mdc-theme--text-primary-on-background field-block__label">Location Images</h4>
+			<p bfString="locationEditing.locationImagesNote" class="mdc-theme--text-body margin-top-five text-field-helper-text field-block__helper">These are the location details images. First image in the list will be displayed as location’s main image.</p>
 
 			<div id="locationListImagesContainer"></div>
 		</div>
@@ -269,7 +269,7 @@
 		</div>
 		<!-- end: Open Hours expansion-->
 	</div>
-	<div class="fixed-footer mdc-theme--background">
+	<div class="fixed-footer form-action-row mdc-theme--background">
 		<button class="mdc-button mdc-button--raised mdc-ripple-upgraded mdc-theme--text-disabled-on-dark bf-theme-success" id="submitBtn">
 			<span class="mdc-button__label">SAVE</span>
 			<div class="mdc-button__ripple"></div>

@@ -37,7 +37,7 @@ export default {
     const location = state.selectedLocation;
     const carouselContainer = document.querySelector('.location-detail__carousel');
 
-    carouselContainer.innerHTML = location.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+    carouselContainer.innerHTML = location.images.map((n) => `<div class="loc-photo" style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
 
     const indexInList = state.listLocations.findIndex((i) => i.id === location.id);
     const indexInPinned = state.pinnedLocations.findIndex((i) => i.id === location.id);
@@ -81,7 +81,7 @@ export default {
   },
   _buildUploadImageSkeleton() {
     const carouselContainer = document.querySelector('.location-detail__carousel');
-    carouselContainer.innerHTML += `<div class="img-select-holder"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
+    carouselContainer.innerHTML += `<div class="img-select-holder loc-photo"><div class="bf-skeleton-loader img-skeleton-container"></div></div>`;
   },
   addLocationPhotos() {
     if (!accessManager.canAddLocationPhotos()) return;
@@ -496,9 +496,9 @@ export default {
             buildfire.components.ratingSystem.injectRatings();
           }
 
-          selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item" data-id="${a.id}">
-            ${a.iconUrl ? `<img src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon ${a.iconClassName}"></i>` : ''}
-              <div class="mdc-chip mdc-theme--text-primary-on-background" role="row">
+          selectors.actionItems.innerHTML = selectedLocation.actionItems.map((a) => `<div class="action-item loc-action" data-id="${a.id}">
+            ${a.iconUrl ? `<img class="loc-action__icon" src="${cdnImage(a.iconUrl)}" alt="action-image">` : a.iconClassName ? `<i class="custom-action-item-icon loc-action__icon ${a.iconClassName}"></i>` : ''}
+              <div class="mdc-chip mdc-theme--text-primary-on-background loc-action__label" role="row">
                 <div class="mdc-chip__ripple"></div>
                 <span role="gridcell">
                   <span role="checkbox" tabindex="0" aria-checked="true" class="mdc-chip__primary-action">
@@ -507,7 +507,7 @@ export default {
                 </span>
               </div>
             </div>`).join('\n');
-          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
+          selectors.carousel.innerHTML = selectedLocation.images.map((n) => `<div class="loc-photo" style="background-image: url('${buildfire.imageLib.cropImage(n.imageUrl, { size: "full_width", aspect: "1:1" })}');" data-id="${n.id}"></div>`).join('\n');
           resolve();
         });
     });
