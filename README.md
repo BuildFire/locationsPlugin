@@ -1,5 +1,5 @@
 # Locations
- 
+  
 ## Overview
 Empower your app with the "Locations" plugin, offering powerful location-based capabilities. This plugin allows users to discover, explore, and connect with various places effortlessly. With features like location management and a sophisticated algorithm to list locations based on user proximity, it enhances the user experience by integrating geographical context.
 
