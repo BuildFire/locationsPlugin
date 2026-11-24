@@ -20,6 +20,9 @@ const cleanUp = async () => {
 };
 // The widget refresh message gets no answer here: a spy stands in for it and only answers.
 const quiet = () => spyOn(buildfire.messaging, 'sendMessageToWidget');
+// What the previous contract's pre specs left on this instance (pre/locationFields.spec.js and pre/locations.spec.js), by the labels they wrote.
+const pre = (label) => `Pre ${label} (${contract.host})`;
+const preFieldLabel = 'Pre link field for the app';
 
 // controlBackground only: the settings tab manages location fields.
 contract.describe('createLocationField', () => {
@@ -164,6 +167,16 @@ contract.describe('updateLocationField', () => {
       expect(await fieldNamed(created.label)).toEqual([created]);
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes the field the previous pre specs made', async () => {
+      const label = pre('field');
+      const [before] = await fieldNamed(label);
+      expect(before).toEqual(jasmine.objectContaining({ section: 'content', type: 'TEXT', required: false, allowCustomLabel: false }));
+      expect(await call('updateLocationField', { label, newRequired: true })).toEqual({ ...before, required: true });
+      expect(await fieldNamed(label)).toEqual([{ ...before, required: true }]);
+    });
+  });
 });
 
 contract.describe('updateLocationFieldAdvanced', () => {
@@ -177,6 +190,14 @@ contract.describe('updateLocationFieldAdvanced', () => {
 
   it('refuses an id that matches nothing', async () => {
     expect(await refusal(call('updateLocationFieldAdvanced', { fieldId: 'no-such-field', newRequired: true }))).toContain('no-such-field');
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes the field the previous pre specs made, by its id', async () => {
+      const [before] = await fieldNamed(pre('field'));
+      expect(await call('updateLocationFieldAdvanced', { fieldId: before.id, newAllowCustomLabel: true })).toEqual({ ...before, allowCustomLabel: true });
+      expect((await fieldNamed(before.label))[0].allowCustomLabel).toBe(true);
+    });
   });
 });
 
@@ -214,6 +235,15 @@ contract.describe('updateLocationFieldsAdvanced', () => {
       expect(await refusal(call('updateLocationFieldsAdvanced', { fields: [] }))).toContain('fields');
     });
   });
+
+  describe("the previous contract's data", () => {
+    it('changes the field the previous pre specs made, and reports it', async () => {
+      const [before] = await fieldNamed(pre('field'));
+      expect(await call('updateLocationFieldsAdvanced', { fields: [{ fieldId: before.id, newType: 'RICH_TEXT' }] }))
+        .toEqual(jasmine.objectContaining({ fields: [jasmine.objectContaining({ index: 0, id: before.id, error: null })], succeeded: 1, failed: 0 }));
+      expect((await fieldNamed(before.label))[0].type).toBe('RICH_TEXT');
+    });
+  });
 });
 
 contract.describe('deleteLocationField', () => {
@@ -230,6 +260,15 @@ contract.describe('deleteLocationField', () => {
     const label = unique('missing');
     expect(await refusal(call('deleteLocationField', { label }))).toContain(label);
     expect(await refusal(call('deleteLocationField', {}))).toContain('label');
+  });
+
+  describe("the previous contract's data", () => {
+    it('removes the field the previous pre specs made', async () => {
+      const label = pre('field');
+      const [before] = await fieldNamed(label);
+      expect(await call('deleteLocationField', { label })).toEqual({ id: before.id, label });
+      expect(await fieldNamed(label)).toEqual([]);
+    });
   });
 });
 
@@ -292,6 +331,15 @@ contract.describe('updateLocationFieldOrder', () => {
     expect(await refusal(call('updateLocationFieldOrder', { label: one.label, position: 0 }))).toContain('position');
     expect((await labelsIn('quickActions')).pop()).toBe(one.label);
   });
+
+  describe("the previous contract's data", () => {
+    it('moves the field the previous pre specs made for the app to the top of its section', async () => {
+      const [before] = await fieldNamed(preFieldLabel);
+      const moved = await call('updateLocationFieldOrder', { label: preFieldLabel, position: 1 });
+      expect(moved.fields[0]).toEqual(before);
+      expect((await labelsIn('content'))[0]).toBe(preFieldLabel);
+    });
+  });
 });
 
 contract.describe('updateLocationFieldOrderAdvanced', () => {
@@ -306,5 +354,13 @@ contract.describe('updateLocationFieldOrderAdvanced', () => {
 
   it('refuses an id that matches nothing', async () => {
     expect(await refusal(call('updateLocationFieldOrderAdvanced', { fieldId: 'no-such-field', position: 1 }))).toContain('no-such-field');
+  });
+
+  describe("the previous contract's data", () => {
+    it('moves the field the previous pre specs made for the app, by its id', async () => {
+      await make('above the previous one');
+      const [before] = await fieldNamed(preFieldLabel);
+      expect((await call('updateLocationFieldOrderAdvanced', { fieldId: before.id, position: 1 })).fields[0]).toEqual(before);
+    });
   });
 });

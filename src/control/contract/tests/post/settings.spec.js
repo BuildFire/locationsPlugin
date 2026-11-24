@@ -39,6 +39,14 @@ contract.describe('getSettings', () => {
   it('changes nothing when read', async () => {
     expect(await settings()).toEqual(await settings());
   });
+
+  describe("the previous contract's data", () => {
+    it('shows the location field the previous pre specs added for the app', async () => {
+      expect((await settings()).locationFields).toContain(jasmine.objectContaining({
+        id: jasmine.any(String), label: 'Pre link field for the app', section: 'content', type: 'URL', allowCustomLabel: true
+      }));
+    });
+  });
 });
 
 // controlBackground only: the app may not write the settings.
@@ -152,6 +160,18 @@ contract.describe('updateSettings', () => {
       await call('updateSettings', { allowSortByNearest: false });
       expect(await refusal(call('updateSettings', { defaultSorting: 'distance' }))).toContain('distance');
       expect((await settings()).defaultSorting).toBe('alphabetical');
+    });
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes one setting and keeps the ones the previous pre specs saved', async () => {
+      // Settings the previous pre specs saved and no spec here changes.
+      const saved = {
+        allowCustomNotifications: false, allowSortByPriceLowToHigh: false, allowSortByRating: false, allowFilterByBookmarks: true, allowBookmarkSearches: false, enableMapTerrainView: true, showContributorName: true
+      };
+      expect(await settings()).toEqual(jasmine.objectContaining(saved));
+      expect(await call('updateSettings', { hideSorting: true })).toEqual(jasmine.objectContaining({ ...saved, hideSorting: true }));
+      expect(await settings()).toEqual(jasmine.objectContaining({ ...saved, hideSorting: true }));
     });
   });
 });

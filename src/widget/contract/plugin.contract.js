@@ -101,8 +101,8 @@ const LANGUAGE_TEXTS = {
   "sortingOptions.alphabeticalDsc": { title: "Title (Z-A)", defaultValue: "Title (Z-A)", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.distance": { title: "Distance", defaultValue: "Distance", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.recommended": { title: "Recommended", defaultValue: "Recommended", required: true, isPlaceHolder: false, maxLength: 12 },
-  "sortingOptions.priceDsc": { title: "$$ - $", defaultValue: "$$ - $", required: true, isPlaceHolder: false, maxLength: 12 },
-  "sortingOptions.priceAsc": { title: "$ - $$", defaultValue: "$ - $$", required: true, isPlaceHolder: false, maxLength: 12 },
+  "sortingOptions.priceDsc": { title: "$$$ - $", defaultValue: "$$$ - $", required: true, isPlaceHolder: false, maxLength: 12 },
+  "sortingOptions.priceAsc": { title: "$ - $$$", defaultValue: "$ - $$$", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.recent": { title: "Recent", defaultValue: "Recent", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.mostViewed": { title: "Most Viewed", defaultValue: "Most Viewed", required: true, isPlaceHolder: false, maxLength: 12 },
   "locationEditing.controlNote": { title: "For full customization options go to the admin Control Panel.", defaultValue: "For full customization options go to the admin Control Panel.", required: true, isPlaceHolder: false, maxLength: 100 },
@@ -187,6 +187,12 @@ const LANGUAGE_TEXTS = {
   "emptyState.emptyCategories": { title: "No Categories Added", defaultValue: "No Categories Added", required: false, isPlaceHolder: false, maxLength: 30 },
   "emptyState.locationsListBeforeSearch": { title: "Start your search", defaultValue: "Start your search", required: false, isPlaceHolder: false, maxLength: 40 },
   "emptyState.locationsListAfterSearch": { title: "No locations found within this area", defaultValue: "No locations found within this area", required: false, isPlaceHolder: false, maxLength: 40 }
+};
+// The defaults updateLanguageText has always stored for these labels. stringsConfig.js has since changed them, and the
+// reads show its current ones, but the stored document keeps the earlier values so a write stores what it stored before.
+const STORED_LANGUAGE_DEFAULTS = {
+  "sortingOptions.priceDsc": "$$ - $",
+  "sortingOptions.priceAsc": "$ - $$"
 };
 const LANGUAGE_SECTIONS = {
   general: 'General',
@@ -1580,14 +1586,14 @@ const loadLanguageRecord = (callback) => {
   });
 };
 
-/** The texts document as the Strings service builds it: every label's default and flags, with the saved values merged in. */
+/** The texts document as the Strings service builds it: every label's default and flags, with the saved values merged in. Only the write stores it; the reads take their defaults from LANGUAGE_TEXTS. */
 const languageDocument = (record) => {
   const doc = {};
   Object.keys(LANGUAGE_TEXTS).forEach((key) => {
     const [section, label] = key.split('.');
     const text = LANGUAGE_TEXTS[key];
     if (!doc[section]) doc[section] = {};
-    doc[section][label] = { defaultValue: text.defaultValue };
+    doc[section][label] = { defaultValue: key in STORED_LANGUAGE_DEFAULTS ? STORED_LANGUAGE_DEFAULTS[key] : text.defaultValue };
     if (text.required) doc[section][label].required = true;
     if (text.isPlaceHolder) doc[section][label].isPlaceHolder = true;
   });

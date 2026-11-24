@@ -20,6 +20,20 @@ contract.describe('getLanguageTexts', () => {
   it('changes nothing when read', async () => {
     expect(await call('getLanguageTexts', {})).toEqual(await call('getLanguageTexts', {}));
   });
+
+  it('shows the default the app uses now for a text nothing has set', async () => {
+    const { texts } = await call('getLanguageTexts', {});
+    expect(texts.find((text) => text.key === 'sortingOptions.priceDsc')).toEqual(jasmine.objectContaining({ title: '$$$ - $', text: '$$$ - $', defaultText: '$$$ - $', required: true }));
+    expect(texts.find((text) => text.key === 'sortingOptions.priceAsc')).toEqual(jasmine.objectContaining({ title: '$ - $$$', text: '$ - $$$', defaultText: '$ - $$$', required: true }));
+  });
+
+  describe("the previous contract's data", () => {
+    it('reads the texts the previous pre specs saved, with the defaults the app shows now for the rest', async () => {
+      const { texts } = await call('getLanguageTexts', {});
+      expect(texts.length).toBe(126);
+      expect(texts.find((text) => text.key === 'sortingOptions.priceDsc')).toEqual(jasmine.objectContaining({ text: '$$$ - $', defaultText: '$$$ - $' }));
+    });
+  });
 });
 
 // controlBackground only: the app may not write the texts.
@@ -69,6 +83,15 @@ contract.describe('updateLanguageText', () => {
       expect(await refusal(call('updateLanguageText', { key: 'general.price', text: null }))).toContain('text');
       expect(await refusal(call('updateLanguageText', { key: 'general.price', text: 7 }))).toContain('text');
       expect((await textOf('general.price')).text).toBe('Price');
+    });
+  });
+
+  describe("the previous contract's data", () => {
+    it('changes a text in the texts the previous pre specs saved, keeping the others', async () => {
+      await call('updateLanguageText', { key: 'sortingOptions.recent', text: 'Latest' });
+      expect(await textOf('sortingOptions.recent')).toEqual(jasmine.objectContaining({ text: 'Latest', defaultText: 'Recent' }));
+      expect(await textOf('sortingOptions.priceDsc')).toEqual(jasmine.objectContaining({ text: '$$$ - $', defaultText: '$$$ - $' }));
+      await call('updateLanguageText', { key: 'sortingOptions.recent', text: 'Recent' });
     });
   });
 });
