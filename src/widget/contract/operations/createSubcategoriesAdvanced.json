@@ -49,6 +49,12 @@
           "required": false,
           "minValue": 0,
           "maxValue": 1,
+          "dialogOptions": {
+            "showIcons": true,
+            "showFiles": true,
+            "showStockImages": true,
+            "showAiImages": true
+          },
           "description": "The picture shown for it, as a list holding one image. Leave it out for none.",
           "sampleValue": [
             "[image url]"

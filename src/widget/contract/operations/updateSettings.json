@@ -453,6 +453,17 @@
       "displayName": "Introduction images",
       "required": false,
       "minValue": 0,
+      "dialogOptions": {
+        "showIcon": true,
+        "imgLibOptions": {
+          "showIcons": true
+        },
+        "showTitle": true,
+        "hideActionText": false,
+        "allowNoAction": true,
+        "removePurchase": false,
+        "removePushNotifications": false
+      },
       "description": "The pictures at the top of the introduction screen, in order, each with its picture and what tapping it does. Replaces the current pictures. Leave it out to keep them, or pass an empty list to remove them.",
       "sampleValue": [
         {

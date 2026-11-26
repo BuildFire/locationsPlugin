@@ -21,7 +21,7 @@
  *
  * `buildfire` is resolved as a global: in the widget/control hosts it comes from the injected SDK, and on the server the headless SDK provides it. `widgetContract`, `controlContract` and `frameId` are assigned as implicit globals for the same reason — the consumer reaches them without importing this file. The widget frame (widget/contract.html) and the server dispatch to widgetContract; the control panel's frame (control/contract.html) loads this same file and dispatches to controlContract.
  *
- * Every function is Node-style: callback(error, result), invoked exactly once, never with both error and result populated. Invalid input is reported through the callback rather than thrown synchronously.
+ * Every function is Node-style: callback(error, result), invoked exactly once, never with both error and result populated. Invalid input is reported through the callback rather than thrown synchronously, and every refusal is a contractError(CODES.<code>, message): the caller gets it as a ContractOperationInvokeError carrying that code. A store's own error is passed on as it is.
  *
  * Every option a function reads here must be declared in that operation's `parameters` block, or a caller cannot pass it: the MCP server refuses any param the contract does not declare.
  *
@@ -101,8 +101,8 @@ const LANGUAGE_TEXTS = {
   "sortingOptions.alphabeticalDsc": { title: "Title (Z-A)", defaultValue: "Title (Z-A)", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.distance": { title: "Distance", defaultValue: "Distance", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.recommended": { title: "Recommended", defaultValue: "Recommended", required: true, isPlaceHolder: false, maxLength: 12 },
-  "sortingOptions.priceDsc": { title: "$$ - $", defaultValue: "$$ - $", required: true, isPlaceHolder: false, maxLength: 12 },
-  "sortingOptions.priceAsc": { title: "$ - $$", defaultValue: "$ - $$", required: true, isPlaceHolder: false, maxLength: 12 },
+  "sortingOptions.priceDsc": { title: "$$$ - $", defaultValue: "$$$ - $", required: true, isPlaceHolder: false, maxLength: 12 },
+  "sortingOptions.priceAsc": { title: "$ - $$$", defaultValue: "$ - $$$", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.recent": { title: "Recent", defaultValue: "Recent", required: true, isPlaceHolder: false, maxLength: 12 },
   "sortingOptions.mostViewed": { title: "Most Viewed", defaultValue: "Most Viewed", required: true, isPlaceHolder: false, maxLength: 12 },
   "locationEditing.controlNote": { title: "For full customization options go to the admin Control Panel.", defaultValue: "For full customization options go to the admin Control Panel.", required: true, isPlaceHolder: false, maxLength: 100 },
@@ -280,8 +280,42 @@ const validateFieldValue = (value, fieldType) => {
 // Generic helpers
 // ---------------------------------------------------------------------------
 
+// The codes a caller gets with a refusal (ContractOperationInvokeError.CODES in the SDK's buildfire.js). The literal
+// copy is for an older SDK without the class; its values never change.
+const CODES = (typeof ContractOperationInvokeError === 'function' && ContractOperationInvokeError.CODES) || {
+  NOT_FOUND: 'notFound',
+  VALIDATION: 'validation',
+  NOT_SUPPORTED: 'notSupported',
+  NOT_ALLOWED: 'notAllowed',
+  UNAUTHENTICATED: 'unauthenticated',
+  ALREADY_EXISTS: 'alreadyExists',
+  CONFLICT: 'conflict',
+  LIMIT_EXCEEDED: 'limitExceeded',
+  CANCELLED: 'cancelled',
+  TIMEOUT: 'timeout',
+  NOT_AVAILABLE: 'notAvailable',
+  NETWORK: 'network',
+  INTERNAL: 'internal'
+};
+
+/**
+ * A refusal, with the code the caller branches on. A ContractOperationInvokeError where the SDK has the class; on an older
+ * SDK (or a headless one without it) an Error carrying the same code, which a newer SDK on the caller's side still reads.
+ * @param {string} code - one of CODES
+ * @param {string} message - what was refused and why, naming the parameter or the text the caller passed
+ */
+const contractError = (code, message) => {
+  if (typeof ContractOperationInvokeError === 'function') return new ContractOperationInvokeError({ code, message });
+  const error = new Error(message);
+  error.code = code;
+  return error;
+};
+
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
-const fail = (callback, message) => callback(new Error(message), undefined);
+// Every refusal names its code; checks of the parameters are the common case, so validation unless another is given.
+const fail = (callback, message, code = CODES.VALIDATION) => callback(contractError(code, message), undefined);
+// A refusal that only reports its outcome ({ error, code? }) keeps its own code; one that names none is a parameter check.
+const failWith = (callback, outcome) => fail(callback, outcome.error, outcome.code || CODES.VALIDATION);
 
 const requireCallback = (callback) => {
   if (typeof callback !== 'function') {
@@ -349,7 +383,7 @@ const getPublicRecord = (id, tag, noun, callback) => {
   buildfire.publicData.getById(id, tag, (err, record) => {
     if (err) return callback(err, undefined);
     if (!record || !record.data || !Object.keys(record.data).length) {
-      return fail(callback, `No ${noun} with id "${id}"`);
+      return fail(callback, `No ${noun} with id "${id}"`, CODES.NOT_FOUND);
     }
     callback(null, record);
   });
@@ -357,8 +391,8 @@ const getPublicRecord = (id, tag, noun, callback) => {
 
 /** Exactly one record out of a lookup's matches: none and several are both refused, naming the text. */
 const onlyMatch = (records, noun, field, text, callback, plural = `${noun}s`, total = records.length) => {
-  if (!records.length) return fail(callback, `No ${noun} has the ${field} "${text}"`);
-  if (records.length > 1) return fail(callback, `${Math.max(total, records.length)} ${plural} have the ${field} "${text}"; it must name exactly one`);
+  if (!records.length) return fail(callback, `No ${noun} has the ${field} "${text}"`, CODES.NOT_FOUND);
+  if (records.length > 1) return fail(callback, `${Math.max(total, records.length)} ${plural} have the ${field} "${text}"; it must name exactly one`, CODES.CONFLICT);
   callback(null, records[0]);
 };
 
@@ -389,27 +423,66 @@ const registerAnalyticsEvent = (title, key) => {
 
 const TEXT_KINDS = ['string', 'wysiwyg'];
 
-/**
- * An image param, checked against its declared count. Image params are always arrays, even for a single image, so a bare string is refused rather than wrapped: it means the caller misread the contract.
- */
-const readImageList = (value, { name, minValue, maxValue }) => {
-  const range = maxValue === undefined ? `at least ${minValue}`
-    : (minValue === maxValue ? `exactly ${minValue}` : (minValue === 0 ? `up to ${maxValue}` : `${minValue} to ${maxValue}`));
-  if (!Array.isArray(value)) return { error: `${name} must be a list of image URLs (${range}), even for one image` };
-  if (value.length < minValue || (maxValue !== undefined && value.length > maxValue)) {
-    return { error: `${name} must hold ${range} image${maxValue === 1 ? '' : 's'}; got ${value.length}` };
+// The SDK dialog options an image or action param leaves out (see "dialogOptions" in the manifest): icons offered,
+// "No Action" allowed. Every param declares all of its options, so these only fill in for one that does not.
+const DIALOG_DEFAULTS = {
+  image: {
+    showIcons: true, showFiles: true, showStockImages: true, showAiImages: true
+  },
+  action: {
+    showIcon: true, allowNoAction: true, removePurchase: false, removePushNotifications: false
   }
-  if (value.some((url) => typeof url !== 'string' || !url.trim())) return { error: `${name} must contain only image URLs` };
-  return { value };
+};
+// The dialogOptions each image and action param declares in plugin.contract.json. Every one keeps accepting what it
+// accepted before the options were declared: icons and every image source on images, every kind of action item on actions.
+const IMAGE_DIALOG = {
+  showIcons: true, showFiles: true, showStockImages: true, showAiImages: true
+};
+const ACTION_DIALOG = {
+  showIcon: true, imgLibOptions: { showIcons: true }, showTitle: false, hideActionText: false, allowNoAction: true, removePurchase: false, removePushNotifications: false
+};
+// Introduction screen pictures are the carousel editor's items: the picture is the item's icon, with a title.
+const CAROUSEL_DIALOG = { ...ACTION_DIALOG, showTitle: true };
+// an image entry that is an icon's class names (what the image library returns for an icon), not an image URL
+const isIconEntry = (entry) => typeof entry === 'string' && !!entry.trim() && !/[/:]/.test(entry);
+
+/** The count a list param declares, in words. */
+const rangeText = (minValue, maxValue) => (maxValue === undefined ? `at least ${minValue}`
+  : (minValue === maxValue ? `exactly ${minValue}` : (minValue === 0 ? `up to ${maxValue}` : `${minValue} to ${maxValue}`)));
+
+/**
+ * An image param, checked against its declared count and dialogOptions. Image params are declared and sent as arrays, even for a single image; a single URL on its own is still accepted as a one-item list, since callers written before the array rule send it that way.
+ */
+const readImageList = (value, {
+  name, minValue, maxValue, dialogOptions
+}) => {
+  const range = rangeText(minValue, maxValue);
+  // backward compatible: a single value is the older way of sending one entry
+  const list = Array.isArray(value) ? value : ((value === undefined || value === null || value === '') ? [] : [value]);
+  if (list.length < minValue || (maxValue !== undefined && list.length > maxValue)) {
+    return { error: `${name} must hold ${range} image${maxValue === 1 ? '' : 's'}; got ${list.length}` };
+  }
+  const options = { ...DIALOG_DEFAULTS.image, ...(dialogOptions || {}) };
+  // with icons shown, an entry may be an icon's class names instead of an image URL
+  const validImage = (entry) => typeof entry === 'string' && !!entry.trim() && (isIconEntry(entry)
+    ? options.showIcons : (options.showFiles || options.showStockImages || options.showAiImages));
+  if (!list.every(validImage)) return { error: options.showIcons ? `${name} must contain only images or icons` : `${name} must contain only image URLs` };
+  return { value: list };
 };
 
-/** Action items as the plugin's action item dialog saves them: objects naming their action. */
-const readActionList = (value, { name, minValue }) => {
-  if (!Array.isArray(value)) return { error: `${name} must be a list of action items` };
-  if (value.length < minValue) return { error: `${name} must hold at least ${minValue} action item${minValue === 1 ? '' : 's'}` };
-  const bad = value.findIndex((item) => !isObject(item) || typeof item.action !== 'string' || !item.action);
+/** Action items as the plugin's action item dialog saves them: objects naming their action. A single action item on its own is still accepted as a one-item list. */
+const readActionList = (value, { name, minValue, dialogOptions }) => {
+  // backward compatible: one action item object is the older way of sending one entry
+  const list = Array.isArray(value) ? value : ((value === undefined || value === null) ? [] : [value]);
+  if (list.length < minValue) return { error: `${name} must hold at least ${minValue} action item${minValue === 1 ? '' : 's'}` };
+  const bad = list.findIndex((item) => !isObject(item) || typeof item.action !== 'string' || !item.action);
   if (bad > -1) return { error: `${name} entry ${bad} must be an action item with its action, such as linkToWeb or callNumber` };
-  return { value };
+  const options = { ...DIALOG_DEFAULTS.action, ...(dialogOptions || {}) };
+  const refused = list.find((item) => (item.action === 'noAction' && !options.allowNoAction)
+    || (item.action === 'purchase' && options.removePurchase)
+    || (item.action === 'sendPushNotification' && options.removePushNotifications));
+  if (refused) return { error: `${name} does not allow a "${refused.action}" action item` };
+  return { value: list };
 };
 
 /**
@@ -474,9 +547,11 @@ const readParam = (name, value, rule) => {
       if (!rule.values.includes(value)) return { error: `${name} must be one of: ${rule.values.join(', ')}` };
       return { value };
     case 'image':
-      return readImageList(value, { name, minValue: rule.minValue, maxValue: rule.maxValue });
+      return readImageList(value, {
+        name, minValue: rule.minValue, maxValue: rule.maxValue, dialogOptions: rule.dialogOptions
+      });
     case 'actions':
-      return readActionList(value, { name, minValue: rule.minValue || 0 });
+      return readActionList(value, { name, minValue: rule.minValue || 0, dialogOptions: rule.dialogOptions });
     case 'hours':
       return readDayHours(value, name);
     default:
@@ -596,14 +671,16 @@ const LOCATION_RULES = [
   ['formattedAddress', { kind: 'string', nullable: true }],
   ['addressAlias', { kind: 'string', nullable: true }],
   ['listImage', {
-    kind: 'image', required: true, minValue: 1, maxValue: 1
+    kind: 'image', required: true, minValue: 1, maxValue: 1, dialogOptions: IMAGE_DIALOG
   }],
   ['description', { kind: 'wysiwyg', required: true }],
-  ['images', { kind: 'image', nullable: true, minValue: 0 }],
+  ['images', {
+    kind: 'image', nullable: true, minValue: 0, dialogOptions: IMAGE_DIALOG
+  }],
   ['categories', { kind: 'string', nullable: true }],
   ['markerType', { kind: 'select', values: MARKER_TYPES }],
   ['markerImage', {
-    kind: 'image', nullable: true, minValue: 0, maxValue: 1
+    kind: 'image', nullable: true, minValue: 0, maxValue: 1, dialogOptions: IMAGE_DIALOG
   }],
   ['markerColor', { kind: 'color', nullable: true }],
   ['showCategory', { kind: 'boolean' }],
@@ -612,7 +689,9 @@ const LOCATION_RULES = [
   ['showStarRating', { kind: 'boolean' }],
   ['priceRange', { kind: 'select', values: PRICE_RANGES }],
   ['priceCurrency', { kind: 'select', values: CURRENCIES }],
-  ['actionItems', { kind: 'actions', nullable: true, minValue: 0 }],
+  ['actionItems', {
+    kind: 'actions', nullable: true, minValue: 0, dialogOptions: ACTION_DIALOG
+  }],
   ['pinned', { kind: 'boolean' }],
   ...WEEK_DAYS.map((day) => [`${day}Hours`, { kind: 'hours' }])
 ];
@@ -628,7 +707,7 @@ const loadActiveCategories = (callback) => {
 
 /**
  * Parses a location's categories from text in the format the plugin's CSV import and export use: "Category -> Subcategory, Category -> Other subcategory, Another category". Every name must match exactly one category (and subcategory within it) that exists; nothing is created.
- * @returns {{ value?: { main: string[], subcategories: string[] }, error?: string }}
+ * @returns {{ value?: { main: string[], subcategories: string[] }, error?: string, code?: string }}
  */
 const parseCategoriesText = (text, categories) => {
   const result = { main: [], subcategories: [] };
@@ -637,14 +716,14 @@ const parseCategoriesText = (text, categories) => {
   for (let i = 0; i < parts.length; i++) {
     const [categoryTitle, subcategoryTitle] = parts[i].split('->').map((part) => part.trim());
     const matches = categories.filter((category) => category.title === categoryTitle);
-    if (!matches.length) return { error: `No category is titled "${categoryTitle}"` };
-    if (matches.length > 1) return { error: `${matches.length} categories are titled "${categoryTitle}"` };
+    if (!matches.length) return { error: `No category is titled "${categoryTitle}"`, code: CODES.NOT_FOUND };
+    if (matches.length > 1) return { error: `${matches.length} categories are titled "${categoryTitle}"`, code: CODES.CONFLICT };
     const category = matches[0];
     if (!result.main.includes(category.id)) result.main.push(category.id);
     if (subcategoryTitle) {
       const subMatches = (category.subcategories || []).filter((sub) => sub.title === subcategoryTitle);
-      if (!subMatches.length) return { error: `No subcategory of "${categoryTitle}" is titled "${subcategoryTitle}"` };
-      if (subMatches.length > 1) return { error: `${subMatches.length} subcategories of "${categoryTitle}" are titled "${subcategoryTitle}"` };
+      if (!subMatches.length) return { error: `No subcategory of "${categoryTitle}" is titled "${subcategoryTitle}"`, code: CODES.NOT_FOUND };
+      if (subMatches.length > 1) return { error: `${subMatches.length} subcategories of "${categoryTitle}" are titled "${subcategoryTitle}"`, code: CODES.CONFLICT };
       if (!result.subcategories.includes(subMatches[0].id)) result.subcategories.push(subMatches[0].id);
     }
   }
@@ -859,13 +938,14 @@ const locationEventDetails = (id, data, categories) => ({
  * @param {object|null} current - the stored data, or null for a new location
  * @param {object} values - the params given, keyed by their create names
  * @param {Array} categories - the active categories
- * @returns {{ data?: object, error?: string }}
+ * @returns {{ data?: object, error?: string, code?: string }}
  */
 const prepareLocation = (current, values, categories) => {
   let parsedCategories;
   if ('categories' in values) {
     const parsed = parseCategoriesText(values.categories, categories);
-    if (parsed.error) return { error: parsed.error };
+    // a category name nothing has (or several share) keeps its own code
+    if (parsed.error) return parsed;
     parsedCategories = parsed.value;
   }
   const data = applyLocationValues(JSON.parse(JSON.stringify(current || {})), values, parsedCategories);
@@ -886,7 +966,7 @@ const pinIndexFor = (id, currentPin, pinned, pinnedRecords) => {
   if (!pinned) return { value: null };
   if (currentPin) return { value: currentPin };
   const others = pinnedRecords.filter((record) => record.id !== id);
-  if (others.length >= MAX_PINNED) return { error: `Up to ${MAX_PINNED} locations can be pinned; unpin one first` };
+  if (others.length >= MAX_PINNED) return { error: `Up to ${MAX_PINNED} locations can be pinned; unpin one first`, code: CODES.LIMIT_EXCEEDED };
   return { value: others.length + 1 };
 };
 
@@ -904,7 +984,8 @@ const insertLocation = (data, categories, callback) => {
     registerAnalyticsEvent(`${result.data.title} (Viewed)`, `locations_${result.id}_viewed`);
     registerLocationDeeplink(result.id, result.data);
     indexLocation(result.id, result.data, (indexErr) => {
-      if (indexErr) return fail(callback, `The location was added, but adding it to the app's search failed: ${indexErr.message || indexErr}`);
+      // Not a refusal: the search engine's own failure, after the write, passed on without a code of ours.
+      if (indexErr) return callback(new Error(`The location was added, but adding it to the app's search failed: ${indexErr.message || indexErr}`), undefined);
       syncWidget('locations');
       sendEvent('locationCreated', {
         ...locationEventDetails(result.id, result.data, categories),
@@ -927,7 +1008,8 @@ const saveLocation = (record, data, categories, callback) => {
     const saved = (result && result.data) ? result : { id: record.id, data: stored };
     registerLocationDeeplink(record.id, saved.data);
     indexLocation(record.id, saved.data, (indexErr) => {
-      if (indexErr) return fail(callback, `The location was saved, but updating it in the app's search failed: ${indexErr.message || indexErr}`);
+      // Not a refusal: the search engine's own failure, after the write, passed on without a code of ours.
+      if (indexErr) return callback(new Error(`The location was saved, but updating it in the app's search failed: ${indexErr.message || indexErr}`), undefined);
       syncWidget('locations');
       sendEvent('locationUpdated', {
         ...locationEventDetails(record.id, saved.data, categories),
@@ -955,10 +1037,11 @@ const loadLocationContext = (callback) => {
 const createLocationFrom = (params, context, callback) => {
   // Without a map pick there is no geocoded address; like the AI generator, the address stands in for it.
   const values = 'formattedAddress' in params ? params : { ...params, formattedAddress: params.address };
-  const { data, error } = prepareLocation(null, values, context.categories);
-  if (error) return fail(callback, error);
+  const prepared = prepareLocation(null, values, context.categories);
+  if (prepared.error) return failWith(callback, prepared);
+  const { data } = prepared;
   const pin = pinIndexFor(null, null, values.pinned, context.pinned);
-  if (pin.error) return fail(callback, pin.error);
+  if (pin.error) return failWith(callback, pin);
   data.pinIndex = pin.value;
   insertLocation(data, context.categories, (err, view) => {
     if (err) return callback(err, undefined);
@@ -977,10 +1060,11 @@ const readLocationChanges = (options) => {
 
 /** Updates one found location with changes already read. Shared by updateLocation, updateLocationAdvanced and updateLocationsAdvanced. */
 const updateLocationWith = (record, changes, context, callback) => {
-  const { data, error } = prepareLocation(record.data, changes, context.categories);
-  if (error) return fail(callback, error);
+  const prepared = prepareLocation(record.data, changes, context.categories);
+  if (prepared.error) return failWith(callback, prepared);
+  const { data } = prepared;
   const pin = pinIndexFor(record.id, record.data.pinIndex, changes.pinned, context.pinned);
-  if (pin.error) return fail(callback, pin.error);
+  if (pin.error) return failWith(callback, pin);
   data.pinIndex = pin.value;
   saveLocation(record, data, context.categories, (err, view) => {
     if (err) return callback(err, undefined);
@@ -1011,7 +1095,7 @@ const deleteLocationRecord = (record, callback) => {
 
 /** Moves a pinned location to a new position, renumbering every pinned location as the pinned list's drag-to-reorder does. */
 const movePinnedLocation = (record, position, callback) => {
-  if (!record.data.pinIndex) return fail(callback, `"${record.data.title}" is not pinned`);
+  if (!record.data.pinIndex) return fail(callback, `"${record.data.title}" is not pinned`, CODES.CONFLICT);
   loadLocationContext((err, context) => {
     if (err) return callback(err, undefined);
     const pinned = context.pinned.slice();
@@ -1076,7 +1160,7 @@ const categoryView = (record) => ({
 // icon is the picture picked from the image library; iconName a font icon from its icon tab. The picker sets one and clears the other.
 const ICON_RULES = [
   ['icon', {
-    kind: 'image', nullable: true, minValue: 0, maxValue: 1
+    kind: 'image', nullable: true, minValue: 0, maxValue: 1, dialogOptions: IMAGE_DIALOG
   }],
   ['iconName', { kind: 'string', nullable: true }]
 ];
@@ -1115,7 +1199,7 @@ const resolveCategoryByTitle = (title, callback) => {
 const requireCategoryById = (categoryId, callback) => {
   getPublicRecord(categoryId, CATEGORIES_TAG, 'category', (err, record) => {
     if (err) return callback(err, undefined);
-    if (record.data.deletedOn) return fail(callback, `No category with id "${categoryId}"`);
+    if (record.data.deletedOn) return fail(callback, `No category with id "${categoryId}"`, CODES.NOT_FOUND);
     callback(null, record);
   });
 };
@@ -1199,7 +1283,7 @@ const findSubcategory = (record, subcategoryTitle, callback) => {
 };
 const requireSubcategoryById = (record, subcategoryId, callback) => {
   const sub = (record.data.subcategories || []).find((s) => s.id === subcategoryId);
-  if (!sub) return fail(callback, `No subcategory of "${record.data.title}" has the id "${subcategoryId}"`);
+  if (!sub) return fail(callback, `No subcategory of "${record.data.title}" has the id "${subcategoryId}"`, CODES.NOT_FOUND);
   callback(null, sub);
 };
 
@@ -1472,7 +1556,9 @@ const SETTINGS_FIELDS = [
   ['introAreaRadius', {
     kind: 'number', nullable: true, minValue: 1, maxValue: 200
   }, ['introductoryListView', 'searchOptions', 'areaRadiusOptions', 'radius'], 'intro'],
-  ['introImages', { kind: 'actions', nullable: true, minValue: 0 }, ['introductoryListView', 'images'], 'intro']
+  ['introImages', {
+    kind: 'actions', nullable: true, minValue: 0, dialogOptions: CAROUSEL_DIALOG
+  }, ['introductoryListView', 'images'], 'intro']
 ];
 
 const locationFieldView = (field, section) => ({
@@ -1548,7 +1634,7 @@ const findLocationFieldByLabel = (settings, label, callback) => {
 };
 const findLocationFieldById = (settings, fieldId, callback) => {
   const field = allLocationFields(settings).find((f) => f.id === fieldId);
-  if (!field) return fail(callback, `No location field with id "${fieldId}"`);
+  if (!field) return fail(callback, `No location field with id "${fieldId}"`, CODES.NOT_FOUND);
   callback(null, field);
 };
 
@@ -1630,12 +1716,12 @@ const languageTextsView = (doc) => ({
 // Batches
 // ---------------------------------------------------------------------------
 
-/** The entries of a batch call, checked for count. */
-const readBatchEntries = (options, listName, callback) => {
+/** The entries of a batch call, checked for the count the operation declares (50, or ten for location fields, all a page can hold). */
+const readBatchEntries = (options, listName, callback, maxEntries = BATCH_LIMIT) => {
   requireCallback(callback);
   const entries = isObject(options) ? options[listName] : undefined;
-  if (!Array.isArray(entries) || entries.length < 1 || entries.length > BATCH_LIMIT) {
-    fail(callback, `${listName} must be a list of 1 to ${BATCH_LIMIT} entries`);
+  if (!Array.isArray(entries) || entries.length < 1 || entries.length > maxEntries) {
+    fail(callback, `${listName} must be a list of 1 to ${maxEntries} entries`);
     return null;
   }
   const notObject = entries.findIndex((entry) => !isObject(entry));
@@ -1658,20 +1744,32 @@ const duplicateEntries = (entries, keyOf) => {
   return duplicates;
 };
 
-/** Checks every entry's ids exist before any write: checkOne(entry, index, done(err, found)). */
+/** Checks every entry's ids exist before any write: checkOne(entry, index, done(err, found)). An id nothing has makes the call notFound; a store's own error is passed on as it is. */
 const checkAllExist = (entries, checkOne, callback) => {
   const found = [];
   const missing = [];
+  let storeError = null;
   eachInSeries(entries, (entry, index, next) => {
     checkOne(entry, index, (err, value) => {
-      if (err) missing.push(`entry ${index}: ${err.message || err}`);
+      if (err && err.code === CODES.NOT_FOUND) missing.push(`entry ${index}: ${err.message || err}`);
+      else if (err) storeError = storeError || err;
       else found[index] = value;
       next();
     });
   }, () => {
-    if (missing.length) return fail(callback, `Not found: ${missing.join('; ')}`);
+    if (storeError) return callback(storeError, undefined);
+    if (missing.length) return fail(callback, `Not found: ${missing.join('; ')}`, CODES.NOT_FOUND);
     callback(null, found);
   });
+};
+
+/** Refuses a batch whose entries failed their checks: validation when any entry is invalid, else the code its first entry's check gave (a category name nothing has is notFound). */
+const refuseEntries = (callback, outcomes) => {
+  const problems = outcomes.map((outcome, index) => (outcome && outcome.error ? { message: `entry ${index}: ${outcome.error}`, code: outcome.code || CODES.VALIDATION } : null)).filter(Boolean);
+  if (!problems.length) return false;
+  const code = problems.some((problem) => problem.code === CODES.VALIDATION) ? CODES.VALIDATION : problems[0].code;
+  fail(callback, `Invalid entries: ${problems.map((problem) => problem.message).join('; ')}`, code);
+  return true;
 };
 
 /** Applies each entry in turn and reports every outcome; a failed write is recorded, not a stop. */
@@ -1805,7 +1903,7 @@ widgetContract = {
       if (values.searchText) filter['_buildfire.index.text'] = { $regex: values.searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
       if (values.category) {
         const parsed = parseCategoriesText(values.subcategory ? `${values.category} -> ${values.subcategory}` : values.category, categories);
-        if (parsed.error) return fail(callback, parsed.error);
+        if (parsed.error) return failWith(callback, parsed);
         const tokens = values.subcategory ? [`s_${parsed.value.subcategories[0]}`] : [`c_${parsed.value.main[0]}`];
         filter['_buildfire.index.array1.string1'] = { $in: tokens };
       }
@@ -1893,13 +1991,9 @@ widgetContract = {
     if (invalid.length) return fail(callback, `Invalid entries: ${invalid.join('; ')}`);
     loadLocationContext((err, context) => {
       if (err) return callback(err, undefined);
-      const problems = read.map((r, index) => {
-        const { error } = prepareLocation(null, r.values, context.categories);
-        return error ? `entry ${index}: ${error}` : null;
-      }).filter(Boolean);
-      if (problems.length) return fail(callback, `Invalid entries: ${problems.join('; ')}`);
+      if (refuseEntries(callback, read.map((r) => prepareLocation(null, r.values, context.categories)))) return;
       const pinning = read.filter((r) => r.values.pinned).length;
-      if (context.pinned.length + pinning > MAX_PINNED) return fail(callback, `Up to ${MAX_PINNED} locations can be pinned; ${context.pinned.length} already are`);
+      if (context.pinned.length + pinning > MAX_PINNED) return fail(callback, `Up to ${MAX_PINNED} locations can be pinned; ${context.pinned.length} already are`, CODES.LIMIT_EXCEEDED);
       runBatch(read, 'locations', (r, index, done) => createLocationFrom(r.values, context, (createErr, view) => done(createErr, view && view.id)), callback);
     });
   },
@@ -1960,17 +2054,13 @@ widgetContract = {
       if (err) return callback(err, undefined);
       loadLocationContext((ctxErr, context) => {
         if (ctxErr) return callback(ctxErr, undefined);
-        const problems = read.map((r, index) => {
-          const { error } = prepareLocation(records[index].data, r.changes, context.categories);
-          return error ? `entry ${index}: ${error}` : null;
-        }).filter(Boolean);
-        if (problems.length) return fail(callback, `Invalid entries: ${problems.join('; ')}`);
+        if (refuseEntries(callback, read.map((r, index) => prepareLocation(records[index].data, r.changes, context.categories)))) return;
         const pinnedIds = new Set(context.pinned.map((p) => p.id));
         read.forEach((r, index) => {
           if (r.changes.pinned === true) pinnedIds.add(records[index].id);
           if (r.changes.pinned === false) pinnedIds.delete(records[index].id);
         });
-        if (pinnedIds.size > MAX_PINNED) return fail(callback, `Up to ${MAX_PINNED} locations can be pinned`);
+        if (pinnedIds.size > MAX_PINNED) return fail(callback, `Up to ${MAX_PINNED} locations can be pinned`, CODES.LIMIT_EXCEEDED);
         runBatch(read, 'locations', (r, index, done) => {
           // Read again right before writing, so an earlier entry's pin renumbering is not overwritten.
           requireLocationById(records[index].id, (getErr, fresh) => {
@@ -2519,7 +2609,9 @@ widgetContract = {
       });
       if (values.allowSortByNearest === false && values.defaultSorting === undefined) settings.sorting.defaultSorting = 'alphabetical';
       if (settings.sorting.allowSortByNearest === false && settings.sorting.defaultSorting === 'distance') {
-        return fail(callback, 'defaultSorting cannot be distance while allowSortByNearest is off');
+        // both given in this call: the call contradicts itself; otherwise it clashes with what is saved
+        const bothGiven = values.allowSortByNearest !== undefined && values.defaultSorting !== undefined;
+        return fail(callback, 'defaultSorting cannot be distance while allowSortByNearest is off', bothGiven ? CODES.VALIDATION : CODES.CONFLICT);
       }
       ['openHours', 'priceRange'].forEach((key) => {
         const entry = settings.globalEntries[key];
@@ -2547,7 +2639,7 @@ widgetContract = {
     if (error) return fail(callback, error);
     loadSettings((err, settings) => {
       if (err) return callback(err, undefined);
-      if (allLocationFields(settings).length >= MAX_LOCATION_FIELDS) return fail(callback, `Up to ${MAX_LOCATION_FIELDS} location fields can be added`);
+      if (allLocationFields(settings).length >= MAX_LOCATION_FIELDS) return fail(callback, `Up to ${MAX_LOCATION_FIELDS} location fields can be added`, CODES.LIMIT_EXCEEDED);
       settings.customFields[section].push(field);
       saveSettingsDocument(settings, ['customFields'], (saveErr, saved) => {
         if (saveErr) return callback(saveErr, undefined);
@@ -2562,7 +2654,7 @@ widgetContract = {
    * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
   createLocationFieldsAdvanced(options, callback) {
-    const entries = readBatchEntries(options, 'fields', callback);
+    const entries = readBatchEntries(options, 'fields', callback, MAX_LOCATION_FIELDS);
     if (!entries) return;
     const prepared = entries.map(prepareLocationField);
     const invalid = prepared.map((p, index) => (p.error ? `entry ${index}: ${p.error}` : null)).filter(Boolean);
@@ -2570,7 +2662,7 @@ widgetContract = {
     loadSettings((err, settings) => {
       if (err) return callback(err, undefined);
       const count = allLocationFields(settings).length;
-      if (count + prepared.length > MAX_LOCATION_FIELDS) return fail(callback, `Up to ${MAX_LOCATION_FIELDS} location fields can be added; ${count} already exist`);
+      if (count + prepared.length > MAX_LOCATION_FIELDS) return fail(callback, `Up to ${MAX_LOCATION_FIELDS} location fields can be added; ${count} already exist`, CODES.LIMIT_EXCEEDED);
       runBatch(prepared, 'fields', (p, index, done) => loadSettings((loadErr, current) => {
         if (loadErr) return done(loadErr);
         current.customFields[p.section].push(p.field);
@@ -2631,7 +2723,7 @@ widgetContract = {
    * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
   updateLocationFieldsAdvanced(options, callback) {
-    const entries = readBatchEntries(options, 'fields', callback);
+    const entries = readBatchEntries(options, 'fields', callback, MAX_LOCATION_FIELDS);
     if (!entries) return;
     const read = entries.map((entry) => ((typeof entry.fieldId !== 'string' || !entry.fieldId) ? { error: 'Missing required parameter: fieldId' } : readLocationFieldChanges(entry)));
     const invalid = read.map((r, index) => (r.error ? `entry ${index}: ${r.error}` : null)).filter(Boolean);
@@ -2651,7 +2743,7 @@ widgetContract = {
         runBatch(entries, 'fields', (entry, index, done) => loadSettings((loadErr, current) => {
           if (loadErr) return done(loadErr);
           const field = allLocationFields(current).find((f) => f.id === entry.fieldId);
-          if (!field) return done(new Error(`No location field with id "${entry.fieldId}"`));
+          if (!field) return done(contractError(CODES.NOT_FOUND, `No location field with id "${entry.fieldId}"`));
           applyLocationFieldChanges(current, field, read[index].changes);
           saveSettingsDocument(current, ['customFields'], (saveErr) => done(saveErr, entry.fieldId));
         }), callback);
@@ -2705,7 +2797,7 @@ widgetContract = {
    * @param {function(Error=, object=)} callback - (error, { fields, succeeded, failed })
    */
   deleteLocationFieldsAdvanced(options, callback) {
-    const entries = readBatchEntries(options, 'fields', callback);
+    const entries = readBatchEntries(options, 'fields', callback, MAX_LOCATION_FIELDS);
     if (!entries) return;
     const invalid = entries.map((entry, index) => ((typeof entry.fieldId !== 'string' || !entry.fieldId) ? `entry ${index}: Missing required parameter: fieldId` : null)).filter(Boolean);
     if (invalid.length) return fail(callback, `Invalid entries: ${invalid.join('; ')}`);
@@ -2718,7 +2810,7 @@ widgetContract = {
         runBatch(entries, 'fields', (entry, index, done) => loadSettings((loadErr, current) => {
           if (loadErr) return done(loadErr);
           const field = allLocationFields(current).find((f) => f.id === entry.fieldId);
-          if (!field) return done(new Error(`No location field with id "${entry.fieldId}"`));
+          if (!field) return done(contractError(CODES.NOT_FOUND, `No location field with id "${entry.fieldId}"`));
           current.customFields[field.section] = current.customFields[field.section].filter((f) => f.id !== field.id);
           saveSettingsDocument(current, ['customFields'], (saveErr) => done(saveErr, entry.fieldId));
         }), callback);

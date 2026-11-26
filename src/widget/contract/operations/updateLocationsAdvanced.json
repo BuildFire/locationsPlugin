@@ -99,6 +99,12 @@
           "required": false,
           "minValue": 1,
           "maxValue": 1,
+          "dialogOptions": {
+            "showIcons": true,
+            "showFiles": true,
+            "showStockImages": true,
+            "showAiImages": true
+          },
           "description": "The picture shown for it in lists, as a list holding one image. Leave it out to keep the current one.",
           "sampleValue": [
             "[image url]"
@@ -117,6 +123,12 @@
           "required": false,
           "nullable": true,
           "minValue": 0,
+          "dialogOptions": {
+            "showIcons": true,
+            "showFiles": true,
+            "showStockImages": true,
+            "showAiImages": true
+          },
           "description": "The pictures shown on its page, in order; they replace the current ones. Leave it out to keep the current ones, or pass an empty list to remove them.",
           "sampleValue": [
             "[image url]",
@@ -160,6 +172,12 @@
           "nullable": true,
           "minValue": 0,
           "maxValue": 1,
+          "dialogOptions": {
+            "showIcons": true,
+            "showFiles": true,
+            "showStockImages": true,
+            "showAiImages": true
+          },
           "description": "The picture used as its map marker when the marker type is image, as a list holding one image. Leave it out to keep the current one, or pass an empty list to remove it.",
           "sampleValue": [
             "[image url]"
@@ -251,6 +269,17 @@
           "required": false,
           "nullable": true,
           "minValue": 0,
+          "dialogOptions": {
+            "showIcon": true,
+            "imgLibOptions": {
+              "showIcons": true
+            },
+            "showTitle": false,
+            "hideActionText": false,
+            "allowNoAction": true,
+            "removePurchase": false,
+            "removePushNotifications": false
+          },
           "description": "The buttons on its page, in order; they replace the current ones. Leave it out to keep the current ones, or pass an empty list to remove them.",
           "sampleValue": [
             {

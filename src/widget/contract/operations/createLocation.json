@@ -81,6 +81,12 @@
       "required": true,
       "minValue": 1,
       "maxValue": 1,
+      "dialogOptions": {
+        "showIcons": true,
+        "showFiles": true,
+        "showStockImages": true,
+        "showAiImages": true
+      },
       "description": "The picture shown for it in lists, as a list holding one image.",
       "sampleValue": [
         "[image url]"
@@ -98,6 +104,12 @@
       "displayName": "Images",
       "required": false,
       "minValue": 0,
+      "dialogOptions": {
+        "showIcons": true,
+        "showFiles": true,
+        "showStockImages": true,
+        "showAiImages": true
+      },
       "description": "The pictures shown on its page, in order. Leave it out for none.",
       "sampleValue": [
         "[image url]",
@@ -139,6 +151,12 @@
       "required": false,
       "minValue": 0,
       "maxValue": 1,
+      "dialogOptions": {
+        "showIcons": true,
+        "showFiles": true,
+        "showStockImages": true,
+        "showAiImages": true
+      },
       "description": "The picture used as its map marker when the marker type is image, as a list holding one image. Leave it out for none.",
       "sampleValue": [
         "[image url]"
@@ -228,6 +246,17 @@
       "displayName": "Action items",
       "required": false,
       "minValue": 0,
+      "dialogOptions": {
+        "showIcon": true,
+        "imgLibOptions": {
+          "showIcons": true
+        },
+        "showTitle": false,
+        "hideActionText": false,
+        "allowNoAction": true,
+        "removePurchase": false,
+        "removePushNotifications": false
+      },
       "description": "The buttons on its page, such as calling it or opening its website, in order. Leave it out for none.",
       "sampleValue": [
         {
